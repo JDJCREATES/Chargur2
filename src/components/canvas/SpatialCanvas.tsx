@@ -34,21 +34,80 @@ export const SpatialCanvas: React.FC<SpatialCanvasProps> = ({
   const [isPanning, setIsPanning] = useState(false);
   const [lastPanPoint, setLastPanPoint] = useState({ x: 0, y: 0 });
   const [isToolbarCollapsed, setIsToolbarCollapsed] = useState(false);
+  const [lastProcessedData, setLastProcessedData] = useState<{ [key: string]: any }>({});
 
-  // Initialize canvas with data from stages
+  // Load canvas state from localStorage on mount
   useEffect(() => {
-    generateNodesFromStageData();
-  }, [stageData, currentStage]);
+    const savedNodes = localStorage.getItem('chargur-canvas-nodes');
+    const savedConnections = localStorage.getItem('chargur-canvas-connections');
+    const savedLastProcessed = localStorage.getItem('chargur-last-processed-data');
+    
+    if (savedNodes) {
+      try {
+        setNodes(JSON.parse(savedNodes));
+      } catch (e) {
+        console.warn('Failed to load saved nodes');
+      }
+    }
+    
+    if (savedConnections) {
+      try {
+        setConnections(JSON.parse(savedConnections));
+      } catch (e) {
+        console.warn('Failed to load saved connections');
+      }
+    }
+    
+    if (savedLastProcessed) {
+      try {
+        setLastProcessedData(JSON.parse(savedLastProcessed));
+      } catch (e) {
+        console.warn('Failed to load last processed data');
+      }
+    }
+  }, []);
 
-  const generateNodesFromStageData = () => {
+  // Save canvas state to localStorage whenever nodes or connections change
+  useEffect(() => {
+    localStorage.setItem('chargur-canvas-nodes', JSON.stringify(nodes));
+  }, [nodes]);
+
+  useEffect(() => {
+    localStorage.setItem('chargur-canvas-connections', JSON.stringify(connections));
+  }, [connections]);
+
+  useEffect(() => {
+    localStorage.setItem('chargur-last-processed-data', JSON.stringify(lastProcessedData));
+  }, [lastProcessedData]);
+
+  // Update canvas with new data from stages (additive approach)
+  useEffect(() => {
+    updateCanvasFromStageData();
+  }, [stageData]);
+
+  const updateCanvasFromStageData = () => {
     const newNodes: CanvasNodeData[] = [];
     let nodeId = 1;
-    let xOffset = 100;
-    let yOffset = 100;
 
-    // Generate concept cluster from ideation data
+    // Check what data has changed and only add new nodes
+    const currentDataHash = JSON.stringify(stageData);
+    const lastDataHash = JSON.stringify(lastProcessedData);
+    
+    if (currentDataHash === lastDataHash) {
+      return; // No changes, don't update
+    }
+
+    // Process ideation data
     const ideationData = stageData['ideation-discovery'];
-    if (ideationData) {
+    const lastIdeationData = lastProcessedData['ideation-discovery'] || {};
+    
+    if (ideationData && JSON.stringify(ideationData) !== JSON.stringify(lastIdeationData)) {
+      // Remove old ideation nodes
+      setNodes(prev => prev.filter(node => !node.metadata?.stage || node.metadata.stage !== 'ideation-discovery'));
+      
+      let xOffset = 100;
+      let yOffset = 100;
+      
       if (ideationData.appName || ideationData.appIdea) {
         newNodes.push({
           id: `concept-${nodeId++}`,
@@ -123,9 +182,14 @@ export const SpatialCanvas: React.FC<SpatialCanvasProps> = ({
       }
     }
 
-    // Generate feature cluster
+    // Process feature planning data
     const featureData = stageData['feature-planning'];
-    if (featureData) {
+    const lastFeatureData = lastProcessedData['feature-planning'] || {};
+    
+    if (featureData && JSON.stringify(featureData) !== JSON.stringify(lastFeatureData)) {
+      // Remove old feature nodes
+      setNodes(prev => prev.filter(node => !node.metadata?.stage || node.metadata.stage !== 'feature-planning'));
+      
       let featureX = 100;
       let featureY = 350;
       
@@ -192,9 +256,14 @@ export const SpatialCanvas: React.FC<SpatialCanvasProps> = ({
       }
     }
 
-    // Generate UX flow cluster
+    // Process structure flow data
     const structureData = stageData['structure-flow'];
-    if (structureData) {
+    const lastStructureData = lastProcessedData['structure-flow'] || {};
+    
+    if (structureData && JSON.stringify(structureData) !== JSON.stringify(lastStructureData)) {
+      // Remove old structure nodes
+      setNodes(prev => prev.filter(node => !node.metadata?.stage || node.metadata.stage !== 'structure-flow'));
+      
       let flowX = 100;
       let flowY = 600;
       
@@ -231,9 +300,14 @@ export const SpatialCanvas: React.FC<SpatialCanvasProps> = ({
       }
     }
 
-    // Generate system cluster
+    // Process architecture data
     const architectureData = stageData['architecture-design'];
-    if (architectureData) {
+    const lastArchitectureData = lastProcessedData['architecture-design'] || {};
+    
+    if (architectureData && JSON.stringify(architectureData) !== JSON.stringify(lastArchitectureData)) {
+      // Remove old architecture nodes
+      setNodes(prev => prev.filter(node => !node.metadata?.stage || node.metadata.stage !== 'architecture-design'));
+      
       let systemX = 100;
       let systemY = 800;
       
@@ -268,16 +342,22 @@ export const SpatialCanvas: React.FC<SpatialCanvasProps> = ({
       }
     }
 
-    // Add AI agent output node with dynamic content
-    if (newNodes.length > 2) {
+    // Update AI analysis node
+    const totalStageNodes = newNodes.length;
+    const existingNodes = nodes.filter(n => !n.metadata?.generated);
+    const totalNodes = existingNodes.length + totalStageNodes;
+    
+    if (totalNodes > 0) {
+      // Remove old AI analysis node
+      setNodes(prev => prev.filter(node => !node.metadata?.generated));
+      
       const completedStages = Object.keys(stageData).length;
-      const totalNodes = newNodes.length;
       
       newNodes.push({
         id: `agent-output-${nodeId++}`,
         type: 'agent-output',
         title: 'AI Analysis',
-        content: `Project Analysis:\n\n• ${totalNodes} components mapped\n• ${completedStages} stages completed\n• Ready for ${completedStages < 3 ? 'more planning' : 'development'}`,
+        content: `Project Analysis:\n\n• ${totalNodes} components mapped\n• ${completedStages} stages with data\n• Ready for ${completedStages < 3 ? 'more planning' : 'development'}`,
         position: { x: 750, y: 100 },
         size: { width: 200, height: 120 },
         color: 'gray',
@@ -291,8 +371,23 @@ export const SpatialCanvas: React.FC<SpatialCanvasProps> = ({
       });
     }
 
-    setNodes(newNodes);
+    // Add new nodes to existing ones
+    if (newNodes.length > 0) {
+      setNodes(prev => [...prev, ...newNodes]);
+    }
+    
+    // Update last processed data
+    setLastProcessedData({ ...stageData });
   };
+
+  const clearCanvas = useCallback(() => {
+    setNodes([]);
+    setConnections([]);
+    setLastProcessedData({});
+    localStorage.removeItem('chargur-canvas-nodes');
+    localStorage.removeItem('chargur-canvas-connections');
+    localStorage.removeItem('chargur-last-processed-data');
+  }, []);
 
   const addNode = useCallback((type: CanvasNodeData['type']) => {
     const newNode: CanvasNodeData = {
@@ -441,6 +536,7 @@ export const SpatialCanvas: React.FC<SpatialCanvasProps> = ({
         onExport={() => console.log('Export canvas')}
         onToggleGrid={() => setShowGrid(prev => !prev)}
         onAutoLayout={autoLayout}
+        onClearCanvas={clearCanvas}
         showGrid={showGrid}
         scale={scale}
         isCollapsed={isToolbarCollapsed}

@@ -29,6 +29,7 @@ interface CanvasToolbarProps {
   onExport: () => void;
   onToggleGrid: () => void;
   onAutoLayout: () => void;
+  onClearCanvas?: () => void;
   showGrid: boolean;
   scale: number;
   isCollapsed?: boolean;
@@ -44,6 +45,7 @@ export const CanvasToolbar: React.FC<CanvasToolbarProps> = ({
   onExport,
   onToggleGrid,
   onAutoLayout,
+  onClearCanvas,
   showGrid,
   scale,
   isCollapsed = false,
@@ -169,6 +171,15 @@ export const CanvasToolbar: React.FC<CanvasToolbarProps> = ({
             >
               <Download className="w-4 h-4 text-gray-600" />
             </button>
+            {onClearCanvas && (
+              <button
+                onClick={onClearCanvas}
+                className="p-1 hover:bg-red-100 rounded transition-colors"
+                title="Clear Canvas"
+              >
+                <RotateCcw className="w-4 h-4 text-red-600" />
+              </button>
+            )}
           </div>
         </div>
       </div>
