@@ -11,6 +11,7 @@ import { Send, Brain, Loader2, Wand2, Sparkles, CheckCircle, ArrowRight } from '
 import { CanvasHeader } from './CanvasHeader';
 import { SpatialCanvas } from '../canvas/SpatialCanvas';
 import { useAgent } from '../agent/AgentContextProvider';
+import { ChatStorageManager } from '../../lib/chat/chatStorage';
 import { Stage } from '../../types';
 
 interface CanvasProps {
@@ -48,6 +49,9 @@ export const Canvas: React.FC<CanvasProps> = ({
   const [streamingContent, setStreamingContent] = useState('');
   const [pendingAutoFill, setPendingAutoFill] = useState<any>(null);
   const [showConfirmation, setShowConfirmation] = useState(false);
+  const [currentConversationId, setCurrentConversationId] = useState<string | null>(null);
+  const [lastTokenIndex, setLastTokenIndex] = useState(-1);
+  const [isRecovering, setIsRecovering] = useState(false);
   
   const { updateAgentMemory, getStageRecommendations } = useAgent();
 
@@ -62,6 +66,9 @@ export const Canvas: React.FC<CanvasProps> = ({
   const sendToAgent = async (userMessage: string) => {
     if (isAgentThinking) return;
 
+    // Check if we need to recover from a previous conversation
+    await checkAndRecoverPreviousConversation();
+
     // Add user message
     const userMsg: AgentMessage = {
       id: Date.now().toString(),
@@ -73,6 +80,28 @@ export const Canvas: React.FC<CanvasProps> = ({
     setAgentMessages(prev => [...prev, userMsg]);
     setIsAgentThinking(true);
     setStreamingContent('');
+
+    let conversationId = currentConversationId;
+    
+    try {
+      // Create new conversation if we don't have one
+      if (!conversationId) {
+        const conversation = await ChatStorageManager.createConversation(
+          currentStage?.id || 'ideation-discovery',
+          {
+            userMessage,
+            stageData: stageData[currentStage?.id || 'ideation-discovery'] || {},
+            allStageData: stageData
+          }
+        );
+        conversationId = conversation.id;
+        setCurrentConversationId(conversationId);
+        setLastTokenIndex(-1);
+      }
+    } catch (error) {
+      console.error('Failed to create conversation:', error);
+      // Continue without persistence for this session
+    }
 
     // Create AbortController for timeout handling
     const abortController = new AbortController();
@@ -103,7 +132,7 @@ export const Canvas: React.FC<CanvasProps> = ({
       }, TIMEOUT_DURATION);
 
       // Call the Supabase Edge Function
-      const response = await callSupabaseEdgeFunction(agentContext, abortController.signal);
+      const response = await callSupabaseEdgeFunction(agentContext, abortController.signal, conversationId);
       
       // Clear timeout if request completes successfully
       clearTimeout(timeoutId);
@@ -112,6 +141,8 @@ export const Canvas: React.FC<CanvasProps> = ({
       if (response.body) {
         const reader = response.body.getReader();
         let fullContent = '';
+        let tokenIndex = lastTokenIndex + 1;
+        const tokensToSave: Array<{index: number; content: string; type: 'content' | 'suggestion' | 'autofill' | 'complete'}> = [];
         
         try {
           while (true) {
@@ -129,7 +160,43 @@ export const Canvas: React.FC<CanvasProps> = ({
                   if (data.type === 'content') {
                     setStreamingContent(data.content);
                     fullContent = data.content;
+                    
+                    // Save token incrementally
+                    tokensToSave.push({
+                      index: tokenIndex++,
+                      content: data.content,
+                      type: 'content'
+                    });
+                    
+                    // Save tokens every 10 tokens or every 2 seconds
+                    if (tokensToSave.length >= 10) {
+                      await saveTokensBatch(conversationId, tokensToSave);
+                      setLastTokenIndex(tokenIndex - 1);
+                    }
+                    
                   } else if (data.type === 'complete') {
+                    // Save any remaining tokens
+                    if (tokensToSave.length > 0) {
+                      await saveTokensBatch(conversationId, tokensToSave);
+                    }
+                    
+                    // Save completion data
+                    if (conversationId) {
+                      try {
+                        await ChatStorageManager.saveCompleteResponse(conversationId, {
+                          full_content: fullContent,
+                          suggestions: data.suggestions || [],
+                          auto_fill_data: data.autoFillData || {},
+                          stage_complete: data.stageComplete || false,
+                          context: data.context || {}
+                        });
+                        
+                        await ChatStorageManager.updateConversationStatus(conversationId, 'completed');
+                      } catch (error) {
+                        console.error('Failed to save complete response:', error);
+                      }
+                    }
+                    
                     // Create final agent message
                     const agentMsg: AgentMessage = {
                       id: (Date.now() + 1).toString(),
@@ -162,6 +229,16 @@ export const Canvas: React.FC<CanvasProps> = ({
                     });
                   } else if (data.type === 'error') {
                     console.error('❌ Server error:', data.error);
+                    
+                    // Mark conversation as failed
+                    if (conversationId) {
+                      try {
+                        await ChatStorageManager.updateConversationStatus(conversationId, 'failed');
+                      } catch (error) {
+                        console.error('Failed to update conversation status:', error);
+                      }
+                    }
+                    
                     throw new Error(data.error || 'Server error occurred');
                   }
                 } catch (e) {
@@ -170,6 +247,13 @@ export const Canvas: React.FC<CanvasProps> = ({
               }
             }
           }
+          
+          // Save any remaining tokens
+          if (tokensToSave.length > 0 && conversationId) {
+            await saveTokensBatch(conversationId, tokensToSave);
+            setLastTokenIndex(tokenIndex - 1);
+          }
+          
         } finally {
           // Always release the reader
           reader.releaseLock();
@@ -180,6 +264,15 @@ export const Canvas: React.FC<CanvasProps> = ({
       // Clear timeout on error
       if (timeoutId) {
         clearTimeout(timeoutId);
+      }
+      
+      // Mark conversation as failed on error
+      if (conversationId) {
+        try {
+          await ChatStorageManager.updateConversationStatus(conversationId, 'failed');
+        } catch (error) {
+          console.error('Failed to update conversation status:', error);
+        }
       }
       
       console.error('Agent error:', error);
@@ -214,7 +307,110 @@ export const Canvas: React.FC<CanvasProps> = ({
     }
   };
 
-  const callSupabaseEdgeFunction = async (context: any, signal?: AbortSignal) => {
+  // Helper function to save tokens in batches
+  const saveTokensBatch = async (conversationId: string | null, tokens: Array<{index: number; content: string; type: 'content' | 'suggestion' | 'autofill' | 'complete'}>) => {
+    if (!conversationId || tokens.length === 0) return;
+    
+    try {
+      await ChatStorageManager.saveResponseTokens(conversationId, tokens);
+      tokens.length = 0; // Clear the array
+    } catch (error) {
+      console.error('Failed to save token batch:', error);
+    }
+  };
+
+  // Check for and recover from previous conversation
+  const checkAndRecoverPreviousConversation = async () => {
+    if (isRecovering || currentConversationId) return;
+    
+    setIsRecovering(true);
+    
+    try {
+      // Check localStorage for conversation ID
+      const savedConversationId = localStorage.getItem('current-conversation-id');
+      if (!savedConversationId) {
+        setIsRecovering(false);
+        return;
+      }
+      
+      // Check if conversation exists and is active
+      const conversation = await ChatStorageManager.getConversation(savedConversationId);
+      if (!conversation || conversation.status !== 'active') {
+        localStorage.removeItem('current-conversation-id');
+        setIsRecovering(false);
+        return;
+      }
+      
+      // Check if there's a complete response
+      const completeResponse = await ChatStorageManager.getCompleteResponse(savedConversationId);
+      if (completeResponse && completeResponse.is_complete) {
+        // Display the complete response
+        const agentMsg: AgentMessage = {
+          id: Date.now().toString(),
+          type: 'agent',
+          content: completeResponse.full_content,
+          timestamp: new Date(),
+          suggestions: completeResponse.suggestions || [],
+          autoFillData: completeResponse.auto_fill_data || {},
+          stageComplete: completeResponse.stage_complete || false,
+        };
+        
+        setAgentMessages(prev => [...prev, agentMsg]);
+        
+        // Handle auto-fill data if present
+        if (completeResponse.auto_fill_data && Object.keys(completeResponse.auto_fill_data).length > 0) {
+          handleAutoFillData(completeResponse.auto_fill_data);
+        }
+        
+        // Clean up
+        localStorage.removeItem('current-conversation-id');
+        setCurrentConversationId(null);
+      } else {
+        // Recover partial content from tokens
+        const reconstructedContent = await ChatStorageManager.reconstructContentFromTokens(savedConversationId);
+        if (reconstructedContent) {
+          setStreamingContent(reconstructedContent);
+          
+          // Show recovery message
+          const recoveryMsg: AgentMessage = {
+            id: Date.now().toString(),
+            type: 'system',
+            content: '🔄 Recovered partial response from previous session. The AI is continuing to process your request...',
+            timestamp: new Date(),
+          };
+          setAgentMessages(prev => [...prev, recoveryMsg]);
+        }
+        
+        // Set up for continuation
+        setCurrentConversationId(savedConversationId);
+        const lastIndex = await ChatStorageManager.getLastTokenIndex(savedConversationId);
+        setLastTokenIndex(lastIndex);
+      }
+    } catch (error) {
+      console.error('Failed to recover conversation:', error);
+      localStorage.removeItem('current-conversation-id');
+    }
+    
+    setIsRecovering(false);
+  };
+
+  // Save conversation ID to localStorage when it changes
+  React.useEffect(() => {
+    if (currentConversationId) {
+      localStorage.setItem('current-conversation-id', currentConversationId);
+    } else {
+      localStorage.removeItem('current-conversation-id');
+    }
+  }, [currentConversationId]);
+
+  // Clean up conversation on successful completion
+  const cleanupConversation = () => {
+    setCurrentConversationId(null);
+    setLastTokenIndex(-1);
+    localStorage.removeItem('current-conversation-id');
+  };
+
+  const callSupabaseEdgeFunction = async (context: any, signal?: AbortSignal, conversationId?: string | null) => {
     const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
     const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY;
     
@@ -228,7 +424,11 @@ export const Canvas: React.FC<CanvasProps> = ({
         'Content-Type': 'application/json',
         'Authorization': `Bearer ${supabaseAnonKey}`,
       },
-      body: JSON.stringify(context),
+      body: JSON.stringify({
+        ...context,
+        conversationId,
+        lastTokenIndex
+      }),
       signal, // Pass the abort signal to fetch
     });
 
@@ -279,6 +479,9 @@ export const Canvas: React.FC<CanvasProps> = ({
     
     // Complete current stage
     onCompleteStage(currentStage.id);
+    
+    // Clean up conversation
+    cleanupConversation();
     
     // Move to next stage
     const nextStage = getNextStage();
@@ -434,6 +637,9 @@ export const Canvas: React.FC<CanvasProps> = ({
                     <Brain className="w-8 h-8 mx-auto mb-2 text-gray-400" />
                     <p className="text-sm">Hi! I'm your AI UX agent.</p>
                     <p className="text-xs mt-1">Tell me about your app idea to get started!</p>
+                    {isRecovering && (
+                      <p className="text-xs mt-2 text-blue-600">🔄 Checking for previous conversations...</p>
+                    )}
                   </div>
                 )}
                 

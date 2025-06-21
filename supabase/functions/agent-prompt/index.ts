@@ -168,6 +168,8 @@ interface AgentRequest {
   userMessage: string
   memory: any
   recommendations?: any[]
+  conversationId?: string
+  lastTokenIndex?: number
 }
 
 interface AgentResponse {
@@ -186,7 +188,7 @@ serve(async (req) => {
   }
 
   try {
-    const { stageId, currentStageData, allStageData, conversationHistory, userMessage, memory, recommendations }: AgentRequest = await req.json()
+    const { stageId, currentStageData, allStageData, conversationHistory, userMessage, memory, recommendations, conversationId, lastTokenIndex }: AgentRequest = await req.json()
 
     // Create a streaming response
     const stream = new ReadableStream({
@@ -199,7 +201,9 @@ serve(async (req) => {
           conversationHistory,
           userMessage,
           memory,
-          recommendations
+          recommendations,
+          conversationId,
+          lastTokenIndex
         })
       }
     })
@@ -226,7 +230,7 @@ serve(async (req) => {
 })
 
 async function processAgentRequest(controller: ReadableStreamDefaultController, request: AgentRequest) {
-  const { stageId, currentStageData, allStageData, userMessage, memory, recommendations } = request
+  const { stageId, currentStageData, allStageData, userMessage, memory, recommendations, conversationId, lastTokenIndex } = request
 
   try {
     console.log('🔍 Starting processAgentRequest for stage:', stageId)
@@ -277,6 +281,7 @@ async function processAgentRequest(controller: ReadableStreamDefaultController, 
     console.log('📝 Total words to stream:', words.length)
     
     let streamClosed = false
+    let tokenIndex = (lastTokenIndex || -1) + 1
     
     for (let i = 0; i < words.length; i++) {
       // Check if stream is already closed before attempting to enqueue
@@ -293,7 +298,13 @@ async function processAgentRequest(controller: ReadableStreamDefaultController, 
       }
       
       try {
-        controller.enqueue(`data: ${JSON.stringify({ type: 'content', content: chunk })}\n\n`)
+        const tokenData = {
+          type: 'content',
+          content: chunk,
+          conversationId,
+          tokenIndex: tokenIndex++
+        }
+        controller.enqueue(`data: ${JSON.stringify(tokenData)}\n\n`)
       } catch (error) {
         if (error instanceof TypeError && error.message.includes('cannot close or enqueue')) {
           console.log('🔌 Client disconnected during streaming, stopping gracefully')
@@ -322,10 +333,12 @@ async function processAgentRequest(controller: ReadableStreamDefaultController, 
     // Send completion data with error handling
     if (!streamClosed) {
       try {
-        controller.enqueue(`data: ${JSON.stringify({ 
+        const completionData = {
           type: 'complete', 
-          ...response 
-        })}\n\n`)
+          ...response,
+          conversationId
+        }
+        controller.enqueue(`data: ${JSON.stringify(completionData)}\n\n`)
       } catch (error) {
         if (error instanceof TypeError && error.message.includes('cannot close or enqueue')) {
           console.log('🔌 Client disconnected before completion data could be sent')
@@ -368,10 +381,12 @@ async function processAgentRequest(controller: ReadableStreamDefaultController, 
     // Handle stream errors gracefully
     try {
       // Try to send an error message to the client first
-      controller.enqueue(`data: ${JSON.stringify({ 
+      const errorData = {
         type: 'error', 
-        error: 'Processing failed. Please try again.' 
-      })}\n\n`)
+        error: 'Processing failed. Please try again.',
+        conversationId
+      }
+      controller.enqueue(`data: ${JSON.stringify(errorData)}\n\n`)
       controller.close()
     } catch (controllerError) {
       console.log('🔌 Could not send error to client (likely disconnected)')
