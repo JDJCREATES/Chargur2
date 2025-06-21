@@ -18,12 +18,22 @@ The Chargur AI Agent is the intelligent core of our UX design and app architectu
    - Handles streaming responses and auto-fill confirmations
    - Manages stage progression and completion
 
-3. **Edge Function** (`supabase/functions/agent-prompt/index.ts`)
-   - Processes agent requests with full context
-   - Integrates with LLM APIs (OpenAI, Claude, etc.)
-   - Returns structured responses with auto-fill data
+3. **Prompt Engineering System** (`src/lib/prompts/stagePrompts.ts`)
+   - Stage-specific prompt generation with context awareness
+   - Structured response formatting and validation
+   - Cross-stage intelligence and recommendation logic
 
-4. **Spatial Canvas** (`src/components/canvas/SpatialCanvas.tsx`)
+4. **LLM Client** (`src/lib/llm/llmClient.ts`)
+   - Multi-provider LLM integration (OpenAI, Anthropic)
+   - Robust error handling and retry mechanisms
+   - Streaming response support and token management
+
+5. **Edge Function** (`supabase/functions/agent-prompt/index.ts`)
+   - Enhanced LLM integration with proper prompt engineering
+   - Structured response parsing and validation
+   - Advanced error handling and fallback mechanisms
+
+6. **Spatial Canvas** (`src/components/canvas/SpatialCanvas.tsx`)
    - Visual representation of project data
    - Dynamically updates based on agent interactions
    - Shows relationships between different project elements
@@ -59,37 +69,97 @@ The agent maintains awareness across all stages:
 - **Dependency Detection**: Warns about missing requirements or conflicts
 - **Progressive Enhancement**: Builds upon previous work intelligently
 
+## Robust Prompt Engineering
+
+### Stage-Specific Prompt Architecture
+Each stage has carefully crafted prompts that include:
+
+1. **Role Definition**: Clear AI persona and responsibilities
+2. **Context Integration**: Full project history and cross-stage data
+3. **Response Structure**: Exact JSON format specifications
+4. **Auto-Fill Logic**: Intelligent data extraction and suggestion rules
+5. **Completion Criteria**: Clear stage completion requirements
+
+### Prompt Engineering Principles
+
+1. **Specificity**: Detailed technical requirements and constraints
+2. **Context Awareness**: Integration of all previous stage data
+3. **Structured Output**: Consistent JSON response format
+4. **Error Resilience**: Fallback responses for parsing failures
+5. **Cross-Stage Intelligence**: Smart recommendations based on project evolution
+
+### Example Prompt Structure
+```typescript
+{
+  systemPrompt: `You are an expert UX strategist...
+    CORE RESPONSIBILITIES: [detailed list]
+    CROSS-STAGE CONTEXT: [previous stage data]
+    AUTO-FILL OPPORTUNITIES: [specific extraction rules]
+    COMPLETION CRITERIA: [clear requirements]`,
+  
+  userPrompt: `User message: "${userMessage}"
+    Respond in this exact JSON format: {...}`,
+  
+  temperature: 0.7,
+  maxTokens: 1000
+}
+```
+
 ## Stage-Specific Behaviors
 
 ### 1. Ideation & Discovery
-- **Triggers**: "I want to build an app about...", "Create an app for..."
-- **Auto-Fill**: App name, problem statement, initial target users
-- **Completion**: App idea, name, problem, and value proposition defined
+- **Prompt Focus**: Extract app concepts from natural language
+- **Auto-Fill Logic**: App name generation, problem identification, user segmentation
+- **Cross-Stage Prep**: Foundation data for all subsequent stages
+- **Completion Criteria**: App idea, name, problem statement, target users, value proposition
 
 ### 2. Feature Planning
-- **Cross-Stage Logic**: Analyzes app idea to suggest relevant feature packs
-- **Auto-Fill**: Feature pack selections, custom features, priorities
-- **Intelligence**: Recommends features based on app category and target users
+- **Prompt Focus**: Strategic feature selection and prioritization
+- **Cross-Stage Intelligence**: App concept → Feature pack mapping
+- **Auto-Fill Logic**: MoSCoW prioritization, MVP feature selection
+- **Dependency Detection**: Feature conflicts and requirements
 
 ### 3. Structure & Flow
-- **Dependencies**: Uses selected features to generate screen structure
-- **Auto-Fill**: Screen hierarchy, user flows, navigation patterns
-- **Architecture Prep**: Component structure and data models
+- **Prompt Focus**: Information architecture and user journey design
+- **Cross-Stage Intelligence**: Features → Screen structure generation
+- **Auto-Fill Logic**: Navigation patterns, data model inference
+- **Flow Optimization**: User journey mapping and task flow design
 
 ### 4. Interface & Interaction
-- **Context-Aware**: Suggests design systems based on app type
-- **Auto-Fill**: Design system, brand colors, interaction patterns
-- **UX Intelligence**: Mobile-first recommendations for mobile-targeted apps
+- **Prompt Focus**: Visual design and interaction specification
+- **Cross-Stage Intelligence**: App type → Design system recommendations
+- **Auto-Fill Logic**: Brand color psychology, typography selection
+- **Responsive Design**: Mobile-first approach based on target users
 
 ### 5. Architecture Design
-- **Technical Generation**: Database schema, API endpoints, file structure
-- **Auto-Fill**: Complete technical specifications
-- **Integration Planning**: Environment variables and third-party services
+- **Prompt Focus**: Technical architecture and system design
+- **Cross-Stage Intelligence**: Features → Database schema generation
+- **Auto-Fill Logic**: API endpoint planning, integration requirements
+- **Scalability Planning**: Performance and growth considerations
 
 ### 6. User & Auth Flow
-- **Security Intelligence**: Recommends auth methods based on app features
-- **Auto-Fill**: Authentication setup, user roles, security features
-- **Compliance**: Suggests security measures for e-commerce/social features
+- **Prompt Focus**: Security architecture and user management
+- **Cross-Stage Intelligence**: Features → Security requirements mapping
+- **Auto-Fill Logic**: Auth method selection, role-based permissions
+- **Compliance Awareness**: GDPR, security best practices
+
+### 7. UX Review & User Check
+- **Prompt Focus**: Comprehensive quality assessment and gap analysis
+- **Cross-Stage Intelligence**: Holistic project validation
+- **Auto-Fill Logic**: Completion scoring, inconsistency detection
+- **Quality Metrics**: Readiness assessment and improvement recommendations
+
+### 8. Auto-Prompt Engine
+- **Prompt Focus**: Development-ready prompt generation
+- **Cross-Stage Intelligence**: Complete project → Bolt.new prompts
+- **Auto-Fill Logic**: Technical specification compilation
+- **Code Generation**: Optimized prompts for AI development tools
+
+### 9. Export & Handoff
+- **Prompt Focus**: Professional deliverable preparation
+- **Cross-Stage Intelligence**: Complete documentation generation
+- **Auto-Fill Logic**: Multi-format export packages
+- **Quality Assurance**: Handoff checklists and maintenance guides
 
 ## Memory & Learning System
 
@@ -172,20 +242,37 @@ SUPABASE_URL=your_supabase_url
 SUPABASE_SERVICE_ROLE_KEY=your_service_key
 ```
 
-### Prompt Engineering
-Each stage has specialized prompts that:
-- Define the agent's role and capabilities
-- Provide full context from all previous stages
-- Specify desired output format and structure
-- Include examples of successful interactions
-- Guide the LLM to generate actionable suggestions
+### Multi-Provider LLM Support
+The system supports multiple LLM providers with automatic fallback:
+
+1. **Primary**: OpenAI GPT-4 Turbo (default)
+2. **Fallback**: Anthropic Claude 3 Sonnet
+3. **Error Handling**: Graceful degradation with retry logic
+4. **Response Validation**: Structured JSON parsing with fallbacks
+
+### Prompt Optimization Features
+
+1. **Context Compression**: Efficient token usage while maintaining quality
+2. **Response Caching**: Cache common responses for faster delivery
+3. **Temperature Control**: Stage-appropriate creativity vs. consistency
+4. **Token Management**: Optimal token allocation per stage
+5. **Streaming Support**: Real-time response delivery
 
 ### Error Handling & Resilience
-- **Retry Logic**: Automatic retries for API failures
-- **Fallback Responses**: Graceful degradation when LLM unavailable
-- **Rate Limiting**: Respect API limits and user quotas
-- **Circuit Breaker**: Temporary disable on repeated failures
-- **User Feedback**: Clear error messages and recovery options
+
+1. **Multi-Level Retry**: Exponential backoff with intelligent retry logic
+2. **Provider Fallback**: Automatic switching between LLM providers
+3. **Response Validation**: JSON parsing with error recovery
+4. **Graceful Degradation**: Functional responses even with API failures
+5. **User Communication**: Clear error messages and recovery guidance
+
+### Response Quality Assurance
+
+1. **Structured Validation**: Ensure all required fields are present
+2. **Content Quality**: Validate response relevance and completeness
+3. **Auto-Fill Validation**: Verify auto-fill data matches form schemas
+4. **Cross-Stage Consistency**: Ensure recommendations align with project data
+5. **Fallback Content**: High-quality fallback responses for edge cases
 
 ## Security & Privacy
 
@@ -220,47 +307,58 @@ Each stage has specialized prompts that:
 ### Local Development
 1. Set up Supabase project with Edge Functions
 2. Configure environment variables
-3. Test with mock LLM responses
-4. Gradually integrate real LLM APIs
+3. Install dependencies: `npm install`
+4. Start development server: `npm run dev`
+5. Test with mock responses first, then integrate real LLM APIs
 
 ### Testing Strategy
-- **Unit Tests**: Individual agent functions and utilities
-- **Integration Tests**: Full agent workflow with mock APIs
-- **E2E Tests**: Complete user journeys through all stages
-- **Performance Tests**: Response time and memory usage
-- **Security Tests**: API key protection and data handling
+
+1. **Prompt Testing**: Validate prompt generation for all stages
+2. **LLM Integration**: Test with multiple providers and error scenarios
+3. **Response Parsing**: Validate JSON parsing and fallback mechanisms
+4. **Cross-Stage Logic**: Test intelligence and recommendation systems
+5. **User Workflows**: End-to-end testing of complete user journeys
+6. **Performance**: Response time, token usage, and memory optimization
+7. **Security**: API key protection and data handling validation
 
 ### Monitoring & Analytics
-- **Usage Metrics**: Track agent interactions and success rates
-- **Performance Monitoring**: Response times and error rates
-- **User Feedback**: Collect ratings on agent helpfulness
-- **A/B Testing**: Test different prompt strategies and UI patterns
+
+1. **Prompt Performance**: Track success rates by stage and prompt version
+2. **LLM Metrics**: Monitor token usage, response times, and error rates
+3. **User Satisfaction**: Collect feedback on agent helpfulness and accuracy
+4. **Cross-Stage Intelligence**: Measure recommendation acceptance rates
+5. **Quality Metrics**: Track auto-fill accuracy and stage completion rates
+6. **A/B Testing**: Test different prompt strategies and response formats
 
 ## Future Enhancements
 
 ### Advanced Features
-- **Multi-Modal Input**: Support for images, sketches, and voice
-- **Collaborative Editing**: Multiple users working with same agent
-- **Template Learning**: Agent learns from successful project patterns
-- **Export Integration**: Direct integration with development tools
-- **Version Control**: Track changes and allow rollbacks
+
+1. **Advanced Prompt Engineering**: Dynamic prompt generation based on user patterns
+2. **Multi-Modal Input**: Support for images, sketches, and voice input
+3. **Collaborative Intelligence**: Multiple users working with shared agent context
+4. **Template Learning**: Agent learns from successful project patterns
+5. **Real-Time Collaboration**: Live editing with multiple stakeholders
+6. **Version Control**: Track changes and allow rollbacks across stages
 
 ### AI Capabilities
-- **Specialized Models**: Fine-tuned models for specific domains
-- **Multi-Agent Systems**: Specialized agents for different stages
-- **Predictive Analytics**: Anticipate user needs and suggest improvements
-- **Quality Assurance**: Automated review and validation of outputs
-- **Continuous Learning**: Improve responses based on user feedback
+
+1. **Fine-Tuned Models**: Domain-specific models for UX design and architecture
+2. **Multi-Agent Systems**: Specialized agents for different design disciplines
+3. **Predictive Intelligence**: Anticipate user needs and suggest improvements
+4. **Quality Assurance**: Automated review and validation of design decisions
+5. **Continuous Learning**: Improve responses based on user feedback and outcomes
+6. **Code Generation**: Direct integration with development tools and frameworks
 
 ## Conclusion
 
-The Chargur AI Agent represents a sophisticated approach to AI-assisted UX design and app planning. By combining conversational AI with structured workflows, cross-stage intelligence, and user-friendly interfaces, it transforms the complex process of app development planning into an intuitive, guided experience.
+The Chargur AI Agent represents a sophisticated approach to AI-assisted UX design and app planning. By combining advanced prompt engineering, multi-provider LLM integration, and intelligent cross-stage reasoning, it transforms the complex process of app development planning into an intuitive, guided experience.
 
 The system is designed to be:
-- **Intelligent**: Learns from user interactions and provides contextual suggestions
-- **Flexible**: Adapts to different app types and user preferences
-- **Reliable**: Handles errors gracefully and provides consistent experiences
-- **Scalable**: Can be extended with new stages, features, and AI capabilities
-- **Secure**: Protects user data and API credentials throughout the process
+- **Intelligent**: Advanced prompt engineering provides contextual, high-quality responses
+- **Reliable**: Multi-provider support with robust error handling and fallback mechanisms
+- **Scalable**: Modular architecture supports new stages, features, and AI capabilities
+- **Secure**: Comprehensive security measures protect user data and API credentials
+- **Performant**: Optimized for speed, token efficiency, and user experience
 
-This foundation enables rapid prototyping and planning while maintaining the depth and rigor required for successful app development projects.
+This robust foundation enables rapid prototyping and planning while maintaining the depth, accuracy, and rigor required for successful app development projects. The system's advanced prompt engineering ensures that each interaction is meaningful, contextual, and progressively builds toward a complete, development-ready specification.
