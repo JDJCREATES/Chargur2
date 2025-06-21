@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { motion } from 'framer-motion';
+import { useAuth } from './hooks/useAuth';
 import { AgentContextProvider } from './components/agent/AgentContextProvider';
 import { Sidebar } from './components/layout/Sidebar';
 import { Canvas } from './components/layout/Canvas';
@@ -8,6 +9,7 @@ import { ChatMessage } from './types';
 
 function App() {
   const [isSidebarOpen, setIsSidebarOpen] = useState(true);
+  const { loading: authLoading } = useAuth();
   const {
     stages,
     currentStage,
@@ -19,6 +21,18 @@ function App() {
   } = useStageManager();
 
   const [chatHistory, setChatHistory] = useState<ChatMessage[]>([]);
+
+  // Show loading screen while auth is initializing
+  if (authLoading) {
+    return (
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+        <div className="text-center">
+          <div className="w-8 h-8 border-2 border-blue-600 border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
+          <p className="text-gray-600">Loading...</p>
+        </div>
+      </div>
+    );
+  }
 
   const toggleSidebar = () => {
     setIsSidebarOpen(!isSidebarOpen);
