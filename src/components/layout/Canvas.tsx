@@ -74,6 +74,13 @@ export const Canvas: React.FC<CanvasProps> = ({
     setIsAgentThinking(true);
     setStreamingContent('');
 
+    // Create AbortController for timeout handling
+    const abortController = new AbortController();
+    let timeoutId: NodeJS.Timeout;
+    
+    // Set a generous timeout (5 minutes) for AI response
+    const TIMEOUT_DURATION = 5 * 60 * 1000; // 5 minutes
+    
     try {
       // Get stage recommendations for cross-stage intelligence
       const recommendations = getStageRecommendations(currentStage?.id || 'ideation-discovery');
@@ -89,85 +96,125 @@ export const Canvas: React.FC<CanvasProps> = ({
         recommendations
       };
 
+      // Set up timeout
+      timeoutId = setTimeout(() => {
+        console.log('⏰ Request timeout reached, aborting...');
+        abortController.abort();
+      }, TIMEOUT_DURATION);
+
       // Call the Supabase Edge Function
-      const response = await callSupabaseEdgeFunction(agentContext);
+      const response = await callSupabaseEdgeFunction(agentContext, abortController.signal);
+      
+      // Clear timeout if request completes successfully
+      clearTimeout(timeoutId);
       
       // Handle streaming response
       if (response.body) {
         const reader = response.body.getReader();
         let fullContent = '';
         
-        while (true) {
-          const { done, value } = await reader.read();
-          if (done) break;
-          
-          const chunk = new TextDecoder().decode(value);
-          const lines = chunk.split('\n');
-          
-          for (const line of lines) {
-            if (line.startsWith('data: ')) {
-              try {
-                const data = JSON.parse(line.slice(6));
-                
-                if (data.type === 'content') {
-                  setStreamingContent(data.content);
-                  fullContent = data.content;
-                } else if (data.type === 'complete') {
-                  // Create final agent message
-                  const agentMsg: AgentMessage = {
-                    id: (Date.now() + 1).toString(),
-                    type: 'agent',
-                    content: fullContent,
-                    timestamp: new Date(),
-                    suggestions: data.suggestions || [],
-                    autoFillData: data.autoFillData || {},
-                    stageComplete: data.stageComplete || false,
-                  };
+        try {
+          while (true) {
+            const { done, value } = await reader.read();
+            if (done) break;
+            
+            const chunk = new TextDecoder().decode(value);
+            const lines = chunk.split('\n');
+            
+            for (const line of lines) {
+              if (line.startsWith('data: ')) {
+                try {
+                  const data = JSON.parse(line.slice(6));
+                  
+                  if (data.type === 'content') {
+                    setStreamingContent(data.content);
+                    fullContent = data.content;
+                  } else if (data.type === 'complete') {
+                    // Create final agent message
+                    const agentMsg: AgentMessage = {
+                      id: (Date.now() + 1).toString(),
+                      type: 'agent',
+                      content: fullContent,
+                      timestamp: new Date(),
+                      suggestions: data.suggestions || [],
+                      autoFillData: data.autoFillData || {},
+                      stageComplete: data.stageComplete || false,
+                    };
 
-                  setAgentMessages(prev => [...prev, agentMsg]);
-                  
-                  // Handle auto-fill data
-                  if (data.autoFillData && Object.keys(data.autoFillData).length > 0) {
-                    handleAutoFillData(data.autoFillData);
+                    setAgentMessages(prev => [...prev, agentMsg]);
+                    
+                    // Handle auto-fill data
+                    if (data.autoFillData && Object.keys(data.autoFillData).length > 0) {
+                      handleAutoFillData(data.autoFillData);
+                    }
+                    
+                    // Handle stage completion
+                    if (data.stageComplete && onCompleteStage && onGoToStage && getNextStage) {
+                      handleStageCompletion();
+                    }
+                    
+                    // Update agent memory
+                    updateAgentMemory(currentStage?.id || 'ideation-discovery', {
+                      lastInteraction: userMessage,
+                      response: fullContent,
+                      autoFillApplied: data.autoFillData,
+                      timestamp: new Date().toISOString()
+                    });
+                  } else if (data.type === 'error') {
+                    console.error('❌ Server error:', data.error);
+                    throw new Error(data.error || 'Server error occurred');
                   }
-                  
-                  // Handle stage completion
-                  if (data.stageComplete && onCompleteStage && onGoToStage && getNextStage) {
-                    handleStageCompletion();
-                  }
-                  
-                  // Update agent memory
-                  updateAgentMemory(currentStage?.id || 'ideation-discovery', {
-                    lastInteraction: userMessage,
-                    response: fullContent,
-                    autoFillApplied: data.autoFillData,
-                    timestamp: new Date().toISOString()
-                  });
+                } catch (e) {
+                  console.warn('Failed to parse SSE data:', e);
                 }
-              } catch (e) {
-                console.warn('Failed to parse SSE data:', e);
               }
             }
           }
+        } finally {
+          // Always release the reader
+          reader.releaseLock();
         }
       }
 
     } catch (error) {
+      // Clear timeout on error
+      if (timeoutId) {
+        clearTimeout(timeoutId);
+      }
+      
       console.error('Agent error:', error);
+      
+      let errorMessage = 'Sorry, I encountered an error. Please try again.';
+      
+      // Handle specific error types
+      if (error.name === 'AbortError') {
+        console.log('⏰ Request was aborted due to timeout');
+        errorMessage = 'The request took longer than expected. Please try again with a shorter message or check your connection.';
+      } else if (error.message?.includes('Failed to fetch')) {
+        errorMessage = 'Connection failed. Please check your internet connection and try again.';
+      } else if (error.message?.includes('Supabase environment variables')) {
+        errorMessage = 'Configuration error. Please contact support.';
+      }
+      
       const errorMsg: AgentMessage = {
         id: (Date.now() + 2).toString(),
         type: 'system',
-        content: 'Sorry, I encountered an error. Please try again.',
+        content: errorMessage,
         timestamp: new Date(),
       };
       setAgentMessages(prev => [...prev, errorMsg]);
     } finally {
       setIsAgentThinking(false);
       setStreamingContent('');
+      
+      // Ensure timeout is always cleared
+      if (timeoutId) {
+        clearTimeout(timeoutId);
+      }
     }
   };
 
-  const callSupabaseEdgeFunction = async (context: any) => {
+  const callSupabaseEdgeFunction = async (context: any, signal?: AbortSignal) => {
     const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
     const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY;
     
@@ -182,6 +229,7 @@ export const Canvas: React.FC<CanvasProps> = ({
         'Authorization': `Bearer ${supabaseAnonKey}`,
       },
       body: JSON.stringify(context),
+      signal, // Pass the abort signal to fetch
     });
 
     if (!response.ok) {
