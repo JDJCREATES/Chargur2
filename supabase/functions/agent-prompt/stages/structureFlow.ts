@@ -23,6 +23,26 @@ App Concept: "${ideationData.appIdea || 'Not defined'}"
 Selected Features: ${JSON.stringify(featureData.selectedFeaturePacks || [])}
 Custom Features: ${featureData.customFeatures?.length || 0} defined
 
+SCREEN GENERATION LOGIC:
+Base screens: Dashboard, Profile, Settings
++ Auth features → Login, Register, Forgot Password
++ Social features → Feed, Messages, Notifications
++ Commerce features → Products, Cart, Checkout, Orders
++ Media features → Gallery, Upload, Media Library
++ Analytics features → Reports, Insights
+
+USER FLOW PATTERNS:
+- Onboarding: Landing → Auth → Welcome → Core Feature
+- Core Task: Dashboard → Feature → Action → Confirmation → Result
+- Social: Feed → Content → Interaction → Response
+- Commerce: Browse → Select → Cart → Checkout → Confirmation
+
+DATA MODEL INFERENCE:
+- Auth features → Users, Sessions, Profiles
+- Social features → Posts, Comments, Likes, Follows
+- Commerce features → Products, Orders, Payments, Inventory
+- Content features → Media, Categories, Tags
+
 CURRENT STAGE DATA:
 ${JSON.stringify(currentStageData, null, 2)}
 
@@ -31,6 +51,8 @@ IMPORTANT: You must respond with valid JSON only. Do not include any explanatory
   const userPrompt = `User message: "${userMessage}"
 
 Based on the selected features and app concept, help design the app structure and user flows. Consider the feature packs: ${JSON.stringify(featureData.selectedFeaturePacks || [])}.
+
+Create a logical, user-friendly structure that supports all planned features.
 
 Respond in this exact JSON format:
 {
@@ -53,12 +75,21 @@ Respond in this exact JSON format:
         "description": "New user onboarding flow"
       }
     ],
+    "dataModels": [
+      {
+        "id": "1",
+        "name": "User",
+        "fields": ["id", "email", "name", "createdAt"],
+        "relations": ["Profile", "Posts"]
+      }
+    ],
     "navigationStyle": "bottom-tabs",
     "stateManagement": "context"
   },
   "stageComplete": false,
   "context": {
-    "architectureRationale": "Why this structure was chosen"
+    "architectureRationale": "Why this structure was chosen",
+    "scalabilityNotes": "How structure supports growth"
   }
 }`;
 
