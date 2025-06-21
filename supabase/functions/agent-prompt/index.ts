@@ -41,7 +41,7 @@ class EdgeLLMClient {
   }
 
   private getDefaultModel(): string {
-    return this.provider === 'openai' ? 'gpt-4-turbo-preview' : 'claude-3-sonnet-20240229'
+    return this.provider === 'openai' ? 'gpt-4o-mini' : 'claude-3-sonnet-20240229'
   }
 
   async generateResponse(systemPrompt: string, userPrompt: string, temperature = 0.7, maxTokens = 1500): Promise<string> {
