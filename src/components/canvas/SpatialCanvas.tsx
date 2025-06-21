@@ -340,6 +340,133 @@ export const SpatialCanvas: React.FC<SpatialCanvasProps> = ({
           metadata: { stage: 'architecture-design', systemType: 'api' }
         });
       }
+
+      if (architectureData.sitemap) {
+        architectureData.sitemap.forEach((route: any, index: number) => {
+          newNodes.push({
+            id: `system-${nodeId++}`,
+            type: 'system',
+            title: `${route.path} Route`,
+            content: `Component: ${route.component}\nProtected: ${route.protected ? 'Yes' : 'No'}\n\n${route.description}`,
+            position: { x: systemX + (index % 4) * 150, y: systemY + 120 },
+            size: { width: 140, height: 90 },
+            color: 'red',
+            connections: [],
+            metadata: { stage: 'architecture-design', routeType: 'page' }
+          });
+        });
+      }
+
+      if (architectureData.envVariables) {
+        newNodes.push({
+          id: `system-${nodeId++}`,
+          type: 'system',
+          title: 'Environment Config',
+          content: `${architectureData.envVariables.length} variables\n\nIncludes secrets, URLs, and config`,
+          position: { x: systemX + 600, y: systemY },
+          size: { width: 160, height: 80 },
+          color: 'red',
+          connections: [],
+          metadata: { stage: 'architecture-design', systemType: 'config' }
+        });
+      }
+
+      if (architectureData.integrations) {
+        newNodes.push({
+          id: `system-${nodeId++}`,
+          type: 'system',
+          title: 'Integrations',
+          content: `${architectureData.integrations.length} services\n\n${architectureData.integrations.slice(0, 3).join('\n')}${architectureData.integrations.length > 3 ? '\n...' : ''}`,
+          position: { x: systemX + 200, y: systemY + 220 },
+          size: { width: 180, height: 100 },
+          color: 'red',
+          connections: [],
+          metadata: { stage: 'architecture-design', systemType: 'integration' }
+        });
+      }
+    }
+
+    // Process interface design data
+    const interfaceData = stageData['interface-interaction'] || {};
+    const lastInterfaceData = lastProcessedData['interface-interaction'] || {};
+    
+    if (interfaceData && JSON.stringify(interfaceData) !== JSON.stringify(lastInterfaceData)) {
+      // Remove old interface nodes
+      setNodes(prev => prev.filter(node => !node.metadata?.stage || node.metadata.stage !== 'interface-interaction'));
+      
+      let uiX = 100;
+      let uiY = 1000;
+      
+      if (interfaceData.selectedDesignSystem) {
+        newNodes.push({
+          id: `ui-${nodeId++}`,
+          type: 'wireframe',
+          title: 'Design System',
+          content: `${interfaceData.selectedDesignSystem}\n\nComponent library and styling approach`,
+          position: { x: uiX, y: uiY },
+          size: { width: 160, height: 80 },
+          color: 'purple',
+          connections: [],
+          metadata: { stage: 'interface-interaction', uiType: 'design-system' }
+        });
+      }
+
+      if (interfaceData.customBranding) {
+        const branding = interfaceData.customBranding;
+        newNodes.push({
+          id: `ui-${nodeId++}`,
+          type: 'wireframe',
+          title: 'Brand Colors',
+          content: `Primary: ${branding.primaryColor}\nSecondary: ${branding.secondaryColor}\nFont: ${branding.fontFamily}`,
+          position: { x: uiX + 180, y: uiY },
+          size: { width: 140, height: 80 },
+          color: 'purple',
+          connections: [],
+          metadata: { stage: 'interface-interaction', uiType: 'branding' }
+        });
+      }
+
+      if (interfaceData.layoutBlocks && interfaceData.layoutBlocks.length > 0) {
+        newNodes.push({
+          id: `ui-${nodeId++}`,
+          type: 'wireframe',
+          title: 'Layout Structure',
+          content: `${interfaceData.layoutBlocks.length} layout blocks\n\n${interfaceData.layoutBlocks.map((block: any) => block.type).join(', ')}`,
+          position: { x: uiX + 340, y: uiY },
+          size: { width: 160, height: 80 },
+          color: 'purple',
+          connections: [],
+          metadata: { stage: 'interface-interaction', uiType: 'layout' }
+        });
+      }
+
+      if (interfaceData.interactionRules && interfaceData.interactionRules.length > 0) {
+        newNodes.push({
+          id: `ui-${nodeId++}`,
+          type: 'wireframe',
+          title: 'Interactions',
+          content: `${interfaceData.interactionRules.length} interaction rules\n\n${interfaceData.interactionRules.slice(0, 3).map((rule: any) => `${rule.component}: ${rule.trigger}`).join('\n')}`,
+          position: { x: uiX, y: uiY + 100 },
+          size: { width: 180, height: 90 },
+          color: 'purple',
+          connections: [],
+          metadata: { stage: 'interface-interaction', uiType: 'interactions' }
+        });
+      }
+
+      if (interfaceData.copywriting && interfaceData.copywriting.length > 0) {
+        newNodes.push({
+          id: `ui-${nodeId++}`,
+          type: 'wireframe',
+          title: 'UX Copy',
+          content: `${interfaceData.copywriting.length} text elements\n\nButtons, labels, and messaging`,
+          position: { x: uiX + 200, y: uiY + 100 },
+          size: { width: 140, height: 80 },
+          color: 'purple',
+          connections: [],
+          metadata: { stage: 'interface-interaction', uiType: 'copywriting' }
+        });
+      }
     }
 
     // Update AI analysis node
