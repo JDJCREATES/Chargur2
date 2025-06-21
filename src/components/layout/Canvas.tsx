@@ -159,7 +159,12 @@ export const Canvas: React.FC<CanvasProps> = ({
                   
                   if (data.type === 'content') {
                     setStreamingContent(data.content);
-                    fullContent = data.content;
+                    fullContent += data.content;
+                    console.log('📝 Token received:', {
+                      tokenIndex,
+                      contentLength: data.content.length,
+                      fullContentLength: fullContent.length
+                    });
                     
                     // Save token incrementally
                     tokensToSave.push({
@@ -167,22 +172,51 @@ export const Canvas: React.FC<CanvasProps> = ({
                       content: data.content,
                       type: 'content'
                     });
+                    console.log('📦 Token added to batch:', {
+                      batchSize: tokensToSave.length,
+                      tokenIndex: tokenIndex - 1
+                    });
                     
                     // Save tokens every 10 tokens or every 2 seconds
                     if (tokensToSave.length >= 10) {
+                      console.log('💾 Saving token batch:', {
+                        conversationId,
+                        batchSize: tokensToSave.length,
+                        lastTokenIndex: tokenIndex - 1
+                      });
                       await saveTokensBatch(conversationId, tokensToSave);
+                      console.log('✅ Token batch saved successfully');
                       setLastTokenIndex(tokenIndex - 1);
                     }
                     
                   } else if (data.type === 'complete') {
+                    console.log('🏁 Completion received:', {
+                      fullContentLength: fullContent.length,
+                      remainingTokens: tokensToSave.length,
+                      conversationId
+                    });
+                    
                     // Save any remaining tokens
                     if (tokensToSave.length > 0) {
+                      console.log('💾 Saving final token batch:', {
+                        conversationId,
+                        finalBatchSize: tokensToSave.length
+                      });
                       await saveTokensBatch(conversationId, tokensToSave);
+                      console.log('✅ Final token batch saved successfully');
                     }
                     
                     // Save completion data
                     if (conversationId) {
                       try {
+                        console.log('💾 Saving complete response:', {
+                          conversationId,
+                          fullContentLength: fullContent.length,
+                          suggestionsCount: data.suggestions?.length || 0,
+                          hasAutoFillData: !!(data.autoFillData && Object.keys(data.autoFillData).length > 0),
+                          stageComplete: data.stageComplete
+                        });
+                        
                         await ChatStorageManager.saveCompleteResponse(conversationId, {
                           full_content: fullContent,
                           suggestions: data.suggestions || [],
@@ -190,10 +224,16 @@ export const Canvas: React.FC<CanvasProps> = ({
                           stage_complete: data.stageComplete || false,
                           context: data.context || {}
                         });
+                        console.log('✅ Complete response saved successfully');
                         
                         await ChatStorageManager.updateConversationStatus(conversationId, 'completed');
+                        console.log('✅ Conversation status updated to completed');
                       } catch (error) {
-                        console.error('Failed to save complete response:', error);
+                        console.error('❌ Failed to save complete response:', {
+                          error: error.message,
+                          conversationId,
+                          fullContentLength: fullContent.length
+                        });
                       }
                     }
                     
@@ -242,7 +282,11 @@ export const Canvas: React.FC<CanvasProps> = ({
                     throw new Error(data.error || 'Server error occurred');
                   }
                 } catch (e) {
-                  console.warn('Failed to parse SSE data:', e);
+                  console.error('❌ Failed to parse SSE data:', {
+                    error: e.message,
+                    line: line.substring(0, 100),
+                    conversationId
+                  });
                 }
               }
             }
@@ -250,7 +294,12 @@ export const Canvas: React.FC<CanvasProps> = ({
           
           // Save any remaining tokens
           if (tokensToSave.length > 0 && conversationId) {
+            console.log('💾 Saving remaining tokens after stream end:', {
+              conversationId,
+              remainingTokens: tokensToSave.length
+            });
             await saveTokensBatch(conversationId, tokensToSave);
+            console.log('✅ Remaining tokens saved successfully');
             setLastTokenIndex(tokenIndex - 1);
           }
           
@@ -275,7 +324,13 @@ export const Canvas: React.FC<CanvasProps> = ({
         }
       }
       
-      console.error('Agent error:', error);
+      console.error('❌ Agent streaming error:', {
+        error: error.message,
+        conversationId,
+        fullContentLength: fullContent?.length || 0,
+        lastTokenIndex,
+        errorType: error.name
+      });
       
       let errorMessage = 'Sorry, I encountered an error. Please try again.';
       
@@ -312,10 +367,22 @@ export const Canvas: React.FC<CanvasProps> = ({
     if (!conversationId || tokens.length === 0) return;
     
     try {
+      console.log('🔄 ChatStorageManager.saveResponseTokens called:', {
+        conversationId,
+        tokenCount: tokens.length,
+        firstTokenIndex: tokens[0]?.index,
+        lastTokenIndex: tokens[tokens.length - 1]?.index
+      });
       await ChatStorageManager.saveResponseTokens(conversationId, tokens);
+      console.log('✅ ChatStorageManager.saveResponseTokens completed successfully');
       tokens.length = 0; // Clear the array
     } catch (error) {
-      console.error('Failed to save token batch:', error);
+      console.error('❌ Failed to save token batch:', {
+        error: error.message,
+        conversationId,
+        tokenCount: tokens.length,
+        errorDetails: error
+      });
     }
   };
 
@@ -324,26 +391,46 @@ export const Canvas: React.FC<CanvasProps> = ({
     if (isRecovering || currentConversationId) return;
     
     setIsRecovering(true);
+    console.log('🔄 Starting conversation recovery check...');
     
     try {
       // Check localStorage for conversation ID
       const savedConversationId = localStorage.getItem('current-conversation-id');
       if (!savedConversationId) {
+        console.log('ℹ️ No saved conversation ID found in localStorage');
         setIsRecovering(false);
         return;
       }
+      console.log('🔍 Found saved conversation ID:', savedConversationId);
       
       // Check if conversation exists and is active
+      console.log('🔍 Attempting to retrieve conversation from database...');
       const conversation = await ChatStorageManager.getConversation(savedConversationId);
+      console.log('📋 Conversation retrieval result:', {
+        found: !!conversation,
+        status: conversation?.status,
+        conversationId: savedConversationId
+      });
+      
       if (!conversation || conversation.status !== 'active') {
+        console.log('⚠️ Conversation not found or not active, cleaning up localStorage');
         localStorage.removeItem('current-conversation-id');
         setIsRecovering(false);
         return;
       }
       
       // Check if there's a complete response
+      console.log('🔍 Attempting to retrieve complete response...');
       const completeResponse = await ChatStorageManager.getCompleteResponse(savedConversationId);
+      console.log('📋 Complete response retrieval result:', {
+        found: !!completeResponse,
+        isComplete: completeResponse?.is_complete,
+        hasContent: !!(completeResponse?.full_content),
+        contentLength: completeResponse?.full_content?.length || 0
+      });
+      
       if (completeResponse && completeResponse.is_complete) {
+        console.log('✅ Found complete response, displaying to user');
         // Display the complete response
         const agentMsg: AgentMessage = {
           id: Date.now().toString(),
@@ -366,9 +453,16 @@ export const Canvas: React.FC<CanvasProps> = ({
         localStorage.removeItem('current-conversation-id');
         setCurrentConversationId(null);
       } else {
+        console.log('🔄 No complete response found, attempting to recover from tokens...');
         // Recover partial content from tokens
         const reconstructedContent = await ChatStorageManager.reconstructContentFromTokens(savedConversationId);
+        console.log('📋 Token reconstruction result:', {
+          hasContent: !!reconstructedContent,
+          contentLength: reconstructedContent?.length || 0
+        });
+        
         if (reconstructedContent) {
+          console.log('✅ Recovered partial content from tokens');
           setStreamingContent(reconstructedContent);
           
           // Show recovery message
@@ -384,13 +478,18 @@ export const Canvas: React.FC<CanvasProps> = ({
         // Set up for continuation
         setCurrentConversationId(savedConversationId);
         const lastIndex = await ChatStorageManager.getLastTokenIndex(savedConversationId);
+        console.log('📋 Last token index retrieved:', lastIndex);
         setLastTokenIndex(lastIndex);
       }
     } catch (error) {
-      console.error('Failed to recover conversation:', error);
+      console.error('❌ Failed to recover conversation:', {
+        error: error.message,
+        errorDetails: error
+      });
       localStorage.removeItem('current-conversation-id');
     }
     
+    console.log('✅ Conversation recovery check completed');
     setIsRecovering(false);
   };
 

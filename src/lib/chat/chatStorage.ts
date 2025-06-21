@@ -128,6 +128,13 @@ export class ChatStorageManager {
       type: 'content' | 'suggestion' | 'autofill' | 'complete';
     }>
   ): Promise<void> {
+    console.log('🔄 ChatStorageManager.saveResponseTokens called:', {
+      conversationId,
+      tokenCount: tokens.length,
+      tokenIndexes: tokens.map(t => t.index),
+      tokenTypes: tokens.map(t => t.type)
+    });
+    
     const tokenData = tokens.map(token => ({
       conversation_id: conversationId,
       token_index: token.index,
@@ -135,6 +142,11 @@ export class ChatStorageManager {
       token_type: token.type
     }));
 
+    console.log('📦 Prepared token data for upsert:', {
+      conversationId,
+      tokenCount: tokenData.length
+    });
+    
     const { error } = await supabase
       .from('chat_response_tokens')
       .upsert(tokenData, { 
@@ -143,8 +155,20 @@ export class ChatStorageManager {
       });
 
     if (error) {
-      console.error('Failed to save response tokens:', error);
+      console.error('❌ Failed to save response tokens:', {
+        error: error.message,
+        code: error.code,
+        details: error.details,
+        hint: error.hint,
+        conversationId,
+        tokenCount: tokens.length
+      });
       throw new Error('Failed to save response tokens');
+    } else {
+      console.log('✅ Tokens saved successfully:', {
+        conversationId,
+        tokenCount: tokens.length
+      });
     }
   }
 
@@ -202,6 +226,14 @@ export class ChatStorageManager {
       context: any;
     }
   ): Promise<ChatResponse> {
+    console.log('🔄 ChatStorageManager.saveCompleteResponse called:', {
+      conversationId,
+      contentLength: response.full_content?.length || 0,
+      suggestionsCount: response.suggestions?.length || 0,
+      hasAutoFillData: !!(response.auto_fill_data && Object.keys(response.auto_fill_data).length > 0),
+      stageComplete: response.stage_complete
+    });
+    
     const { data, error } = await supabase
       .from('chat_responses')
       .upsert({
@@ -220,8 +252,19 @@ export class ChatStorageManager {
       .single();
 
     if (error) {
-      console.error('Failed to save complete response:', error);
+      console.error('❌ Failed to save complete response:', {
+        error: error.message,
+        code: error.code,
+        details: error.details,
+        hint: error.hint,
+        conversationId
+      });
       throw new Error('Failed to save complete response');
+    } else {
+      console.log('✅ Complete response saved successfully:', {
+        conversationId,
+        responseId: data.id
+      });
     }
 
     return data;
@@ -249,17 +292,38 @@ export class ChatStorageManager {
    * Reconstruct content from saved tokens
    */
   static async reconstructContentFromTokens(conversationId: string): Promise<string> {
+    console.log('🔄 ChatStorageManager.reconstructContentFromTokens called:', {
+      conversationId
+    });
+    
     const tokens = await this.getTokensAfterIndex(conversationId, -1);
+    console.log('📋 Retrieved tokens for reconstruction:', {
+      conversationId,
+      tokenCount: tokens.length
+    });
     
     // Filter and sort content tokens
     const contentTokens = tokens
       .filter(token => token.token_type === 'content')
       .sort((a, b) => a.token_index - b.token_index);
+    
+    console.log('📋 Content tokens for reconstruction:', {
+      conversationId,
+      contentTokenCount: contentTokens.length
+    });
 
     // Return the latest content (assuming incremental updates)
-    return contentTokens.length > 0 
-      ? contentTokens[contentTokens.length - 1].token_content 
+    const result = contentTokens.length > 0 
+      ? contentTokens[contentTokens.length - 1].token_content
       : '';
+      
+    console.log('📋 Reconstruction result:', {
+      conversationId,
+      hasContent: !!result,
+      contentLength: result.length
+    });
+    
+    return result;
   }
 
   /**
