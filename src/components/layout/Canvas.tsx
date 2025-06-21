@@ -1,6 +1,13 @@
+/**
+ * Canvas.tsx
+ * 
+ * Main canvas component that integrates the AI Agent with the spatial canvas and user input.
+ * Handles agent responses, auto-fill data, stage progression, and memory management.
+ */
+
 import React, { useState } from 'react';
 import { motion } from 'framer-motion';
-import { Send, Brain, Loader2, Wand2, Sparkles } from 'lucide-react';
+import { Send, Brain, Loader2, Wand2, Sparkles, CheckCircle, ArrowRight } from 'lucide-react';
 import { CanvasHeader } from './CanvasHeader';
 import { SpatialCanvas } from '../canvas/SpatialCanvas';
 import { useAgent } from '../agent/AgentContextProvider';
@@ -10,24 +17,38 @@ interface CanvasProps {
   currentStage?: Stage;
   stageData: any;
   onSendMessage: (message: string) => void;
+  onUpdateStageData?: (stageId: string, data: any) => void;
+  onCompleteStage?: (stageId: string) => void;
+  onGoToStage?: (stageId: string) => void;
+  getNextStage?: () => Stage | null;
+}
+
+interface AgentMessage {
+  id: string;
+  type: 'user' | 'agent' | 'system';
+  content: string;
+  timestamp: Date;
+  suggestions?: string[];
+  autoFillData?: any;
+  stageComplete?: boolean;
 }
 
 export const Canvas: React.FC<CanvasProps> = ({ 
   currentStage, 
   stageData,
-  onSendMessage
+  onSendMessage,
+  onUpdateStageData,
+  onCompleteStage,
+  onGoToStage,
+  getNextStage
 }) => {
   const [message, setMessage] = useState('');
-  const [agentMessages, setAgentMessages] = useState<Array<{
-    id: string;
-    type: 'user' | 'agent' | 'system';
-    content: string;
-    timestamp: Date;
-    suggestions?: string[];
-    autoFillData?: any;
-  }>>([]);
+  const [agentMessages, setAgentMessages] = useState<AgentMessage[]>([]);
   const [isAgentThinking, setIsAgentThinking] = useState(false);
   const [streamingContent, setStreamingContent] = useState('');
+  const [pendingAutoFill, setPendingAutoFill] = useState<any>(null);
+  const [showConfirmation, setShowConfirmation] = useState(false);
+  
   const { updateAgentMemory, getStageRecommendations } = useAgent();
 
   const handleSubmit = (e: React.FormEvent) => {
@@ -42,9 +63,9 @@ export const Canvas: React.FC<CanvasProps> = ({
     if (isAgentThinking) return;
 
     // Add user message
-    const userMsg = {
+    const userMsg: AgentMessage = {
       id: Date.now().toString(),
-      type: 'user' as const,
+      type: 'user',
       content: userMessage,
       timestamp: new Date(),
     };
@@ -54,6 +75,9 @@ export const Canvas: React.FC<CanvasProps> = ({
     setStreamingContent('');
 
     try {
+      // Get stage recommendations for cross-stage intelligence
+      const recommendations = getStageRecommendations(currentStage?.id || 'ideation-discovery');
+      
       // Prepare context for AI agent
       const agentContext = {
         stageId: currentStage?.id || 'ideation-discovery',
@@ -62,48 +86,77 @@ export const Canvas: React.FC<CanvasProps> = ({
         conversationHistory: agentMessages,
         userMessage: userMessage,
         memory: {},
+        recommendations
       };
 
-      // Call the edge function (simulated for now)
-      const response = await simulateAgentResponse(agentContext);
+      // Call the edge function
+      const response = await callAgentAPI(agentContext);
       
-      // Simulate streaming
-      const words = response.content.split(' ');
-      let fullContent = '';
-      
-      for (let i = 0; i < words.length; i++) {
-        fullContent = words.slice(0, i + 1).join(' ');
-        setStreamingContent(fullContent);
-        await new Promise(resolve => setTimeout(resolve, 50));
-      }
+      // Handle streaming response
+      if (response.body) {
+        const reader = response.body.getReader();
+        let fullContent = '';
+        
+        while (true) {
+          const { done, value } = await reader.read();
+          if (done) break;
+          
+          const chunk = new TextDecoder().decode(value);
+          const lines = chunk.split('\n');
+          
+          for (const line of lines) {
+            if (line.startsWith('data: ')) {
+              try {
+                const data = JSON.parse(line.slice(6));
+                
+                if (data.type === 'content') {
+                  setStreamingContent(data.content);
+                  fullContent = data.content;
+                } else if (data.type === 'complete') {
+                  // Create final agent message
+                  const agentMsg: AgentMessage = {
+                    id: (Date.now() + 1).toString(),
+                    type: 'agent',
+                    content: fullContent,
+                    timestamp: new Date(),
+                    suggestions: data.suggestions || [],
+                    autoFillData: data.autoFillData || {},
+                    stageComplete: data.stageComplete || false,
+                  };
 
-      // Create agent message
-      const agentMsg = {
-        id: (Date.now() + 1).toString(),
-        type: 'agent' as const,
-        content: response.content,
-        timestamp: new Date(),
-        suggestions: response.suggestions || [],
-        autoFillData: response.autoFillData || {},
-      };
-
-      setAgentMessages(prev => [...prev, agentMsg]);
-      
-      // Auto-fill stage data if provided
-      if (response.autoFillData && Object.keys(response.autoFillData).length > 0) {
-        onSendMessage(`AI Agent auto-filled: ${Object.keys(response.autoFillData).join(', ')}`);
-        // Update stage data with AI suggestions
-        Object.entries(response.autoFillData).forEach(([key, value]) => {
-          // This would integrate with your stage update logic
-          console.log(`Auto-filling ${key}:`, value);
-        });
+                  setAgentMessages(prev => [...prev, agentMsg]);
+                  
+                  // Handle auto-fill data
+                  if (data.autoFillData && Object.keys(data.autoFillData).length > 0) {
+                    handleAutoFillData(data.autoFillData);
+                  }
+                  
+                  // Handle stage completion
+                  if (data.stageComplete && onCompleteStage && onGoToStage && getNextStage) {
+                    handleStageCompletion();
+                  }
+                  
+                  // Update agent memory
+                  updateAgentMemory(currentStage?.id || 'ideation-discovery', {
+                    lastInteraction: userMessage,
+                    response: fullContent,
+                    autoFillApplied: data.autoFillData,
+                    timestamp: new Date().toISOString()
+                  });
+                }
+              } catch (e) {
+                console.warn('Failed to parse SSE data:', e);
+              }
+            }
+          }
+        }
       }
 
     } catch (error) {
       console.error('Agent error:', error);
-      const errorMsg = {
+      const errorMsg: AgentMessage = {
         id: (Date.now() + 2).toString(),
-        type: 'system' as const,
+        type: 'system',
         content: 'Sorry, I encountered an error. Please try again.',
         timestamp: new Date(),
       };
@@ -114,38 +167,146 @@ export const Canvas: React.FC<CanvasProps> = ({
     }
   };
 
-  // Simulate agent response (replace with actual API call)
-  const simulateAgentResponse = async (context: any) => {
-    const { stageId, userMessage } = context;
+  const callAgentAPI = async (context: any) => {
+    // For now, simulate the API call - replace with actual Supabase Edge Function call
+    return simulateAgentAPI(context);
+  };
+
+  const simulateAgentAPI = async (context: any) => {
+    const { stageId, userMessage, currentStageData, allStageData } = context;
     const lowerMessage = userMessage.toLowerCase();
 
-    // Stage-specific responses
+    // Simulate streaming response
+    const mockResponse = {
+      content: '',
+      suggestions: [],
+      autoFillData: {},
+      stageComplete: false
+    };
+
+    // Stage-specific logic
     if (stageId === 'ideation-discovery') {
       if (lowerMessage.includes('app about') || lowerMessage.includes('build')) {
-        return {
-          content: `Great idea! I can help you develop this concept. Let me suggest some initial details based on your description.`,
-          suggestions: [
+        const ideaMatch = userMessage.match(/(?:app about|build.*app.*about|create.*app.*about)\s+(.+)/i);
+        if (ideaMatch) {
+          mockResponse.content = `Great idea! I can help you develop this concept about ${ideaMatch[1]}. Let me suggest some initial details.`;
+          mockResponse.autoFillData = {
+            appIdea: ideaMatch[1].trim(),
+            appName: ideaMatch[1].split(' ').slice(0, 2).map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(''),
+            problemStatement: `Users need a better solution for ${ideaMatch[1].toLowerCase()}.`
+          };
+          mockResponse.suggestions = [
             "What problem does this solve?",
-            "Who would use this app?", 
+            "Who would use this app?",
             "What makes it unique?"
-          ],
-          autoFillData: {
-            appIdea: userMessage,
-            appName: userMessage.split(' ').slice(-2).map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(''),
-          }
-        };
+          ];
+        }
+      } else if (currentStageData.appIdea && currentStageData.appName && currentStageData.problemStatement) {
+        mockResponse.content = "Excellent! You've defined a solid foundation. Ready to move on to feature planning?";
+        mockResponse.stageComplete = true;
+      }
+    } else if (stageId === 'feature-planning') {
+      if (lowerMessage.includes('suggest') || lowerMessage.includes('features')) {
+        const ideationData = allStageData['ideation-discovery'] || {};
+        const appIdea = ideationData.appIdea?.toLowerCase() || '';
+        
+        let suggestedPacks = ['auth', 'crud'];
+        if (appIdea.includes('social')) suggestedPacks.push('social', 'communication');
+        if (appIdea.includes('shop') || appIdea.includes('commerce')) suggestedPacks.push('commerce');
+        
+        mockResponse.content = `Based on your app idea, I recommend these feature packs that align with your concept.`;
+        mockResponse.autoFillData = { selectedFeaturePacks: suggestedPacks };
+        mockResponse.suggestions = ["Add custom features", "Prioritize for MVP", "What about AI features?"];
       }
     }
 
-    return {
-      content: `I understand you want to work on "${userMessage}". Let me help you with this stage. What specific aspect would you like to focus on?`,
-      suggestions: [
-        "Help me get started",
-        "What should I do next?",
-        "Give me suggestions"
-      ],
-      autoFillData: {}
-    };
+    // Default response
+    if (!mockResponse.content) {
+      mockResponse.content = `I'm here to help with ${stageId.replace('-', ' ')}. What would you like to work on?`;
+      mockResponse.suggestions = ["Help me get started", "What should I do next?", "Give me suggestions"];
+    }
+
+    // Create a mock streaming response
+    const encoder = new TextEncoder();
+    const stream = new ReadableStream({
+      start(controller) {
+        // Simulate streaming
+        const words = mockResponse.content.split(' ');
+        let i = 0;
+        
+        const interval = setInterval(() => {
+          if (i < words.length) {
+            const content = words.slice(0, i + 1).join(' ');
+            controller.enqueue(encoder.encode(`data: ${JSON.stringify({ type: 'content', content })}\n\n`));
+            i++;
+          } else {
+            controller.enqueue(encoder.encode(`data: ${JSON.stringify({ type: 'complete', ...mockResponse })}\n\n`));
+            controller.close();
+            clearInterval(interval);
+          }
+        }, 50);
+      }
+    });
+
+    return { body: stream };
+  };
+
+  const handleAutoFillData = (autoFillData: any) => {
+    if (!onUpdateStageData || !currentStage) return;
+    
+    setPendingAutoFill(autoFillData);
+    setShowConfirmation(true);
+  };
+
+  const confirmAutoFill = () => {
+    if (pendingAutoFill && onUpdateStageData && currentStage) {
+      // Apply auto-fill data to current stage
+      onUpdateStageData(currentStage.id, pendingAutoFill);
+      
+      // Show success message
+      onSendMessage(`AI Agent auto-filled: ${Object.keys(pendingAutoFill).join(', ')}`);
+      
+      // Add system message
+      const systemMsg: AgentMessage = {
+        id: Date.now().toString(),
+        type: 'system',
+        content: `✅ Applied auto-fill suggestions: ${Object.keys(pendingAutoFill).join(', ')}`,
+        timestamp: new Date(),
+      };
+      setAgentMessages(prev => [...prev, systemMsg]);
+    }
+    
+    setPendingAutoFill(null);
+    setShowConfirmation(false);
+  };
+
+  const rejectAutoFill = () => {
+    setPendingAutoFill(null);
+    setShowConfirmation(false);
+  };
+
+  const handleStageCompletion = () => {
+    if (!onCompleteStage || !onGoToStage || !getNextStage || !currentStage) return;
+    
+    // Complete current stage
+    onCompleteStage(currentStage.id);
+    
+    // Move to next stage
+    const nextStage = getNextStage();
+    if (nextStage && !nextStage.comingSoon) {
+      setTimeout(() => {
+        onGoToStage(nextStage.id);
+        
+        // Add transition message
+        const transitionMsg: AgentMessage = {
+          id: Date.now().toString(),
+          type: 'system',
+          content: `🎉 Stage completed! Moving to: ${nextStage.title}`,
+          timestamp: new Date(),
+        };
+        setAgentMessages(prev => [...prev, transitionMsg]);
+      }, 1000);
+    }
   };
 
   const applySuggestion = (suggestion: string) => {
@@ -173,50 +334,6 @@ export const Canvas: React.FC<CanvasProps> = ({
       );
     }
 
-    // Render stage-specific content based on completion and data
-    if (currentStage.id === 'structure-flow' && currentStage.completed) {
-      const uxData = stageData['structure-flow'] || {};
-      
-      // Sample journey steps - in real implementation, this would be generated by AI
-      const sampleJourneySteps = [
-        {
-          id: '1',
-          title: 'Discovery',
-          description: 'User discovers the app and decides to try it',
-          touchpoints: ['App Store', 'Social Media', 'Word of Mouth'],
-          emotions: 'positive' as const,
-        },
-        {
-          id: '2',
-          title: 'Onboarding',
-          description: 'User signs up and completes initial setup',
-          touchpoints: ['Landing Page', 'Sign-up Form', 'Welcome Tutorial'],
-          emotions: 'neutral' as const,
-          painPoints: ['Complex form', 'Too many steps'],
-        },
-        {
-          id: '3',
-          title: 'First Use',
-          description: 'User explores core features and completes first task',
-          touchpoints: ['Main Dashboard', 'Feature Tour', 'Help Center'],
-          emotions: 'positive' as const,
-        },
-      ];
-
-      // Sample flowchart nodes
-      const sampleNodes = [
-        { id: 'start', title: 'App Launch', type: 'screen' as const, position: { x: 50, y: 50 } },
-        { id: 'auth', title: 'Authentication', type: 'decision' as const, position: { x: 250, y: 50 } },
-        { id: 'home', title: 'Home Screen', type: 'screen' as const, position: { x: 450, y: 50 } },
-        { id: 'profile', title: 'User Profile', type: 'screen' as const, position: { x: 250, y: 150 } },
-      ];
-
-      const sampleConnections = [
-        { from: 'start', to: 'auth' },
-        { from: 'auth', to: 'home', label: 'Success' },
-        { from: 'home', to: 'profile' },
-      ];
-    }
     return (
       <motion.div
         initial={{ opacity: 0, y: 20 }}
@@ -258,6 +375,50 @@ export const Canvas: React.FC<CanvasProps> = ({
           </div>
         </div>
       </div>
+
+      {/* Confirmation Modal for Auto-Fill */}
+      {showConfirmation && pendingAutoFill && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+          <motion.div
+            initial={{ scale: 0.9, opacity: 0 }}
+            animate={{ scale: 1, opacity: 1 }}
+            className="bg-white rounded-lg p-6 max-w-md mx-4"
+          >
+            <div className="flex items-center gap-3 mb-4">
+              <Wand2 className="w-6 h-6 text-purple-600" />
+              <h3 className="text-lg font-semibold">AI Suggestions Ready</h3>
+            </div>
+            
+            <p className="text-gray-600 mb-4">
+              The AI agent wants to auto-fill these fields:
+            </p>
+            
+            <div className="bg-purple-50 rounded-lg p-3 mb-4">
+              {Object.entries(pendingAutoFill).map(([key, value]) => (
+                <div key={key} className="text-sm">
+                  <span className="font-medium text-purple-800">{key}:</span>
+                  <span className="text-purple-600 ml-2">{String(value).slice(0, 50)}...</span>
+                </div>
+              ))}
+            </div>
+            
+            <div className="flex gap-3">
+              <button
+                onClick={confirmAutoFill}
+                className="flex-1 px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors"
+              >
+                Apply Suggestions
+              </button>
+              <button
+                onClick={rejectAutoFill}
+                className="flex-1 px-4 py-2 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300 transition-colors"
+              >
+                Skip
+              </button>
+            </div>
+          </motion.div>
+        </div>
+      )}
 
       {/* Input Area */}
       <div className="bg-white border-t border-gray-200" style={{ height: '300px' }}>
@@ -307,6 +468,14 @@ export const Canvas: React.FC<CanvasProps> = ({
                       'bg-gray-50 text-gray-700'
                     }`}>
                       <div className="whitespace-pre-wrap">{msg.content}</div>
+                      
+                      {/* Stage completion indicator */}
+                      {msg.stageComplete && (
+                        <div className="mt-2 flex items-center gap-1 text-green-600">
+                          <CheckCircle className="w-3 h-3" />
+                          <span className="text-xs">Stage ready for completion</span>
+                        </div>
+                      )}
                       
                       {/* Suggestions */}
                       {msg.suggestions && msg.suggestions.length > 0 && (

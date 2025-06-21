@@ -50,6 +50,10 @@ function App() {
             currentStage={currentStage}
             stageData={stageData}
             onSendMessage={handleSendMessage}
+            onUpdateStageData={updateStageData}
+            onCompleteStage={completeStage}
+            onGoToStage={goToStage}
+            getNextStage={getNextStage}
           />
         </div>
 

@@ -24,6 +24,7 @@ interface AgentRequest {
   conversationHistory: any[]
   userMessage: string
   memory: any
+  recommendations?: any[]
 }
 
 interface AgentResponse {
@@ -32,6 +33,7 @@ interface AgentResponse {
   autoFillData: any
   stageComplete: boolean
   context: any
+  memoryUpdate?: any
 }
 
 serve(async (req) => {
@@ -41,7 +43,7 @@ serve(async (req) => {
   }
 
   try {
-    const { stageId, currentStageData, allStageData, conversationHistory, userMessage, memory }: AgentRequest = await req.json()
+    const { stageId, currentStageData, allStageData, conversationHistory, userMessage, memory, recommendations }: AgentRequest = await req.json()
 
     // Create a streaming response
     const stream = new ReadableStream({
@@ -53,7 +55,8 @@ serve(async (req) => {
           allStageData,
           conversationHistory,
           userMessage,
-          memory
+          memory,
+          recommendations
         })
       }
     })
