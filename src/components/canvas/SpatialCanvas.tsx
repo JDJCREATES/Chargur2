@@ -33,6 +33,7 @@ export const SpatialCanvas: React.FC<SpatialCanvasProps> = ({
   const [showGrid, setShowGrid] = useState(true);
   const [isPanning, setIsPanning] = useState(false);
   const [lastPanPoint, setLastPanPoint] = useState({ x: 0, y: 0 });
+  const [isToolbarCollapsed, setIsToolbarCollapsed] = useState(false);
 
   // Initialize canvas with data from stages
   useEffect(() => {
@@ -231,8 +232,8 @@ export const SpatialCanvas: React.FC<SpatialCanvasProps> = ({
       title: `New ${type.charAt(0).toUpperCase() + type.slice(1)}`,
       content: 'Click edit to add content...',
       position: { 
-        x: Math.random() * 400 + 200, 
-        y: Math.random() * 300 + 200 
+        x: Math.random() * 300 + 150, 
+        y: Math.random() * 200 + 150 
       },
       size: { width: 180, height: 100 },
       color: type,
@@ -292,15 +293,17 @@ export const SpatialCanvas: React.FC<SpatialCanvasProps> = ({
     setScale(prev => Math.max(0.1, Math.min(3, prev * delta)));
   }, []);
 
-  const handleMouseDown = useCallback((e: React.MouseEvent) => {
-    if (e.button === 1 || (e.button === 0 && e.metaKey)) { // Middle mouse or Cmd+click
+  const handleCanvasMouseDown = useCallback((e: React.MouseEvent) => {
+    if (e.button === 1 || (e.button === 0 && (e.metaKey || e.ctrlKey))) { // Middle mouse or Cmd/Ctrl+click
+      e.preventDefault();
       setIsPanning(true);
       setLastPanPoint({ x: e.clientX, y: e.clientY });
     }
   }, []);
 
-  const handleMouseMove = useCallback((e: React.MouseEvent) => {
+  const handleCanvasMouseMove = useCallback((e: React.MouseEvent) => {
     if (isPanning) {
+      e.preventDefault();
       const deltaX = e.clientX - lastPanPoint.x;
       const deltaY = e.clientY - lastPanPoint.y;
       setOffset(prev => ({
@@ -311,7 +314,7 @@ export const SpatialCanvas: React.FC<SpatialCanvasProps> = ({
     }
   }, [isPanning, lastPanPoint]);
 
-  const handleMouseUp = useCallback(() => {
+  const handleCanvasMouseUp = useCallback(() => {
     setIsPanning(false);
   }, []);
 
@@ -371,21 +374,18 @@ export const SpatialCanvas: React.FC<SpatialCanvasProps> = ({
         onAutoLayout={autoLayout}
         showGrid={showGrid}
         scale={scale}
+        isCollapsed={isToolbarCollapsed}
+        onToggleCollapse={() => setIsToolbarCollapsed(prev => !prev)}
       />
-
-      {/* Canvas Title */}
-      <div className="absolute top-4 right-4 z-10 bg-white bg-opacity-90 rounded-lg px-3 py-2 shadow-sm">
-        <h3 className="text-sm font-medium text-gray-800">Spatial Design Canvas</h3>
-        <p className="text-xs text-gray-600">Drag nodes • Connect ideas • Zoom & pan</p>
-      </div>
       <div
         ref={canvasRef}
-        className="w-full h-full cursor-grab active:cursor-grabbing"
+        className={`w-full h-full ${isPanning ? 'cursor-grabbing' : 'cursor-grab'}`}
         onClick={handleCanvasClick}
         onWheel={handleWheel}
-        onMouseDown={handleMouseDown}
-        onMouseMove={handleMouseMove}
-        onMouseUp={handleMouseUp}
+        onMouseDown={handleCanvasMouseDown}
+        onMouseMove={handleCanvasMouseMove}
+        onMouseUp={handleCanvasMouseUp}
+        onMouseLeave={handleCanvasMouseUp}
         style={{
           backgroundImage: showGrid 
             ? `radial-gradient(circle, #e5e7eb 1px, transparent 1px)`
@@ -396,8 +396,13 @@ export const SpatialCanvas: React.FC<SpatialCanvasProps> = ({
       >
         <motion.div
           className="relative w-full h-full"
+          animate={{
+            scale: scale,
+            x: offset.x / scale,
+            y: offset.y / scale,
+          }}
+          transition={{ type: "tween", duration: 0.1 }}
           style={{
-            transform: `scale(${scale}) translate(${offset.x / scale}px, ${offset.y / scale}px)`,
             transformOrigin: '0 0',
           }}
         >
@@ -435,8 +440,8 @@ export const SpatialCanvas: React.FC<SpatialCanvasProps> = ({
 
           {/* Connection preview */}
           {connectingFrom && (
-            <div className="absolute inset-0 pointer-events-none">
-              <div className="text-center mt-4 text-sm text-blue-600 bg-blue-50 inline-block px-3 py-1 rounded-full">
+            <div className="absolute top-4 left-1/2 transform -translate-x-1/2 pointer-events-none z-30">
+              <div className="text-sm text-blue-600 bg-blue-50 bg-opacity-90 backdrop-blur-sm px-3 py-1 rounded-full border border-blue-200">
                 Click another node to create connection
               </div>
             </div>
@@ -445,7 +450,7 @@ export const SpatialCanvas: React.FC<SpatialCanvasProps> = ({
       </div>
 
       {/* Canvas Info */}
-      <div className="absolute bottom-4 right-4 bg-white rounded-lg shadow-sm border border-gray-200 p-3 text-xs text-gray-600">
+      <div className="absolute bottom-4 right-4 bg-white bg-opacity-90 backdrop-blur-sm rounded-lg shadow-sm border border-gray-200 p-3 text-xs text-gray-600">
         <div>Nodes: {nodes.length}</div>
         <div>Connections: {connections.length}</div>
         <div>Zoom: {Math.round(scale * 100)}%</div>

@@ -85,13 +85,16 @@ export const CanvasNode: React.FC<CanvasNodeProps> = ({
     setIsDragging(true);
   };
 
-  const handleDragEnd = (event: any, info: any) => {
-    setIsDragging(false);
+  const handleDrag = (event: any, info: any) => {
     const newPosition = {
-      x: node.position.x + info.offset.x / scale,
-      y: node.position.y + info.offset.y / scale,
+      x: Math.max(0, node.position.x + info.delta.x / scale),
+      y: Math.max(0, node.position.y + info.delta.y / scale),
     };
     onUpdate(node.id, { position: newPosition });
+  };
+
+  const handleDragEnd = () => {
+    setIsDragging(false);
   };
 
   const handleSaveEdit = () => {
@@ -114,18 +117,21 @@ export const CanvasNode: React.FC<CanvasNodeProps> = ({
     <motion.div
       drag
       dragMomentum={false}
+      dragElastic={0}
+      dragConstraints={false}
       onDragStart={handleDragStart}
+      onDrag={handleDrag}
       onDragEnd={handleDragEnd}
       whileHover={{ scale: 1.02 }}
       whileDrag={{ scale: 1.05, zIndex: 1000 }}
       className={`
-        absolute cursor-move select-none
+        absolute cursor-move select-none transition-shadow
         ${isDragging ? 'z-50' : 'z-10'}
         ${isSelected ? 'ring-2 ring-blue-500 ring-opacity-50' : ''}
       `}
       style={{
-        left: node.position.x,
-        top: node.position.y,
+        left: `${node.position.x}px`,
+        top: `${node.position.y}px`,
         width: node.size.width,
         minHeight: node.size.height,
       }}

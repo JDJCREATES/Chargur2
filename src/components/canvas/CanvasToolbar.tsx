@@ -14,7 +14,9 @@ import {
   MessageSquare,
   Grid,
   Move,
-  Eye
+  Eye,
+  ChevronLeft,
+  ChevronRight
 } from 'lucide-react';
 import { CanvasNodeData } from './CanvasNode';
 
@@ -29,6 +31,8 @@ interface CanvasToolbarProps {
   onAutoLayout: () => void;
   showGrid: boolean;
   scale: number;
+  isCollapsed?: boolean;
+  onToggleCollapse?: () => void;
 }
 
 export const CanvasToolbar: React.FC<CanvasToolbarProps> = ({
@@ -42,6 +46,8 @@ export const CanvasToolbar: React.FC<CanvasToolbarProps> = ({
   onAutoLayout,
   showGrid,
   scale,
+  isCollapsed = false,
+  onToggleCollapse,
 }) => {
   const nodeTypes = [
     { type: 'concept' as const, label: 'Concept', icon: Lightbulb, color: 'text-yellow-600' },
@@ -53,10 +59,22 @@ export const CanvasToolbar: React.FC<CanvasToolbarProps> = ({
   ];
 
   return (
-    <div className="absolute top-4 left-4 z-20 bg-white rounded-lg shadow-lg border border-gray-200 p-2">
-      <div className="flex flex-col gap-2">
+    <div className="absolute top-4 left-4 z-20 bg-white bg-opacity-95 backdrop-blur-sm rounded-lg shadow-lg border border-gray-200 transition-all duration-300">
+      {/* Collapse Toggle */}
+      <button
+        onClick={onToggleCollapse}
+        className="absolute -right-3 top-2 w-6 h-6 bg-white bg-opacity-95 backdrop-blur-sm border border-gray-200 rounded-full flex items-center justify-center hover:bg-gray-50 transition-colors"
+      >
+        {isCollapsed ? (
+          <ChevronRight className="w-3 h-3 text-gray-600" />
+        ) : (
+          <ChevronLeft className="w-3 h-3 text-gray-600" />
+        )}
+      </button>
+
+      <div className={`flex flex-col gap-2 p-2 transition-all duration-300 ${isCollapsed ? 'w-0 overflow-hidden p-0' : 'w-auto'}`}>
         {/* Add Node Section */}
-        <div className="border-b border-gray-200 pb-2">
+        <div className="border-b border-gray-200 border-opacity-50 pb-2">
           <div className="text-xs font-medium text-gray-700 mb-2">Add Node</div>
           <div className="grid grid-cols-2 gap-1">
             {nodeTypes.map((nodeType) => {
@@ -80,7 +98,7 @@ export const CanvasToolbar: React.FC<CanvasToolbarProps> = ({
         </div>
 
         {/* View Controls */}
-        <div className="border-b border-gray-200 pb-2">
+        <div className="border-b border-gray-200 border-opacity-50 pb-2">
           <div className="text-xs font-medium text-gray-700 mb-2">View</div>
           <div className="flex gap-1">
             <button
@@ -111,7 +129,7 @@ export const CanvasToolbar: React.FC<CanvasToolbarProps> = ({
         </div>
 
         {/* Layout Controls */}
-        <div className="border-b border-gray-200 pb-2">
+        <div className="border-b border-gray-200 border-opacity-50 pb-2">
           <div className="text-xs font-medium text-gray-700 mb-2">Layout</div>
           <div className="flex gap-1">
             <button

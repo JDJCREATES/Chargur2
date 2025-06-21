@@ -132,9 +132,6 @@ export const Canvas: React.FC<CanvasProps> = ({
               onSendMessage={onSendMessage}
             />
           </div>
-          
-          {/* Stage-specific content below */}
-          {renderCanvasContent()}
         </div>
       </div>
 
