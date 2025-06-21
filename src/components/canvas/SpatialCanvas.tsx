@@ -356,7 +356,7 @@ export const SpatialCanvas: React.FC<SpatialCanvasProps> = ({
   };
 
   return (
-    <div className="flex-1 relative overflow-hidden bg-gray-50">
+    <div className="relative w-full h-96 overflow-hidden bg-gray-50 rounded-lg border border-gray-200">
       <CanvasToolbar
         onAddNode={addNode}
         onZoomIn={() => setScale(prev => Math.min(3, prev * 1.2))}
@@ -373,6 +373,11 @@ export const SpatialCanvas: React.FC<SpatialCanvasProps> = ({
         scale={scale}
       />
 
+      {/* Canvas Title */}
+      <div className="absolute top-4 right-4 z-10 bg-white bg-opacity-90 rounded-lg px-3 py-2 shadow-sm">
+        <h3 className="text-sm font-medium text-gray-800">Spatial Design Canvas</h3>
+        <p className="text-xs text-gray-600">Drag nodes • Connect ideas • Zoom & pan</p>
+      </div>
       <div
         ref={canvasRef}
         className="w-full h-full cursor-grab active:cursor-grabbing"
