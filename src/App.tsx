@@ -1,8 +1,6 @@
 import React, { useState } from 'react';
 import { motion } from 'framer-motion';
 import { AgentContextProvider } from './components/agent/AgentContextProvider';
-import { AgentMemoryStream } from './components/agent/AgentMemoryStream';
-import { AgentQuickStart } from './components/agent/AgentQuickStart';
 import { Sidebar } from './components/layout/Sidebar';
 import { Canvas } from './components/layout/Canvas';
 import { useStageManager } from './hooks/useStageManager';
@@ -10,8 +8,6 @@ import { ChatMessage } from './types';
 
 function App() {
   const [isSidebarOpen, setIsSidebarOpen] = useState(true);
-  const [showQuickStart, setShowQuickStart] = useState(false);
-  const [quickStartPrompt, setQuickStartPrompt] = useState('');
   const {
     stages,
     currentStage,
@@ -19,7 +15,6 @@ function App() {
     goToStage,
     completeStage,
     updateStageData,
-    getNextStage,
   } = useStageManager();
 
   const [chatHistory, setChatHistory] = useState<ChatMessage[]>([]);
@@ -29,17 +24,6 @@ function App() {
   };
 
   const handleSendMessage = (content: string) => {
-    // Check if this looks like an app idea prompt
-    const isAppIdeaPrompt = content.toLowerCase().includes('build an app') || 
-                           content.toLowerCase().includes('app about') ||
-                           content.toLowerCase().includes('create an app');
-    
-    if (isAppIdeaPrompt && currentStage?.id === 'ideation-discovery') {
-      setQuickStartPrompt(content);
-      setShowQuickStart(true);
-      return;
-    }
-
     const userMessage: ChatMessage = {
       id: Date.now().toString(),
       content,
@@ -57,28 +41,6 @@ function App() {
     setChatHistory(prev => [...prev, userMessage, assistantMessage]);
   };
 
-  const handleQuickStartComplete = (data: any) => {
-    updateStageData('ideation-discovery', data);
-    setShowQuickStart(false);
-    
-    // Auto-complete the stage if enough data is provided
-    if (data.appIdea && data.appName && data.problemStatement) {
-      setTimeout(() => {
-        completeStage('ideation-discovery');
-      }, 1000);
-    }
-  };
-
-  const handleQuickStartSkip = () => {
-    setShowQuickStart(false);
-  };
-
-  const handleNextStage = () => {
-    const nextStage = getNextStage();
-    if (nextStage) {
-      goToStage(nextStage.id);
-    }
-  };
   return (
     <AgentContextProvider>
       <div className="min-h-screen bg-gray-50 flex">
@@ -103,26 +65,6 @@ function App() {
           isOpen={isSidebarOpen}
           onToggle={toggleSidebar}
         />
-
-        {/* AI Agent Memory Stream */}
-        {currentStage && (
-          <AgentMemoryStream
-            currentStageId={currentStage.id}
-            stageData={stageData}
-            onUpdateStageData={updateStageData}
-            onStageComplete={completeStage}
-            onNextStage={handleNextStage}
-          />
-        )}
-
-        {/* Quick Start Modal */}
-        {showQuickStart && (
-          <AgentQuickStart
-            initialPrompt={quickStartPrompt}
-            onComplete={handleQuickStartComplete}
-            onSkip={handleQuickStartSkip}
-          />
-        )}
       </div>
     </AgentContextProvider>
   );

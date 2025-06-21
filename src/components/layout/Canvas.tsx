@@ -1,10 +1,9 @@
 import React, { useState } from 'react';
 import { motion } from 'framer-motion';
-import { Send } from 'lucide-react';
+import { Send, Brain, Loader2, Wand2, Sparkles } from 'lucide-react';
 import { CanvasHeader } from './CanvasHeader';
-import { UserJourneyMap } from '../stage/elements/UserJourneyMap';
-import { AppFlowchart } from '../stage/elements/AppFlowchart';
 import { SpatialCanvas } from '../canvas/SpatialCanvas';
+import { useAgent } from '../agent/AgentContextProvider';
 import { Stage } from '../../types';
 
 interface CanvasProps {
@@ -19,13 +18,138 @@ export const Canvas: React.FC<CanvasProps> = ({
   onSendMessage
 }) => {
   const [message, setMessage] = useState('');
+  const [agentMessages, setAgentMessages] = useState<Array<{
+    id: string;
+    type: 'user' | 'agent' | 'system';
+    content: string;
+    timestamp: Date;
+    suggestions?: string[];
+    autoFillData?: any;
+  }>>([]);
+  const [isAgentThinking, setIsAgentThinking] = useState(false);
+  const [streamingContent, setStreamingContent] = useState('');
+  const { updateAgentMemory, getStageRecommendations } = useAgent();
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (message.trim()) {
-      onSendMessage(message.trim());
+      sendToAgent(message.trim());
       setMessage('');
     }
+  };
+
+  const sendToAgent = async (userMessage: string) => {
+    if (isAgentThinking) return;
+
+    // Add user message
+    const userMsg = {
+      id: Date.now().toString(),
+      type: 'user' as const,
+      content: userMessage,
+      timestamp: new Date(),
+    };
+
+    setAgentMessages(prev => [...prev, userMsg]);
+    setIsAgentThinking(true);
+    setStreamingContent('');
+
+    try {
+      // Prepare context for AI agent
+      const agentContext = {
+        stageId: currentStage?.id || 'ideation-discovery',
+        currentStageData: stageData[currentStage?.id || 'ideation-discovery'] || {},
+        allStageData: stageData,
+        conversationHistory: agentMessages,
+        userMessage: userMessage,
+        memory: {},
+      };
+
+      // Call the edge function (simulated for now)
+      const response = await simulateAgentResponse(agentContext);
+      
+      // Simulate streaming
+      const words = response.content.split(' ');
+      let fullContent = '';
+      
+      for (let i = 0; i < words.length; i++) {
+        fullContent = words.slice(0, i + 1).join(' ');
+        setStreamingContent(fullContent);
+        await new Promise(resolve => setTimeout(resolve, 50));
+      }
+
+      // Create agent message
+      const agentMsg = {
+        id: (Date.now() + 1).toString(),
+        type: 'agent' as const,
+        content: response.content,
+        timestamp: new Date(),
+        suggestions: response.suggestions || [],
+        autoFillData: response.autoFillData || {},
+      };
+
+      setAgentMessages(prev => [...prev, agentMsg]);
+      
+      // Auto-fill stage data if provided
+      if (response.autoFillData && Object.keys(response.autoFillData).length > 0) {
+        onSendMessage(`AI Agent auto-filled: ${Object.keys(response.autoFillData).join(', ')}`);
+        // Update stage data with AI suggestions
+        Object.entries(response.autoFillData).forEach(([key, value]) => {
+          // This would integrate with your stage update logic
+          console.log(`Auto-filling ${key}:`, value);
+        });
+      }
+
+    } catch (error) {
+      console.error('Agent error:', error);
+      const errorMsg = {
+        id: (Date.now() + 2).toString(),
+        type: 'system' as const,
+        content: 'Sorry, I encountered an error. Please try again.',
+        timestamp: new Date(),
+      };
+      setAgentMessages(prev => [...prev, errorMsg]);
+    } finally {
+      setIsAgentThinking(false);
+      setStreamingContent('');
+    }
+  };
+
+  // Simulate agent response (replace with actual API call)
+  const simulateAgentResponse = async (context: any) => {
+    const { stageId, userMessage } = context;
+    const lowerMessage = userMessage.toLowerCase();
+
+    // Stage-specific responses
+    if (stageId === 'ideation-discovery') {
+      if (lowerMessage.includes('app about') || lowerMessage.includes('build')) {
+        return {
+          content: `Great idea! I can help you develop this concept. Let me suggest some initial details based on your description.`,
+          suggestions: [
+            "What problem does this solve?",
+            "Who would use this app?", 
+            "What makes it unique?"
+          ],
+          autoFillData: {
+            appIdea: userMessage,
+            appName: userMessage.split(' ').slice(-2).map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(''),
+          }
+        };
+      }
+    }
+
+    return {
+      content: `I understand you want to work on "${userMessage}". Let me help you with this stage. What specific aspect would you like to focus on?`,
+      suggestions: [
+        "Help me get started",
+        "What should I do next?",
+        "Give me suggestions"
+      ],
+      autoFillData: {}
+    };
+  };
+
+  const applySuggestion = (suggestion: string) => {
+    setMessage(suggestion);
   };
 
   const renderCanvasContent = () => {
@@ -136,40 +260,164 @@ export const Canvas: React.FC<CanvasProps> = ({
       </div>
 
       {/* Input Area */}
-      <div className="p-6 bg-white border-t border-gray-200">
+      <div className="bg-white border-t border-gray-200" style={{ height: '300px' }}>
         <div className="max-w-4xl mx-auto">
-          <form onSubmit={handleSubmit} className="flex gap-4">
-            <div className="flex-1 relative">
-              <input
-                type="text"
-                value={message}
-                onChange={(e) => setMessage(e.target.value)}
-                placeholder={
-                  currentStage?.comingSoon 
-                    ? "This stage is coming soon..." 
-                    : "Describe your app idea or ask a question..."
-                }
-                disabled={currentStage?.comingSoon}
-                className={`
-                  w-full p-4 pr-12 border border-gray-200 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent
-                  ${currentStage?.comingSoon ? 'bg-gray-50 text-gray-400 cursor-not-allowed' : 'bg-white'}
-                `}
-              />
-              <button
-                type="submit"
-                disabled={!message.trim() || currentStage?.comingSoon}
-                className={`
-                  absolute right-2 top-1/2 -translate-y-1/2 p-2 rounded-lg transition-colors
-                  ${message.trim() && !currentStage?.comingSoon
-                    ? 'bg-blue-600 text-white hover:bg-blue-700' 
-                    : 'bg-gray-100 text-gray-400 cursor-not-allowed'
-                  }
-                `}
-              >
-                <Send size={20} />
-              </button>
+          <div className="h-full flex">
+            {/* Left Half - AI Agent Responses */}
+            <div className="w-1/2 border-r border-gray-200 flex flex-col">
+              {/* Agent Header */}
+              <div className="p-3 bg-purple-50 border-b border-purple-200 flex items-center gap-2">
+                <Brain className="w-5 h-5 text-purple-600" />
+                <span className="font-medium text-purple-800">AI Agent</span>
+                {isAgentThinking && <Loader2 className="w-4 h-4 text-purple-600 animate-spin" />}
+                <div className="ml-auto">
+                  <span className="text-xs text-purple-600">
+                    {currentStage?.title || 'Ready to help'}
+                  </span>
+                </div>
+              </div>
+
+              {/* Agent Messages */}
+              <div className="flex-1 overflow-y-auto p-3 space-y-3">
+                {agentMessages.length === 0 && (
+                  <div className="text-center text-gray-500 py-8">
+                    <Brain className="w-8 h-8 mx-auto mb-2 text-gray-400" />
+                    <p className="text-sm">Hi! I'm your AI UX agent.</p>
+                    <p className="text-xs mt-1">Tell me about your app idea to get started!</p>
+                  </div>
+                )}
+                
+                {agentMessages.map((msg) => (
+                  <motion.div
+                    key={msg.id}
+                    initial={{ opacity: 0, y: 10 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    className={`flex gap-2 ${msg.type === 'user' ? 'flex-row-reverse' : ''}`}
+                  >
+                    <div className={`w-6 h-6 rounded-full flex items-center justify-center text-xs ${
+                      msg.type === 'user' ? 'bg-blue-100 text-blue-600' :
+                      msg.type === 'agent' ? 'bg-purple-100 text-purple-600' :
+                      'bg-gray-100 text-gray-600'
+                    }`}>
+                      {msg.type === 'user' ? '👤' : msg.type === 'agent' ? '🤖' : '⚠️'}
+                    </div>
+                    <div className={`flex-1 max-w-[85%] p-3 rounded-lg text-sm ${
+                      msg.type === 'user' ? 'bg-blue-100 text-blue-800' :
+                      msg.type === 'agent' ? 'bg-purple-50 text-purple-800' :
+                      'bg-gray-50 text-gray-700'
+                    }`}>
+                      <div className="whitespace-pre-wrap">{msg.content}</div>
+                      
+                      {/* Suggestions */}
+                      {msg.suggestions && msg.suggestions.length > 0 && (
+                        <div className="mt-2 space-y-1">
+                          <div className="text-xs opacity-75">Quick actions:</div>
+                          {msg.suggestions.slice(0, 3).map((suggestion, index) => (
+                            <button
+                              key={index}
+                              onClick={() => applySuggestion(suggestion)}
+                              className="block text-xs px-2 py-1 bg-white bg-opacity-50 rounded hover:bg-opacity-75 transition-colors"
+                            >
+                              {suggestion}
+                            </button>
+                          ))}
+                        </div>
+                      )}
+                    </div>
+                  </motion.div>
+                ))}
+
+                {/* Streaming content */}
+                {isAgentThinking && streamingContent && (
+                  <motion.div
+                    initial={{ opacity: 0, y: 10 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    className="flex gap-2"
+                  >
+                    <div className="w-6 h-6 rounded-full bg-purple-100 text-purple-600 flex items-center justify-center text-xs">
+                      🤖
+                    </div>
+                    <div className="flex-1 max-w-[85%] p-3 rounded-lg text-sm bg-purple-50 text-purple-800">
+                      <div className="whitespace-pre-wrap">{streamingContent}</div>
+                      <div className="mt-1 flex items-center gap-1 text-purple-400">
+                        <Loader2 className="w-3 h-3 animate-spin" />
+                        <span className="text-xs">Thinking...</span>
+                      </div>
+                    </div>
+                  </motion.div>
+                )}
+              </div>
             </div>
-          </form>
+
+            {/* Right Half - User Input */}
+            <div className="w-1/2 flex flex-col">
+              {/* Input Header */}
+              <div className="p-3 bg-blue-50 border-b border-blue-200 flex items-center gap-2">
+                <Sparkles className="w-5 h-5 text-blue-600" />
+                <span className="font-medium text-blue-800">Your Input</span>
+                <div className="ml-auto">
+                  <span className="text-xs text-blue-600">
+                    {currentStage?.comingSoon ? 'Coming Soon' : 'Ready'}
+                  </span>
+                </div>
+              </div>
+
+              {/* Input Area */}
+              <div className="flex-1 p-3">
+                <form onSubmit={handleSubmit} className="h-full flex flex-col">
+                  <textarea
+                    value={message}
+                    onChange={(e) => setMessage(e.target.value)}
+                    placeholder={
+                      currentStage?.comingSoon 
+                        ? "This stage is coming soon..." 
+                        : "Describe your app idea, ask questions, or tell me what you want to work on...\n\nTry: 'I want to build an app about task management'"
+                    }
+                    disabled={currentStage?.comingSoon || isAgentThinking}
+                    className={`
+                      flex-1 p-4 border border-gray-200 rounded-lg resize-none focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent
+                      ${currentStage?.comingSoon || isAgentThinking ? 'bg-gray-50 text-gray-400 cursor-not-allowed' : 'bg-white'}
+                    `}
+                    onKeyDown={(e) => {
+                      if (e.key === 'Enter' && (e.metaKey || e.ctrlKey)) {
+                        e.preventDefault();
+                        handleSubmit(e);
+                      }
+                    }}
+                  />
+                  
+                  <div className="mt-3 flex items-center justify-between">
+                    <div className="text-xs text-gray-500">
+                      {currentStage?.comingSoon ? 'Stage not available yet' : 'Cmd/Ctrl + Enter to send'}
+                    </div>
+                    <button
+                      type="submit"
+                      disabled={!message.trim() || currentStage?.comingSoon || isAgentThinking}
+                      className={`
+                        px-4 py-2 rounded-lg font-medium transition-colors flex items-center gap-2
+                        ${message.trim() && !currentStage?.comingSoon && !isAgentThinking
+                          ? 'bg-blue-600 text-white hover:bg-blue-700' 
+                          : 'bg-gray-200 text-gray-400 cursor-not-allowed'
+                        }
+                      `}
+                    >
+                      {isAgentThinking ? (
+                        <>
+                          <Loader2 className="w-4 h-4 animate-spin" />
+                          Processing...
+                        </>
+                      ) : (
+                        <>
+                          <Send className="w-4 h-4" />
+                          Send to AI
+                        </>
+                      )}
+                    </button>
+                  </div>
+                </form>
+              </div>
+            </div>
+          </div>
         </div>
       </div>
     </div>
