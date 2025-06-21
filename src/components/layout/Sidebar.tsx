@@ -2,7 +2,6 @@ import React from 'react';
 import { motion } from 'framer-motion';
 import { ChevronLeft, ChevronRight, ChevronDown } from 'lucide-react';
 import { Accordion, AccordionSummary, AccordionDetails, Typography } from '@mui/material';
-import { StageProgressBubbles } from '../ui/StageProgressBubbles';
 import { ChatHistory } from '../ui/ChatHistory';
 import { Settings } from '../ui/Settings';
 import { Avatar } from '../ui/Avatar';
@@ -16,6 +15,9 @@ import { UXReviewUserCheck } from '../stages/content/UXReviewUserCheck';
 import { AutoPromptEngine } from '../stages/content/AutoPromptEngine';
 import { ExportPanel } from '../export/ExportPanel';
 import { Stage, ChatMessage } from '../../types';
+
+// Import the enhanced StageProgressBubbles component
+import { StageProgressBubbles } from '../ui/StageProgressBubbles';
 
 interface SidebarProps {
   stages: Stage[];
@@ -158,7 +160,14 @@ export const Sidebar: React.FC<SidebarProps> = ({
 
         {/* Stage Progress */}
         <div className={`transition-opacity duration-200 ${isOpen ? 'opacity-100' : 'opacity-0'}`}>
-          <StageProgressBubbles stages={stages} onStageClick={onStageClick} />
+          <div className="p-4 border-b border-gray-200">
+            <StageProgressBubbles 
+              stages={stages} 
+              onStageClick={onStageClick}
+              orientation="horizontal"
+              size="md"
+            />
+          </div>
         </div>
 
         {/* Stage Form */}
@@ -200,6 +209,26 @@ export const Sidebar: React.FC<SidebarProps> = ({
           </Accordion>
         </div>
       </motion.div>
+      
+      {/* Collapsed Sidebar - Vertical Stage Bubbles */}
+      {!isOpen && (
+        <motion.div
+          initial={{ opacity: 0, x: -20 }}
+          animate={{ opacity: 1, x: 0 }}
+          transition={{ delay: 0.3, duration: 0.3 }}
+          className="fixed right-12 top-20 z-40"
+        >
+          <div className="bg-white bg-opacity-95 backdrop-blur-sm rounded-lg shadow-lg border border-gray-200 p-3">
+            <StageProgressBubbles 
+              stages={stages} 
+              onStageClick={onStageClick}
+              orientation="vertical"
+              size="sm"
+              showLabels={false}
+            />
+          </div>
+        </motion.div>
+      )}
     </div>
   );
 };
