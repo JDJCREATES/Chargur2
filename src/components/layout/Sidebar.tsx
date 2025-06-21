@@ -1,0 +1,205 @@
+import React from 'react';
+import { motion } from 'framer-motion';
+import { ChevronLeft, ChevronRight, ChevronDown } from 'lucide-react';
+import { Accordion, AccordionSummary, AccordionDetails, Typography } from '@mui/material';
+import { StageProgressBubbles } from '../ui/StageProgressBubbles';
+import { ChatHistory } from '../ui/ChatHistory';
+import { Settings } from '../ui/Settings';
+import { Avatar } from '../ui/Avatar';
+import { IdeationDiscovery } from '../stages/content/IdeationDiscovery';
+import { FeaturePlanning } from '../stages/content/FeaturePlanning';
+import { StructureFlow } from '../stages/content/StructureFlow';
+import { InterfaceInteraction } from '../stages/content/InterfaceInteraction';
+import { ArchitectureDesign } from '../stages/content/ArchitectureDesign';
+import { UserAuthFlow } from '../stages/content/UserAuthFlow';
+import { UXReviewUserCheck } from '../stages/content/UXReviewUserCheck';
+import { AutoPromptEngine } from '../stages/content/AutoPromptEngine';
+import { ExportPanel } from '../export/ExportPanel';
+import { Stage, ChatMessage } from '../../types';
+
+interface SidebarProps {
+  stages: Stage[];
+  chatHistory: ChatMessage[];
+  currentStage?: Stage;
+  stageData: any;
+  onStageClick: (stageId: string) => void;
+  onCompleteStage: (stageId: string) => void;
+  onUpdateStageData: (stageId: string, data: any) => void;
+  isOpen: boolean;
+  onToggle: () => void;
+}
+
+export const Sidebar: React.FC<SidebarProps> = ({
+  stages,
+  chatHistory,
+  currentStage,
+  stageData,
+  onStageClick,
+  onCompleteStage,
+  onUpdateStageData,
+  isOpen,
+  onToggle,
+}) => {
+  const renderStageForm = () => {
+    if (!currentStage || currentStage.comingSoon) return null;
+
+    switch (currentStage.id) {
+      case 'ideation-discovery':
+        return (
+          <IdeationDiscovery
+            stage={currentStage}
+            onComplete={() => onCompleteStage(currentStage.id)}
+            onUpdateData={(data: any) => onUpdateStageData(currentStage.id, data)}
+          />
+        );
+      case 'feature-planning':
+        return (
+          <FeaturePlanning
+            stage={currentStage}
+            onComplete={() => onCompleteStage(currentStage.id)}
+            onUpdateData={(data: any) => onUpdateStageData(currentStage.id, data)}
+          />
+        );
+      case 'structure-flow':
+        return (
+          <StructureFlow
+            stage={currentStage}
+            onComplete={() => onCompleteStage(currentStage.id)}
+            onUpdateData={(data: any) => onUpdateStageData(currentStage.id, data)}
+          />
+        );
+      case 'interface-interaction':
+        return (
+          <InterfaceInteraction
+            stage={currentStage}
+            onComplete={() => onCompleteStage(currentStage.id)}
+            onUpdateData={(data: any) => onUpdateStageData(currentStage.id, data)}
+          />
+        );
+      case 'architecture-design':
+        return (
+          <ArchitectureDesign
+            stage={currentStage}
+            onComplete={() => onCompleteStage(currentStage.id)}
+            onUpdateData={(data: any) => onUpdateStageData(currentStage.id, data)}
+          />
+        );
+      case 'user-auth-flow':
+        return (
+          <UserAuthFlow
+            stage={currentStage}
+            onComplete={() => onCompleteStage(currentStage.id)}
+            onUpdateData={(data: any) => onUpdateStageData(currentStage.id, data)}
+          />
+        );
+      case 'ux-review-check':
+        return (
+          <UXReviewUserCheck
+            stage={currentStage}
+            stages={stages}
+            stageData={stageData}
+            onComplete={() => onCompleteStage(currentStage.id)}
+            onUpdateData={(data: any) => onUpdateStageData(currentStage.id, data)}
+            onGoToStage={onStageClick}
+          />
+        );
+      case 'auto-prompt-engine':
+        return (
+          <AutoPromptEngine
+            stage={currentStage}
+            stages={stages}
+            stageData={stageData}
+            onComplete={() => onCompleteStage(currentStage.id)}
+            onUpdateData={(data: any) => onUpdateStageData(currentStage.id, data)}
+          />
+        );
+      case 'export-handoff':
+        return (
+          <ExportPanel
+            stages={stages}
+            stageData={stageData}
+          />
+        );
+      default:
+        return null;
+    }
+  };
+
+  return (
+    <div className="fixed right-0 top-0 h-full z-50">
+      <motion.div
+        initial={{ x: 300 }}
+        animate={{ x: isOpen ? 0 : 268 }}
+        transition={{ duration: 0.3, ease: 'easeInOut' }}
+        className="w-80 bg-white border-l border-gray-200 flex flex-col h-full shadow-lg"
+      >
+        {/* Toggle Button */}
+        <button
+          onClick={onToggle}
+          className="absolute -left-12 top-4 w-12 h-12 bg-white border border-gray-200 rounded-l-lg flex items-center justify-center hover:bg-gray-50 transition-colors shadow-md"
+        >
+          {isOpen ? <ChevronRight size={20} /> : <ChevronLeft size={20} />}
+        </button>
+
+        {/* Header */}
+        <div className="p-4 border-b border-gray-200">
+          <div className="flex items-center gap-3">
+            <Avatar size="lg" />
+            <div className={`transition-opacity duration-200 ${isOpen ? 'opacity-100' : 'opacity-0'}`}>
+              <h2 className="font-semibold text-gray-800">
+                {currentStage ? currentStage.title : 'Chargur AI Agent'}
+              </h2>
+              <p className="text-sm text-gray-500">
+                {currentStage ? `Stage ${stages.findIndex(s => s.id === currentStage.id) + 1} of ${stages.length}` : 'Ready to help you build'}
+              </p>
+            </div>
+          </div>
+        </div>
+
+        {/* Stage Progress */}
+        <div className={`transition-opacity duration-200 ${isOpen ? 'opacity-100' : 'opacity-0'}`}>
+          <StageProgressBubbles stages={stages} onStageClick={onStageClick} />
+        </div>
+
+        {/* Stage Form */}
+        <div className={`flex-1 overflow-y-auto transition-opacity duration-200 ${isOpen ? 'opacity-100' : 'opacity-0'}`}>
+          {renderStageForm()}
+        </div>
+
+        {/* Chat History */}
+        <div className={`transition-opacity duration-200 ${isOpen ? 'opacity-100' : 'opacity-0'}`}>
+          <Accordion>
+            <AccordionSummary
+              expandIcon={<ChevronDown size={20} />}
+              aria-controls="chat-history-content"
+              id="chat-history-header"
+              className="border-t border-gray-200"
+            >
+              <Typography className="font-semibold text-gray-800">Chat History</Typography>
+            </AccordionSummary>
+            <AccordionDetails className="p-0">
+              <ChatHistory messages={chatHistory} />
+            </AccordionDetails>
+          </Accordion>
+        </div>
+
+        {/* Settings */}
+        <div className={`transition-opacity duration-200 ${isOpen ? 'opacity-100' : 'opacity-0'}`}>
+          <Accordion>
+            <AccordionSummary
+              expandIcon={<ChevronDown size={20} />}
+              aria-controls="settings-content"
+              id="settings-header"
+              className="border-t border-gray-200"
+            >
+              <Typography className="font-semibold text-gray-800">Settings</Typography>
+            </AccordionSummary>
+            <AccordionDetails className="p-0">
+              <Settings />
+            </AccordionDetails>
+          </Accordion>
+        </div>
+      </motion.div>
+    </div>
+  );
+};
