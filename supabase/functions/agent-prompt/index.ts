@@ -1,8 +1,8 @@
 /**
  * Supabase Edge Function: agent-prompt
  * 
- * Enhanced AI Agent with robust LLM integration:
- * - Stage-specific prompt engineering for optimal responses
+ * Enhanced AI Agent with modular prompt system:
+ * - Modular stage-specific prompt generators
  * - Multiple LLM provider support (OpenAI, Anthropic)
  * - Structured response parsing and validation
  * - Advanced error handling and retry logic
@@ -10,6 +10,7 @@
  */
 
 import { serve } from 'https://deno.land/std@0.168.0/http/server.ts'
+import { EdgeStagePromptEngine } from './stages/index.ts'
 
 const corsHeaders = {
   'Access-Control-Allow-Origin': '*',
@@ -127,195 +128,6 @@ class EdgeLLMClient {
   }
 }
 
-// Stage-specific prompt generators
-class StagePromptEngine {
-  static generatePrompt(context: AgentRequest): { systemPrompt: string; userPrompt: string; temperature: number; maxTokens: number } {
-    switch (context.stageId) {
-      case 'ideation-discovery':
-        return this.generateIdeationPrompt(context)
-      case 'feature-planning':
-        return this.generateFeaturePlanningPrompt(context)
-      case 'structure-flow':
-        return this.generateStructureFlowPrompt(context)
-      case 'interface-interaction':
-        return this.generateInterfacePrompt(context)
-      case 'architecture-design':
-        return this.generateArchitecturePrompt(context)
-      case 'user-auth-flow':
-        return this.generateAuthFlowPrompt(context)
-      case 'ux-review-check':
-        return this.generateUXReviewPrompt(context)
-      case 'auto-prompt-engine':
-        return this.generateAutoPromptPrompt(context)
-      case 'export-handoff':
-        return this.generateExportPrompt(context)
-      default:
-        return this.generateDefaultPrompt(context)
-    }
-  }
-
-  private static generateIdeationPrompt(context: AgentRequest) {
-    const { currentStageData, userMessage, conversationHistory } = context
-    
-    const systemPrompt = `You are an expert UX strategist and product discovery specialist. Your role is to help users define and refine their app concept through intelligent questioning and strategic guidance.
-
-CORE RESPONSIBILITIES:
-- Extract app ideas from natural language descriptions
-- Generate compelling app names and taglines
-- Identify target problems and user segments
-- Craft clear value propositions
-- Suggest competitive positioning
-
-CONVERSATION CONTEXT:
-${conversationHistory.length > 0 ? `Previous conversation: ${JSON.stringify(conversationHistory.slice(-3))}` : 'This is the start of our conversation.'}
-
-CURRENT STAGE DATA:
-${JSON.stringify(currentStageData, null, 2)}
-
-RESPONSE GUIDELINES:
-1. Be conversational and encouraging
-2. Ask follow-up questions to clarify vague concepts
-3. Provide specific, actionable auto-fill suggestions
-4. Reference previous context when relevant
-5. Guide toward completion when sufficient data exists
-
-AUTO-FILL OPPORTUNITIES:
-- appIdea: Extract from "I want to build..." or "app about..." patterns
-- appName: Generate from keywords in the idea (2-3 words, PascalCase)
-- tagline: Create memorable 3-5 word tagline
-- problemStatement: Identify the core user problem being solved
-- targetUsers: Suggest user segments based on the app idea
-- valueProposition: Articulate unique value and benefits
-
-COMPLETION CRITERIA:
-Stage is complete when we have: appIdea, appName, problemStatement, targetUsers, and valueProposition.`
-
-    const userPrompt = `User message: "${userMessage}"
-
-Based on this message and our conversation history, help the user develop their app concept. If you can extract specific information, provide it in the autoFillData. If the stage appears complete, set stageComplete to true.
-
-Respond in this exact JSON format:
-{
-  "content": "Your conversational response to the user",
-  "suggestions": ["Quick action 1", "Quick action 2", "Quick action 3"],
-  "autoFillData": {
-    "appIdea": "extracted or suggested app idea",
-    "appName": "suggested app name",
-    "tagline": "memorable tagline",
-    "problemStatement": "core problem statement",
-    "targetUsers": "target user description",
-    "valueProposition": "unique value proposition"
-  },
-  "stageComplete": false,
-  "context": {
-    "extractedInfo": "what information was extracted",
-    "nextSteps": "what should happen next"
-  }
-}`
-
-    return {
-      systemPrompt,
-      userPrompt,
-      temperature: 0.7,
-      maxTokens: 1000
-    }
-  }
-
-  private static generateFeaturePlanningPrompt(context: AgentRequest) {
-    const { currentStageData, allStageData, userMessage } = context
-    const ideationData = allStageData['ideation-discovery'] || {}
-
-    const systemPrompt = `You are a senior product manager and feature strategist. Your expertise lies in translating app concepts into concrete, prioritized feature sets that align with user needs and business goals.
-
-CORE RESPONSIBILITIES:
-- Analyze app concepts to suggest relevant feature packs
-- Help prioritize features using MoSCoW method (Must, Should, Could, Won't)
-- Identify feature dependencies and conflicts
-- Recommend MVP vs. future version features
-- Suggest technical complexity and implementation order
-
-CROSS-STAGE INTELLIGENCE:
-App Concept: "${ideationData.appIdea || 'Not defined'}"
-Target Users: "${ideationData.targetUsers || 'Not defined'}"
-Problem Statement: "${ideationData.problemStatement || 'Not defined'}"
-
-FEATURE PACK MAPPING:
-- Social/Community apps → social, communication, media
-- E-commerce apps → commerce, auth, analytics, media
-- Productivity apps → auth, crud, analytics
-- Educational apps → auth, media, analytics, communication
-- Healthcare apps → auth, crud, communication, analytics (high security)
-- Gaming apps → auth, social, media, analytics
-- Business tools → auth, crud, analytics, communication
-
-CURRENT STAGE DATA:
-${JSON.stringify(currentStageData, null, 2)}`
-
-    const userPrompt = `User message: "${userMessage}"
-
-Based on the app concept and user message, help plan features strategically. Consider the app idea "${ideationData.appIdea}" and target users "${ideationData.targetUsers}".
-
-Provide intelligent feature recommendations and help prioritize for MVP success.
-
-Respond in this exact JSON format:
-{
-  "content": "Your strategic response about feature planning",
-  "suggestions": ["Feature suggestion 1", "Priority guidance", "MVP advice"],
-  "autoFillData": {
-    "selectedFeaturePacks": ["auth", "crud", "social"],
-    "customFeatures": [
-      {
-        "id": "1",
-        "name": "Custom Feature Name",
-        "description": "Feature description",
-        "priority": "must",
-        "complexity": "medium",
-        "category": "frontend"
-      }
-    ]
-  },
-  "stageComplete": false,
-  "context": {
-    "featureRationale": "Why these features were suggested"
-  }
-}`
-
-    return {
-      systemPrompt,
-      userPrompt,
-      temperature: 0.6,
-      maxTokens: 1200
-    }
-  }
-
-  // Add other stage prompt generators following the same pattern...
-  private static generateDefaultPrompt(context: AgentRequest) {
-    const { stageId, userMessage } = context
-
-    const systemPrompt = `You are a helpful UX design assistant working on the "${stageId}" stage of app development planning. Provide contextual guidance and suggestions.`
-
-    const userPrompt = `User message: "${userMessage}"
-
-Provide helpful guidance for the ${stageId} stage.
-
-Respond in this exact JSON format:
-{
-  "content": "Your helpful response",
-  "suggestions": ["Suggestion 1", "Suggestion 2", "Suggestion 3"],
-  "autoFillData": {},
-  "stageComplete": false,
-  "context": {}
-}`
-
-    return {
-      systemPrompt,
-      userPrompt,
-      temperature: 0.7,
-      maxTokens: 800
-    }
-  }
-}
-
 interface AgentRequest {
   stageId: string
   currentStageData: any
@@ -347,7 +159,7 @@ serve(async (req) => {
     // Create a streaming response
     const stream = new ReadableStream({
       start(controller) {
-        // Simulate AI processing and streaming response
+        // Process agent request with modular prompt system
         processAgentRequest(controller, {
           stageId,
           currentStageData,
@@ -388,8 +200,8 @@ async function processAgentRequest(controller: ReadableStreamDefaultController, 
     // Initialize LLM client
     const llmClient = new EdgeLLMClient('openai') // Default to OpenAI, fallback to Anthropic if needed
     
-    // Generate stage-specific prompt
-    const promptData = StagePromptEngine.generatePrompt(request)
+    // Generate stage-specific prompt using modular system
+    const promptData = EdgeStagePromptEngine.generatePrompt(request)
     
     // Get LLM response
     const llmResponse = await llmClient.generateResponse(
