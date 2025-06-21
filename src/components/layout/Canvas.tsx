@@ -89,8 +89,8 @@ export const Canvas: React.FC<CanvasProps> = ({
         recommendations
       };
 
-      // Call the edge function
-      const response = await callAgentAPI(agentContext);
+      // Call the Supabase Edge Function
+      const response = await callSupabaseEdgeFunction(agentContext);
       
       // Handle streaming response
       if (response.body) {
@@ -167,88 +167,29 @@ export const Canvas: React.FC<CanvasProps> = ({
     }
   };
 
-  const callAgentAPI = async (context: any) => {
-    // For now, simulate the API call - replace with actual Supabase Edge Function call
-    return simulateAgentAPI(context);
-  };
-
-  const simulateAgentAPI = async (context: any) => {
-    const { stageId, userMessage, currentStageData, allStageData } = context;
-    const lowerMessage = userMessage.toLowerCase();
-
-    // Simulate streaming response
-    const mockResponse = {
-      content: '',
-      suggestions: [],
-      autoFillData: {},
-      stageComplete: false
-    };
-
-    // Stage-specific logic
-    if (stageId === 'ideation-discovery') {
-      if (lowerMessage.includes('app about') || lowerMessage.includes('build')) {
-        const ideaMatch = userMessage.match(/(?:app about|build.*app.*about|create.*app.*about)\s+(.+)/i);
-        if (ideaMatch) {
-          mockResponse.content = `Great idea! I can help you develop this concept about ${ideaMatch[1]}. Let me suggest some initial details.`;
-          mockResponse.autoFillData = {
-            appIdea: ideaMatch[1].trim(),
-            appName: ideaMatch[1].split(' ').slice(0, 2).map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(''),
-            problemStatement: `Users need a better solution for ${ideaMatch[1].toLowerCase()}.`
-          };
-          mockResponse.suggestions = [
-            "What problem does this solve?",
-            "Who would use this app?",
-            "What makes it unique?"
-          ];
-        }
-      } else if (currentStageData.appIdea && currentStageData.appName && currentStageData.problemStatement) {
-        mockResponse.content = "Excellent! You've defined a solid foundation. Ready to move on to feature planning?";
-        mockResponse.stageComplete = true;
-      }
-    } else if (stageId === 'feature-planning') {
-      if (lowerMessage.includes('suggest') || lowerMessage.includes('features')) {
-        const ideationData = allStageData['ideation-discovery'] || {};
-        const appIdea = ideationData.appIdea?.toLowerCase() || '';
-        
-        let suggestedPacks = ['auth', 'crud'];
-        if (appIdea.includes('social')) suggestedPacks.push('social', 'communication');
-        if (appIdea.includes('shop') || appIdea.includes('commerce')) suggestedPacks.push('commerce');
-        
-        mockResponse.content = `Based on your app idea, I recommend these feature packs that align with your concept.`;
-        mockResponse.autoFillData = { selectedFeaturePacks: suggestedPacks };
-        mockResponse.suggestions = ["Add custom features", "Prioritize for MVP", "What about AI features?"];
-      }
+  const callSupabaseEdgeFunction = async (context: any) => {
+    const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
+    const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY;
+    
+    if (!supabaseUrl || !supabaseAnonKey) {
+      throw new Error('Supabase environment variables are not configured. Please set VITE_SUPABASE_URL and VITE_SUPABASE_ANON_KEY in your .env file.');
     }
 
-    // Default response
-    if (!mockResponse.content) {
-      mockResponse.content = `I'm here to help with ${stageId.replace('-', ' ')}. What would you like to work on?`;
-      mockResponse.suggestions = ["Help me get started", "What should I do next?", "Give me suggestions"];
-    }
-
-    // Create a mock streaming response
-    const encoder = new TextEncoder();
-    const stream = new ReadableStream({
-      start(controller) {
-        // Simulate streaming
-        const words = mockResponse.content.split(' ');
-        let i = 0;
-        
-        const interval = setInterval(() => {
-          if (i < words.length) {
-            const content = words.slice(0, i + 1).join(' ');
-            controller.enqueue(encoder.encode(`data: ${JSON.stringify({ type: 'content', content })}\n\n`));
-            i++;
-          } else {
-            controller.enqueue(encoder.encode(`data: ${JSON.stringify({ type: 'complete', ...mockResponse })}\n\n`));
-            controller.close();
-            clearInterval(interval);
-          }
-        }, 50);
-      }
+    const response = await fetch(`${supabaseUrl}/functions/v1/agent-prompt`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${supabaseAnonKey}`,
+      },
+      body: JSON.stringify(context),
     });
 
-    return { body: stream };
+    if (!response.ok) {
+      const errorData = await response.text();
+      throw new Error(`Edge Function error: ${response.status} - ${errorData}`);
+    }
+
+    return response;
   };
 
   const handleAutoFillData = (autoFillData: any) => {
