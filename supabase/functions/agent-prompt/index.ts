@@ -276,7 +276,15 @@ async function processAgentRequest(controller: ReadableStreamDefaultController, 
     const words = response.content.split(' ')
     console.log('📝 Total words to stream:', words.length)
     
+    let streamClosed = false
+    
     for (let i = 0; i < words.length; i++) {
+      // Check if stream is already closed before attempting to enqueue
+      if (streamClosed) {
+        console.log('🔌 Stream already closed, stopping content streaming')
+        break
+      }
+      
       const chunk = words.slice(0, i + 1).join(' ')
       
       // Log every 10th chunk to avoid spam
@@ -284,10 +292,23 @@ async function processAgentRequest(controller: ReadableStreamDefaultController, 
         console.log(`📡 Streaming chunk ${i + 1}/${words.length}`)
       }
       
-      controller.enqueue(`data: ${JSON.stringify({ type: 'content', content: chunk })}\n\n`)
+      try {
+        controller.enqueue(`data: ${JSON.stringify({ type: 'content', content: chunk })}\n\n`)
+      } catch (error) {
+        if (error instanceof TypeError && error.message.includes('cannot close or enqueue')) {
+          console.log('🔌 Client disconnected during streaming, stopping gracefully')
+          streamClosed = true
+          break
+        } else {
+          console.error('❌ Unexpected streaming error:', error)
+          throw error // Re-throw if it's not a client disconnection
+        }
+      }
       
       // Add realistic delay
-      await new Promise(resolve => setTimeout(resolve, 50))
+      if (!streamClosed) {
+        await new Promise(resolve => setTimeout(resolve, 50))
+      }
     }
     console.log('✅ Content streaming completed')
 
@@ -297,10 +318,44 @@ async function processAgentRequest(controller: ReadableStreamDefaultController, 
       type: 'complete', 
       ...response 
     })}\n\n`)
+    
+    // Send completion data with error handling
+    if (!streamClosed) {
+      try {
+        controller.enqueue(`data: ${JSON.stringify({ 
+          type: 'complete', 
+          ...response 
+        })}\n\n`)
+      } catch (error) {
+        if (error instanceof TypeError && error.message.includes('cannot close or enqueue')) {
+          console.log('🔌 Client disconnected before completion data could be sent')
+          streamClosed = true
+        } else {
+          console.error('❌ Error sending completion data:', error)
+          throw error
+        }
+      }
+    }
+    
     console.log('✅ Completion data sent')
 
     console.log('🎉 processAgentRequest completed successfully')
-    controller.close()
+    
+    // Close controller with error handling
+    if (!streamClosed) {
+      try {
+        controller.close()
+        console.log('✅ Stream closed successfully')
+      } catch (error) {
+        if (error instanceof TypeError && error.message.includes('cannot close or enqueue')) {
+          console.log('🔌 Stream was already closed by client')
+        } else {
+          console.error('❌ Error closing stream:', error)
+        }
+      }
+    } else {
+      console.log('🔌 Stream was already closed due to client disconnection')
+    }
 
   } catch (error) {
     console.error('❌ Processing error occurred:', error)
@@ -310,11 +365,18 @@ async function processAgentRequest(controller: ReadableStreamDefaultController, 
       stack: error.stack
     })
     
-    // Use controller.error() for proper stream error handling
+    // Handle stream errors gracefully
     try {
-      controller.error(error)
+      // Try to send an error message to the client first
+      controller.enqueue(`data: ${JSON.stringify({ 
+        type: 'error', 
+        error: 'Processing failed. Please try again.' 
+      })}\n\n`)
+      controller.close()
     } catch (controllerError) {
-      console.error('❌ Failed to signal stream error:', controllerError)
+      console.log('🔌 Could not send error to client (likely disconnected)')
+      // Use controller.error() as last resort
+      controller.error(error)
     }
   }
 }
