@@ -2,8 +2,9 @@
  * stagePrompts.ts
  * 
  * Comprehensive prompt engineering system for each stage of the Chargur workflow.
- * Provides context-aware, structured prompts that guide the LLM to generate
- * high-quality, actionable responses with proper auto-fill data.
+ * Mirrors the Edge Function's StagePromptEngine to ensure consistency between
+ * frontend and backend prompt handling. Provides context-aware, structured prompts
+ * that guide the LLM to generate high-quality, actionable responses with proper auto-fill data.
  */
 
 export interface PromptContext {
@@ -969,4 +970,118 @@ Respond in this exact JSON format:
       maxTokens: 800
     };
   }
+
+  // Utility methods for prompt validation and testing
+  static validatePromptResponse(response: any, expectedFormat: any): boolean {
+    try {
+      // Check if response has required fields
+      const requiredFields = Object.keys(expectedFormat);
+      for (const field of requiredFields) {
+        if (!(field in response)) {
+          console.warn(`Missing required field: ${field}`);
+          return false;
+        }
+      }
+
+      // Validate field types
+      for (const [field, expectedType] of Object.entries(expectedFormat)) {
+        const actualValue = response[field];
+        
+        if (expectedType === 'string' && typeof actualValue !== 'string') {
+          console.warn(`Field ${field} should be string, got ${typeof actualValue}`);
+          return false;
+        }
+        
+        if (expectedType === 'string[]' && !Array.isArray(actualValue)) {
+          console.warn(`Field ${field} should be array, got ${typeof actualValue}`);
+          return false;
+        }
+        
+        if (expectedType === 'object' && (typeof actualValue !== 'object' || actualValue === null)) {
+          console.warn(`Field ${field} should be object, got ${typeof actualValue}`);
+          return false;
+        }
+        
+        if (expectedType === 'boolean' && typeof actualValue !== 'boolean') {
+          console.warn(`Field ${field} should be boolean, got ${typeof actualValue}`);
+          return false;
+        }
+      }
+
+      return true;
+    } catch (error) {
+      console.error('Prompt validation error:', error);
+      return false;
+    }
+  }
+
+  static getPromptPreview(stageId: string): string {
+    const mockContext: PromptContext = {
+      stageId,
+      currentStageData: {},
+      allStageData: {},
+      conversationHistory: [],
+      userMessage: "Help me get started with this stage",
+      memory: {},
+      recommendations: []
+    };
+
+    const prompt = this.generatePrompt(mockContext);
+    return `${prompt.systemPrompt}\n\n---\n\n${prompt.userPrompt}`;
+  }
+
+  static getStagePromptMetadata(stageId: string) {
+    const mockContext: PromptContext = {
+      stageId,
+      currentStageData: {},
+      allStageData: {},
+      conversationHistory: [],
+      userMessage: "",
+      memory: {},
+      recommendations: []
+    };
+
+    const prompt = this.generatePrompt(mockContext);
+    
+    return {
+      stageId,
+      temperature: prompt.temperature,
+      maxTokens: prompt.maxTokens,
+      expectedFormat: prompt.expectedFormat,
+      estimatedPromptLength: prompt.systemPrompt.length + prompt.userPrompt.length,
+      complexity: this.getPromptComplexity(prompt),
+      crossStageIntelligence: this.hasCrossStageIntelligence(stageId)
+    };
+  }
+
+  private static getPromptComplexity(prompt: PromptResponse): 'low' | 'medium' | 'high' {
+    const totalLength = prompt.systemPrompt.length + prompt.userPrompt.length;
+    const formatComplexity = Object.keys(prompt.expectedFormat).length;
+    
+    if (totalLength > 3000 || formatComplexity > 8) return 'high';
+    if (totalLength > 1500 || formatComplexity > 5) return 'medium';
+    return 'low';
+  }
+
+  private static hasCrossStageIntelligence(stageId: string): boolean {
+    const crossStageStages = [
+      'feature-planning',
+      'structure-flow', 
+      'interface-interaction',
+      'architecture-design',
+      'user-auth-flow',
+      'ux-review-check',
+      'auto-prompt-engine',
+      'export-handoff'
+    ];
+    
+    return crossStageStages.includes(stageId);
+  }
 }
+
+// Export utility functions for testing and debugging
+export const PromptUtils = {
+  validateResponse: StagePromptEngine.validatePromptResponse,
+  getPreview: StagePromptEngine.getPromptPreview,
+  getMetadata: StagePromptEngine.getStagePromptMetadata,
+};
