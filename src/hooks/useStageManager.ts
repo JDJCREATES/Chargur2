@@ -104,6 +104,13 @@ export const useStageManager = () => {
     return stageData[stageId] || {};
   }, [stageData]);
 
+  const getNextStage = useCallback(() => {
+    const currentIndex = stages.findIndex(s => s.id === currentStageId);
+    if (currentIndex >= 0 && currentIndex < stages.length - 1) {
+      return stages[currentIndex + 1];
+    }
+    return null;
+  }, [stages, currentStageId]);
   return {
     stages,
     currentStageId,
@@ -113,5 +120,6 @@ export const useStageManager = () => {
     completeStage,
     updateStageData,
     getStageData,
+    getNextStage,
   };
 };
