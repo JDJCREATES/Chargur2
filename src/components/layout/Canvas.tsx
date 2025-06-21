@@ -92,12 +92,7 @@ export const Canvas: React.FC<CanvasProps> = ({
         { from: 'auth', to: 'home', label: 'Success' },
         { from: 'home', to: 'profile' },
       ];
-  return (
-    <div className="flex-1 flex flex-col bg-gray-50">
-      <CanvasHeader currentStage={currentStage} />
-      
-      {/* Main Canvas Area */}
-      <SpatialCanvas
+    }
     return (
       <motion.div
         initial={{ opacity: 0, y: 20 }}
@@ -121,12 +116,12 @@ export const Canvas: React.FC<CanvasProps> = ({
       </motion.div>
     );
   };
-        currentStage={currentStage}
-        stageData={stageData}
-        onSendMessage={onSendMessage}
-      />
 
-      return (
+  return (
+    <div className="flex-1 flex flex-col bg-gray-50">
+      <CanvasHeader currentStage={currentStage} />
+      
+      {/* Main Canvas Area */}
       <div className="flex-1 p-6 overflow-y-auto">
         <div className="max-w-4xl mx-auto">
           {/* Spatial Canvas - Always Available */}
@@ -142,7 +137,7 @@ export const Canvas: React.FC<CanvasProps> = ({
           {renderCanvasContent()}
         </div>
       </div>
-    }
+
       {/* Input Area */}
       <div className="p-6 bg-white border-t border-gray-200">
         <div className="max-w-4xl mx-auto">
