@@ -38,27 +38,30 @@ export const SpatialCanvas: React.FC<SpatialCanvasProps> = ({
   // Initialize canvas with data from stages
   useEffect(() => {
     generateNodesFromStageData();
-  }, [stageData]);
+  }, [stageData, currentStage]);
 
   const generateNodesFromStageData = () => {
     const newNodes: CanvasNodeData[] = [];
     let nodeId = 1;
+    let xOffset = 100;
+    let yOffset = 100;
 
     // Generate concept cluster from ideation data
     const ideationData = stageData['ideation-discovery'];
     if (ideationData) {
-      if (ideationData.appName) {
+      if (ideationData.appName || ideationData.appIdea) {
         newNodes.push({
           id: `concept-${nodeId++}`,
           type: 'concept',
-          title: 'App Identity',
-          content: `${ideationData.appName}\n${ideationData.tagline || ''}\n\n${ideationData.appIdea || ''}`,
-          position: { x: 100, y: 100 },
-          size: { width: 200, height: 120 },
+          title: ideationData.appName || 'App Concept',
+          content: `${ideationData.tagline || 'No tagline yet'}\n\n${ideationData.appIdea || 'App idea in development...'}`,
+          position: { x: xOffset, y: yOffset },
+          size: { width: 220, height: 140 },
           color: 'yellow',
           connections: [],
           metadata: { stage: 'ideation-discovery' }
         });
+        xOffset += 250;
       }
 
       if (ideationData.problemStatement) {
@@ -67,12 +70,13 @@ export const SpatialCanvas: React.FC<SpatialCanvasProps> = ({
           type: 'concept',
           title: 'Problem Statement',
           content: ideationData.problemStatement,
-          position: { x: 320, y: 100 },
-          size: { width: 180, height: 100 },
+          position: { x: xOffset, y: yOffset },
+          size: { width: 200, height: 120 },
           color: 'yellow',
           connections: [],
           metadata: { stage: 'ideation-discovery' }
         });
+        xOffset += 230;
       }
 
       if (ideationData.targetUsers) {
@@ -81,11 +85,40 @@ export const SpatialCanvas: React.FC<SpatialCanvasProps> = ({
           type: 'concept',
           title: 'Target Users',
           content: ideationData.targetUsers,
-          position: { x: 100, y: 240 },
-          size: { width: 180, height: 80 },
+          position: { x: 100, y: yOffset + 160 },
+          size: { width: 200, height: 100 },
           color: 'yellow',
           connections: [],
           metadata: { stage: 'ideation-discovery' }
+        });
+      }
+
+      if (ideationData.valueProposition) {
+        newNodes.push({
+          id: `concept-${nodeId++}`,
+          type: 'concept',
+          title: 'Value Proposition',
+          content: ideationData.valueProposition,
+          position: { x: 320, y: yOffset + 160 },
+          size: { width: 200, height: 100 },
+          color: 'yellow',
+          connections: [],
+          metadata: { stage: 'ideation-discovery' }
+        });
+      }
+
+      // Add selected tags as concept nodes
+      if (ideationData.keyFeatures && ideationData.keyFeatures.length > 0) {
+        newNodes.push({
+          id: `concept-${nodeId++}`,
+          type: 'concept',
+          title: 'Key Features',
+          content: ideationData.keyFeatures.join('\n• '),
+          position: { x: 540, y: yOffset + 160 },
+          size: { width: 180, height: 120 },
+          color: 'yellow',
+          connections: [],
+          metadata: { stage: 'ideation-discovery', type: 'features' }
         });
       }
     }
@@ -93,39 +126,68 @@ export const SpatialCanvas: React.FC<SpatialCanvasProps> = ({
     // Generate feature cluster
     const featureData = stageData['feature-planning'];
     if (featureData) {
-      let featureY = 100;
+      let featureX = 100;
+      let featureY = 350;
       
       if (featureData.selectedFeaturePacks) {
-        featureData.selectedFeaturePacks.forEach((pack: string) => {
+        featureData.selectedFeaturePacks.forEach((pack: string, index: number) => {
+          const packNames: { [key: string]: string } = {
+            'auth': 'Authentication & Users',
+            'crud': 'Data Management',
+            'social': 'Social Features',
+            'communication': 'Communication',
+            'commerce': 'E-commerce',
+            'analytics': 'Analytics & Reporting',
+            'media': 'Media & Files',
+            'ai': 'AI & Automation'
+          };
+          
           newNodes.push({
             id: `feature-${nodeId++}`,
             type: 'feature',
-            title: `${pack.charAt(0).toUpperCase() + pack.slice(1)} Pack`,
-            content: `Feature pack: ${pack}`,
-            position: { x: 600, y: featureY },
-            size: { width: 160, height: 80 },
+            title: packNames[pack] || pack.charAt(0).toUpperCase() + pack.slice(1),
+            content: `Feature pack selected\nIncludes core ${pack} functionality`,
+            position: { x: featureX + (index % 3) * 200, y: featureY + Math.floor(index / 3) * 120 },
+            size: { width: 180, height: 100 },
             color: 'blue',
             connections: [],
             metadata: { stage: 'feature-planning', pack }
           });
-          featureY += 100;
         });
       }
 
       if (featureData.customFeatures) {
-        featureData.customFeatures.forEach((feature: any) => {
+        const startIndex = featureData.selectedFeaturePacks?.length || 0;
+        featureData.customFeatures.forEach((feature: any, index: number) => {
           newNodes.push({
             id: `feature-${nodeId++}`,
             type: 'feature',
             title: feature.name,
-            content: `${feature.description}\nPriority: ${feature.priority}\nComplexity: ${feature.complexity}`,
-            position: { x: 600, y: featureY },
-            size: { width: 160, height: 100 },
+            content: `${feature.description || 'Custom feature'}\n\nPriority: ${feature.priority || 'medium'}\nComplexity: ${feature.complexity || 'medium'}`,
+            position: { 
+              x: featureX + ((startIndex + index) % 3) * 200, 
+              y: featureY + Math.floor((startIndex + index) / 3) * 120 
+            },
+            size: { width: 180, height: 120 },
             color: 'blue',
             connections: [],
             metadata: { stage: 'feature-planning', custom: true }
           });
-          featureY += 120;
+        });
+      }
+
+      // Add natural language features if provided
+      if (featureData.naturalLanguageFeatures) {
+        newNodes.push({
+          id: `feature-${nodeId++}`,
+          type: 'feature',
+          title: 'Feature Description',
+          content: featureData.naturalLanguageFeatures,
+          position: { x: 700, y: 350 },
+          size: { width: 220, height: 140 },
+          color: 'blue',
+          connections: [],
+          metadata: { stage: 'feature-planning', type: 'description' }
         });
       }
     }
@@ -133,39 +195,38 @@ export const SpatialCanvas: React.FC<SpatialCanvasProps> = ({
     // Generate UX flow cluster
     const structureData = stageData['structure-flow'];
     if (structureData) {
-      let flowY = 100;
+      let flowX = 100;
+      let flowY = 600;
       
       if (structureData.screens) {
-        structureData.screens.forEach((screen: any) => {
+        structureData.screens.forEach((screen: any, index: number) => {
           newNodes.push({
             id: `ux-flow-${nodeId++}`,
             type: 'ux-flow',
             title: screen.name,
-            content: `Screen type: ${screen.type}`,
-            position: { x: 900, y: flowY },
-            size: { width: 140, height: 80 },
+            content: `Screen type: ${screen.type}\n\n${screen.description || 'Core app screen'}`,
+            position: { x: flowX + (index % 4) * 160, y: flowY },
+            size: { width: 150, height: 100 },
             color: 'green',
             connections: [],
             metadata: { stage: 'structure-flow', screenType: screen.type }
           });
-          flowY += 100;
         });
       }
 
       if (structureData.userFlows) {
-        structureData.userFlows.forEach((flow: any) => {
+        structureData.userFlows.forEach((flow: any, index: number) => {
           newNodes.push({
             id: `ux-flow-${nodeId++}`,
             type: 'ux-flow',
             title: flow.name,
-            content: `Steps: ${flow.steps.join(' → ')}`,
-            position: { x: 1100, y: flowY },
-            size: { width: 200, height: 100 },
+            content: `User journey:\n${flow.steps?.slice(0, 3).join(' → ') || 'Flow steps'}${flow.steps?.length > 3 ? '...' : ''}`,
+            position: { x: flowX + (index % 3) * 220, y: flowY + 120 },
+            size: { width: 200, height: 120 },
             color: 'green',
             connections: [],
             metadata: { stage: 'structure-flow', flowType: 'user-journey' }
           });
-          flowY += 120;
         });
       }
     }
@@ -173,22 +234,22 @@ export const SpatialCanvas: React.FC<SpatialCanvasProps> = ({
     // Generate system cluster
     const architectureData = stageData['architecture-design'];
     if (architectureData) {
-      let systemY = 400;
+      let systemX = 100;
+      let systemY = 800;
       
       if (architectureData.databaseSchema) {
-        architectureData.databaseSchema.forEach((table: any) => {
+        architectureData.databaseSchema.forEach((table: any, index: number) => {
           newNodes.push({
             id: `system-${nodeId++}`,
             type: 'system',
             title: `${table.name} Table`,
-            content: `Fields: ${table.fields?.map((f: any) => f.name).join(', ') || 'No fields defined'}`,
-            position: { x: 100, y: systemY },
+            content: `Database table\n\nFields:\n${table.fields?.slice(0, 4).map((f: any) => `• ${f.name}`).join('\n') || 'No fields defined'}${table.fields?.length > 4 ? '\n...' : ''}`,
+            position: { x: systemX + (index % 3) * 200, y: systemY },
             size: { width: 180, height: 100 },
             color: 'red',
             connections: [],
             metadata: { stage: 'architecture-design', tableType: 'database' }
           });
-          systemY += 120;
         });
       }
 
@@ -197,8 +258,8 @@ export const SpatialCanvas: React.FC<SpatialCanvasProps> = ({
           id: `system-${nodeId++}`,
           type: 'system',
           title: 'API Endpoints',
-          content: `${architectureData.apiEndpoints.length} endpoints defined`,
-          position: { x: 300, y: 400 },
+          content: `${architectureData.apiEndpoints.length} endpoints defined\n\nIncludes REST API routes for data operations`,
+          position: { x: systemX + 400, y: systemY },
           size: { width: 160, height: 80 },
           color: 'red',
           connections: [],
@@ -207,18 +268,26 @@ export const SpatialCanvas: React.FC<SpatialCanvasProps> = ({
       }
     }
 
-    // Add AI agent output node if there's significant data
-    if (newNodes.length > 0) {
+    // Add AI agent output node with dynamic content
+    if (newNodes.length > 2) {
+      const completedStages = Object.keys(stageData).length;
+      const totalNodes = newNodes.length;
+      
       newNodes.push({
         id: `agent-output-${nodeId++}`,
         type: 'agent-output',
         title: 'AI Analysis',
-        content: `Project has ${newNodes.length} components defined. Ready for next phase of development.`,
-        position: { x: 500, y: 400 },
-        size: { width: 200, height: 100 },
+        content: `Project Analysis:\n\n• ${totalNodes} components mapped\n• ${completedStages} stages completed\n• Ready for ${completedStages < 3 ? 'more planning' : 'development'}`,
+        position: { x: 750, y: 100 },
+        size: { width: 200, height: 120 },
         color: 'gray',
         connections: [],
-        metadata: { generated: true, timestamp: new Date().toISOString() }
+        metadata: { 
+          generated: true, 
+          timestamp: new Date().toISOString(),
+          stagesCompleted: completedStages,
+          totalNodes: totalNodes
+        }
       });
     }
 
