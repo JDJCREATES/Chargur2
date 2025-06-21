@@ -469,6 +469,135 @@ export const SpatialCanvas: React.FC<SpatialCanvasProps> = ({
       }
     }
 
+    // Process user auth flow data
+    const authData = stageData['user-auth-flow'] || {};
+    const lastAuthData = lastProcessedData['user-auth-flow'] || {};
+    
+    if (authData && JSON.stringify(authData) !== JSON.stringify(lastAuthData)) {
+      // Remove old auth nodes
+      setNodes(prev => prev.filter(node => !node.metadata?.stage || node.metadata.stage !== 'user-auth-flow'));
+      
+      let authX = 100;
+      let authY = 1200;
+      
+      // Authentication Methods
+      if (authData.authMethods) {
+        const enabledMethods = authData.authMethods.filter((m: any) => m.enabled);
+        if (enabledMethods.length > 0) {
+          newNodes.push({
+            id: `auth-${nodeId++}`,
+            type: 'system',
+            title: 'Auth Methods',
+            content: `${enabledMethods.length} methods enabled\n\n${enabledMethods.map((m: any) => `• ${m.name}`).join('\n')}`,
+            position: { x: authX, y: authY },
+            size: { width: 180, height: 100 },
+            color: 'red',
+            connections: [],
+            metadata: { stage: 'user-auth-flow', authType: 'methods' }
+          });
+        }
+      }
+
+      // User Roles & Permissions
+      if (authData.userRoles && authData.userRoles.length > 0) {
+        newNodes.push({
+          id: `auth-${nodeId++}`,
+          type: 'system',
+          title: 'User Roles',
+          content: `${authData.userRoles.length} roles defined\n\n${authData.userRoles.map((r: any) => `• ${r.name}: ${r.description.slice(0, 20)}...`).join('\n')}`,
+          position: { x: authX + 200, y: authY },
+          size: { width: 180, height: 120 },
+          color: 'red',
+          connections: [],
+          metadata: { stage: 'user-auth-flow', authType: 'roles' }
+        });
+      }
+
+      // Session Management
+      if (authData.sessionManagement) {
+        const session = authData.sessionManagement;
+        newNodes.push({
+          id: `auth-${nodeId++}`,
+          type: 'system',
+          title: 'Session Management',
+          content: `Provider: ${session.provider}\nStorage: ${session.tokenStorage}\nTimeout: ${session.sessionTimeout} days\nAuto-refresh: ${session.autoRefresh ? 'Yes' : 'No'}`,
+          position: { x: authX + 400, y: authY },
+          size: { width: 160, height: 100 },
+          color: 'red',
+          connections: [],
+          metadata: { stage: 'user-auth-flow', authType: 'session' }
+        });
+      }
+
+      // Security Features
+      if (authData.securityFeatures) {
+        const enabledSecurity = authData.securityFeatures.filter((f: any) => f.enabled);
+        if (enabledSecurity.length > 0) {
+          newNodes.push({
+            id: `auth-${nodeId++}`,
+            type: 'system',
+            title: 'Security Features',
+            content: `${enabledSecurity.length} features enabled\n\n${enabledSecurity.slice(0, 4).map((f: any) => `• ${f.name}`).join('\n')}${enabledSecurity.length > 4 ? '\n...' : ''}`,
+            position: { x: authX, y: authY + 120 },
+            size: { width: 200, height: 100 },
+            color: 'red',
+            connections: [],
+            metadata: { stage: 'user-auth-flow', authType: 'security' }
+          });
+        }
+      }
+
+      // User Metadata & Profiles
+      if (authData.userMetadata) {
+        const metadata = authData.userMetadata;
+        newNodes.push({
+          id: `auth-${nodeId++}`,
+          type: 'system',
+          title: 'User Profiles',
+          content: `Required: ${metadata.requiredFields?.length || 0} fields\nOptional: ${metadata.optionalFields?.length || 0} fields\nPreferences: ${metadata.preferences?.length || 0} settings`,
+          position: { x: authX + 220, y: authY + 120 },
+          size: { width: 160, height: 90 },
+          color: 'red',
+          connections: [],
+          metadata: { stage: 'user-auth-flow', authType: 'profiles' }
+        });
+      }
+
+      // Edge Cases
+      if (authData.edgeCases && authData.edgeCases.length > 0) {
+        const highPriorityCases = authData.edgeCases.filter((c: any) => c.priority === 'high');
+        newNodes.push({
+          id: `auth-${nodeId++}`,
+          type: 'system',
+          title: 'Edge Cases',
+          content: `${authData.edgeCases.length} scenarios handled\n${highPriorityCases.length} high priority\n\n${authData.edgeCases.slice(0, 3).map((c: any) => `• ${c.scenario}`).join('\n')}`,
+          position: { x: authX + 400, y: authY + 120 },
+          size: { width: 180, height: 100 },
+          color: 'red',
+          connections: [],
+          metadata: { stage: 'user-auth-flow', authType: 'edge-cases' }
+        });
+      }
+
+      // Onboarding Flow
+      if (authData.onboardingFlow) {
+        const enabledSteps = Object.entries(authData.onboardingFlow).filter(([_, enabled]) => enabled).length;
+        if (enabledSteps > 0) {
+          newNodes.push({
+            id: `auth-${nodeId++}`,
+            type: 'ux-flow',
+            title: 'Onboarding Flow',
+            content: `${enabledSteps} steps enabled\n\nGuides new users through setup`,
+            position: { x: authX + 600, y: authY },
+            size: { width: 160, height: 80 },
+            color: 'green',
+            connections: [],
+            metadata: { stage: 'user-auth-flow', authType: 'onboarding' }
+          });
+        }
+      }
+    }
+
     // Update AI analysis node
     const totalStageNodes = newNodes.length;
     const existingNodes = nodes.filter(n => !n.metadata?.generated);
