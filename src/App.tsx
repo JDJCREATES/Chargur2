@@ -15,6 +15,7 @@ function App() {
     goToStage,
     completeStage,
     updateStageData,
+    getNextStage,
   } = useStageManager();
 
   const [chatHistory, setChatHistory] = useState<ChatMessage[]>([]);
@@ -53,7 +54,7 @@ function App() {
             onUpdateStageData={updateStageData}
             onCompleteStage={completeStage}
             onGoToStage={goToStage}
-            getNextStage={getNextStage}
+            getNextStage={() => getNextStage()}
           />
         </div>
 
