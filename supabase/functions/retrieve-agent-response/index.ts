@@ -13,16 +13,18 @@ const getAllowedOrigin = (request: Request): string => {
   
   const allowedOrigins = [
     'http://localhost:3000',
-    'http://localhost:5113',
+    'http://localhost:5173',
+    'http://localhost:5174',
+    'http://localhost:4173',
     'https://your-app-domain.com',
     'https://your-app-domain.vercel.app',
   ]
   
-  if (origin && (allowedOrigins.includes(origin) || origin.includes('localhost'))) {
+  if (origin && (allowedOrigins.includes(origin) || origin.includes('localhost') || origin.includes('webcontainer'))) {
     return origin
   }
   
-  return allowedOrigins[0] || 'https://your-app-domain.com'
+  return origin || allowedOrigins[1]
 }
 
 const getCorsHeaders = (request: Request) => ({

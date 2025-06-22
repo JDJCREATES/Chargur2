@@ -20,18 +20,20 @@ const getAllowedOrigin = (request: Request): string => {
   const allowedOrigins = [
     'http://localhost:3000',
     'http://localhost:5173', // Vite dev server
+    'http://localhost:5174', // Alternative Vite port
+    'http://localhost:4173', // Vite preview
     'https://your-app-domain.com',
     'https://your-app-domain.vercel.app',
     // Add your actual production domains
   ]
   
-  // For development, you might want to allow localhost
-  if (origin && (allowedOrigins.includes(origin) || origin.includes('localhost'))) {
+  // For development, allow any localhost or webcontainer origin
+  if (origin && (allowedOrigins.includes(origin) || origin.includes('localhost') || origin.includes('webcontainer'))) {
     return origin
   }
   
   // Fallback to first allowed origin or restrict
-  return allowedOrigins[0] || 'https://your-app-domain.com'
+  return origin || allowedOrigins[1] // Default to localhost:5173
 }
 
 const getCorsHeaders = (request: Request) => ({
