@@ -1,21 +1,22 @@
 import React, { useState } from 'react';
 import { motion } from 'framer-motion';
 import { 
-  Lightbulb, 
-  Users, 
-  Zap, 
-  Layout, 
-  Database, 
-  Settings,
   Edit3,
   Trash2,
   Link,
   Plus,
-  MessageSquare,
-  FileText,
   Eye,
   EyeOff
 } from 'lucide-react';
+import { 
+  GiLightBulb,
+  GiLightningBolt,
+  GiPeople,
+  GiWindow,
+  GiDatabase,
+  GiSpeech,
+  GiFileText
+} from 'react-icons/gi';
 
 export interface CanvasNodeData {
   id: string;
@@ -59,13 +60,13 @@ export const CanvasNode: React.FC<CanvasNodeProps> = ({
 
   const getNodeIcon = () => {
     switch (node.type) {
-      case 'concept': return <Lightbulb className="w-4 h-4" />;
-      case 'feature': return <Zap className="w-4 h-4" />;
-      case 'ux-flow': return <Users className="w-4 h-4" />;
-      case 'wireframe': return <Layout className="w-4 h-4" />;
-      case 'system': return <Database className="w-4 h-4" />;
-      case 'agent-output': return <MessageSquare className="w-4 h-4" />;
-      default: return <FileText className="w-4 h-4" />;
+      case 'concept': return <GiLightBulb className="w-4 h-4" />;
+      case 'feature': return <GiLightningBolt className="w-4 h-4" />;
+      case 'ux-flow': return <GiPeople className="w-4 h-4" />;
+      case 'wireframe': return <GiWindow className="w-4 h-4" />;
+      case 'system': return <GiDatabase className="w-4 h-4" />;
+      case 'agent-output': return <GiSpeech className="w-4 h-4" />;
+      default: return <GiFileText className="w-4 h-4" />;
     }
   };
 

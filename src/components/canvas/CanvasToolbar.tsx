@@ -1,23 +1,32 @@
 import React from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
 import { 
   Plus, 
   ZoomIn, 
   ZoomOut, 
   RotateCcw, 
-  Save, 
-  Download,
-  Lightbulb,
-  Zap,
-  Users,
-  Layout,
-  Database,
-  MessageSquare,
+  ChevronUp,
+  ChevronDown,
   Grid,
   Move,
-  Eye,
-  ChevronLeft,
-  ChevronRight
+  Eye
 } from 'lucide-react';
+import { 
+  GiBroom,
+  GiSave,
+  GiSmashArrow,
+  GiLightBulb,
+  GiLightningBolt,
+  GiPeople,
+  GiWindow,
+  GiDatabase,
+  GiSpeech,
+  GiCube,
+  GiAtom,
+  GiMagicSwirl,
+  GiTreeStructure,
+  GiCircuitry
+} from 'react-icons/gi';
 import { CanvasNodeData } from './CanvasNode';
 
 interface CanvasToolbarProps {
@@ -52,137 +61,225 @@ export const CanvasToolbar: React.FC<CanvasToolbarProps> = ({
   onToggleCollapse,
 }) => {
   const nodeTypes = [
-    { type: 'concept' as const, label: 'Concept', icon: Lightbulb, color: 'text-yellow-600' },
-    { type: 'feature' as const, label: 'Feature', icon: Zap, color: 'text-blue-600' },
-    { type: 'ux-flow' as const, label: 'UX Flow', icon: Users, color: 'text-green-600' },
-    { type: 'wireframe' as const, label: 'Wireframe', icon: Layout, color: 'text-purple-600' },
-    { type: 'system' as const, label: 'System', icon: Database, color: 'text-red-600' },
-    { type: 'agent-output' as const, label: 'AI Output', icon: MessageSquare, color: 'text-gray-600' },
+    { type: 'concept' as const, label: 'Concept', icon: GiLightBulb, color: 'text-yellow-600' },
+    { type: 'feature' as const, label: 'Feature', icon: GiLightningBolt, color: 'text-blue-600' },
+    { type: 'ux-flow' as const, label: 'UX Flow', icon: GiPeople, color: 'text-green-600' },
+    { type: 'wireframe' as const, label: 'Wireframe', icon: GiWindow, color: 'text-purple-600' },
+    { type: 'system' as const, label: 'System', icon: GiDatabase, color: 'text-red-600' },
+    { type: 'agent-output' as const, label: 'AI Output', icon: GiSpeech, color: 'text-gray-600' },
   ];
 
+  const layoutTools = [
+    { action: onToggleGrid, icon: Grid, label: 'Toggle Grid', active: showGrid },
+    { action: onAutoLayout, icon: GiTreeStructure, label: 'Auto Layout', active: false },
+    { action: onResetView, icon: RotateCcw, label: 'Reset View', active: false },
+  ];
+
+  const actionTools = [
+    { action: onSave, icon: GiSave, label: 'Save Canvas' },
+    { action: onExport, icon: GiSmashArrow, label: 'Export Canvas' },
+    ...(onClearCanvas ? [{ action: onClearCanvas, icon: GiBroom, label: 'Clear Canvas' }] : []),
+  ];
+
+  const handleToolAction = (action: () => void, label: string) => {
+    try {
+      action();
+    } catch (error) {
+      // Silent error handling - could add toast notification here if needed
+    }
+  };
+
   return (
-    <div className="absolute top-4 left-4 z-20 bg-white bg-opacity-95 backdrop-blur-sm rounded-lg shadow-lg border border-gray-200 transition-all duration-300">
-      {/* Collapse Toggle */}
-      <button
+    <motion.div
+      initial={{ y: 100, opacity: 0 }}
+      animate={{ y: 0, opacity: 1 }}
+      transition={{ type: "spring", stiffness: 300, damping: 30 }}
+      className="absolute bottom-4 left-4 z-20"
+    >
+      {/* Toggle Button - Always Visible */}
+      <motion.button
         onClick={onToggleCollapse}
-        className="absolute -right-3 top-2 w-6 h-6 bg-white bg-opacity-95 backdrop-blur-sm border border-gray-200 rounded-full flex items-center justify-center hover:bg-gray-50 transition-colors"
+        whileHover={{ scale: 1.05 }}
+        whileTap={{ scale: 0.95 }}
+        className="w-12 h-12 bg-white bg-opacity-95 backdrop-blur-sm border border-gray-200 rounded-full flex items-center justify-center hover:bg-gray-50 transition-colors shadow-lg mb-2"
       >
-        {isCollapsed ? (
-          <ChevronRight className="w-3 h-3 text-gray-600" />
-        ) : (
-          <ChevronLeft className="w-3 h-3 text-gray-600" />
-        )}
-      </button>
+        <motion.div
+          animate={{ rotate: isCollapsed ? 0 : 180 }}
+          transition={{ duration: 0.3 }}
+        >
+          <ChevronUp className="w-5 h-5 text-gray-600" />
+        </motion.div>
+      </motion.button>
 
-      <div className={`flex flex-col gap-2 p-2 transition-all duration-300 ${isCollapsed ? 'w-0 overflow-hidden p-0' : 'w-auto'}`}>
-        {/* Add Node Section */}
-        <div className="border-b border-gray-200 border-opacity-50 pb-2">
-          <div className="text-xs font-medium text-gray-700 mb-2">Add Node</div>
-          <div className="grid grid-cols-2 gap-1">
-            {nodeTypes.map((nodeType) => {
-              const Icon = nodeType.icon;
-              return (
-                <button
-                  key={nodeType.type}
-                  onClick={() => onAddNode(nodeType.type)}
-                  className={`
-                    flex items-center gap-1 px-2 py-1 text-xs rounded hover:bg-gray-50 transition-colors
-                    ${nodeType.color}
-                  `}
-                  title={`Add ${nodeType.label} node`}
+      {/* Toolbar Content */}
+      <AnimatePresence>
+        {!isCollapsed && (
+          <motion.div
+            initial={{ y: 50, opacity: 0, scale: 0.9 }}
+            animate={{ y: 0, opacity: 1, scale: 1 }}
+            exit={{ y: 50, opacity: 0, scale: 0.9 }}
+            transition={{ 
+              type: "spring", 
+              stiffness: 400, 
+              damping: 25,
+              staggerChildren: 0.05
+            }}
+            className="bg-white bg-opacity-95 backdrop-blur-sm rounded-xl shadow-lg border border-gray-200 p-3 space-y-4 min-w-64"
+          >
+            {/* Add Node Section */}
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.1 }}
+              className="border-b border-gray-200 border-opacity-50 pb-3"
+            >
+              <div className="text-xs font-medium text-gray-700 mb-2 flex items-center gap-2">
+                <GiCube className="w-3 h-3" />
+                Add Node
+              </div>
+              <div className="grid grid-cols-2 gap-1">
+                {nodeTypes.map((nodeType, index) => {
+                  const Icon = nodeType.icon;
+                  return (
+                    <motion.button
+                      key={nodeType.type}
+                      initial={{ opacity: 0, scale: 0.8 }}
+                      animate={{ opacity: 1, scale: 1 }}
+                      transition={{ delay: 0.1 + index * 0.05 }}
+                      whileHover={{ scale: 1.05, y: -2 }}
+                      whileTap={{ scale: 0.95 }}
+                      onClick={() => handleToolAction(() => onAddNode(nodeType.type), `Add ${nodeType.label}`)}
+                      className={`
+                        flex items-center gap-1 px-2 py-1.5 text-xs rounded-md hover:bg-gray-50 transition-all duration-200
+                        ${nodeType.color} hover:shadow-sm
+                      `}
+                      title={`Add ${nodeType.label} node`}
+                    >
+                      <Icon className="w-3 h-3" />
+                      <span className="font-medium">{nodeType.label}</span>
+                    </motion.button>
+                  );
+                })}
+              </div>
+            </motion.div>
+
+            {/* View Controls */}
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.2 }}
+              className="border-b border-gray-200 border-opacity-50 pb-3"
+            >
+              <div className="text-xs font-medium text-gray-700 mb-2 flex items-center gap-2">
+                <Eye className="w-3 h-3" />
+                View
+              </div>
+              <div className="flex items-center gap-1">
+                <motion.button
+                  whileHover={{ scale: 1.1 }}
+                  whileTap={{ scale: 0.9 }}
+                  onClick={() => handleToolAction(onZoomIn, 'Zoom In')}
+                  className="p-1.5 hover:bg-gray-100 rounded-md transition-colors"
+                  title="Zoom In"
                 >
-                  <Icon className="w-3 h-3" />
-                  <span>{nodeType.label}</span>
-                </button>
-              );
-            })}
-          </div>
-        </div>
+                  <ZoomIn className="w-4 h-4 text-gray-600" />
+                </motion.button>
+                <motion.button
+                  whileHover={{ scale: 1.1 }}
+                  whileTap={{ scale: 0.9 }}
+                  onClick={() => handleToolAction(onZoomOut, 'Zoom Out')}
+                  className="p-1.5 hover:bg-gray-100 rounded-md transition-colors"
+                  title="Zoom Out"
+                >
+                  <ZoomOut className="w-4 h-4 text-gray-600" />
+                </motion.button>
+                <motion.div
+                  initial={{ scale: 0 }}
+                  animate={{ scale: 1 }}
+                  transition={{ delay: 0.3, type: "spring" }}
+                  className="px-2 py-1 text-xs text-gray-600 bg-gray-50 rounded-md font-mono min-w-12 text-center"
+                >
+                  {Math.round(scale * 100)}%
+                </motion.div>
+              </div>
+            </motion.div>
 
-        {/* View Controls */}
-        <div className="border-b border-gray-200 border-opacity-50 pb-2">
-          <div className="text-xs font-medium text-gray-700 mb-2">View</div>
-          <div className="flex gap-1">
-            <button
-              onClick={onZoomIn}
-              className="p-1 hover:bg-gray-100 rounded transition-colors"
-              title="Zoom In"
+            {/* Layout Controls */}
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.3 }}
+              className="border-b border-gray-200 border-opacity-50 pb-3"
             >
-              <ZoomIn className="w-4 h-4 text-gray-600" />
-            </button>
-            <button
-              onClick={onZoomOut}
-              className="p-1 hover:bg-gray-100 rounded transition-colors"
-              title="Zoom Out"
-            >
-              <ZoomOut className="w-4 h-4 text-gray-600" />
-            </button>
-            <button
-              onClick={onResetView}
-              className="p-1 hover:bg-gray-100 rounded transition-colors"
-              title="Reset View"
-            >
-              <RotateCcw className="w-4 h-4 text-gray-600" />
-            </button>
-            <div className="px-2 py-1 text-xs text-gray-600 bg-gray-50 rounded">
-              {Math.round(scale * 100)}%
-            </div>
-          </div>
-        </div>
+              <div className="text-xs font-medium text-gray-700 mb-2 flex items-center gap-2">
+                <GiAtom className="w-3 h-3" />
+                Layout
+              </div>
+              <div className="flex gap-1">
+                {layoutTools.map((tool, index) => {
+                  const Icon = tool.icon;
+                  return (
+                    <motion.button
+                      key={index}
+                      initial={{ opacity: 0, scale: 0.8 }}
+                      animate={{ opacity: 1, scale: 1 }}
+                      transition={{ delay: 0.3 + index * 0.05 }}
+                      whileHover={{ scale: 1.1, y: -1 }}
+                      whileTap={{ scale: 0.9 }}
+                      onClick={() => handleToolAction(tool.action, tool.label)}
+                      className={`p-1.5 rounded-md transition-all duration-200 ${
+                        tool.active 
+                          ? 'bg-blue-100 text-blue-600 shadow-sm' 
+                          : 'hover:bg-gray-100 text-gray-600'
+                      }`}
+                      title={tool.label}
+                    >
+                      <Icon className="w-4 h-4" />
+                    </motion.button>
+                  );
+                })}
+              </div>
+            </motion.div>
 
-        {/* Layout Controls */}
-        <div className="border-b border-gray-200 border-opacity-50 pb-2">
-          <div className="text-xs font-medium text-gray-700 mb-2">Layout</div>
-          <div className="flex gap-1">
-            <button
-              onClick={onToggleGrid}
-              className={`p-1 rounded transition-colors ${
-                showGrid ? 'bg-blue-100 text-blue-600' : 'hover:bg-gray-100 text-gray-600'
-              }`}
-              title="Toggle Grid"
+            {/* Actions */}
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.4 }}
             >
-              <Grid className="w-4 h-4" />
-            </button>
-            <button
-              onClick={onAutoLayout}
-              className="p-1 hover:bg-gray-100 rounded transition-colors"
-              title="Auto Layout"
-            >
-              <Move className="w-4 h-4 text-gray-600" />
-            </button>
-          </div>
-        </div>
-
-        {/* Actions */}
-        <div>
-          <div className="text-xs font-medium text-gray-700 mb-2">Actions</div>
-          <div className="flex gap-1">
-            <button
-              onClick={onSave}
-              className="p-1 hover:bg-gray-100 rounded transition-colors"
-              title="Save Canvas"
-            >
-              <Save className="w-4 h-4 text-gray-600" />
-            </button>
-            <button
-              onClick={onExport}
-              className="p-1 hover:bg-gray-100 rounded transition-colors"
-              title="Export Canvas"
-            >
-              <Download className="w-4 h-4 text-gray-600" />
-            </button>
-            {onClearCanvas && (
-              <button
-                onClick={onClearCanvas}
-                className="p-1 hover:bg-red-100 rounded transition-colors"
-                title="Clear Canvas"
-              >
-                <RotateCcw className="w-4 h-4 text-red-600" />
-              </button>
-            )}
-          </div>
-        </div>
-      </div>
-    </div>
+              <div className="text-xs font-medium text-gray-700 mb-2 flex items-center gap-2">
+                <GiMagicSwirl className="w-3 h-3" />
+                Actions
+              </div>
+              <div className="flex gap-1">
+                {actionTools.map((tool, index) => {
+                  const Icon = tool.icon;
+                  const isDestructive = tool.icon === GiBroom;
+                  return (
+                    <motion.button
+                      key={index}
+                      initial={{ opacity: 0, scale: 0.8 }}
+                      animate={{ opacity: 1, scale: 1 }}
+                      transition={{ delay: 0.4 + index * 0.05 }}
+                      whileHover={{ scale: 1.1, y: -1 }}
+                      whileTap={{ scale: 0.9 }}
+                      onClick={() => handleToolAction(tool.action, tool.label)}
+                      className={`p-1.5 rounded-md transition-all duration-200 ${
+                        isDestructive
+                          ? 'hover:bg-red-100 text-red-600'
+                          : 'hover:bg-gray-100 text-gray-600'
+                      }`}
+                      title={tool.label}
+                    >
+                      <Icon className="w-4 h-4" />
+                    </motion.button>
+                  );
+                })}
+              </div>
+            </motion.div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+    </motion.div>
   );
 };
