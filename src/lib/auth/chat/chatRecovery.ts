@@ -23,8 +23,7 @@ export class ChatRecoveryManager {
    * Attempt to recover a conversation from the server
    */
   static async recoverConversation(
-    conversationId: string,
-    lastTokenIndex: number = -1
+    conversationId: string
   ): Promise<RecoveryResult> {
     try {
       console.log('🔄 Attempting to recover conversation:', conversationId);
@@ -43,8 +42,7 @@ export class ChatRecoveryManager {
           'Authorization': `Bearer ${supabaseAnonKey}`,
         },
         body: JSON.stringify({
-          conversationId,
-          lastTokenIndex
+          conversationId
         }),
       });
       
@@ -111,16 +109,28 @@ export class ChatRecoveryManager {
    */
   static async needsRecovery(conversationId: string): Promise<boolean> {
     try {
-      const conversation = await ChatStorageManager.getConversation(conversationId);
-      if (!conversation) return false;
+      const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
+      const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY;
       
-      // Check if conversation is active but not complete
-      if (conversation.status === 'active') {
-        const isComplete = await ChatStorageManager.isConversationComplete(conversationId);
-        return !isComplete;
+      if (!supabaseUrl || !supabaseAnonKey) {
+        return false;
       }
       
-      return false;
+      const response = await fetch(`${supabaseUrl}/rest/v1/chat_conversations?id=eq.${conversationId}&select=status`, {
+        headers: {
+          'Authorization': `Bearer ${supabaseAnonKey}`,
+          'apikey': supabaseAnonKey,
+        }
+      });
+      
+      if (!response.ok) return false;
+      
+      const [conversation] = await response.json();
+      if (!conversation) return false;
+      
+      // Check if conversation is active (not completed or failed)
+      return conversation.status === 'active';
+      
     } catch (error) {
       console.error('Failed to check recovery status:', error);
       return false;
@@ -166,8 +176,8 @@ export class ChatRecoveryManager {
    */
   static async cleanupFailedConversations(): Promise<void> {
     try {
-      // This would typically be called periodically or on app startup
-      await ChatStorageManager.cleanupOldConversations(7); // Clean up conversations older than 7 days
+      console.log('🧹 Cleanup would be handled by server-side cron job');
+      // This would typically be handled by a server-side cron job or edge function
     } catch (error) {
       console.error('Failed to cleanup conversations:', error);
     }
@@ -180,37 +190,29 @@ export class ChatRecoveryManager {
     conversationExists: boolean;
     conversationStatus?: string;
     tokenCount: number;
-    lastTokenIndex: number;
     isComplete: boolean;
   }> {
     try {
-      const conversation = await ChatStorageManager.getConversation(conversationId);
-      const lastTokenIndex = await ChatStorageManager.getLastTokenIndex(conversationId);
-      const tokens = await ChatStorageManager.getTokensAfterIndex(conversationId, -1);
-      const isComplete = await ChatStorageManager.isConversationComplete(conversationId);
+      const recovery = await this.recoverConversation(conversationId);
       
       console.log('📊 Recovery status:', {
         conversationId,
-        exists: !!conversation,
-        status: conversation?.status,
-        tokenCount: tokens.length,
-        lastTokenIndex,
-        isComplete
+        success: recovery.success,
+        hasContent: !!recovery.content,
+        isComplete: recovery.isComplete
       });
       
       return {
-        conversationExists: !!conversation,
-        conversationStatus: conversation?.status,
-        tokenCount: tokens.length,
-        lastTokenIndex,
-        isComplete
+        conversationExists: recovery.success,
+        conversationStatus: recovery.success ? 'active' : 'unknown',
+        tokenCount: recovery.content ? 1 : 0,
+        isComplete: recovery.isComplete || false
       };
     } catch (error) {
       console.error('Failed to get recovery status:', error);
       return {
         conversationExists: false,
         tokenCount: 0,
-        lastTokenIndex: -1,
         isComplete: false
       };
     }

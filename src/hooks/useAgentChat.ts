@@ -1,5 +1,4 @@
 import { useState, useCallback, useRef } from 'react';
-import { ChatStorageManager } from '../lib/auth/chat/chatStorage';
 import { ChatRecoveryManager } from '../lib/auth/chat/chatRecovery';
 
 interface AgentChatState {
@@ -48,11 +47,36 @@ export const useAgentChat = ({
 
   const createConversation = useCallback(async () => {
     try {
-      const conversation = await ChatStorageManager.createConversation(stageId, {
-        currentStageData,
-        allStageData,
-        timestamp: new Date().toISOString()
+      const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
+      const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY;
+
+      if (!supabaseUrl || !supabaseAnonKey) {
+        throw new Error('Missing Supabase configuration');
+      }
+
+      const response = await fetch(`${supabaseUrl}/rest/v1/chat_conversations`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${supabaseAnonKey}`,
+          'apikey': supabaseAnonKey,
+        },
+        body: JSON.stringify({
+          stage_id: stageId,
+          status: 'active',
+          metadata: {
+            currentStageData,
+            allStageData,
+            timestamp: new Date().toISOString()
+          }
+        })
       });
+
+      if (!response.ok) {
+        throw new Error(`Failed to create conversation: ${response.status}`);
+      }
+
+      const [conversation] = await response.json();
       return conversation.id;
     } catch (error) {
       console.error('Failed to create conversation:', error);
@@ -71,8 +95,6 @@ export const useAgentChat = ({
     const reader = response.body.getReader();
     const decoder = new TextDecoder();
     let buffer = '';
-    let tokenIndex = 0;
-    const tokens: Array<{ index: number; content: string; type: string }> = [];
 
     try {
       while (true) {
@@ -91,11 +113,6 @@ export const useAgentChat = ({
               
               if (data.type === 'content') {
                 setState(prev => ({ ...prev, content: data.content }));
-                tokens.push({
-                  index: tokenIndex++,
-                  content: data.content,
-                  type: 'content'
-                });
               } else if (data.type === 'complete') {
                 setState(prev => ({
                   ...prev,
@@ -104,15 +121,6 @@ export const useAgentChat = ({
                   isComplete: true
                 }));
 
-                // Save complete response
-                await ChatStorageManager.saveCompleteResponse(conversationId, {
-                  full_content: data.content,
-                  suggestions: data.suggestions || [],
-                  auto_fill_data: data.autoFillData || {},
-                  stage_complete: data.stageComplete || false,
-                  context: data.context || {}
-                });
-
                 // Trigger callbacks
                 if (data.autoFillData && onAutoFill) {
                   onAutoFill(data.autoFillData);
@@ -120,9 +128,6 @@ export const useAgentChat = ({
                 if (data.stageComplete && onStageComplete) {
                   onStageComplete();
                 }
-
-                // Update conversation status
-                await ChatStorageManager.updateConversationStatus(conversationId, 'completed');
               } else if (data.type === 'error') {
                 throw new Error(data.error || 'Stream error occurred');
               }
@@ -131,11 +136,6 @@ export const useAgentChat = ({
             }
           }
         }
-      }
-
-      // Save tokens if any were collected
-      if (tokens.length > 0) {
-        await ChatStorageManager.saveResponseTokens(conversationId, tokens);
       }
 
     } finally {
@@ -187,14 +187,7 @@ export const useAgentChat = ({
     try {
       console.log('🔄 Attempting conversation recovery...');
       
-      // Check if conversation has any tokens to recover
-      const lastTokenIndex = await ChatStorageManager.getLastTokenIndex(conversationId);
-      if (lastTokenIndex < 0) {
-        console.log('📝 No tokens to recover, starting fresh');
-        return false;
-      }
-
-      const recovery = await ChatRecoveryManager.recoverConversation(conversationId, lastTokenIndex);
+      const recovery = await ChatRecoveryManager.recoverConversation(conversationId);
       
       if (recovery.success && recovery.content) {
         setState(prev => ({

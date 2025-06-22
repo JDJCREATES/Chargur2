@@ -10,6 +10,7 @@
  */
 
 import { serve } from 'https://deno.land/std@0.168.0/http/server.ts'
+import { createClient } from 'https://esm.sh/@supabase/supabase-js@2'
 import { EdgeStagePromptEngine } from './stages/index.ts'
 
 // Get the origin from environment or request
@@ -220,6 +221,85 @@ interface AgentResponse {
   memoryUpdate?: any
 }
 
+// Database helper functions
+async function saveTokenToDatabase(
+  supabase: any,
+  conversationId: string,
+  tokenIndex: number,
+  content: string,
+  tokenType: string = 'content'
+) {
+  try {
+    const { error } = await supabase
+      .from('chat_response_tokens')
+      .upsert({
+        conversation_id: conversationId,
+        token_index: tokenIndex,
+        token_content: content,
+        token_type: tokenType
+      }, {
+        onConflict: 'conversation_id,token_index',
+        ignoreDuplicates: false
+      })
+
+    if (error) {
+      console.error('❌ Failed to save token:', error)
+      throw error
+    }
+
+    console.log(`✅ Token ${tokenIndex} saved successfully`)
+  } catch (error) {
+    console.error('❌ Database error saving token:', error)
+    // Don't throw - continue streaming even if token save fails
+  }
+}
+
+async function saveCompleteResponse(
+  supabase: any,
+  conversationId: string,
+  response: AgentResponse
+) {
+  try {
+    console.log('💾 Saving complete response to database...')
+    
+    // Save complete response
+    const { error: responseError } = await supabase
+      .from('chat_responses')
+      .upsert({
+        conversation_id: conversationId,
+        full_content: response.content,
+        suggestions: response.suggestions,
+        auto_fill_data: response.autoFillData,
+        stage_complete: response.stageComplete,
+        context: response.context,
+        is_complete: true
+      }, {
+        onConflict: 'conversation_id',
+        ignoreDuplicates: false
+      })
+
+    if (responseError) {
+      console.error('❌ Failed to save complete response:', responseError)
+      throw responseError
+    }
+
+    // Update conversation status
+    const { error: conversationError } = await supabase
+      .from('chat_conversations')
+      .update({ status: 'completed' })
+      .eq('id', conversationId)
+
+    if (conversationError) {
+      console.error('❌ Failed to update conversation status:', conversationError)
+      throw conversationError
+    }
+
+    console.log('✅ Complete response and conversation status saved successfully')
+  } catch (error) {
+    console.error('❌ Database error saving complete response:', error)
+    // Don't throw - response was already streamed to client
+  }
+}
 serve(async (req) => {
   const corsHeaders = getCorsHeaders(req)
   
@@ -266,6 +346,18 @@ serve(async (req) => {
 
 async function processAgentRequest(controller: ReadableStreamDefaultController, request: AgentRequest) {
   const { stageId, currentStageData, allStageData, userMessage, memory, recommendations, conversationId, lastTokenIndex } = request
+
+  // Initialize Supabase client for database operations
+  const supabaseUrl = Deno.env.get('SUPABASE_URL')
+  const supabaseServiceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')
+  
+  if (!supabaseUrl || !supabaseServiceKey) {
+    console.error('❌ Missing Supabase configuration for database operations')
+    throw new Error('Database configuration missing')
+  }
+  
+  const supabase = createClient(supabaseUrl, supabaseServiceKey)
+  console.log('✅ Supabase client initialized for database operations')
 
   // Track stream state more reliably
   let streamClosed = false
@@ -413,6 +505,10 @@ async function processAgentRequest(controller: ReadableStreamDefaultController, 
         tokenIndex: tokenIndex++
       }
       
+      // Save token to database (async, don't wait)
+      saveTokenToDatabase(supabase, conversationId!, tokenIndex - 1, chunk, 'content')
+        .catch(error => console.error('⚠️ Token save failed but continuing stream:', error))
+      
       // Use safe enqueue - if it returns false, client disconnected
       if (!safeEnqueue(tokenData)) {
         console.log('🔌 Client disconnected during streaming, stopping gracefully')
@@ -438,6 +534,10 @@ async function processAgentRequest(controller: ReadableStreamDefaultController, 
       
       if (safeEnqueue(completionData)) {
         console.log('✅ Completion data sent')
+        
+        // Save complete response to database (async, don't wait for stream)
+        saveCompleteResponse(supabase, conversationId!, response)
+          .catch(error => console.error('⚠️ Complete response save failed:', error))
       }
     }
     
@@ -467,6 +567,16 @@ async function processAgentRequest(controller: ReadableStreamDefaultController, 
       
       if (!safeEnqueue(errorData)) {
         console.log('🔌 Could not send error to client (already disconnected)')
+      }
+      
+      // Update conversation status to failed
+      if (conversationId && supabase) {
+        supabase
+          .from('chat_conversations')
+          .update({ status: 'failed' })
+          .eq('id', conversationId)
+          .then(() => console.log('📝 Conversation marked as failed'))
+          .catch(err => console.error('❌ Failed to update conversation status:', err))
       }
     }
     
