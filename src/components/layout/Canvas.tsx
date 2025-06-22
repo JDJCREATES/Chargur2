@@ -11,7 +11,7 @@ import { Send, Brain, Loader2, Wand2, Sparkles, CheckCircle, ArrowRight } from '
 import { CanvasHeader } from './CanvasHeader';
 import { SpatialCanvas } from '../canvas/SpatialCanvas';
 import { useAgent } from '../agent/AgentContextProvider';
-import { ChatStorageManager } from '../../lib/chat/chatStorage';
+import { ChatStorageManager } from '../../lib/auth/chat/chatStorage';
 import { Stage } from '../../types';
 
 interface CanvasProps {

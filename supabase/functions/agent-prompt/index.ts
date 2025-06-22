@@ -12,11 +12,44 @@
 import { serve } from 'https://deno.land/std@0.168.0/http/server.ts'
 import { EdgeStagePromptEngine } from './stages/index.ts'
 
-const corsHeaders = {
-  'Access-Control-Allow-Origin': '*',
-  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
-  'Access-Control-Allow-Methods': 'POST, OPTIONS',
+// Get the origin from environment or request
+const getAllowedOrigin = (request: Request): string => {
+  const origin = request.headers.get('origin')
+  
+  // Define your allowed origins
+  const allowedOrigins = [
+    'http://localhost:3000',
+    'http://localhost:5173', // Vite dev server
+    'https://your-app-domain.com',
+    'https://your-app-domain.vercel.app',
+    // Add your actual production domains
+  ]
+  
+  // For development, you might want to allow localhost
+  if (origin && (allowedOrigins.includes(origin) || origin.includes('localhost'))) {
+    return origin
+  }
+  
+  // Fallback to first allowed origin or restrict
+  return allowedOrigins[0] || 'https://your-app-domain.com'
 }
+
+const getCorsHeaders = (request: Request) => ({
+  'Access-Control-Allow-Origin': getAllowedOrigin(request),
+  'Access-Control-Allow-Credentials': 'true',
+  'Access-Control-Allow-Headers': [
+    'authorization',
+    'x-client-info', 
+    'apikey',
+    'content-type',
+    'cache-control',
+    'x-requested-with'
+  ].join(', '),
+  'Access-Control-Allow-Methods': 'GET, POST, OPTIONS, PUT, DELETE',
+  'Access-Control-Max-Age': '86400', // 24 hours
+  // SSE-specific headers
+  'Access-Control-Expose-Headers': 'content-type, cache-control',
+})
 
 // LLM Client for Edge Functions
 class EdgeLLMClient {
@@ -50,46 +83,48 @@ class EdgeLLMClient {
   }
 
   async generateResponse(systemPrompt: string, userPrompt: string, temperature = 0.7, maxTokens = 1500): Promise<string> {
-    console.log('🚀 EdgeLLMClient.generateResponse called')
-    console.log('📊 Request parameters:', {
-      provider: this.provider,
-      model: this.model,
-      temperature,
-      maxTokens,
-      systemPromptLength: systemPrompt.length,
-      userPromptLength: userPrompt.length
-    })
-    
-    const maxRetries = 3
-    let lastError: Error
+  console.log('🚀 EdgeLLMClient.generateResponse called')
+  console.log('📊 Request parameters:', {
+    provider: this.provider,
+    model: this.model,
+    temperature,
+    maxTokens,
+    systemPromptLength: systemPrompt.length,
+    userPromptLength: userPrompt.length
+  })
+  
+  const maxRetries = 3
+  let lastError: Error
 
-    for (let attempt = 1; attempt <= maxRetries; attempt++) {
-      console.log(`🔄 Attempt ${attempt}/${maxRetries}`)
-      try {
-        const response = await this.makeRequest(systemPrompt, userPrompt, temperature, maxTokens)
-        console.log('✅ Request successful, extracting content...')
-        return this.extractContent(response)
-      } catch (error) {
-        console.error(`❌ Attempt ${attempt} failed:`, error)
-        lastError = error as Error
-        
-        // Don't retry on auth errors
-        if (error.status === 401 || error.status === 403) {
-          console.error('🚫 Auth error detected, not retrying')
-          throw error
-        }
+  for (let attempt = 1; attempt <= maxRetries; attempt++) {
+    console.log(`🔄 Attempt ${attempt}/${maxRetries}`)
+    try {
+      const response = await this.makeRequest(systemPrompt, userPrompt, temperature, maxTokens)
+      console.log('✅ Request successful, extracting content...')
+      return this.extractContent(response)
+    } catch (error) {
+      console.error(`❌ Attempt ${attempt} failed:`, error)
+      lastError = error as Error
+      
+      // Don't retry on auth errors
+      if (error.status === 401 || error.status === 403) {
+        console.error('🚫 Auth error detected, not retrying')
+        throw error
+      }
 
-        // Exponential backoff
-        if (attempt < maxRetries) {
-          await new Promise(resolve => setTimeout(resolve, Math.pow(2, attempt) * 1000))
-          console.log(`⏳ Waiting ${delay}ms before retry...`)
-        }
+      // Exponential backoff
+      if (attempt < maxRetries) {
+        const delay = Math.pow(2, attempt) * 1000  // ✅ Define delay variable
+        await new Promise(resolve => setTimeout(resolve, delay))
+        console.log(`⏳ Waiting ${delay}ms before retry...`)
       }
     }
-
-    console.error('❌ All retry attempts failed')
-    throw lastError!
   }
+
+  console.error('❌ All retry attempts failed')
+  throw lastError!
+}
+
 
   private async makeRequest(systemPrompt: string, userPrompt: string, temperature: number, maxTokens: number) {
     console.log('🌐 Making HTTP request to LLM API...')
@@ -188,23 +223,16 @@ serve(async (req) => {
   }
 
   try {
-    const { stageId, currentStageData, allStageData, conversationHistory, userMessage, memory, recommendations, conversationId, lastTokenIndex }: AgentRequest = await req.json()
+    const requestData: AgentRequest = await req.json()
 
-    // Create a streaming response
+    // Create a streaming response with better connection handling
     const stream = new ReadableStream({
       start(controller) {
-        // Process agent request with modular prompt system
-        processAgentRequest(controller, {
-          stageId,
-          currentStageData,
-          allStageData,
-          conversationHistory,
-          userMessage,
-          memory,
-          recommendations,
-          conversationId,
-          lastTokenIndex
-        })
+        processAgentRequest(controller, requestData)
+      },
+      cancel(reason) {
+        console.log('🔌 Stream cancelled by client:', reason)
+        // Cleanup logic here if needed
       }
     })
 
@@ -214,6 +242,7 @@ serve(async (req) => {
         'Content-Type': 'text/event-stream',
         'Cache-Control': 'no-cache',
         'Connection': 'keep-alive',
+        'X-Accel-Buffering': 'no', // Disable nginx buffering
       },
     })
 
@@ -232,25 +261,65 @@ serve(async (req) => {
 async function processAgentRequest(controller: ReadableStreamDefaultController, request: AgentRequest) {
   const { stageId, currentStageData, allStageData, userMessage, memory, recommendations, conversationId, lastTokenIndex } = request
 
+  // Track stream state more reliably
+  let streamClosed = false
+  let tokenIndex = (lastTokenIndex || -1) + 1
+
+  // Helper function to safely enqueue data
+  const safeEnqueue = (data: any): boolean => {
+    if (streamClosed) {
+      console.log('🔌 Stream already closed, skipping enqueue')
+      return false
+    }
+    
+    try {
+      controller.enqueue(`data: ${JSON.stringify(data)}\n\n`)
+      return true
+    } catch (error) {
+      if (error instanceof TypeError && error.message.includes('cannot close or enqueue')) {
+        console.log('🔌 Client disconnected, marking stream as closed')
+        streamClosed = true
+        return false
+      }
+      console.error('❌ Unexpected enqueue error:', error)
+      throw error
+    }
+  }
+
+  // Helper function to safely close stream
+  const safeClose = () => {
+    if (streamClosed) {
+      console.log('🔌 Stream already closed')
+      return
+    }
+    
+    try {
+      controller.close()
+      streamClosed = true
+      console.log('✅ Stream closed successfully')
+    } catch (error) {
+      if (error instanceof TypeError && error.message.includes('cannot close or enqueue')) {
+        console.log('🔌 Stream was already closed by client')
+        streamClosed = true
+      } else {
+        console.error('❌ Error closing stream:', error)
+      }
+    }
+  }
+
   try {
     console.log('🔍 Starting processAgentRequest for stage:', stageId)
     console.log('📝 User message:', userMessage)
     
     // Initialize LLM client
     console.log('🤖 Initializing LLM client...')
-    const llmClient = new EdgeLLMClient('openai') // Default to OpenAI, fallback to Anthropic if needed
+    const llmClient = new EdgeLLMClient('openai')
     console.log('✅ LLM client initialized successfully')
     
     // Generate stage-specific prompt using modular system
     console.log('📋 Generating stage-specific prompt...')
     const promptData = EdgeStagePromptEngine.generatePrompt(request)
     console.log('✅ Prompt generated successfully')
-    console.log('📊 Prompt metadata:', {
-      systemPromptLength: promptData.systemPrompt.length,
-      userPromptLength: promptData.userPrompt.length,
-      temperature: promptData.temperature,
-      maxTokens: promptData.maxTokens
-    })
     
     // Get LLM response
     console.log('🚀 Calling LLM API...')
@@ -261,114 +330,65 @@ async function processAgentRequest(controller: ReadableStreamDefaultController, 
       promptData.maxTokens
     )
     console.log('✅ LLM response received')
-    console.log('📄 Response length:', llmResponse.length)
-    console.log('🔍 Response preview:', llmResponse.substring(0, 200) + '...')
+    
+    // Early check if stream is still open
+    if (streamClosed) {
+      console.log('🔌 Stream closed during LLM call, aborting')
+      return
+    }
     
     // Parse and validate response
     console.log('🔧 Parsing and validating response...')
     const response = parseAndValidateResponse(llmResponse, stageId)
     console.log('✅ Response parsed successfully')
-    console.log('📊 Parsed response structure:', {
-      hasContent: !!response.content,
-      suggestionsCount: response.suggestions.length,
-      hasAutoFillData: Object.keys(response.autoFillData).length > 0,
-      stageComplete: response.stageComplete
-    })
     
-    // Stream the content
+    // Stream the content with better error handling
     console.log('📡 Starting content streaming...')
     const words = response.content.split(' ')
     console.log('📝 Total words to stream:', words.length)
     
-    let streamClosed = false
-    let tokenIndex = (lastTokenIndex || -1) + 1
-    
-    for (let i = 0; i < words.length; i++) {
-      // Check if stream is already closed before attempting to enqueue
-      if (streamClosed) {
-        console.log('🔌 Stream already closed, stopping content streaming')
+    // Stream content word by word
+    for (let i = 0; i < words.length && !streamClosed; i++) {
+      const chunk = words.slice(0, i + 1).join(' ')
+      
+      const tokenData = {
+        type: 'content',
+        content: chunk,
+        conversationId,
+        tokenIndex: tokenIndex++
+      }
+      
+      // Use safe enqueue - if it returns false, client disconnected
+      if (!safeEnqueue(tokenData)) {
+        console.log('🔌 Client disconnected during streaming, stopping gracefully')
         break
       }
       
-      const chunk = words.slice(0, i + 1).join(' ')
-      
-      // Log every 10th chunk to avoid spam
-      if (i % 10 === 0) {
-        console.log(`📡 Streaming chunk ${i + 1}/${words.length}`)
-      }
-      
-      try {
-        const tokenData = {
-          type: 'content',
-          content: chunk,
-          conversationId,
-          tokenIndex: tokenIndex++
-        }
-        controller.enqueue(`data: ${JSON.stringify(tokenData)}\n\n`)
-      } catch (error) {
-        if (error instanceof TypeError && error.message.includes('cannot close or enqueue')) {
-          console.log('🔌 Client disconnected during streaming, stopping gracefully')
-          streamClosed = true
-          break
-        } else {
-          console.error('❌ Unexpected streaming error:', error)
-          throw error // Re-throw if it's not a client disconnection
-        }
-      }
-      
-      // Add realistic delay
-      if (!streamClosed) {
+      // Add realistic delay only if stream is still open
+      if (!streamClosed && i < words.length - 1) {
         await new Promise(resolve => setTimeout(resolve, 50))
       }
     }
+    
     console.log('✅ Content streaming completed')
 
-    // Send completion data
-    console.log('🏁 Sending completion data...')
-    controller.enqueue(`data: ${JSON.stringify({ 
-      type: 'complete', 
-      ...response 
-    })}\n\n`)
-    
-    // Send completion data with error handling
+    // Send completion data only if stream is still open
     if (!streamClosed) {
-      try {
-        const completionData = {
-          type: 'complete', 
-          ...response,
-          conversationId
-        }
-        controller.enqueue(`data: ${JSON.stringify(completionData)}\n\n`)
-      } catch (error) {
-        if (error instanceof TypeError && error.message.includes('cannot close or enqueue')) {
-          console.log('🔌 Client disconnected before completion data could be sent')
-          streamClosed = true
-        } else {
-          console.error('❌ Error sending completion data:', error)
-          throw error
-        }
+      console.log('🏁 Sending completion data...')
+      const completionData = {
+        type: 'complete', 
+        ...response,
+        conversationId
+      }
+      
+      if (safeEnqueue(completionData)) {
+        console.log('✅ Completion data sent')
       }
     }
     
-    console.log('✅ Completion data sent')
-
+    // Close stream safely
+    safeClose()
     console.log('🎉 processAgentRequest completed successfully')
-    
-    // Close controller with error handling
-    if (!streamClosed) {
-      try {
-        controller.close()
-        console.log('✅ Stream closed successfully')
-      } catch (error) {
-        if (error instanceof TypeError && error.message.includes('cannot close or enqueue')) {
-          console.log('🔌 Stream was already closed by client')
-        } else {
-          console.error('❌ Error closing stream:', error)
-        }
-      }
-    } else {
-      console.log('🔌 Stream was already closed due to client disconnection')
-    }
 
   } catch (error) {
     console.error('❌ Processing error occurred:', error)
@@ -379,20 +399,21 @@ async function processAgentRequest(controller: ReadableStreamDefaultController, 
     })
     
     // Handle stream errors gracefully
-    try {
+    if (!streamClosed) {
       // Try to send an error message to the client first
       const errorData = {
         type: 'error', 
         error: 'Processing failed. Please try again.',
         conversationId
       }
-      controller.enqueue(`data: ${JSON.stringify(errorData)}\n\n`)
-      controller.close()
-    } catch (controllerError) {
-      console.log('🔌 Could not send error to client (likely disconnected)')
-      // Use controller.error() as last resort
-      controller.error(error)
+      
+      if (!safeEnqueue(errorData)) {
+        console.log('🔌 Could not send error to client (already disconnected)')
+      }
     }
+    
+    // Always try to close gracefully
+    safeClose()
   }
 }
 

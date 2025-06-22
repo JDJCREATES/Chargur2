@@ -8,11 +8,35 @@
 import { serve } from 'https://deno.land/std@0.168.0/http/server.ts'
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2'
 
-const corsHeaders = {
-  'Access-Control-Allow-Origin': '*',
-  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
-  'Access-Control-Allow-Methods': 'POST, OPTIONS',
+const getAllowedOrigin = (request: Request): string => {
+  const origin = request.headers.get('origin')
+  
+  const allowedOrigins = [
+    'http://localhost:3000',
+    'http://localhost:5113',
+    'https://your-app-domain.com',
+    'https://your-app-domain.vercel.app',
+  ]
+  
+  if (origin && (allowedOrigins.includes(origin) || origin.includes('localhost'))) {
+    return origin
+  }
+  
+  return allowedOrigins[0] || 'https://your-app-domain.com'
 }
+
+const getCorsHeaders = (request: Request) => ({
+  'Access-Control-Allow-Origin': getAllowedOrigin(request),
+  'Access-Control-Allow-Credentials': 'true',
+  'Access-Control-Allow-Headers': [
+    'authorization',
+    'x-client-info', 
+    'apikey',
+    'content-type'
+  ].join(', '),
+  'Access-Control-Allow-Methods': 'GET, POST, OPTIONS',
+  'Access-Control-Max-Age': '86400',
+})
 
 interface RetrieveRequest {
   conversationId: string
@@ -38,9 +62,14 @@ interface RetrieveResponse {
 }
 
 serve(async (req) => {
+  const corsHeaders = getCorsHeaders(req)
+  
   // Handle CORS preflight requests
   if (req.method === 'OPTIONS') {
-    return new Response('ok', { headers: corsHeaders })
+    return new Response('ok', { 
+      headers: corsHeaders,
+      status: 200 
+    })
   }
 
   try {
@@ -49,7 +78,7 @@ serve(async (req) => {
     // Initialize Supabase client
     const supabaseUrl = Deno.env.get('SUPABASE_URL')!
     const supabaseServiceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!
-    
+!
     const supabase = createClient(supabaseUrl, supabaseServiceKey)
     
     const { conversationId, lastTokenIndex = -1 }: RetrieveRequest = await req.json()
@@ -66,7 +95,7 @@ serve(async (req) => {
       .eq('id', conversationId)
       .single()
     
-    if (conversationError || !conversation) {
+    if (conversationError || !conversation)
       console.error('❌ Conversation not found:', conversationError)
       return new Response(
         JSON.stringify({ error: 'Conversation not found' }),
@@ -131,7 +160,7 @@ serve(async (req) => {
   } catch (error) {
     console.error('❌ Retrieve function error:', error)
     return new Response(
-      JSON.stringify({ error: 'Internal server error' }),
+      JSON.stringify({ error: 'Internal server error' } }
       {
         status: 500,
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },

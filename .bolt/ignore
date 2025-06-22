@@ -1,0 +1,202 @@
+# Build outputs and generated files
+dist/
+build/
+.next/
+out/
+
+# Dependencies
+node_modules/
+.pnp/
+.pnp.js
+
+# Lock files (keep package.json but ignore locks)
+package-lock.json
+yarn.lock
+pnpm-lock.yaml
+
+# Environment files
+.env
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+.env.example
+
+# IDE and editor files
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# OS generated files
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+
+# Logs
+logs/
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+lerna-debug.log*
+
+# Runtime data
+pids/
+*.pid
+*.seed
+*.pid.lock
+
+# Coverage directory used by tools like istanbul
+coverage/
+*.lcov
+.nyc_output/
+
+# Dependency directories
+jspm_packages/
+
+# TypeScript cache
+*.tsbuildinfo
+
+# Optional npm cache directory
+.npm
+
+# Optional eslint cache
+.eslintcache
+
+# Microbundle cache
+.rpt2_cache/
+.rts2_cache_cjs/
+.rts2_cache_es/
+.rts2_cache_umd/
+
+# Optional REPL history
+.node_repl_history
+
+# Output of 'npm pack'
+*.tgz
+
+# Yarn Integrity file
+.yarn-integrity
+
+# parcel-bundler cache (https://parceljs.org/)
+.cache
+.parcel-cache
+
+# Next.js build output
+.next
+
+# Nuxt.js build / generate output
+.nuxt
+
+# Gatsby files
+.cache/
+public
+
+# Storybook build outputs
+.out
+.storybook-out
+
+# Temporary folders
+tmp/
+temp/
+
+# Configuration files (Bolt should not modify these)
+eslint.config.js
+postcss.config.js
+tailwind.config.js
+tailwind.config.ts
+vite.config.ts
+vite.config.js
+tsconfig.json
+tsconfig.app.json
+tsconfig.node.json
+vitest.config.ts
+jest.config.js
+babel.config.js
+
+# Supabase generated files
+supabase/.temp/
+supabase/seed.sql
+
+# TypeScript declaration files for build tools
+src/vite-env.d.ts
+vite-env.d.ts
+
+# Documentation that shouldn't be modified by Bolt
+AGENTIC-STAGES.md
+README.md
+CHANGELOG.md
+LICENSE
+CONTRIBUTING.md
+
+# Database files
+*.db
+*.sqlite
+*.sqlite3
+
+# Test files and coverage
+__tests__/
+*.test.ts
+*.test.tsx
+*.spec.ts
+*.spec.tsx
+coverage/
+test-results/
+playwright-report/
+
+# Deployment and CI/CD
+.github/
+.gitlab-ci.yml
+.travis.yml
+.circleci/
+netlify.toml
+vercel.json
+
+# Docker
+Dockerfile
+.dockerignore
+docker-compose.yml
+docker-compose.yaml
+
+# Package manager files
+.npmrc
+.yarnrc
+.yarnrc.yml
+
+# Editor specific
+*.sublime-project
+*.sublime-workspace
+
+# Local development
+.local/
+local/
+
+# Backup files
+*.bak
+*.backup
+*.old
+
+# Canvas and spatial data (if you want to preserve user-generated content)
+# Remove these lines if you want Bolt to be able to modify canvas components
+# src/components/canvas/
+# src/lib/canvas/
+
+# Supabase Edge Functions (preserve your custom functions)
+# supabase/functions/agent-prompt/
+# supabase/functions/retrieve-agent-response/
+
+# Custom hooks and utilities you don't want modified
+# src/hooks/useAgentChat.ts
+# src/lib/llm/
+# src/lib/supabase/
+
+# State management
+# src/store/
+# src/context/
+
