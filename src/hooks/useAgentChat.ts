@@ -1,4 +1,5 @@
 import { useState, useCallback, useRef } from 'react';
+import { useAuth } from './useAuth';
 import { ChatRecoveryManager } from '../lib/auth/chat/chatRecovery';
 
 interface AgentChatState {
@@ -26,6 +27,7 @@ export const useAgentChat = ({
   onAutoFill,
   onStageComplete
 }: UseAgentChatOptions) => {
+  const { user, session } = useAuth();
   const [state, setState] = useState<AgentChatState>({
     isLoading: false,
     error: null,
@@ -47,6 +49,11 @@ export const useAgentChat = ({
 
   const createConversation = useCallback(async () => {
     try {
+      // Check authentication first
+      if (!user || !session?.access_token) {
+        throw new Error('Authentication required. Please sign in to start a conversation.');
+      }
+
       const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
       const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY;
 
@@ -54,14 +61,16 @@ export const useAgentChat = ({
         throw new Error('Missing Supabase configuration');
       }
 
+      console.log('🔐 Creating conversation with authenticated user:', user.id);
       const response = await fetch(`${supabaseUrl}/rest/v1/chat_conversations`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          'Authorization': `Bearer ${supabaseAnonKey}`,
+          'Authorization': `Bearer ${session.access_token}`,
           'apikey': supabaseAnonKey,
         },
         body: JSON.stringify({
+          user_id: user.id,
           stage_id: stageId,
           status: 'active',
           metadata: {
@@ -73,16 +82,30 @@ export const useAgentChat = ({
       });
 
       if (!response.ok) {
-        throw new Error(`Failed to create conversation: ${response.status}`);
+        const errorData = await response.json().catch(() => ({}));
+        console.error('❌ Conversation creation failed:', {
+          status: response.status,
+          error: errorData,
+          userId: user.id,
+          stageId
+        });
+        throw new Error(`Failed to create conversation: ${response.status} - ${errorData.message || 'Unknown error'}`);
       }
 
-      const [conversation] = await response.json();
+      const data = await response.json();
+      const conversation = Array.isArray(data) ? data[0] : data;
+      
+      if (!conversation?.id) {
+        throw new Error('Invalid conversation response from server');
+      }
+      
+      console.log('✅ Conversation created successfully:', conversation.id);
       return conversation.id;
     } catch (error) {
       console.error('Failed to create conversation:', error);
-      throw new Error('Failed to initialize conversation');
+      throw error; // Re-throw the original error with its message
     }
-  }, [stageId, currentStageData, allStageData]);
+  }, [stageId, currentStageData, allStageData, user, session]);
 
   const processStreamResponse = useCallback(async (
     response: Response,
@@ -148,6 +171,11 @@ export const useAgentChat = ({
     userMessage: string,
     signal: AbortSignal
   ): Promise<void> => {
+    // Check authentication
+    if (!session?.access_token) {
+      throw new Error('Authentication required for agent requests');
+    }
+
     const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
     const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY;
 
@@ -169,7 +197,7 @@ export const useAgentChat = ({
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
-        'Authorization': `Bearer ${supabaseAnonKey}`,
+        'Authorization': `Bearer ${session.access_token}`,
       },
       body: JSON.stringify(requestBody),
       signal
@@ -181,7 +209,7 @@ export const useAgentChat = ({
     }
 
     await processStreamResponse(response, conversationId);
-  }, [stageId, currentStageData, allStageData, processStreamResponse]);
+  }, [stageId, currentStageData, allStageData, processStreamResponse, session]);
 
   const attemptRecovery = useCallback(async (conversationId: string): Promise<boolean> => {
     try {
@@ -210,6 +238,15 @@ export const useAgentChat = ({
   }, []);
 
   const sendMessage = useCallback(async (userMessage: string): Promise<void> => {
+    // Early authentication check
+    if (!user || !session?.access_token) {
+      setState(prev => ({
+        ...prev,
+        error: 'Please sign in to chat with the AI assistant'
+      }));
+      return;
+    }
+
     // Cancel any existing request
     if (abortControllerRef.current) {
       abortControllerRef.current.abort();
@@ -280,14 +317,16 @@ export const useAgentChat = ({
           setState(prev => ({
             ...prev,
             isLoading: false,
-            error: error.message || 'Failed to get response from AI assistant'
+            error: error.message?.includes('Authentication required') 
+              ? 'Please sign in to continue chatting'
+              : error.message || 'Failed to get response from AI assistant'
           }));
         }
       }
     };
 
     await attemptRequest();
-  }, [state.conversationId, createConversation, attemptRecovery, callAgentFunction]);
+  }, [state.conversationId, createConversation, attemptRecovery, callAgentFunction, user, session]);
 
   const retry = useCallback(() => {
     if (state.error) {
