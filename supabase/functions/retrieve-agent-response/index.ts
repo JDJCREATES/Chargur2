@@ -80,7 +80,7 @@ serve(async (req) => {
     // Initialize Supabase client
     const supabaseUrl = Deno.env.get('SUPABASE_URL')!
     const supabaseServiceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!
-!
+    
     const supabase = createClient(supabaseUrl, supabaseServiceKey)
     
     const { conversationId, lastTokenIndex = -1 }: RetrieveRequest = await req.json()
@@ -97,7 +97,7 @@ serve(async (req) => {
       .eq('id', conversationId)
       .single()
     
-    if (conversationError || !conversation)
+    if (conversationError || !conversation) {
       console.error('❌ Conversation not found:', conversationError)
       return new Response(
         JSON.stringify({ error: 'Conversation not found' }),
@@ -162,7 +162,7 @@ serve(async (req) => {
   } catch (error) {
     console.error('❌ Retrieve function error:', error)
     return new Response(
-      JSON.stringify({ error: 'Internal server error' } }
+      JSON.stringify({ error: 'Internal server error' }),
       {
         status: 500,
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },
