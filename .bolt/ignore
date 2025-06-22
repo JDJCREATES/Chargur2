@@ -178,11 +178,11 @@ docker-compose.yaml
 
 
 # Supabase Edge Functions (preserve your custom functions)
-supabase/functions/agent-prompt/
-supabase/functions/retrieve-agent-response/
+# supabase/functions/agent-prompt/
+# supabase/functions/retrieve-agent-response/
 
 # Custom hooks and utilities you don't want modified
-src/hooks/useAgentChat.ts
+# src/hooks/useAgentChat.ts
 src/lib/llm/
 src/lib/supabase/
 
