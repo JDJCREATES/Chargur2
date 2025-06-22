@@ -5,7 +5,7 @@
  * Handles agent responses, auto-fill data, stage progression, and memory management.
  */
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { Send, Brain, Loader2, Wand2, Sparkles, CheckCircle, ArrowRight } from 'lucide-react';
 import { CanvasHeader } from './CanvasHeader';
@@ -56,6 +56,35 @@ export const Canvas: React.FC<CanvasProps> = ({
   
   const { updateAgentMemory, getStageRecommendations } = useAgent();
 
+  // Add this useEffect to prevent browser from sleeping
+useEffect(() => {
+  // Prevent browser from going to sleep during long requests
+  let wakeLock: any = null;
+  
+  const requestWakeLock = async () => {
+    try {
+      if ('wakeLock' in navigator) {
+        wakeLock = await (navigator as any).wakeLock.request('screen');
+        console.log('🔒 Wake lock acquired');
+      }
+    } catch (err) {
+      console.log('⚠️ Wake lock not supported or failed');
+    }
+  };
+
+  if (isAgentThinking) {
+    requestWakeLock();
+  }
+
+  return () => {
+    if (wakeLock) {
+      wakeLock.release();
+      console.log('🔓 Wake lock released');
+    }
+  };
+}, [isAgentThinking]);
+
+
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (message.trim()) {
@@ -64,382 +93,459 @@ export const Canvas: React.FC<CanvasProps> = ({
     }
   };
 
-  const sendToAgent = async (userMessage: string) => {
-    if (isAgentThinking) return;
+  // ADD MISSING handleStreamComplete FUNCTION:
+const handleStreamComplete = (recoveryResult: any) => {
+  console.log('🏁 Handling stream completion from recovery');
+  
+  // Create final agent message from recovery
+  const agentMsg: AgentMessage = {
+    id: Date.now().toString(),
+    type: 'agent',
+    content: recoveryResult.content,
+    timestamp: new Date(),
+    suggestions: recoveryResult.suggestions || [],
+    autoFillData: recoveryResult.autoFillData || {},
+    stageComplete: recoveryResult.stageComplete || false,
+  };
 
-    // Check if we need to recover from a previous conversation
-    await checkAndRecoverPreviousConversation();
+  setAgentMessages(prev => [...prev, agentMsg]);
+  
+  // Handle auto-fill data if present
+  if (recoveryResult.autoFillData && Object.keys(recoveryResult.autoFillData).length > 0) {
+    handleAutoFillData(recoveryResult.autoFillData);
+  }
+  
+  // Handle stage completion
+  if (recoveryResult.stageComplete && onCompleteStage && onGoToStage && getNextStage) {
+    handleStageCompletion();
+  }
+  
+  // Update agent memory
+  updateAgentMemory(currentStage?.id || 'ideation-discovery', {
+    lastInteraction: 'Recovery',
+    response: recoveryResult.content,
+    autoFillApplied: recoveryResult.autoFillData,
+    timestamp: new Date().toISOString()
+  });
+  
+  // Clean up streaming state
+  setStreamingContent('');
+};
 
-    // Add user message
-    const userMsg: AgentMessage = {
-      id: Date.now().toString(),
-      type: 'user',
-      content: userMessage,
-      timestamp: new Date(),
-    };
 
-    setAgentMessages(prev => [...prev, userMsg]);
-    setIsAgentThinking(true);
-    setStreamingContent('');
+ const sendToAgent = async (userMessage: string) => {
+  if (isAgentThinking) return;
 
-    let conversationId = currentConversationId;
+  // Check if we need to recover from a previous conversation
+  await checkAndRecoverPreviousConversation();
+
+  // Add user message
+  const userMsg: AgentMessage = {
+    id: Date.now().toString(),
+    type: 'user',
+    content: userMessage,
+    timestamp: new Date(),
+  };
+
+  setAgentMessages(prev => [...prev, userMsg]);
+  setIsAgentThinking(true);
+  setStreamingContent('');
+
+  let conversationId = currentConversationId;
+  
+  // ADD MISSING VARIABLES:
+  const startTime = Date.now(); // Define startTime here
+  let timeoutId: NodeJS.Timeout | undefined; // Initialize timeoutId
+  
+  try {
+    // Create new conversation if we don't have one
+    if (!conversationId) {
+      const conversation = await ChatStorageManager.createConversation(
+        currentStage?.id || 'ideation-discovery',
+        {
+          userMessage,
+          stageData: stageData[currentStage?.id || 'ideation-discovery'] || {},
+          allStageData: stageData
+        }
+      );
+      conversationId = conversation.id;
+      setCurrentConversationId(conversationId);
+      setLastTokenIndex(-1);
+    }
+  } catch (error) {
+    console.error('Failed to create conversation:', error);
+    // Continue without persistence for this session
+  }
+
+  // Enhanced retry logic with exponential backoff
+  const MAX_RETRIES = 3;
+  let retryCount = 0;
+  let lastError: Error | null = null;
+  
+  while (retryCount <= MAX_RETRIES) {
+    // Create AbortController for timeout handling
+    const abortController = new AbortController();
+    
+    // INCREASE timeout and add better error handling
+    const TIMEOUT_DURATION = 10 * 60 * 1000; // 10 minutes
     
     try {
-      // Create new conversation if we don't have one
-      if (!conversationId) {
-        const conversation = await ChatStorageManager.createConversation(
-          currentStage?.id || 'ideation-discovery',
-          {
-            userMessage,
-            stageData: stageData[currentStage?.id || 'ideation-discovery'] || {},
-            allStageData: stageData
-          }
-        );
-        conversationId = conversation.id;
-        setCurrentConversationId(conversationId);
-        setLastTokenIndex(-1);
-      }
-    } catch (error) {
-      console.error('Failed to create conversation:', error);
-      // Continue without persistence for this session
-    }
-
-    // Enhanced retry logic with exponential backoff
-    const MAX_RETRIES = 3;
-    let retryCount = 0;
-    let lastError: Error | null = null;
-    
-    while (retryCount <= MAX_RETRIES) {
-      // Create AbortController for timeout handling
-      const abortController = new AbortController();
-      let timeoutId: NodeJS.Timeout;
-      
-      // Set a generous timeout (5 minutes) for AI response
-      const TIMEOUT_DURATION = 5 * 60 * 1000; // 5 minutes
-      
-      try {
-        // Only try to recover if conversation has existing tokens
-        if (retryCount > 0 && conversationId) {
-          console.log('🔄 Attempting conversation recovery before retry...');
-          try {
-            // Check if conversation has any tokens first
-            const lastTokenIndex = await ChatStorageManager.getLastTokenIndex(conversationId);
-            if (lastTokenIndex >= 0) {
-              console.log('🔍 Found existing tokens, attempting recovery...');
-              const recoveryResult = await ChatRecoveryManager.recoverConversation(conversationId);
-              if (recoveryResult.success && recoveryResult.content) {
-                console.log('✅ Conversation recovered successfully');
-                setStreamingContent(recoveryResult.content);
-                
-                if (recoveryResult.isComplete) {
-                  handleStreamComplete(recoveryResult);
-                  setIsLoading(false);
-                  return;
-                }
+      // Only try to recover if conversation has existing tokens
+      if (retryCount > 0 && conversationId) {
+        console.log('🔄 Attempting conversation recovery before retry...');
+        try {
+          // Check if conversation has any tokens first
+          const lastTokenIndex = await ChatStorageManager.getLastTokenIndex(conversationId);
+          if (lastTokenIndex >= 0) {
+            console.log('🔍 Found existing tokens, attempting recovery...');
+            const recoveryResult = await ChatRecoveryManager.recoverConversation(conversationId);
+            if (recoveryResult.success && recoveryResult.content) {
+              console.log('✅ Conversation recovered successfully');
+              setStreamingContent(recoveryResult.content);
+              
+              if (recoveryResult.isComplete) {   
+                handleStreamComplete(recoveryResult);
+                setIsAgentThinking(false); 
+                return;
               }
-            } else {
-              console.log('📝 No existing tokens found, proceeding with new request');
             }
-          } catch (recoveryError) {
-            console.log('⚠️ Recovery failed, proceeding with new request:', recoveryError);
+          } else {
+            console.log('📝 No existing tokens found, proceeding with new request');
           }
+        } catch (recoveryError) {
+          console.log('⚠️ Recovery failed, proceeding with new request:', recoveryError);
         }
+      }
 
-        // Get stage recommendations for cross-stage intelligence
-        const recommendations = getStageRecommendations(currentStage?.id || 'ideation-discovery');
-        
-        // Prepare context for AI agent
-        const agentContext = {
-          stageId: currentStage?.id || 'ideation-discovery',
-          currentStageData: stageData[currentStage?.id || 'ideation-discovery'] || {},
-          allStageData: stageData,
-          conversationHistory: agentMessages,
-          userMessage: userMessage,
-          memory: {},
-          recommendations
-        };
+      // Get stage recommendations for cross-stage intelligence
+      const recommendations = getStageRecommendations(currentStage?.id || 'ideation-discovery');
+      
+      // Prepare context for AI agent
+      const agentContext = {
+        stageId: currentStage?.id || 'ideation-discovery',
+        currentStageData: stageData[currentStage?.id || 'ideation-discovery'] || {},
+        allStageData: stageData,
+        conversationHistory: agentMessages,
+        userMessage: userMessage,
+        memory: {},
+        recommendations
+      };
 
-        // Set up timeout
-        timeoutId = setTimeout(() => {
-          console.log('⏰ Request timeout reached, aborting...');
-          abortController.abort();
-        }, TIMEOUT_DURATION);
+      // Set up timeout - but don't abort immediately on first error
+      timeoutId = setTimeout(() => {
+        console.log('⏰ Request timeout reached, aborting...');
+        abortController.abort();
+      }, TIMEOUT_DURATION);
 
-        // Call the Supabase Edge Function
-        const response = await callSupabaseEdgeFunction(agentContext, abortController.signal, conversationId);
-        
-        // Clear timeout if request completes successfully
+      // Call the Supabase Edge Function
+      const response = await callSupabaseEdgeFunction(agentContext, abortController.signal, conversationId);
+      
+      // Clear timeout on successful response start
+      if (response.ok && timeoutId) {
         clearTimeout(timeoutId);
+        console.log('✅ Response started successfully, timeout cleared');
+      }
+      
+      // Handle streaming response
+      if (response.body) {
+        const reader = response.body.getReader();
+        let fullContent = '';
+        let tokenIndex = lastTokenIndex + 1;
+        const tokensToSave: Array<{index: number; content: string; type: 'content' | 'suggestion' | 'autofill' | 'complete'}> = [];
         
-        // Handle streaming response
-        if (response.body) {
-          const reader = response.body.getReader();
-          let fullContent = '';
-          let tokenIndex = lastTokenIndex + 1;
-          const tokensToSave: Array<{index: number; content: string; type: 'content' | 'suggestion' | 'autofill' | 'complete'}> = [];
-          
-          try {
-            while (true) {
-              const { done, value } = await reader.read();
-              if (done) break;
-              
-              const chunk = new TextDecoder().decode(value);
-              const lines = chunk.split('\n');
-              
-              for (const line of lines) {
-                if (line.startsWith('data: ')) {
-                  try {
-                    const data = JSON.parse(line.slice(6));
-                    
-                    // Handle ping messages to keep connection alive
-                    if (data.type === 'ping') {
-                      console.log('💓 Received heartbeat ping');
-                      continue;
-                    }
-                    
-                    if (data.type === 'content') {
-                      setStreamingContent(data.content);
-                      fullContent = data.content; // Use the full content from the server
-                      console.log('📝 Token received:', {
-                        tokenIndex,
-                        contentLength: data.content.length,
-                        fullContentLength: fullContent.length
-                      });
-                      
-                      // Save token incrementally
-                      tokensToSave.push({
-                        index: tokenIndex++,
-                        content: data.content,
-                        type: 'content'
-                      });
-                      console.log('📦 Token added to batch:', {
-                        batchSize: tokensToSave.length,
-                        tokenIndex: tokenIndex - 1
-                      });
-                      
-                      // Save tokens every 10 tokens
-                      if (tokensToSave.length >= 10) {
-                        console.log('💾 Saving token batch:', {
-                          conversationId,
-                          batchSize: tokensToSave.length,
-                          lastTokenIndex: tokenIndex - 1
-                        });
-                        await saveTokensBatch(conversationId, tokensToSave);
-                        console.log('✅ Token batch saved successfully');
-                        setLastTokenIndex(tokenIndex - 1);
-                      }
-                      
-                    } else if (data.type === 'complete') {
-                      console.log('🏁 Completion received:', {
-                        fullContentLength: fullContent.length,
-                        remainingTokens: tokensToSave.length,
-                        conversationId
-                      });
-                      
-                      // Save any remaining tokens
-                      if (tokensToSave.length > 0) {
-                        console.log('💾 Saving final token batch:', {
-                          conversationId,
-                          finalBatchSize: tokensToSave.length
-                        });
-                        await saveTokensBatch(conversationId, tokensToSave);
-                        console.log('✅ Final token batch saved successfully');
-                      }
-                      
-                      // Save completion data
-                      if (conversationId) {
-                        try {
-                          console.log('💾 Saving complete response:', {
-                            conversationId,
-                            fullContentLength: fullContent.length,
-                            suggestionsCount: data.suggestions?.length || 0,
-                            hasAutoFillData: !!(data.autoFillData && Object.keys(data.autoFillData).length > 0),
-                            stageComplete: data.stageComplete
-                          });
-                          
-                          await ChatStorageManager.saveCompleteResponse(conversationId, {
-                            full_content: fullContent,
-                            suggestions: data.suggestions || [],
-                            auto_fill_data: data.autoFillData || {},
-                            stage_complete: data.stageComplete || false,
-                            context: data.context || {}
-                          });
-                          console.log('✅ Complete response saved successfully');
-                          
-                          await ChatStorageManager.updateConversationStatus(conversationId, 'completed');
-                          console.log('✅ Conversation status updated to completed');
-                        } catch (error) {
-                          console.error('❌ Failed to save complete response:', {
-                            error: error.message,
-                            conversationId,
-                            fullContentLength: fullContent.length
-                          });
-                        }
-                      }
-                      
-                      // Create final agent message
-                      const agentMsg: AgentMessage = {
-                        id: (Date.now() + 1).toString(),
-                        type: 'agent',
-                        content: fullContent,
-                        timestamp: new Date(),
-                        suggestions: data.suggestions || [],
-                        autoFillData: data.autoFillData || {},
-                        stageComplete: data.stageComplete || false,
-                      };
+        try {
+          while (true) {
+            // ADD TIMEOUT CHECK HERE:
+            if (Date.now() - startTime > TIMEOUT_DURATION) {
+              console.log('⏰ Client-side timeout reached');
+              reader.releaseLock();
+              throw new Error('Client timeout');
+            }
 
-                      setAgentMessages(prev => [...prev, agentMsg]);
-                      
-                      // Handle auto-fill data
-                      if (data.autoFillData && Object.keys(data.autoFillData).length > 0) {
-                        handleAutoFillData(data.autoFillData);
-                      }
-                      
-                      // Handle stage completion
-                      if (data.stageComplete && onCompleteStage && onGoToStage && getNextStage) {
-                        handleStageCompletion();
-                      }
-                      
-                      // Update agent memory
-                      updateAgentMemory(currentStage?.id || 'ideation-discovery', {
-                        lastInteraction: userMessage,
-                        response: fullContent,
-                        autoFillApplied: data.autoFillData,
-                        timestamp: new Date().toISOString()
+            const { done, value } = await reader.read();
+            if (done) {
+              console.log('📡 Stream completed normally');
+              break;
+            }
+            
+            const chunk = new TextDecoder().decode(value);
+            const lines = chunk.split('\n');
+            
+            for (const line of lines) {
+              if (line.startsWith('data: ')) {
+                try {
+                  const data = JSON.parse(line.slice(6));
+                  
+                  // ADD HEARTBEAT HANDLING:
+                  if (data.type === 'heartbeat') {
+                    console.log('💓 Received heartbeat, connection alive');
+                    continue; // Don't process heartbeats as content
+                  }
+                  
+                  // Handle ping messages to keep connection alive
+                  if (data.type === 'ping') {
+                    console.log('💓 Received heartbeat ping');
+                    continue;
+                  }
+                  
+                  if (data.type === 'content') {
+                    setStreamingContent(data.content);
+                    fullContent = data.content; // Use the full content from the server
+                    console.log('📝 Token received:', {
+                      tokenIndex,
+                      contentLength: data.content.length,
+                      fullContentLength: fullContent.length
+                    });
+                    
+                    // Save token incrementally
+                    tokensToSave.push({
+                      index: tokenIndex++,
+                      content: data.content,
+                      type: 'content'
+                    });
+                    console.log('📦 Token added to batch:', {
+                      batchSize: tokensToSave.length,
+                      tokenIndex: tokenIndex - 1
+                    });
+                    
+                    // Save tokens every 10 tokens
+                    if (tokensToSave.length >= 10) {
+                      console.log('💾 Saving token batch:', {
+                        conversationId,
+                        batchSize: tokensToSave.length,
+                        lastTokenIndex: tokenIndex - 1
                       });
-                    } else if (data.type === 'error') {
-                      console.error('❌ Server error:', data.error);
-                      
-                      // Mark conversation as failed
-                      if (conversationId) {
-                        try {
-                          await ChatStorageManager.updateConversationStatus(conversationId, 'failed');
-                        } catch (error) {
-                          console.error('Failed to update conversation status:', error);
-                        }
-                      }
-                      
-                      throw new Error(data.error || 'Server error occurred');
+                      await saveTokensBatch(conversationId, tokensToSave);
+                      console.log('✅ Token batch saved successfully');
+                      setLastTokenIndex(tokenIndex - 1);
                     }
-                  } catch (e) {
-                    console.error('❌ Failed to parse SSE data:', {
-                      error: e.message,
-                      line: line.substring(0, 100),
+                    
+                  } else if (data.type === 'complete') {
+                    console.log('🏁 Completion received:', {
+                      fullContentLength: fullContent.length,
+                      remainingTokens: tokensToSave.length,
                       conversationId
                     });
+                    
+                    // Save any remaining tokens
+                    if (tokensToSave.length > 0) {
+                      console.log('💾 Saving final token batch:', {
+                        conversationId,
+                        finalBatchSize: tokensToSave.length
+                      });
+                      await saveTokensBatch(conversationId, tokensToSave);
+                      console.log('✅ Final token batch saved successfully');
+                    }
+                    
+                    // Save completion data
+                    if (conversationId) {
+                      try {
+                        console.log('💾 Saving complete response:', {
+                          conversationId,
+                          fullContentLength: fullContent.length,
+                          suggestionsCount: data.suggestions?.length || 0,
+                          hasAutoFillData: !!(data.autoFillData && Object.keys(data.autoFillData).length > 0),
+                          stageComplete: data.stageComplete
+                        });
+                        
+                        await ChatStorageManager.saveCompleteResponse(conversationId, {
+                          full_content: fullContent,
+                          suggestions: data.suggestions || [],
+                          auto_fill_data: data.autoFillData || {},
+                          stage_complete: data.stageComplete || false,
+                          context: data.context || {}
+                        });
+                        console.log('✅ Complete response saved successfully');
+                        
+                        await ChatStorageManager.updateConversationStatus(conversationId, 'completed');
+                        console.log('✅ Conversation status updated to completed');
+                      } catch (error) {
+                        console.error('❌ Failed to save complete response:', {
+                          error: (error as Error).message,
+                          conversationId,
+                          fullContentLength: fullContent.length
+                        });
+                      }
+                    }
+                    
+                    // Create final agent message
+                    const agentMsg: AgentMessage = {
+                      id: (Date.now() + 1).toString(),
+                      type: 'agent',
+                      content: fullContent,
+                      timestamp: new Date(),
+                      suggestions: data.suggestions || [],
+                      autoFillData: data.autoFillData || {},
+                      stageComplete: data.stageComplete || false,
+                    };
+
+                    setAgentMessages(prev => [...prev, agentMsg]);
+                    
+                    // Handle auto-fill data
+                    if (data.autoFillData && Object.keys(data.autoFillData).length > 0) {
+                      handleAutoFillData(data.autoFillData);
+                    }
+                    
+                    // Handle stage completion
+                    if (data.stageComplete && onCompleteStage && onGoToStage && getNextStage) {
+                      handleStageCompletion();
+                    }
+                    
+                    // Update agent memory
+                    updateAgentMemory(currentStage?.id || 'ideation-discovery', {
+                      lastInteraction: userMessage,
+                      response: fullContent,
+                      autoFillApplied: data.autoFillData,
+                      timestamp: new Date().toISOString()
+                    });
+                  } else if (data.type === 'error') {
+                    console.error('❌ Server error:', data.error);
+                    
+                    // Mark conversation as failed
+                    if (conversationId) {
+                      try {
+                        await ChatStorageManager.updateConversationStatus(conversationId, 'failed');
+                      } catch (error) {
+                        console.error('Failed to update conversation status:', error);
+                      }
+                    }
+                    
+                    throw new Error(data.error || 'Server error occurred');
                   }
+                } catch (e) {
+                  console.error('❌ Failed to parse SSE data:', {
+                    error: (e as Error).message, // FIX: Type assertion for error
+                    line: line.substring(0, 100),
+                    conversationId
+                  });
                 }
               }
             }
-            
-            // Save any remaining tokens
-            if (tokensToSave.length > 0 && conversationId) {
-              console.log('💾 Saving remaining tokens after stream end:', {
-                conversationId,
-                remainingTokens: tokensToSave.length
-              });
-              await saveTokensBatch(conversationId, tokensToSave);
-              console.log('✅ Remaining tokens saved successfully');
-              setLastTokenIndex(tokenIndex - 1);
-            }
-            
-          } finally {
-            // Always release the reader
-            reader.releaseLock();
           }
-        }
-
-        // Success - break out of retry loop
-        break;
-
-      } catch (error) {
-        // Clear timeout on error
-        if (timeoutId) {
-          clearTimeout(timeoutId);
-        }
-        
-        lastError = error as Error;
-        retryCount++;
-        
-        console.error(`❌ Agent streaming error (attempt ${retryCount}/${MAX_RETRIES + 1}):`, {
-          error: lastError.message,
-          conversationId,
-          errorType: lastError.name,
-          retryCount
-        });
-        
-        // Check if this is a retryable error
-        const isRetryable = (
-          lastError.name === 'TypeError' || // Network errors
-          lastError.name === 'AbortError' || // Timeout errors
-          lastError.message?.includes('Failed to fetch') ||
-          lastError.message?.includes('network') ||
-          lastError.message?.includes('timeout')
-        );
-        
-        // If not retryable or max retries reached, break
-        if (!isRetryable || retryCount > MAX_RETRIES) {
-          console.error('❌ Max retries reached or non-retryable error, giving up');
-          break;
-        }
-        
-        // Exponential backoff before retry
-        const backoffDelay = Math.min(1000 * Math.pow(2, retryCount - 1), 10000); // Max 10 seconds
-        console.log(`⏳ Retrying in ${backoffDelay}ms...`);
-        await new Promise(resolve => setTimeout(resolve, backoffDelay));
-        
-        // Try to recover conversation state before retry
-        if (conversationId) {
+          
+          // Save any remaining tokens
+          if (tokensToSave.length > 0 && conversationId) {
+            console.log('💾 Saving remaining tokens after stream end:', {
+              conversationId,
+              remainingTokens: tokensToSave.length
+            });
+            await saveTokensBatch(conversationId, tokensToSave);
+            console.log('✅ Remaining tokens saved successfully');
+            setLastTokenIndex(tokenIndex - 1);
+          }
+          
+        } catch (readerError) {
+          console.error('❌ Reader error:', readerError);
+          // ALWAYS release the reader
           try {
-            console.log('🔄 Attempting conversation recovery before retry...');
-            const recoveryResult = await ChatRecoveryManager.recoverConversation(conversationId, lastTokenIndex);
-            if (recoveryResult.success && recoveryResult.content) {
-              console.log('✅ Recovered partial content, updating UI');
-              setStreamingContent(recoveryResult.content);
-            }
-          } catch (recoveryError) {
-            console.error('❌ Recovery attempt failed:', recoveryError);
+            reader.releaseLock();
+          } catch (releaseError) {
+            console.warn('⚠️ Could not release reader:', releaseError);
+          }
+          throw readerError;
+        } finally {
+          // ENSURE reader is always released
+          try {
+            reader.releaseLock();
+          } catch (releaseError) {
+            console.log('ℹ️ Reader already released');
           }
         }
       }
-    }
-    
-    // Handle final error state if all retries failed
-    if (retryCount > MAX_RETRIES && lastError) {
-      // Mark conversation as failed on error
+
+      // Success - break out of retry loop
+      break;
+
+    } catch (error) {
+      // Clear timeout on error
+      if (timeoutId) {
+        clearTimeout(timeoutId);
+      }
+      
+      lastError = error as Error; // FIX: Type assertion
+      retryCount++;
+      
+      console.error(`❌ Agent streaming error (attempt ${retryCount}/${MAX_RETRIES + 1}):`, {
+        error: lastError.message,
+        conversationId,
+        errorType: lastError.name,
+        retryCount
+      });
+      
+      // Check if this is a retryable error
+      const isRetryable = (
+        lastError.name === 'TypeError' || // Network errors
+        lastError.name === 'AbortError' || // Timeout errors
+        lastError.message?.includes('Failed to fetch') ||
+        lastError.message?.includes('network') ||
+        lastError.message?.includes('timeout')
+      );
+      
+      // If not retryable or max retries reached, break
+      if (!isRetryable || retryCount > MAX_RETRIES) {
+        console.error('❌ Max retries reached or non-retryable error, giving up');
+        break;
+      }
+      
+      // Exponential backoff before retry
+      const backoffDelay = Math.min(1000 * Math.pow(2, retryCount - 1), 10000); // Max 10 seconds
+      console.log(`⏳ Retrying in ${backoffDelay}ms...`);
+      await new Promise(resolve => setTimeout(resolve, backoffDelay));
+      
+      // Try to recover conversation state before retry
       if (conversationId) {
         try {
-          await ChatStorageManager.updateConversationStatus(conversationId, 'failed');
-        } catch (error) {
-          console.error('Failed to update conversation status:', error);
+          console.log('🔄 Attempting conversation recovery before retry...');
+          const recoveryResult = await ChatRecoveryManager.recoverConversation(conversationId, lastTokenIndex);
+          if (recoveryResult.success && recoveryResult.content) {
+            console.log('✅ Recovered partial content, updating UI');
+            setStreamingContent(recoveryResult.content);
+          }
+        } catch (recoveryError) {
+          console.error('❌ Recovery attempt failed:', recoveryError);
         }
       }
-      
-      let errorMessage = 'Sorry, I encountered an error. Please try again.';
-      
-      // Handle specific error types
-      if (lastError.name === 'AbortError') {
-        console.log('⏰ Request was aborted due to timeout');
-        errorMessage = 'The request took longer than expected. Please try again with a shorter message or check your connection.';
-      } else if (lastError.message?.includes('Failed to fetch')) {
-        errorMessage = 'Connection failed. Please check your internet connection and try again.';
-      } else if (lastError.message?.includes('Supabase environment variables')) {
-        errorMessage = 'Configuration error. Please contact support.';
+    }
+  }
+  
+  // Handle final error state if all retries failed
+  if (retryCount > MAX_RETRIES && lastError) {
+    // Mark conversation as failed on error
+    if (conversationId) {
+      try {
+        await ChatStorageManager.updateConversationStatus(conversationId, 'failed');
+      } catch (error) {
+        console.error('Failed to update conversation status:', error);
       }
-      
-      const errorMsg: AgentMessage = {
-        id: (Date.now() + 2).toString(),
-        type: 'system',
-        content: errorMessage,
-        timestamp: new Date(),
-      };
-      setAgentMessages(prev => [...prev, errorMsg]);
     }
     
-    // Always clean up
-    setIsAgentThinking(false);
-    setStreamingContent('');
-  };
+    let errorMessage = 'Sorry, I encountered an error. Please try again.';
+    
+    // Handle specific error types
+    if (lastError.name === 'AbortError') {
+      console.log('⏰ Request was aborted due to timeout');
+      errorMessage = 'The request took longer than expected.
+       errorMessage = 'The request took longer than expected. Please try again with a shorter message or check your connection.';
+    } else if (lastError.message?.includes('Failed to fetch')) {
+      errorMessage = 'Connection failed. Please check your internet connection and try again.';
+    } else if (lastError.message?.includes('Supabase environment variables')) {
+      errorMessage = 'Configuration error. Please contact support.';
+    }
+    
+    const errorMsg: AgentMessage = {
+      id: (Date.now() + 2).toString(),
+      type: 'system',
+      content: errorMessage,
+      timestamp: new Date(),
+    };
+    setAgentMessages(prev => [...prev, errorMsg]);
+  }
+  
+  // Always clean up
+  setIsAgentThinking(false);
+  setStreamingContent('');
+};
+
 
   // Helper function to save tokens in batches
   const saveTokensBatch = async (conversationId: string | null, tokens: Array<{index: number; content: string; type: 'content' | 'suggestion' | 'autofill' | 'complete'}>) => {
@@ -601,6 +707,10 @@ export const Canvas: React.FC<CanvasProps> = ({
       headers: {
         'Content-Type': 'application/json',
         'Authorization': `Bearer ${supabaseAnonKey}`,
+        'Cache-Control': 'no-cache',
+      'Accept': 'text/event-stream',
+      'Connection': 'keep-alive',
+      'Origin': window.location.origin,
       },
       body: JSON.stringify({
         ...context,
