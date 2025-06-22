@@ -36,6 +36,9 @@ function App() {
     setIsSidebarOpen(!isSidebarOpen);
   };
 
+  const openSidebar = () => {
+    setIsSidebarOpen(true);
+  };
 
   return (
     <AgentContextProvider>
@@ -45,11 +48,11 @@ function App() {
           <Canvas
             currentStage={currentStage}
             stageData={stageData}
-            onSendMessage={() => {}} // No longer needed in Canvas
             onUpdateStageData={updateStageData}
             onCompleteStage={completeStage}
             onGoToStage={goToStage}
             getNextStage={() => getNextStage()}
+            onOpenSidebar={openSidebar}
           />
         </div>
 

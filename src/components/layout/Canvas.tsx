@@ -5,10 +5,13 @@
  * Flexible, responsive layout with smart animations.
  */
 
-import React from 'react';
+import React, { useState } from 'react';
 import { motion } from 'framer-motion';
 import { Stage, StageData } from '../../types';
 import { SpatialCanvas } from '../canvas/SpatialCanvas';
+import { UserChatOverlay } from '../chat/UserChatOverlay';
+import { useAgentChat } from '../../hooks/useAgentChat';
+import { useAgent } from '../agent/AgentContextProvider';
 
 interface CanvasProps {
   currentStage?: Stage;
@@ -18,13 +21,52 @@ interface CanvasProps {
   onCompleteStage?: (stageId: string) => void;
   onGoToStage?: (stageId: string) => void;
   getNextStage?: () => Stage | null;
+  onOpenSidebar?: () => void;
 }
 
 export const Canvas: React.FC<CanvasProps> = ({
   currentStage,
   stageData,
-  onSendMessage,
+  onUpdateStageData,
+  onCompleteStage,
+  onOpenSidebar,
 }) => {
+  const [lastUserMessage, setLastUserMessage] = useState<string>('');
+  const { agentState, updateAgentMemory, getStageRecommendations } = useAgent();
+  
+  const agentChat = useAgentChat({
+    stageId: currentStage?.id || '',
+    currentStageData: stageData,
+    allStageData: stageData,
+    useDirectLLM: false,
+    llmProvider: 'openai',
+    memory: agentState.memory,
+    recommendations: getStageRecommendations(currentStage?.id || ''),
+    onAutoFill: (data) => {
+      if (currentStage?.id && onUpdateStageData) {
+        onUpdateStageData(currentStage.id, data);
+        updateAgentMemory(currentStage.id, data);
+      }
+    },
+    onStageComplete: () => {
+      if (currentStage?.id && onCompleteStage) {
+        onCompleteStage(currentStage.id);
+        updateAgentMemory(currentStage.id, { completed: true, completedAt: new Date().toISOString() });
+      }
+    },
+  });
+
+  const handleSendMessage = (message: string) => {
+    setLastUserMessage(message);
+    agentChat.sendMessage(message);
+  };
+
+  const handleOpenSidebar = () => {
+    if (onOpenSidebar) {
+      onOpenSidebar();
+    }
+  };
+
   if (!currentStage) {
     return (
       <motion.div 
@@ -80,24 +122,41 @@ export const Canvas: React.FC<CanvasProps> = ({
         </div>
       </motion.div>
 
-      {/* Canvas Content - Flexible Height */}
+      {/* Canvas Content - Flexible Height with Chat Overlay */}
       <motion.div
         initial={{ y: 20, opacity: 0 }}
         animate={{ y: 0, opacity: 1 }}
         transition={{ delay: 0.2 }}
-        className="flex-1 min-h-0 p-3"
+        className="flex-1 min-h-0 p-3 flex flex-col"
       >
+        {/* Spatial Canvas */}
         <motion.div
           initial={{ scale: 0.98 }}
           animate={{ scale: 1 }}
           transition={{ delay: 0.3, duration: 0.4 }}
-          className="h-full bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden"
+          className="flex-1 min-h-0 bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden"
         >
           <SpatialCanvas
             currentStage={currentStage}
             stageData={stageData}
-            onSendMessage={onSendMessage}
+            onSendMessage={handleSendMessage}
           />
+        </motion.div>
+
+        {/* User Chat Input Overlay */}
+        <motion.div
+          initial={{ y: 50, opacity: 0 }}
+          animate={{ y: 0, opacity: 1 }}
+          transition={{ delay: 0.5, type: "spring", stiffness: 200 }}
+        >
+          <UserChatOverlay
+            onSendMessage={handleSendMessage}
+            onOpenSidebar={handleOpenSidebar}
+            isLoading={agentChat.isLoading}
+            lastUserMessage={lastUserMessage}
+            disabled={!currentStage}
+          />
+        </motion.div>
         </motion.div>
       </motion.div>
     </motion.div>
