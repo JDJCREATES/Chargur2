@@ -62,24 +62,6 @@ export const Canvas: React.FC<CanvasProps> = ({
       <div className="flex-1 overflow-y-auto p-6">
         <div className="max-w-4xl mx-auto space-y-6">
 
-          {/* Stage Intro */}
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            className="bg-white rounded-lg border border-gray-200 p-6"
-          >
-            <h2 className="text-lg font-medium text-gray-800 mb-2">{currentStage.title}</h2>
-            <p className="text-gray-600 mb-4">{currentStage.description}</p>
-            {currentStage.comingSoon && (
-              <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-4">
-                <p className="text-yellow-800 text-sm">
-                  This stage is coming soon! We're working hard to bring you more AI-powered features.
-                </p>
-              </div>
-            )}
-          </motion.div>
-
-
           {/* Canvas */}
           <motion.div
             initial={{ opacity: 0, x: 20 }}
