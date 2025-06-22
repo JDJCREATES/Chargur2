@@ -5,8 +5,17 @@
  * Used when clients need to recover from disconnections or navigation.
  */
 
+/// <reference types="https://deno.land/x/deno_dom@v0.1.35-alpha/deno-dom-wasm.d.ts" />
+
 import { serve } from 'https://deno.land/std@0.168.0/http/server.ts'
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2'
+
+// Type declaration for Deno environment (if needed)
+declare const Deno: {
+  env: {
+    get(key: string): string | undefined
+  }
+}
 
 const getAllowedOrigin = (request: Request): string => {
   const origin = request.headers.get('origin')
@@ -55,15 +64,15 @@ interface RetrieveResponse {
   completeResponse?: {
     full_content: string
     suggestions: string[]
-    auto_fill_data: any
+    auto_fill_data: unknown
     stage_complete: boolean
-    context: any
+    context: unknown
     is_complete: boolean
   }
   conversationStatus: string
 }
 
-serve(async (req) => {
+serve(async (req: Request) => {
   const corsHeaders = getCorsHeaders(req)
   
   // Handle CORS preflight requests
@@ -78,8 +87,19 @@ serve(async (req) => {
     console.log('🔍 Retrieve agent response function called')
     
     // Initialize Supabase client
-    const supabaseUrl = Deno.env.get('SUPABASE_URL')!
-    const supabaseServiceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')!
+    const supabaseUrl = Deno.env.get('SUPABASE_URL')
+    const supabaseServiceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')
+    
+    if (!supabaseUrl || !supabaseServiceKey) {
+      console.error('❌ Missing Supabase configuration')
+      return new Response(
+        JSON.stringify({ error: 'Server configuration error' }),
+        {
+          status: 500,
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+        }
+      )
+    }
     
     const supabase = createClient(supabaseUrl, supabaseServiceKey)
     
@@ -161,8 +181,15 @@ serve(async (req) => {
 
   } catch (error) {
     console.error('❌ Retrieve function error:', error)
+    
+    const getErrorMessage = (err: unknown): string => {
+      if (err instanceof Error) return err.message
+      if (typeof err === 'string') return err
+      return 'Internal server error'
+    }
+    
     return new Response(
-      JSON.stringify({ error: 'Internal server error' }),
+      JSON.stringify({ error: getErrorMessage(error) }),
       {
         status: 500,
         headers: { ...corsHeaders, 'Content-Type': 'application/json' },

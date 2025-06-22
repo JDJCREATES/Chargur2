@@ -34,23 +34,32 @@ export const Canvas: React.FC<CanvasProps> = ({
 }) => {
   const [chatMessages, setChatMessages] = useState<ChatMessage[]>([]);
 
+  const { agentState, updateAgentMemory, getStageRecommendations } = useAgent();
+  
   const agentChat = useAgentChat({
     stageId: currentStage?.id || '',
     currentStageData: stageData,
     allStageData: stageData,
+    useDirectLLM: false,
+    llmProvider: 'openai',
+    memory: agentState.memory,
+    recommendations: getStageRecommendations(currentStage?.id || ''),
     onAutoFill: (data) => {
       if (currentStage?.id && onUpdateStageData) {
         onUpdateStageData(currentStage.id, data);
+        // Update global agent memory
+        updateAgentMemory(currentStage.id, data);
+        console.log('Canvas Agent Chat -> Auto-filled data:', data);
       }
     },
     onStageComplete: () => {
       if (currentStage?.id && onCompleteStage) {
         onCompleteStage(currentStage.id);
+        // Update agent memory that stage is complete
+        updateAgentMemory(currentStage.id, { completed: true, completedAt: new Date().toISOString() });
       }
     },
   });
-
-  const { agentState } = useAgent();
 
   const handleSendMessage = (content: string) => {
     const userMessage: ChatMessage = {

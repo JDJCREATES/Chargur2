@@ -20,78 +20,65 @@ export interface RecoveryResult {
 export class ChatRecoveryManager {
   
   /**
-   * Attempt to recover a conversation from the server
+   * Attempt to recover a conversation from the server using ChatStorageManager
    */
   static async recoverConversation(
     conversationId: string
   ): Promise<RecoveryResult> {
     try {
-      console.log('🔄 Attempting to recover conversation:', conversationId);
+      console.log('🔄 Attempting to recover conversation using ChatStorageManager:', conversationId);
       
-      const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
-      const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY;
-      
-      if (!supabaseUrl || !supabaseAnonKey) {
-        throw new Error('Missing Supabase environment variables');
+      // First, check if the conversation exists and get its status
+      const conversation = await ChatStorageManager.getConversation(conversationId);
+      if (!conversation) {
+        console.log('❌ Conversation not found');
+        return {
+          success: false,
+          error: 'Conversation not found'
+        };
       }
       
-      const response = await fetch(`${supabaseUrl}/functions/v1/retrieve-agent-response`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${supabaseAnonKey}`,
-        },
-        body: JSON.stringify({
-          conversationId
-        }),
-      });
+      console.log('✅ Conversation found with status:', conversation.status);
       
-      if (!response.ok) {
-        const errorData = await response.json().catch(() => ({}));
-        throw new Error(errorData.error || `HTTP ${response.status}`);
-      }
+      // Try to get the complete response first
+      const completeResponse = await ChatStorageManager.getCompleteResponse(conversationId);
       
-      const data = await response.json();
-      
-      console.log('✅ Recovery response received:', {
-        tokensCount: data.tokens?.length || 0,
-        hasCompleteResponse: !!data.completeResponse,
-        conversationStatus: data.conversationStatus
-      });
-      
-      // If we have a complete response, return it
-      if (data.completeResponse && data.completeResponse.is_complete) {
+      if (completeResponse && completeResponse.is_complete) {
+        console.log('✅ Complete response found, returning it');
         return {
           success: true,
-          content: data.completeResponse.full_content,
-          suggestions: data.completeResponse.suggestions || [],
-          autoFillData: data.completeResponse.auto_fill_data || {},
-          stageComplete: data.completeResponse.stage_complete || false,
+          content: completeResponse.full_content,
+          suggestions: completeResponse.suggestions || [],
+          autoFillData: completeResponse.auto_fill_data || {},
+          stageComplete: completeResponse.stage_complete || false,
           isComplete: true
         };
       }
       
-      // If we have tokens, reconstruct the content
-      if (data.tokens && data.tokens.length > 0) {
-        const contentTokens = data.tokens
-          .filter((token: any) => token.token_type === 'content')
-          .sort((a: any, b: any) => a.token_index - b.token_index);
-        
-        const latestContent = contentTokens.length > 0 
-          ? contentTokens[contentTokens.length - 1].token_content 
-          : '';
-        
+      // If no complete response, try to reconstruct from tokens
+      console.log('🔧 No complete response found, reconstructing from tokens...');
+      const reconstructedContent = await ChatStorageManager.reconstructContentFromTokens(conversationId);
+      
+      if (reconstructedContent) {
+        console.log('✅ Content reconstructed from tokens');
         return {
           success: true,
-          content: latestContent,
+          content: reconstructedContent,
+          suggestions: [],
+          autoFillData: {},
+          stageComplete: false,
           isComplete: false
         };
       }
       
-      // No content to recover
+      // No content to recover, but conversation exists
+      console.log('⚠️ Conversation exists but no content found');
       return {
         success: true,
         content: '',
+        suggestions: [],
+        autoFillData: {},
+        stageComplete: false,
         isComplete: false
       };
       
@@ -105,31 +92,18 @@ export class ChatRecoveryManager {
   }
   
   /**
-   * Check if a conversation needs recovery
+   * Check if a conversation needs recovery using ChatStorageManager
    */
   static async needsRecovery(conversationId: string): Promise<boolean> {
     try {
-      const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
-      const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY;
-      
-      if (!supabaseUrl || !supabaseAnonKey) {
+      const conversation = await ChatStorageManager.getConversation(conversationId);
+      if (!conversation) {
         return false;
       }
       
-      const response = await fetch(`${supabaseUrl}/rest/v1/chat_conversations?id=eq.${conversationId}&select=status`, {
-        headers: {
-          'Authorization': `Bearer ${supabaseAnonKey}`,
-          'apikey': supabaseAnonKey,
-        }
-      });
-      
-      if (!response.ok) return false;
-      
-      const [conversation] = await response.json();
-      if (!conversation) return false;
-      
-      // Check if conversation is active (not completed or failed)
-      return conversation.status === 'active';
+      // Check if conversation is active and not complete
+      const isComplete = await ChatStorageManager.isConversationComplete(conversationId);
+      return conversation.status === 'active' && !isComplete;
       
     } catch (error) {
       console.error('Failed to check recovery status:', error);
@@ -142,7 +116,6 @@ export class ChatRecoveryManager {
    */
   static async resumeStreaming(
     conversationId: string,
-    lastTokenIndex: number,
     agentContext: any
   ): Promise<Response> {
     const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
@@ -152,6 +125,8 @@ export class ChatRecoveryManager {
       throw new Error('Missing Supabase environment variables');
     }
     
+    // Get the last token index using ChatStorageManager
+    const lastTokenIndex = await ChatStorageManager.getLastTokenIndex(conversationId);
     console.log('🔄 Resuming streaming from token index:', lastTokenIndex);
     
     return fetch(`${supabaseUrl}/functions/v1/agent-prompt`, {
@@ -172,49 +147,156 @@ export class ChatRecoveryManager {
   }
   
   /**
-   * Clean up failed or abandoned conversations
-   */
-  static async cleanupFailedConversations(): Promise<void> {
-    try {
-      console.log('🧹 Cleanup would be handled by server-side cron job');
-      // This would typically be handled by a server-side cron job or edge function
-    } catch (error) {
-      console.error('Failed to cleanup conversations:', error);
-    }
-  }
-  
-  /**
-   * Get recovery status for debugging
+   * Get recovery status for debugging using ChatStorageManager
    */
   static async getRecoveryStatus(conversationId: string): Promise<{
     conversationExists: boolean;
     conversationStatus?: string;
     tokenCount: number;
     isComplete: boolean;
+    lastTokenIndex: number;
   }> {
     try {
-      const recovery = await this.recoverConversation(conversationId);
+      const conversation = await ChatStorageManager.getConversation(conversationId);
+      
+      if (!conversation) {
+        return {
+          conversationExists: false,
+          tokenCount: 0,
+          isComplete: false,
+          lastTokenIndex: -1
+        };
+      }
+      
+      const isComplete = await ChatStorageManager.isConversationComplete(conversationId);
+      const lastTokenIndex = await ChatStorageManager.getLastTokenIndex(conversationId);
+      const tokens = await ChatStorageManager.getTokensAfterIndex(conversationId, -1);
       
       console.log('📊 Recovery status:', {
         conversationId,
-        success: recovery.success,
-        hasContent: !!recovery.content,
-        isComplete: recovery.isComplete
+        conversationExists: true,
+        conversationStatus: conversation.status,
+        tokenCount: tokens.length,
+        isComplete,
+        lastTokenIndex
       });
       
       return {
-        conversationExists: recovery.success,
-        conversationStatus: recovery.success ? 'active' : 'unknown',
-        tokenCount: recovery.content ? 1 : 0,
-        isComplete: recovery.isComplete || false
+        conversationExists: true,
+        conversationStatus: conversation.status,
+        tokenCount: tokens.length,
+        isComplete,
+        lastTokenIndex
       };
+      
     } catch (error) {
       console.error('Failed to get recovery status:', error);
       return {
         conversationExists: false,
         tokenCount: 0,
-        isComplete: false
+        isComplete: false,
+        lastTokenIndex: -1
       };
+    }
+  }
+  
+  /**
+   * Clean up failed or abandoned conversations using ChatStorageManager
+   */
+  static async cleanupFailedConversations(daysOld: number = 30): Promise<void> {
+    try {
+      console.log('🧹 Cleaning up old conversations...');
+      await ChatStorageManager.cleanupOldConversations(daysOld);
+      console.log('✅ Cleanup completed');
+    } catch (error) {
+      console.error('Failed to cleanup conversations:', error);
+    }
+  }
+  
+  /**
+   * Get incremental tokens since last recovery
+   */
+  static async getIncrementalTokens(
+    conversationId: string,
+    lastTokenIndex: number = -1
+  ): Promise<{
+    tokens: any[];
+    latestContent: string;
+    hasNewTokens: boolean;
+  }> {
+    try {
+      const tokens = await ChatStorageManager.getTokensAfterIndex(conversationId, lastTokenIndex);
+      
+      // Filter content tokens and get the latest content
+      const contentTokens = tokens
+        .filter(token => token.token_type === 'content')
+        .sort((a, b) => a.token_index - b.token_index);
+      
+      const latestContent = contentTokens.length > 0 
+        ? contentTokens[contentTokens.length - 1].token_content
+        : '';
+      
+      return {
+        tokens,
+        latestContent,
+        hasNewTokens: tokens.length > 0
+      };
+      
+    } catch (error) {
+      console.error('Failed to get incremental tokens:', error);
+      return {
+        tokens: [],
+        latestContent: '',
+        hasNewTokens: false
+      };
+    }
+  }
+  
+  /**
+   * Validate conversation integrity
+   */
+  static async validateConversationIntegrity(conversationId: string): Promise<{
+    isValid: boolean;
+    issues: string[];
+    canRecover: boolean;
+  }> {
+    const issues: string[] = [];
+    
+    try {
+      // Check if conversation exists
+      const conversation = await ChatStorageManager.getConversation(conversationId);
+      if (!conversation) {
+        issues.push('Conversation not found');
+        return { isValid: false, issues, canRecover: false };
+      }
+      
+      // Check for tokens
+      const tokens = await ChatStorageManager.getTokensAfterIndex(conversationId, -1);
+      if (tokens.length === 0) {
+        issues.push('No tokens found');
+      }
+      
+      // Check for gaps in token sequence
+      const tokenIndexes = tokens.map(t => t.token_index).sort((a, b) => a - b);
+      for (let i = 1; i < tokenIndexes.length; i++) {
+        if (tokenIndexes[i] !== tokenIndexes[i-1] + 1) {
+          issues.push(`Token sequence gap between ${tokenIndexes[i-1]} and ${tokenIndexes[i]}`);
+        }
+      }
+      
+      // Check if conversation is in a recoverable state
+      const canRecover = conversation.status === 'active' || 
+                        (conversation.status === 'failed' && tokens.length > 0);
+      
+      return {
+        isValid: issues.length === 0,
+        issues,
+        canRecover
+      };
+      
+    } catch (error) {
+      issues.push(`Validation error: ${error instanceof Error ? error.message : 'Unknown error'}`);
+      return { isValid: false, issues, canRecover: false };
     }
   }
 }

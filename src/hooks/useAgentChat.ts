@@ -1,6 +1,7 @@
 import { useState, useCallback, useRef } from 'react';
 import { useAuth } from './useAuth';
 import { ChatRecoveryManager } from '../lib/auth/chat/chatRecovery';
+import { createLLMClient, LLMRequest } from '../lib/llm/llmClient';
 
 interface AgentChatState {
   isLoading: boolean;
@@ -18,6 +19,11 @@ interface UseAgentChatOptions {
   allStageData: any;
   onAutoFill?: (data: any) => void;
   onStageComplete?: () => void;
+  llmProvider?: 'openai' | 'anthropic';
+  useDirectLLM?: boolean;
+  // Add these to connect with AgentContextProvider
+  memory?: any;
+  recommendations?: any[];
 }
 
 export const useAgentChat = ({
@@ -25,7 +31,11 @@ export const useAgentChat = ({
   currentStageData,
   allStageData,
   onAutoFill,
-  onStageComplete
+  onStageComplete,
+  llmProvider = 'openai',
+  useDirectLLM = false,
+  memory = {}, // Add this
+  recommendations = [] // Add this
 }: UseAgentChatOptions) => {
   const { user, session } = useAuth();
   const [state, setState] = useState<AgentChatState>({
@@ -42,6 +52,29 @@ export const useAgentChat = ({
   const retryCountRef = useRef(0);
   const maxRetries = 4;
   const baseRetryDelay = 1000;
+
+  // Initialize LLM client for direct usage
+  const llmClientRef = useRef<ReturnType<typeof createLLMClient> | null>(null);
+
+  const initializeLLMClient = useCallback(() => {
+    if (!llmClientRef.current && useDirectLLM) {
+      const apiKey = llmProvider === 'openai' 
+        ? import.meta.env.VITE_OPENAI_API_KEY 
+        : import.meta.env.VITE_ANTHROPIC_API_KEY;
+      
+      if (!apiKey) {
+        console.warn(`⚠️ ${llmProvider.toUpperCase()} API key not found, falling back to Edge Function`);
+        return null;
+      }
+
+      llmClientRef.current = createLLMClient({
+        provider: llmProvider,
+        apiKey,
+        model: llmProvider === 'openai' ? 'gpt-4o-mini' : 'claude-3-sonnet-20240229'
+      });
+    }
+    return llmClientRef.current;
+  }, [llmProvider, useDirectLLM]);
 
   const clearError = useCallback(() => {
     setState(prev => ({ ...prev, error: null }));
@@ -74,56 +107,41 @@ export const useAgentChat = ({
           metadata: {
             currentStageData,
             allStageData,
-            timestamp: new Date().toISOString()
+            timestamp: new Date().toISOString(),
+            llmProvider,
+            useDirectLLM
           }
         })
       });
 
       if (!response.ok) {
-        let errorData: any = {};
         let errorMessage = 'Unknown error';
         
         try {
           const responseText = await response.text();
-          console.log('📄 Raw response text:', responseText);
-          
           if (responseText.trim()) {
             try {
-              errorData = JSON.parse(responseText);
+              const errorData = JSON.parse(responseText);
               errorMessage = errorData.message || errorData.error || 'Server error';
             } catch (parseError) {
-              console.warn('⚠️ Failed to parse error response as JSON, using text:', parseError);
               errorMessage = responseText;
             }
           } else {
             errorMessage = `HTTP ${response.status}: ${response.statusText}`;
           }
         } catch (textError) {
-          console.error('❌ Failed to read response text:', textError);
           errorMessage = `HTTP ${response.status}: ${response.statusText}`;
         }
         
-        console.error('❌ Conversation creation failed:', {
-          status: response.status,
-          error: errorMessage,
-          userId: user.id,
-          stageId
-        });
         throw new Error(`Failed to create conversation: ${response.status} - ${errorMessage}`);
       }
 
-      let data: any;
-      try {
-        const responseText = await response.text();
-        if (!responseText.trim()) {
-          throw new Error('Empty response from server');
-        }
-        data = JSON.parse(responseText);
-      } catch (parseError) {
-        console.error('❌ Failed to parse successful response:', parseError);
-        throw new Error('Invalid response format from server');
+      const responseText = await response.text();
+      if (!responseText.trim()) {
+        throw new Error('Empty response from server');
       }
       
+      const data = JSON.parse(responseText);
       const conversation = Array.isArray(data) ? data[0] : data;
       
       if (!conversation?.id) {
@@ -134,9 +152,126 @@ export const useAgentChat = ({
       return conversation.id;
     } catch (error) {
       console.error('Failed to create conversation:', error);
-      throw error; // Re-throw the original error with its message
+      throw error;
     }
-  }, [stageId, currentStageData, allStageData, user, session]);
+  }, [stageId, currentStageData, allStageData, user, session, llmProvider, useDirectLLM]);
+
+  // Direct LLM processing (client-side)
+  const processWithDirectLLM = useCallback(async (
+    userMessage: string,
+    conversationId: string
+  ): Promise<void> => {
+    const llmClient = initializeLLMClient();
+    if (!llmClient) {
+      throw new Error('LLM client not available');
+    }
+
+    // Generate prompts (you'd need to implement this based on your stage logic)
+    const systemPrompt = generateSystemPrompt(stageId, currentStageData, allStageData);
+    const userPrompt = generateUserPrompt(userMessage, currentStageData);
+
+    const request: LLMRequest = {
+      systemPrompt,
+      userPrompt,
+      temperature: 0.7,
+      maxTokens: 1500,
+      stream: true
+    };
+
+    // Use streaming response
+    const streamGenerator = llmClient.generateStreamingResponse(request);
+    
+    let fullContent = '';
+    for await (const chunk of streamGenerator) {
+      if (chunk.content) {
+        fullContent += chunk.content;
+        setState(prev => ({ ...prev, content: fullContent }));
+      }
+      
+      if (chunk.done) {
+        // Parse final response and extract suggestions, autoFillData, etc.
+        const parsedResponse = parseAgentResponse(fullContent);
+        setState(prev => ({
+          ...prev,
+          suggestions: parsedResponse.suggestions || [],
+          autoFillData: parsedResponse.autoFillData || {},
+          isComplete: parsedResponse.stageComplete || false
+        }));
+
+        // Trigger callbacks
+        if (parsedResponse.autoFillData && onAutoFill) {
+          onAutoFill(parsedResponse.autoFillData);
+        }
+        if (parsedResponse.stageComplete && onStageComplete) {
+          onStageComplete();
+        }
+        break;
+      }
+    }
+  }, [stageId, currentStageData, allStageData, initializeLLMClient, onAutoFill, onStageComplete]);
+
+  // Edge Function processing (server-side)
+  const processWithEdgeFunction = useCallback(async (
+    conversationId: string,
+    userMessage: string,
+    signal: AbortSignal
+  ): Promise<void> => {
+    // Check authentication
+    if (!session?.access_token) {
+      throw new Error('Authentication required for agent requests');
+    }
+
+    const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
+
+    if (!supabaseUrl) {
+      throw new Error('Missing Supabase configuration');
+    }
+
+    const requestBody = {
+      stageId,
+      currentStageData,
+      allStageData,
+      userMessage,
+      conversationId,
+      memory: {},
+      conversationHistory: [],
+      llmProvider // Pass the provider preference
+    };
+
+    const response = await fetch(`${supabaseUrl}/functions/v1/agent-prompt`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${session.access_token}`,
+      },
+      body: JSON.stringify(requestBody),
+      signal
+    });
+
+    if (!response.ok) {
+      let errorMessage = 'Unknown error';
+      
+      try {
+        const responseText = await response.text();
+        if (responseText.trim()) {
+          try {
+            const errorData = JSON.parse(responseText);
+            errorMessage = errorData.error || errorData.message || 'Server error';
+          } catch (parseError) {
+            errorMessage = responseText;
+          }
+        } else {
+          errorMessage = `HTTP ${response.status}: ${response.statusText}`;
+        }
+      } catch (textError) {
+        errorMessage = `HTTP ${response.status}: ${response.statusText}`;
+      }
+      
+      throw new Error(`Agent function failed: ${response.status} - ${errorMessage}`);
+    }
+
+    await processStreamResponse(response, conversationId);
+  }, [stageId, currentStageData, allStageData, session]);
 
   const processStreamResponse = useCallback(async (
     response: Response,
@@ -197,75 +332,19 @@ export const useAgentChat = ({
     }
   }, [onAutoFill, onStageComplete]);
 
-  const callAgentFunction = useCallback(async (
-    conversationId: string,
-    userMessage: string,
-    signal: AbortSignal
-  ): Promise<void> => {
-    // Check authentication
-    if (!session?.access_token) {
-      throw new Error('Authentication required for agent requests');
-    }
-
-    const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
-    const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY;
-
-    if (!supabaseUrl || !supabaseAnonKey) {
-      throw new Error('Missing Supabase configuration');
-    }
-
-    const requestBody = {
-      stageId,
-      currentStageData,
-      allStageData,
-      userMessage,
-      conversationId,
-      memory: {},
-      conversationHistory: []
-    };
-
-    const response = await fetch(`${supabaseUrl}/functions/v1/agent-prompt`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': `Bearer ${session.access_token}`,
-      },
-      body: JSON.stringify(requestBody),
-      signal
-    });
-
-    if (!response.ok) {
-      let errorMessage = 'Unknown error';
-      
-      try {
-        const responseText = await response.text();
-        console.log('📄 Agent error response text:', responseText);
-        
-        if (responseText.trim()) {
-          try {
-            const errorData = JSON.parse(responseText);
-            errorMessage = errorData.error || errorData.message || 'Server error';
-          } catch (parseError) {
-            console.warn('⚠️ Failed to parse agent error response as JSON:', parseError);
-            errorMessage = responseText;
-          }
-        } else {
-          errorMessage = `HTTP ${response.status}: ${response.statusText}`;
-        }
-      } catch (textError) {
-        console.error('❌ Failed to read agent error response:', textError);
-        errorMessage = `HTTP ${response.status}: ${response.statusText}`;
-      }
-      
-      throw new Error(`Agent function failed: ${response.status} - ${errorMessage}`);
-    }
-
-    await processStreamResponse(response, conversationId);
-  }, [stageId, currentStageData, allStageData, processStreamResponse, session]);
-
   const attemptRecovery = useCallback(async (conversationId: string): Promise<boolean> => {
     try {
       console.log('🔄 Attempting conversation recovery...');
+      
+      const integrity = await ChatRecoveryManager.validateConversationIntegrity(conversationId);
+      if (!integrity.canRecover) {
+        console.log('❌ Conversation cannot be recovered:', integrity.issues);
+        return false;
+      }
+      
+      if (integrity.issues.length > 0) {
+        console.warn('⚠️ Conversation has issues but may be recoverable:', integrity.issues);
+      }
       
       const recovery = await ChatRecoveryManager.recoverConversation(conversationId);
       
@@ -278,6 +357,15 @@ export const useAgentChat = ({
           isComplete: recovery.isComplete || false
         }));
         
+        if (recovery.isComplete) {
+          if (recovery.autoFillData && onAutoFill) {
+            onAutoFill(recovery.autoFillData);
+          }
+          if (recovery.stageComplete && onStageComplete) {
+            onStageComplete();
+          }
+        }
+        
         console.log('✅ Recovery successful');
         return true;
       }
@@ -287,7 +375,7 @@ export const useAgentChat = ({
       console.error('❌ Recovery failed:', error);
       return false;
     }
-  }, []);
+  }, [onAutoFill, onStageComplete]);
 
   const sendMessage = useCallback(async (userMessage: string): Promise<void> => {
     // Early authentication check
@@ -329,6 +417,10 @@ export const useAgentChat = ({
           setState(prev => ({ ...prev, conversationId }));
         }
 
+        if (!conversationId) {
+          throw new Error('Failed to create or retrieve conversation ID');
+        }
+
         // Try recovery first if this is a retry
         if (retryCountRef.current > 0) {
           const recovered = await attemptRecovery(conversationId);
@@ -338,10 +430,16 @@ export const useAgentChat = ({
           }
         }
 
-        // Make the request
-        await callAgentFunction(conversationId, userMessage, controller.signal);
+        // Choose processing method
+        if (useDirectLLM) {
+          console.log('🔄 Using direct LLM processing');
+          await processWithDirectLLM(userMessage, conversationId);
+        } else {
+          console.log('🔄 Using Edge Function processing');
+          await processWithEdgeFunction(conversationId, userMessage, controller.signal);
+        }
         
-        // Success
+            // Success
         setState(prev => ({ ...prev, isLoading: false }));
         retryCountRef.current = 0;
 
@@ -378,12 +476,10 @@ export const useAgentChat = ({
     };
 
     await attemptRequest();
-  }, [state.conversationId, createConversation, attemptRecovery, callAgentFunction, user, session]);
+  }, [state.conversationId, createConversation, attemptRecovery, processWithDirectLLM, processWithEdgeFunction, useDirectLLM, user, session]);
 
   const retry = useCallback(() => {
     if (state.error) {
-      // Get the last user message from some state or re-prompt
-      // For now, we'll just clear the error and let user send again
       clearError();
     }
   }, [state.error, clearError]);
@@ -393,6 +489,52 @@ export const useAgentChat = ({
     sendMessage,
     retry,
     clearError,
-    isStreaming: state.isLoading && !!state.content
+    isStreaming: state.isLoading && !!state.content,
+    // Expose configuration
+    llmProvider,
+    useDirectLLM
   };
 };
+
+// Helper functions for direct LLM usage
+function generateSystemPrompt(stageId: string, currentStageData: any, allStageData: any): string {
+  // This should match your Edge Function's prompt generation logic
+  return `You are an AI assistant helping users with stage ${stageId}. 
+Current stage data: ${JSON.stringify(currentStageData)}
+All stage data: ${JSON.stringify(allStageData)}
+
+Please provide helpful responses and suggest next steps. Format your response as JSON with:
+{
+  "content": "your response text",
+  "suggestions": ["suggestion1", "suggestion2"],
+  "autoFillData": {},
+  "stageComplete": false
+}`;
+}
+
+function generateUserPrompt(userMessage: string, currentStageData: any): string {
+  return `User message: ${userMessage}
+Current context: ${JSON.stringify(currentStageData)}`;
+}
+
+function parseAgentResponse(content: string): {
+  suggestions: string[];
+  autoFillData: any;
+  stageComplete: boolean;
+} {
+  try {
+    const parsed = JSON.parse(content);
+    return {
+      suggestions: parsed.suggestions || [],
+      autoFillData: parsed.autoFillData || {},
+      stageComplete: parsed.stageComplete || false
+    };
+  } catch (error) {
+    console.warn('Failed to parse agent response as JSON:', error);
+    return {
+      suggestions: [],
+      autoFillData: {},
+      stageComplete: false
+    };
+  }
+}

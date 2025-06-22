@@ -54,8 +54,6 @@ const getCorsHeaders = (request: Request) => ({
   'Access-Control-Expose-Headers': 'content-type, cache-control',
 })
 
-const corsHeaders = getCorsHeaders({ headers: { get: () => null } } as Request)
-
 // LLM Client for Edge Functions
 class EdgeLLMClient {
   private apiKey: string
@@ -104,7 +102,7 @@ class EdgeLLMClient {
   })
   
   const maxRetries = 3
-  let lastError: Error
+  let lastError: Error | null = null // Initialize as null
 
   for (let attempt = 1; attempt <= maxRetries; attempt++) {
     console.log(`🔄 Attempt ${attempt}/${maxRetries}`)
@@ -114,25 +112,32 @@ class EdgeLLMClient {
       return this.extractContent(response)
     } catch (error) {
       console.error(`❌ Attempt ${attempt} failed:`, error)
-      lastError = error as Error
       
-      // Don't retry on auth errors
-      if (error.status === 401 || error.status === 403) {
+      // Properly handle the unknown error type
+      if (error instanceof Error) {
+        lastError = error
+      } else {
+        lastError = new Error(typeof error === 'string' ? error : 'Unknown error occurred')
+      }
+      
+      // Don't retry on auth errors - check if it's an Error with status property
+      const errorWithStatus = error as { status?: number }
+      if (errorWithStatus.status === 401 || errorWithStatus.status === 403) {
         console.error('🚫 Auth error detected, not retrying')
-        throw error
+        throw lastError
       }
 
       // Exponential backoff
       if (attempt < maxRetries) {
-        const delay = Math.pow(2, attempt) * 1000  // ✅ Define delay variable
-        await new Promise(resolve => setTimeout(resolve, delay))
+        const delay = Math.pow(2, attempt) * 1000
         console.log(`⏳ Waiting ${delay}ms before retry...`)
+        await new Promise(resolve => setTimeout(resolve, delay))
       }
     }
   }
 
   console.error('❌ All retry attempts failed')
-  throw lastError!
+  throw lastError || new Error('All retry attempts failed')
 }
 
 
@@ -144,16 +149,18 @@ class EdgeLLMClient {
     
     console.log('🎯 API URL:', url)
 
-    const headers = this.provider === 'openai'
-      ? {
-          'Authorization': `Bearer ${this.apiKey}`,
-          'Content-Type': 'application/json',
-        }
-      : {
-          'x-api-key': this.apiKey,
-          'Content-Type': 'application/json',
-          'anthropic-version': '2023-06-01',
-        }
+    // Create headers object with proper typing
+    const headers: Record<string, string> = {
+      'Content-Type': 'application/json',
+    }
+
+    // Add provider-specific headers
+    if (this.provider === 'openai') {
+      headers['Authorization'] = `Bearer ${this.apiKey}`
+    } else {
+      headers['x-api-key'] = this.apiKey
+      headers['anthropic-version'] = '2023-06-01'
+    }
 
     console.log('📋 Request headers:', { ...headers, Authorization: '[REDACTED]', 'x-api-key': '[REDACTED]' })
 
@@ -215,6 +222,7 @@ interface AgentRequest {
   recommendations?: any[]
   conversationId?: string
   lastTokenIndex?: number
+  llmProvider?: 'openai' | 'anthropic'
 }
 
 interface AgentResponse {
@@ -228,7 +236,7 @@ interface AgentResponse {
 
 // Database helper functions
 async function saveTokenToDatabase(
-  supabase: any,
+  supabase: ReturnType<typeof createClient>,
   conversationId: string,
   tokenIndex: number,
   content: string,
@@ -260,7 +268,7 @@ async function saveTokenToDatabase(
 }
 
 async function saveCompleteResponse(
-  supabase: any,
+  supabase: ReturnType<typeof createClient>,
   conversationId: string,
   response: AgentResponse
 ) {
@@ -305,7 +313,8 @@ async function saveCompleteResponse(
     // Don't throw - response was already streamed to client
   }
 }
-serve(async (req) => {
+// Fix the main serve function
+serve(async (req: Request) => {
   const corsHeaders = getCorsHeaders(req)
   
   // Handle CORS preflight requests
@@ -331,7 +340,7 @@ serve(async (req) => {
 
     return new Response(stream, {
       headers: {
-        ...getCorsHeaders(req),
+        ...corsHeaders,
         'Content-Type': 'text/event-stream',
         'Cache-Control': 'no-cache',
         'Connection': 'keep-alive',
@@ -342,9 +351,20 @@ serve(async (req) => {
   } catch (error) {
     console.error('Agent error:', error)
     
+    // Type guard for error handling
+    const getErrorMessage = (err: unknown): string => {
+      if (err instanceof Error) {
+        return err.message
+      }
+      if (typeof err === 'string') {
+        return err
+      }
+      return 'Internal server error'
+    }
+    
     // Ensure we always return valid JSON
     const errorResponse = {
-      error: error.message || 'Internal server error',
+      error: getErrorMessage(error),
       type: 'server_error',
       timestamp: new Date().toISOString()
     }
@@ -353,14 +373,24 @@ serve(async (req) => {
       JSON.stringify(errorResponse),
       {
         status: 500,
-        headers: { ...getCorsHeaders(req), 'Content-Type': 'application/json' },
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
       }
     )
   }
 })
 
 async function processAgentRequest(controller: ReadableStreamDefaultController, request: AgentRequest) {
-  const { stageId, currentStageData, allStageData, userMessage, memory, recommendations, conversationId, lastTokenIndex } = request
+  const { 
+    stageId, 
+    currentStageData, 
+    allStageData, 
+    userMessage, 
+    memory, 
+    recommendations, 
+    conversationId, 
+    lastTokenIndex,
+    llmProvider = 'openai'
+  } = request
 
   // Initialize Supabase client for database operations
   const supabaseUrl = Deno.env.get('SUPABASE_URL')
@@ -380,7 +410,7 @@ async function processAgentRequest(controller: ReadableStreamDefaultController, 
   let heartbeatInterval: number | null = null
 
   // Helper function to safely enqueue data
-  const safeEnqueue = (data: any): boolean => {
+  const safeEnqueue = (data: Record<string, unknown>): boolean => {
     if (streamClosed) {
       console.log('🔌 Stream already closed, skipping enqueue')
       return false
@@ -465,14 +495,15 @@ async function processAgentRequest(controller: ReadableStreamDefaultController, 
 
   try {
     console.log('🔍 Starting processAgentRequest for stage:', stageId)
+    console.log('🤖 Using LLM provider:', llmProvider)
     console.log('📝 User message:', userMessage)
     
     // Start heartbeat immediately to keep connection alive during processing
     startHeartbeat()
     
-    // Initialize LLM client
+    // Initialize LLM client with requested provider
     console.log('🤖 Initializing LLM client...')
-    const llmClient = new EdgeLLMClient('openai')
+    const llmClient = new EdgeLLMClient(llmProvider)
     console.log('✅ LLM client initialized successfully')
     
     // Generate stage-specific prompt using modular system
@@ -552,7 +583,14 @@ async function processAgentRequest(controller: ReadableStreamDefaultController, 
         
         // Save complete response to database (async, don't wait for stream)
         saveCompleteResponse(supabase, conversationId!, response)
-          .catch(error => console.error('⚠️ Complete response save failed:', error))
+          .catch((error) => {
+            const getErrorMessage = (err: unknown): string => {
+              if (err instanceof Error) return err.message
+              if (typeof err === 'string') return err
+              return 'Unknown error'
+            }
+            console.error('⚠️ Complete response save failed:', getErrorMessage(error))
+          })
       }
     }
     
@@ -562,11 +600,23 @@ async function processAgentRequest(controller: ReadableStreamDefaultController, 
 
   } catch (error) {
     console.error('❌ Processing error occurred:', error)
-    console.error('🔍 Error details:', {
-      name: error.name,
-      message: error.message,
-      stack: error.stack
-    })
+    
+    const getErrorDetails = (err: unknown) => {
+      if (err instanceof Error) {
+        return {
+          name: err.name,
+          message: err.message,
+          stack: err.stack
+        }
+      }
+      return {
+        name: 'Unknown',
+        message: typeof err === 'string' ? err : 'Unknown error',
+        stack: undefined
+      }
+    }
+    
+    console.error('🔍 Error details:', getErrorDetails(error))
     
     // Stop heartbeat on error
     stopHeartbeat()
@@ -584,15 +634,23 @@ async function processAgentRequest(controller: ReadableStreamDefaultController, 
         console.log('🔌 Could not send error to client (already disconnected)')
       }
       
-      // Update conversation status to failed
+         // Update conversation status to failed
       if (conversationId && supabase) {
         supabase
           .from('chat_conversations')
           .update({ status: 'failed' })
           .eq('id', conversationId)
           .then(() => console.log('📝 Conversation marked as failed'))
-          .catch(err => console.error('❌ Failed to update conversation status:', err))
+          .catch((err: unknown) => { // Explicitly type as unknown
+            const getErrorMessage = (error: unknown): string => {
+              if (error instanceof Error) return error.message
+              if (typeof error === 'string') return error
+              return 'Unknown error'
+            }
+            console.error('❌ Failed to update conversation status:', getErrorMessage(err))
+          })
       }
+
     }
     
     // Always try to close gracefully

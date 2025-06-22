@@ -5,3 +5,5 @@ By default, this template supports JSX syntax with Tailwind CSS classes, React h
 Use icons from game-icons open source library for logos.
 
 We are building Chargur, a Bolt.new companion application that helps users prepare everything they needs before ever writing a line of code. Chargur is a UX AI Agent and app architecture planner. After talking with our ai agent users will have every piece opf documentation needed to build a full fledged app with Bolt.new, all while never losing sight of their app's mission or design.
+
+NEVER EDIT A HIDDEN FILE, if you cant see whats in it, skip it and tell me it needs updating. Ensure you aren't jsut creating new scripts over an over, make sure there isnt one to use that already has the functionlities you need before creating a new script.
