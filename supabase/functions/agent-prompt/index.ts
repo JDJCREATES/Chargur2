@@ -541,7 +541,7 @@ function parseAndValidateResponse(llmResponse: string, stageId: string): AgentRe
 
 // Additional helper functions for error handling and response validation
 function validateEnvironmentVariables(): void {
-  const requiredVars = 'OPENAI_API_KEY'
+  const requiredVars = ['OPENAI_API_KEY']
   const missingVars = requiredVars.filter(varName => !Deno.env.get(varName))
   
   if (missingVars.length > 0) {
