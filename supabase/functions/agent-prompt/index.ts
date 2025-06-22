@@ -64,11 +64,11 @@ class EdgeLLMClient {
 
   constructor(provider: 'openai' | 'anthropic' = 'openai') {
     this.provider = provider
-    this.apiKey = this.getApiKey()
+    this.apiKey = this.getApiKey() || ''
     this.model = this.getDefaultModel()
   }
 
-  private getApiKey(): string {
+  private getApiKey(): string | null {
     console.log(`🔑 Attempting to get API key for provider: ${this.provider}`)
     const key = this.provider === 'openai' 
       ? Deno.env.get('OPENAI_API_KEY')
@@ -77,7 +77,7 @@ class EdgeLLMClient {
     if (!key) {
       console.error(`❌ Missing API key for ${this.provider}`)
       console.error('🔍 Available env vars:', Object.keys(Deno.env.toObject()))
-      throw new Error(`${this.provider.toUpperCase()}_API_KEY environment variable is required`)
+      return null
     }
     console.log(`✅ API key found for ${this.provider} (length: ${key.length})`)
     return key
@@ -88,6 +88,11 @@ class EdgeLLMClient {
   }
 
   async generateResponse(systemPrompt: string, userPrompt: string, temperature = 0.7, maxTokens = 1500): Promise<string> {
+  // Check for API key first
+  if (!this.apiKey) {
+    throw new Error(`${this.provider.toUpperCase()}_API_KEY environment variable is required`)
+  }
+  
   console.log('🚀 EdgeLLMClient.generateResponse called')
   console.log('📊 Request parameters:', {
     provider: this.provider,
@@ -309,7 +314,9 @@ serve(async (req) => {
   }
 
   try {
+    console.log('📥 Received request, parsing JSON...')
     const requestData: AgentRequest = await req.json()
+    console.log('✅ Request JSON parsed successfully')
 
     // Create a streaming response with better connection handling
     const stream = new ReadableStream({
@@ -334,8 +341,16 @@ serve(async (req) => {
 
   } catch (error) {
     console.error('Agent error:', error)
+    
+    // Ensure we always return valid JSON
+    const errorResponse = {
+      error: error.message || 'Internal server error',
+      type: 'server_error',
+      timestamp: new Date().toISOString()
+    }
+    
     return new Response(
-      JSON.stringify({ error: 'Internal server error' }),
+      JSON.stringify(errorResponse),
       {
         status: 500,
         headers: { ...getCorsHeaders(req), 'Content-Type': 'application/json' },

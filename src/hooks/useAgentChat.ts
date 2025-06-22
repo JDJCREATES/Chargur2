@@ -82,17 +82,50 @@ export const useAgentChat = ({
       });
 
       if (!response.ok) {
-        const errorData = await response.json().catch(() => ({}));
+        let errorData: any = {};
+        let errorMessage = 'Unknown error';
+        
+        try {
+          const responseText = await response.text();
+          console.log('📄 Raw response text:', responseText);
+          
+          if (responseText.trim()) {
+            try {
+              errorData = JSON.parse(responseText);
+              errorMessage = errorData.message || errorData.error || 'Server error';
+            } catch (parseError) {
+              console.warn('⚠️ Failed to parse error response as JSON, using text:', parseError);
+              errorMessage = responseText;
+            }
+          } else {
+            errorMessage = `HTTP ${response.status}: ${response.statusText}`;
+          }
+        } catch (textError) {
+          console.error('❌ Failed to read response text:', textError);
+          errorMessage = `HTTP ${response.status}: ${response.statusText}`;
+        }
+        
         console.error('❌ Conversation creation failed:', {
           status: response.status,
-          error: errorData,
+          error: errorMessage,
           userId: user.id,
           stageId
         });
-        throw new Error(`Failed to create conversation: ${response.status} - ${errorData.message || 'Unknown error'}`);
+        throw new Error(`Failed to create conversation: ${response.status} - ${errorMessage}`);
       }
 
-      const data = await response.json();
+      let data: any;
+      try {
+        const responseText = await response.text();
+        if (!responseText.trim()) {
+          throw new Error('Empty response from server');
+        }
+        data = JSON.parse(responseText);
+      } catch (parseError) {
+        console.error('❌ Failed to parse successful response:', parseError);
+        throw new Error('Invalid response format from server');
+      }
+      
       const conversation = Array.isArray(data) ? data[0] : data;
       
       if (!conversation?.id) {
@@ -204,8 +237,29 @@ export const useAgentChat = ({
     });
 
     if (!response.ok) {
-      const errorText = await response.text().catch(() => 'Unknown error');
-      throw new Error(`Agent function failed: ${response.status} - ${errorText}`);
+      let errorMessage = 'Unknown error';
+      
+      try {
+        const responseText = await response.text();
+        console.log('📄 Agent error response text:', responseText);
+        
+        if (responseText.trim()) {
+          try {
+            const errorData = JSON.parse(responseText);
+            errorMessage = errorData.error || errorData.message || 'Server error';
+          } catch (parseError) {
+            console.warn('⚠️ Failed to parse agent error response as JSON:', parseError);
+            errorMessage = responseText;
+          }
+        } else {
+          errorMessage = `HTTP ${response.status}: ${response.statusText}`;
+        }
+      } catch (textError) {
+        console.error('❌ Failed to read agent error response:', textError);
+        errorMessage = `HTTP ${response.status}: ${response.statusText}`;
+      }
+      
+      throw new Error(`Agent function failed: ${response.status} - ${errorMessage}`);
     }
 
     await processStreamResponse(response, conversationId);
