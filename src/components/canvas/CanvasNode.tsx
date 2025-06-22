@@ -15,7 +15,7 @@ import {
   GiWindow,
   GiDatabase,
   GiSpeech,
-  GiFileText
+  GiScr
 } from 'react-icons/gi';
 
 export interface CanvasNodeData {
