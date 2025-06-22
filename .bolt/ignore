@@ -176,19 +176,6 @@ docker-compose.yaml
 *.sublime-project
 *.sublime-workspace
 
-# Local development
-.local/
-local/
-
-# Backup files
-*.bak
-*.backup
-*.old
-
-# Canvas and spatial data (if you want to preserve user-generated content)
-# Remove these lines if you want Bolt to be able to modify canvas components
-# src/components/canvas/
-# src/lib/canvas/
 
 # Supabase Edge Functions (preserve your custom functions)
 supabase/functions/agent-prompt/
@@ -203,3 +190,10 @@ src/lib/supabase/
 # src/store/
 # src/context/
 
+# JDJ
+
+src/components/auth/
+src/components/layout/
+src/components/content/
+src/hooks/useAuth.ts
+src/lib/prompts/
