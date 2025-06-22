@@ -157,7 +157,6 @@ export const Canvas: React.FC<CanvasProps> = ({
             disabled={!currentStage}
           />
         </motion.div>
-        </motion.div>
       </motion.div>
     </motion.div>
   );
