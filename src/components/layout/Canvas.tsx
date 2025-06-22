@@ -139,7 +139,6 @@ export const Canvas: React.FC<CanvasProps> = ({
           <SpatialCanvas
             currentStage={currentStage}
             stageData={stageData}
-            onSendMessage={handleSendMessage}
           />
         </motion.div>
 

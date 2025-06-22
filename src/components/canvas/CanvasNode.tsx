@@ -15,7 +15,7 @@ import {
   GiWindow,
   GiDatabase,
   GiSpeech,
-  GiScr
+  GiScrollQuill
 } from 'react-icons/gi';
 
 export interface CanvasNodeData {
@@ -66,7 +66,7 @@ export const CanvasNode: React.FC<CanvasNodeProps> = ({
       case 'wireframe': return <GiWindow className="w-4 h-4" />;
       case 'system': return <GiDatabase className="w-4 h-4" />;
       case 'agent-output': return <GiSpeech className="w-4 h-4" />;
-      default: return <GiFileText className="w-4 h-4" />;
+      default: return <GiScrollQuill className="w-4 h-4" />;
     }
   };
 

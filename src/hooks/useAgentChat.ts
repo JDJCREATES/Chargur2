@@ -500,6 +500,24 @@ export const useAgentChat = ({
             // Success
         setState(prev => ({ ...prev, isLoading: false }));
         retryCountRef.current = 0;
+        
+        // Add assistant response to history
+        if (response.content) {
+          const assistantMsg: ChatMessage = {
+            id: `assistant-${Date.now()}`,
+            content: response.content,
+            timestamp: new Date(),
+            type: 'assistant',
+            suggestions: response.suggestions || [],
+            autoFillData: response.autoFillData || {},
+            isComplete: response.isComplete || false,
+          };
+          
+          setState(prev => ({
+            ...prev,
+            historyMessages: [...prev.historyMessages, assistantMsg]
+          }));
+        }
 
       } catch (error: any) {
         if (error.name === 'AbortError') {

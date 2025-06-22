@@ -15,13 +15,11 @@ interface Connection {
   id: string;
   from: string;
   to: string;
-  type: 'dependency' | 'flow' | 'reference';
 }
 
 export const SpatialCanvas: React.FC<SpatialCanvasProps> = ({
   currentStage,
   stageData,
-  onSendMessage,
 }) => {
   const canvasRef = useRef<HTMLDivElement>(null);
   const [nodes, setNodes] = useState<CanvasNodeData[]>([]);
