@@ -70,16 +70,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
     },
   });
 
-  const [chatMessages, setChatMessages] = React.useState<ChatMessage[]>([]);
-
   const handleSendMessage = (content: string) => {
-    const userMessage: ChatMessage = {
-      id: Date.now().toString(),
-      content,
-      timestamp: new Date(),
-      type: 'user',
-    };
-    setChatMessages(prev => [...prev, userMessage]);
     agentChat.sendMessage(content);
   };
 
@@ -241,7 +232,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
             <AccordionDetails className="p-0">
               <div className="flex flex-col max-h-96">
                 <ChatHistory
-                  messages={chatMessages}
+                  messages={agentChat.historyMessages}
                   currentResponse={
                     agentChat.content || agentChat.isLoading
                       ? {

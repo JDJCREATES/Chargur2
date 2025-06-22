@@ -38,7 +38,7 @@ export interface ChatResponseToken {
 export interface ChatResponse {
   id: string;
   conversation_id: string;
-  user_prompt: string;
+  user_prompt: string | null;
   full_content: string;
   suggestions: string[];
   auto_fill_data: any;
@@ -351,5 +351,23 @@ export class ChatStorageManager {
     if (error) {
       console.error('Failed to cleanup old conversations:', error);
     }
+  }
+
+  /**
+   * Get all chat responses for a conversation to build chat history
+   */
+  static async getChatResponsesForConversation(conversationId: string): Promise<ChatResponse[]> {
+    const { data, error } = await supabase
+      .from('chat_responses')
+      .select('*')
+      .eq('conversation_id', conversationId)
+      .order('created_at', { ascending: true });
+
+    if (error) {
+      console.error('Failed to get chat responses:', error);
+      return [];
+    }
+
+    return data || [];
   }
 }

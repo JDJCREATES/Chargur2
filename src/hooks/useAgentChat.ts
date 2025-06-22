@@ -11,6 +11,7 @@ interface AgentChatState {
   autoFillData: any;
   isComplete: boolean;
   conversationId: string | null;
+  historyMessages: ChatMessage[];
 }
 
 interface UseAgentChatOptions {
@@ -46,6 +47,7 @@ export const useAgentChat = ({
     autoFillData: {},
     isComplete: false,
     conversationId: null,
+    historyMessages: [],
   });
 
   const abortControllerRef = useRef<AbortController | null>(null);
@@ -146,6 +148,10 @@ export const useAgentChat = ({
       }
       
       console.log('✅ Conversation created successfully:', conversation.id);
+      
+      // Load existing chat history for this conversation
+      await loadChatHistory(conversation.id);
+      
       return conversation.id;
     } catch (error) {
       console.error('Failed to create conversation:', error);
@@ -153,6 +159,47 @@ export const useAgentChat = ({
     }
   }, [stageId, currentStageData, allStageData, user, session, llmProvider, useDirectLLM]);
 
+  // Load chat history from database
+  const loadChatHistory = useCallback(async (conversationId: string) => {
+    try {
+      console.log('📚 Loading chat history for conversation:', conversationId);
+      const chatResponses = await ChatStorageManager.getChatResponsesForConversation(conversationId);
+      
+      const historyMessages: ChatMessage[] = [];
+      
+      chatResponses.forEach((response) => {
+        // Add user message
+        if (response.user_prompt) {
+          historyMessages.push({
+            id: `user-${response.id}`,
+            content: response.user_prompt,
+            timestamp: new Date(response.created_at),
+            type: 'user',
+          });
+        }
+        
+        // Add assistant message
+        if (response.full_content) {
+          historyMessages.push({
+            id: `assistant-${response.id}`,
+            content: response.full_content,
+            timestamp: new Date(response.updated_at || response.created_at),
+            type: 'assistant',
+            suggestions: response.suggestions || [],
+            autoFillData: response.auto_fill_data || {},
+            isComplete: response.is_complete || false,
+          });
+        }
+      });
+      
+      console.log('✅ Loaded chat history:', historyMessages.length, 'messages');
+      setState(prev => ({ ...prev, historyMessages }));
+      
+    } catch (error) {
+      console.error('❌ Failed to load chat history:', error);
+      // Don't throw - continue without history
+    }
+  }, []);
   // Direct LLM processing (client-side)
   const processWithDirectLLM = useCallback(async (
     userMessage: string,
