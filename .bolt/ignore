@@ -130,10 +130,13 @@ vite-env.d.ts
 
 # Documentation that shouldn't be modified by Bolt
 AGENTIC-STAGES.md
+AGENT.md
 README.md
 CHANGELOG.md
 LICENSE
 CONTRIBUTING.md
+index.html
+.gitignore
 
 # Database files
 *.db
@@ -188,13 +191,13 @@ local/
 # src/lib/canvas/
 
 # Supabase Edge Functions (preserve your custom functions)
-# supabase/functions/agent-prompt/
-# supabase/functions/retrieve-agent-response/
+supabase/functions/agent-prompt/
+supabase/functions/retrieve-agent-response/
 
 # Custom hooks and utilities you don't want modified
-# src/hooks/useAgentChat.ts
-# src/lib/llm/
-# src/lib/supabase/
+src/hooks/useAgentChat.ts
+src/lib/llm/
+src/lib/supabase/
 
 # State management
 # src/store/
