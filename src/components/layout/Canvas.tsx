@@ -17,13 +17,8 @@ import { useAgent } from '../agent/AgentContextProvider';
 
 interface CanvasProps {
   currentStage?: Stage;
-  stageData: StageData;
   onSendMessage: (message: string) => void;
   onUpdateStageData?: (stageId: string, data: any) => void;
-  onCompleteStage?: (stageId: string) => void;
-  onGoToStage?: (stageId: string) => void;
-  getNextStage?: () => Stage | null;
-}
 
 export const Canvas: React.FC<CanvasProps> = ({
   currentStage,
@@ -39,56 +34,7 @@ export const Canvas: React.FC<CanvasProps> = ({
   const agentChat = useAgentChat({
     stageId: currentStage?.id || '',
     currentStageData: stageData,
-    allStageData: stageData,
-    useDirectLLM: false,
     llmProvider: 'openai',
-    memory: agentState.memory,
-    recommendations: getStageRecommendations(currentStage?.id || ''),
-    onAutoFill: (data) => {
-      if (currentStage?.id && onUpdateStageData) {
-        onUpdateStageData(currentStage.id, data);
-        // Update global agent memory
-        updateAgentMemory(currentStage.id, data);
-        console.log('Canvas Agent Chat -> Auto-filled data:', data);
-      }
-    },
-    onStageComplete: () => {
-      if (currentStage?.id && onCompleteStage) {
-        onCompleteStage(currentStage.id);
-        // Update agent memory that stage is complete
-        updateAgentMemory(currentStage.id, { completed: true, completedAt: new Date().toISOString() });
-      }
-    },
-  });
-
-  const handleSendMessage = (content: string) => {
-    const userMessage: ChatMessage = {
-      id: Date.now().toString(),
-      content,
-      timestamp: new Date(),
-      type: 'user',
-    };
-    setChatMessages(prev => [...prev, userMessage]);
-    agentChat.sendMessage(content);
-  };
-
-  const handleSuggestionClick = (suggestion: string) => {
-    handleSendMessage(suggestion);
-  };
-
-  const handleRetry = () => {
-    agentChat.retry();
-  };
-
-  if (!currentStage) {
-    return (
-      <div className="flex-1 flex items-center justify-center bg-gray-50">
-        <div className="text-center">
-          <div className="w-16 h-16 bg-gray-200 rounded-full flex items-center justify-center mx-auto mb-4">
-            <span className="text-2xl">🎨</span>
-          </div>
-          <h3 className="text-lg font-semibold text-gray-700 mb-2">Select a Stage</h3>
-          <p className="text-gray-600">Choose a stage from the sidebar to get started with the AI assistant.</p>
         </div>
       </div>
     );
@@ -135,42 +81,6 @@ export const Canvas: React.FC<CanvasProps> = ({
             )}
           </motion.div>
 
-          {/* Chat Area */}
-          <motion.div
-            initial={{ opacity: 0, x: 20 }}
-            animate={{ opacity: 1, x: 0 }}
-            className="bg-white rounded-lg shadow-sm border border-gray-200 flex flex-col"
-          >
-            <div className="flex items-center gap-2 p-4 border-b border-gray-200">
-              <MessageSquare className="w-5 h-5 text-blue-600" />
-              <h3 className="font-semibold text-gray-800">AI Assistant</h3>
-            </div>
-
-            <ChatHistory
-              messages={chatMessages}
-              currentResponse={
-                agentChat.content || agentChat.isLoading
-                  ? {
-                      content: agentChat.content,
-                      isComplete: agentChat.isComplete,
-                      suggestions: agentChat.suggestions,
-                      isStreaming: agentChat.isStreaming,
-                      error: agentChat.error,
-                    }
-                  : undefined
-              }
-              onSuggestionClick={handleSuggestionClick}
-              onRetry={handleRetry}
-            />
-
-            <ChatInterface
-              onSendMessage={handleSendMessage}
-              isLoading={agentChat.isLoading}
-              error={agentChat.error}
-              onRetry={handleRetry}
-              disabled={!currentStage}
-            />
-          </motion.div>
 
           {/* Canvas */}
           <motion.div

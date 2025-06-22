@@ -1,8 +1,9 @@
 import React from 'react';
 import { motion } from 'framer-motion';
-import { ChevronLeft, ChevronRight, ChevronDown } from 'lucide-react';
+import { ChevronLeft, ChevronRight, ChevronDown, MessageSquare } from 'lucide-react';
 import { Accordion, AccordionSummary, AccordionDetails, Typography } from '@mui/material';
 import { ChatHistory } from '../ui/ChatHistory';
+import { ChatInterface } from '../chat/ChatInterface';
 import { Settings } from '../ui/Settings';
 import { Avatar } from '../ui/Avatar';
 import { IdeationDiscovery } from '../stages/content/IdeationDiscovery';
@@ -15,13 +16,14 @@ import { UXReviewUserCheck } from '../stages/content/UXReviewUserCheck';
 import { AutoPromptEngine } from '../stages/content/AutoPromptEngine';
 import { ExportPanel } from '../export/ExportPanel';
 import { Stage, ChatMessage } from '../../types';
+import { useAgentChat } from '../../hooks/useAgentChat';
+import { useAgent } from '../agent/AgentContextProvider';
 
 // Import the enhanced StageProgressBubbles component
 import { StageProgressBubbles } from '../ui/StageProgressBubbles';
 
 interface SidebarProps {
   stages: Stage[];
-  chatHistory: ChatMessage[];
   currentStage?: Stage;
   stageData: any;
   onStageClick: (stageId: string) => void;
@@ -33,7 +35,6 @@ interface SidebarProps {
 
 export const Sidebar: React.FC<SidebarProps> = ({
   stages,
-  chatHistory,
   currentStage,
   stageData,
   onStageClick,
@@ -42,8 +43,56 @@ export const Sidebar: React.FC<SidebarProps> = ({
   isOpen,
   onToggle,
 }) => {
+  const { agentState, updateAgentMemory, getStageRecommendations } = useAgent();
+  
+  const agentChat = useAgentChat({
+    stageId: currentStage?.id || '',
+    currentStageData: stageData,
+    allStageData: stageData,
+    useDirectLLM: false,
+    llmProvider: 'openai',
+    memory: agentState.memory,
+    recommendations: getStageRecommendations(currentStage?.id || ''),
+    onAutoFill: (data) => {
+      if (currentStage?.id) {
+        onUpdateStageData(currentStage.id, data);
+        // Update global agent memory
+        updateAgentMemory(currentStage.id, data);
+        console.log('Sidebar Agent Chat -> Auto-filled data:', data);
+      }
+    },
+    onStageComplete: () => {
+      if (currentStage?.id) {
+        onCompleteStage(currentStage.id);
+        // Update agent memory that stage is complete
+        updateAgentMemory(currentStage.id, { completed: true, completedAt: new Date().toISOString() });
+      }
+    },
+  });
+
+  const [chatMessages, setChatMessages] = React.useState<ChatMessage[]>([]);
+
+  const handleSendMessage = (content: string) => {
+    const userMessage: ChatMessage = {
+      id: Date.now().toString(),
+      content,
+      timestamp: new Date(),
+      type: 'user',
+    };
+    setChatMessages(prev => [...prev, userMessage]);
+    agentChat.sendMessage(content);
+  };
+
+  const handleSuggestionClick = (suggestion: string) => {
+    handleSendMessage(suggestion);
+  };
+
+  const handleRetry = () => {
+    agentChat.retry();
+  };
+
   const renderStageForm = () => {
-    if (!currentStage || currentStage.comingSoon) return null;
+    if (!currentStage) return null;
 
     switch (currentStage.id) {
       case 'ideation-discovery':
@@ -175,19 +224,46 @@ export const Sidebar: React.FC<SidebarProps> = ({
           {renderStageForm()}
         </div>
 
-        {/* Chat History */}
+        {/* AI Assistant */}
         <div className={`transition-opacity duration-200 ${isOpen ? 'opacity-100' : 'opacity-0'}`}>
           <Accordion>
             <AccordionSummary
               expandIcon={<ChevronDown size={20} />}
-              aria-controls="chat-history-content"
-              id="chat-history-header"
+              aria-controls="ai-assistant-content"
+              id="ai-assistant-header"
               className="border-t border-gray-200"
             >
-              <Typography className="font-semibold text-gray-800">Chat History</Typography>
+              <div className="flex items-center gap-2">
+                <MessageSquare className="w-4 h-4 text-blue-600" />
+                <Typography className="font-semibold text-gray-800">AI Assistant</Typography>
+              </div>
             </AccordionSummary>
             <AccordionDetails className="p-0">
-              <ChatHistory messages={chatHistory} />
+              <div className="flex flex-col max-h-96">
+                <ChatHistory
+                  messages={chatMessages}
+                  currentResponse={
+                    agentChat.content || agentChat.isLoading
+                      ? {
+                          content: agentChat.content,
+                          isComplete: agentChat.isComplete,
+                          suggestions: agentChat.suggestions,
+                          isStreaming: agentChat.isStreaming,
+                          error: agentChat.error,
+                        }
+                      : undefined
+                  }
+                  onSuggestionClick={handleSuggestionClick}
+                  onRetry={handleRetry}
+                />
+                <ChatInterface
+                  onSendMessage={handleSendMessage}
+                  isLoading={agentChat.isLoading}
+                  error={agentChat.error}
+                  onRetry={handleRetry}
+                  disabled={!currentStage}
+                />
+              </div>
             </AccordionDetails>
           </Accordion>
         </div>
