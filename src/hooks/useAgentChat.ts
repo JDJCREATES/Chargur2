@@ -70,9 +70,7 @@ export const useAgentChat = ({
           'apikey': supabaseAnonKey,
         },
         body: JSON.stringify({
-          user_id: user.id,
           stage_id: stageId,
-          status: 'active',
           metadata: {
             currentStageData,
             allStageData,
