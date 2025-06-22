@@ -19,6 +19,7 @@ interface CanvasProps {
   currentStage?: Stage;
   onSendMessage: (message: string) => void;
   onUpdateStageData?: (stageId: string, data: any) => void;
+}
 
 export const Canvas: React.FC<CanvasProps> = ({
   currentStage,
@@ -35,10 +36,7 @@ export const Canvas: React.FC<CanvasProps> = ({
     stageId: currentStage?.id || '',
     currentStageData: stageData,
     llmProvider: 'openai',
-        </div>
-      </div>
-    );
-  }
+  });
 
   return (
     <div className="flex-1 flex flex-col bg-gray-50">
