@@ -543,13 +543,14 @@ function parseAndValidateResponse(llmResponse: string, stageId: string): AgentRe
 
 // Additional helper functions for error handling and response validation
 function validateEnvironmentVariables(): void {
-  const requiredVars = ['OPENAI_API_KEY']
+  const requiredVars = ['OPENAI_API_KEY'] // Only require OpenAI key
   const missingVars = requiredVars.filter(varName => !Deno.env.get(varName))
   
   if (missingVars.length > 0) {
     console.error(`❌ Missing environment variables: ${missingVars.join(', ')}`)
     console.error('🔧 Please set these environment variables in your Supabase project settings')
-    console.error('📋 Available environment variables:', Object.keys(Deno.env.toObject()))
+    // Don't log all env vars for security
+    console.error('📋 Required: OPENAI_API_KEY')
   }
 }
 

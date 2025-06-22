@@ -118,6 +118,33 @@ export const Canvas: React.FC<CanvasProps> = ({
       const TIMEOUT_DURATION = 5 * 60 * 1000; // 5 minutes
       
       try {
+        // Only try to recover if conversation has existing tokens
+        if (retryCount > 0 && conversationId) {
+          console.log('🔄 Attempting conversation recovery before retry...');
+          try {
+            // Check if conversation has any tokens first
+            const lastTokenIndex = await ChatStorageManager.getLastTokenIndex(conversationId);
+            if (lastTokenIndex >= 0) {
+              console.log('🔍 Found existing tokens, attempting recovery...');
+              const recoveryResult = await ChatRecoveryManager.recoverConversation(conversationId);
+              if (recoveryResult.success && recoveryResult.content) {
+                console.log('✅ Conversation recovered successfully');
+                setStreamingContent(recoveryResult.content);
+                
+                if (recoveryResult.isComplete) {
+                  handleStreamComplete(recoveryResult);
+                  setIsLoading(false);
+                  return;
+                }
+              }
+            } else {
+              console.log('📝 No existing tokens found, proceeding with new request');
+            }
+          } catch (recoveryError) {
+            console.log('⚠️ Recovery failed, proceeding with new request:', recoveryError);
+          }
+        }
+
         // Get stage recommendations for cross-stage intelligence
         const recommendations = getStageRecommendations(currentStage?.id || 'ideation-discovery');
         
