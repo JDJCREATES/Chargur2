@@ -16,6 +16,9 @@ export interface ChatMessage {
   content: string;
   timestamp: Date;
   type: 'user' | 'assistant';
+  suggestions?: string[];
+  autoFillData?: any;
+  isComplete?: boolean;
 }
 
 export interface Project {
@@ -28,4 +31,12 @@ export interface Project {
   chatHistory: ChatMessage[];
   createdAt: Date;
   updatedAt: Date;
+}
+
+export interface StreamingChatResponse {
+  content: string;
+  isComplete: boolean;
+  suggestions: string[];
+  isStreaming: boolean;
+  error?: string | null;
 }

@@ -5,13 +5,15 @@
  * Handles agent responses, auto-fill data, stage progression, and memory management.
  */
 
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
-import { Stage, StageData } from '../../types';
-import { ChatInterface } from '../chat/ChatInterface';
-import { StreamingResponse } from '../chat/StreamingResponse';
-import { useAgentChat } from '../../hooks/useAgentChat';
+import { MessageSquare, Zap, Settings, Menu, X, Send } from 'lucide-react';
+import { Stage, StageData, ChatMessage } from '../../types';
 import { SpatialCanvas } from '../canvas/SpatialCanvas';
+import { ChatHistory } from '../ui/ChatHistory';
+import { ChatInterface } from '../chat/ChatInterface';
+import { useAgentChat } from '../../hooks/useAgentChat';
+import { useAgent } from '../agent/AgentContextProvider';
 
 interface CanvasProps {
   currentStage?: Stage;
@@ -32,19 +34,13 @@ export const Canvas: React.FC<CanvasProps> = ({
   onGoToStage,
   getNextStage,
 }) => {
-  const {
-    isLoading,
-    error,
-    content,
-    suggestions,
-    isComplete,
-    isStreaming,
-    sendMessage,
-    retry,
-    clearError
-  } = useAgentChat({
-    stageId: currentStage?.id || 'unknown',
-    currentStageData: stageData[currentStage?.id || ''] || {},
+  const [activeTab, setActiveTab] = useState<'chat' | 'canvas' | 'stage'>('stage');
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const [chatMessages, setChatMessages] = useState<ChatMessage[]>([]);
+
+  const agentChat = useAgentChat({
+    stageId: currentStage?.id || '',
+    currentStageData: stageData,
     allStageData: stageData,
     onAutoFill: (data) => {
       if (currentStage?.id) {
@@ -58,8 +54,32 @@ export const Canvas: React.FC<CanvasProps> = ({
     }
   });
 
+  const { agentState, updateAgentMemory } = useAgent();
+
+  const toggleMobileMenu = () => {
+    setIsMobileMenuOpen(!isMobileMenuOpen);
+  };
+
+  const handleSendMessage = (content: string) => {
+    // Add user message to chat history
+    const userMessage: ChatMessage = {
+      id: Date.now().toString(),
+      content,
+      timestamp: new Date(),
+      type: 'user',
+    };
+    setChatMessages(prev => [...prev, userMessage]);
+
+    // Send to agent
+    agentChat.sendMessage(content);
+  };
+
   const handleSuggestionClick = (suggestion: string) => {
-    sendMessage(suggestion);
+    handleSendMessage(suggestion);
+  };
+
+  const handleRetry = () => {
+    agentChat.retry();
   };
 
   if (!currentStage) {
@@ -103,6 +123,58 @@ export const Canvas: React.FC<CanvasProps> = ({
       {/* Main Content */}
       <div className="flex-1 overflow-y-auto p-6">
         <div className="max-w-4xl mx-auto space-y-6">
+          {activeTab === 'chat' && (
+            <motion.div
+              key="chat"
+              initial={{ opacity: 0, x: 20 }}
+              animate={{ opacity: 1, x: 0 }}
+              exit={{ opacity: 0, x: -20 }}
+              className="h-full bg-white rounded-lg shadow-sm border border-gray-200 flex flex-col"
+            >
+              <div className="flex items-center gap-2 p-4 border-b border-gray-200">
+                <MessageSquare className="w-5 h-5 text-blue-600" />
+                <h3 className="font-semibold text-gray-800">AI Assistant</h3>
+              </div>
+              
+              <ChatHistory
+                messages={chatMessages}
+                currentResponse={agentChat.content || agentChat.isLoading ? {
+                  content: agentChat.content,
+                  isComplete: agentChat.isComplete,
+                  suggestions: agentChat.suggestions,
+                  isStreaming: agentChat.isStreaming,
+                  error: agentChat.error
+                } : undefined}
+                onSuggestionClick={handleSuggestionClick}
+                onRetry={handleRetry}
+              />
+              
+              <ChatInterface
+                onSendMessage={handleSendMessage}
+                isLoading={agentChat.isLoading}
+                error={agentChat.error}
+                onRetry={handleRetry}
+                disabled={!currentStage}
+              />
+            </motion.div>
+          )}
+
+          {activeTab === 'canvas' && (
+            <motion.div
+              key="canvas"
+              initial={{ opacity: 0, x: 20 }}
+              animate={{ opacity: 1, x: 0 }}
+              exit={{ opacity: 0, x: -20 }}
+              className="h-full bg-white rounded-lg shadow-sm border border-gray-200"
+            >
+              <SpatialCanvas
+                currentStage={currentStage}
+                stageData={stageData}
+                onSendMessage={handleSendMessage}
+              />
+            </motion.div>
+          )}
+
           {/* Stage Introduction */}
           <motion.div
             initial={{ opacity: 0, y: 20 }}
@@ -124,15 +196,6 @@ export const Canvas: React.FC<CanvasProps> = ({
             )}
           </motion.div>
 
-          {/* Agent Response */}
-          <StreamingResponse
-            content={content}
-            isComplete={isComplete}
-            suggestions={suggestions}
-            onSuggestionClick={handleSuggestionClick}
-            isStreaming={isStreaming}
-          />
-
           {/* Spatial Canvas */}
           <SpatialCanvas
             currentStage={currentStage}
@@ -144,10 +207,10 @@ export const Canvas: React.FC<CanvasProps> = ({
 
       {/* Chat Interface */}
       <ChatInterface
-        onSendMessage={sendMessage}
-        isLoading={isLoading}
-        error={error}
-        onRetry={retry}
+        onSendMessage={handleSendMessage}
+        isLoading={agentChat.isLoading}
+        error={agentChat.error}
+        onRetry={handleRetry}
       />
     </div>
   );
