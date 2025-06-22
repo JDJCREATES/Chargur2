@@ -286,16 +286,24 @@ export const useAgentChat = ({
       while (true) {
         const { done, value } = await reader.read();
         
-        if (done) break;
+        if (done) {
+          console.log('✅ Stream completed');
+          break;
+        }
 
         buffer += decoder.decode(value, { stream: true });
         const lines = buffer.split('\n');
         buffer = lines.pop() || '';
 
         for (const line of lines) {
+          if (line.trim() === '') continue; // Skip empty lines
+          
           if (line.startsWith('data: ')) {
             try {
-              const data = JSON.parse(line.slice(6));
+              const jsonStr = line.slice(6); // Remove 'data: '
+              if (jsonStr.trim() === '') continue; // Skip empty data
+              
+              const data = JSON.parse(jsonStr);
               
               if (data.type === 'content') {
                 setState(prev => ({ ...prev, content: data.content }));
@@ -316,14 +324,20 @@ export const useAgentChat = ({
                 }
               } else if (data.type === 'error') {
                 throw new Error(data.error || 'Stream error occurred');
+              } else if (data.type === 'ping') {
+                console.log('💓 Received heartbeat');
+                // Just ignore ping messages
               }
             } catch (parseError) {
-              console.warn('Failed to parse stream data:', parseError);
+              console.warn('Failed to parse stream data:', parseError, 'Line:', line);
             }
           }
         }
       }
 
+    } catch (error) {
+      console.error('❌ Stream processing error:', error);
+      throw error;
     } finally {
       reader.releaseLock();
     }

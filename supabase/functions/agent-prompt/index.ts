@@ -342,9 +342,10 @@ serve(async (req: Request) => {
       headers: {
         ...corsHeaders,
         'Content-Type': 'text/event-stream',
-        'Cache-Control': 'no-cache',
+        'Cache-Control': 'no-cache, no-store, must-revalidate',
         'Connection': 'keep-alive',
         'X-Accel-Buffering': 'no', // Disable nginx buffering
+        'Transfer-Encoding': 'chunked', // Add this
       },
     })
 
@@ -410,14 +411,17 @@ async function processAgentRequest(controller: ReadableStreamDefaultController, 
   let heartbeatInterval: number | null = null
 
   // Helper function to safely enqueue data
-  const safeEnqueue = (data: Record<string, unknown>): boolean => {
+  const safeEnqueue = (data: any): boolean => {
     if (streamClosed) {
       console.log('🔌 Stream already closed, skipping enqueue')
       return false
     }
     
     try {
-      controller.enqueue(`data: ${JSON.stringify(data)}\n\n`)
+      // Convert to Uint8Array properly
+      const encoder = new TextEncoder()
+      const encoded = encoder.encode(`data: ${JSON.stringify(data)}\n\n`)
+      controller.enqueue(encoded)
       return true
     } catch (error) {
       if (error instanceof TypeError && error.message.includes('cannot close or enqueue')) {
@@ -739,3 +743,27 @@ function validateEnvironmentVariables(): void {
 
 // Initialize environment check
 validateEnvironmentVariables()
+
+// Just save conversation state for recovery
+async function saveConversationState(
+  supabase: any,
+  conversationId: string,
+  state: 'streaming' | 'completed' | 'failed',
+  lastContent?: string
+) {
+  try {
+    const { error } = await supabase
+      .from('chat_conversations')
+      .update({ 
+        status: state,
+        last_content: lastContent,
+        updated_at: new Date().toISOString()
+      })
+      .eq('id', conversationId)
+
+    if (error) throw error
+    console.log(`✅ Conversation state updated: ${state}`)
+  } catch (error) {
+    console.error('❌ Failed to save conversation state:', error)
+  }
+}
