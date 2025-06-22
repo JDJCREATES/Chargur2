@@ -59,8 +59,8 @@ export const Canvas: React.FC<CanvasProps> = ({
       </div>
 
       {/* Main Content */}
-      <div className="flex-1 overflow-y-auto p-1 min-h-screen">
-        <div className="max-w-4xl mx-auto space-y-6">
+      <div className="flex-1 overflow-y-auto p-1 min-h-full">
+        <div className="max-w-4xl mx-auto space-y-6 min-h-full">
 
           {/* Canvas */}
           <motion.div
