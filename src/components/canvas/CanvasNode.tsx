@@ -10,11 +10,11 @@ import {
 } from 'lucide-react';
 import { 
   GiLightBulb,
-  GiLightningBolt,
-  GiPeople,
+  GiEnergise,
+  GiPerson,
   GiWindow,
   GiDatabase,
-  GiSpeech,
+  GiConversation,
   GiScrollQuill
 } from 'react-icons/gi';
 
@@ -61,11 +61,11 @@ export const CanvasNode: React.FC<CanvasNodeProps> = ({
   const getNodeIcon = () => {
     switch (node.type) {
       case 'concept': return <GiLightBulb className="w-4 h-4" />;
-      case 'feature': return <GiLightningBolt className="w-4 h-4" />;
-      case 'ux-flow': return <GiPeople className="w-4 h-4" />;
+      case 'feature': return <GiEnergise className="w-4 h-4" />;
+      case 'ux-flow': return <GiPerson className="w-4 h-4" />;
       case 'wireframe': return <GiWindow className="w-4 h-4" />;
       case 'system': return <GiDatabase className="w-4 h-4" />;
-      case 'agent-output': return <GiSpeech className="w-4 h-4" />;
+      case 'agent-output': return <GiConversation className="w-4 h-4" />;
       default: return <GiScrollQuill className="w-4 h-4" />;
     }
   };
