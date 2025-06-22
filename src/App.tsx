@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { motion } from 'framer-motion';
 import { useAuth } from './hooks/useAuth';
+import { useAgentChat } from './hooks/useAgentChat';
 import { AgentContextProvider } from './components/agent/AgentContextProvider';
 import { Sidebar } from './components/layout/Sidebar';
 import { Canvas } from './components/layout/Canvas';
@@ -19,6 +20,26 @@ function App() {
     getNextStage,
   } = useStageManager();
 
+  // Initialize agent chat for the current stage
+  const {
+    sendMessage,
+    isLoading: agentLoading,
+    error: agentError,
+  } = useAgentChat({
+    stageId: currentStage?.id || '',
+    currentStageData: currentStage ? stageData[currentStage.id] : {},
+    allStageData: stageData,
+    onAutoFill: (data) => {
+      if (currentStage) {
+        updateStageData(currentStage.id, data);
+      }
+    },
+    onStageComplete: () => {
+      if (currentStage) {
+        completeStage(currentStage.id);
+      }
+    },
+  });
 
   // Show loading screen while auth is initializing
   if (authLoading) {
@@ -40,6 +61,14 @@ function App() {
     setIsSidebarOpen(true);
   };
 
+  const handleSendMessage = async (message: string) => {
+    try {
+      await sendMessage(message);
+    } catch (error) {
+      console.error('Failed to send message:', error);
+    }
+  };
+
   return (
     <AgentContextProvider>
       <div className="min-h-screen bg-gray-50 flex">
@@ -53,6 +82,7 @@ function App() {
             onGoToStage={goToStage}
             getNextStage={() => getNextStage()}
             onOpenSidebar={openSidebar}
+            onSendMessage={handleSendMessage}
           />
         </div>
 

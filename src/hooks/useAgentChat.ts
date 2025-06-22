@@ -1,7 +1,18 @@
 import { useState, useCallback, useRef } from 'react';
 import { useAuth } from './useAuth';
 import { ChatRecoveryManager } from '../lib/auth/chat/chatRecovery';
+import { ChatStorageManager } from '../lib/auth/chat/chatStorage';
 import { createLLMClient, LLMRequest } from '../lib/llm/llmClient';
+
+interface ChatMessage {
+  id: string;
+  content: string;
+  timestamp: Date;
+  type: 'user' | 'assistant';
+  suggestions?: string[];
+  autoFillData?: any;
+  isComplete?: boolean;
+}
 
 interface AgentChatState {
   isLoading: boolean;
@@ -21,8 +32,7 @@ interface UseAgentChatOptions {
   onAutoFill?: (data: any) => void;
   onStageComplete?: () => void;
   llmProvider?: 'openai' | 'anthropic';
-  useDirectLLM?: boolean;
-  // Add these to connect with AgentContextProvider
+  useDirectLLM?: boolean; // Maybe rename this to 'useStreamingResponse' or similar
   memory?: any;
   recommendations?: any[];
 }
@@ -97,8 +107,7 @@ export const useAgentChat = ({
       }
 
       console.log('🔐 Creating conversation with authenticated user:', user.id);
-      console.log('🌐 Supabase URL:', supabaseUrl);
-      console.log('🔑 Has anon key:', !!supabaseAnonKey);
+    
       
       const requestBody = {
         stage_id: stageId,
@@ -200,61 +209,9 @@ export const useAgentChat = ({
       // Don't throw - continue without history
     }
   }, []);
-  // Direct LLM processing (client-side)
-  const processWithDirectLLM = useCallback(async (
-    userMessage: string,
-    conversationId: string
-  ): Promise<void> => {
-    const llmClient = initializeLLMClient();
-    if (!llmClient) {
-      throw new Error('LLM client not available');
-    }
+  
 
-    // Generate prompts (you'd need to implement this based on your stage logic)
-    const systemPrompt = generateSystemPrompt(stageId, currentStageData, allStageData);
-    const userPrompt = generateUserPrompt(userMessage, currentStageData);
-
-    const request: LLMRequest = {
-      systemPrompt,
-      userPrompt,
-      temperature: 0.7,
-      maxTokens: 1500,
-      stream: true
-    };
-
-    // Use streaming response
-    const streamGenerator = llmClient.generateStreamingResponse(request);
-    
-    let fullContent = '';
-    for await (const chunk of streamGenerator) {
-      if (chunk.content) {
-        fullContent += chunk.content;
-        setState(prev => ({ ...prev, content: fullContent }));
-      }
-      
-      if (chunk.done) {
-        // Parse final response and extract suggestions, autoFillData, etc.
-        const parsedResponse = parseAgentResponse(fullContent);
-        setState(prev => ({
-          ...prev,
-          suggestions: parsedResponse.suggestions || [],
-          autoFillData: parsedResponse.autoFillData || {},
-          isComplete: parsedResponse.stageComplete || false
-        }));
-
-        // Trigger callbacks
-        if (parsedResponse.autoFillData && onAutoFill) {
-          onAutoFill(parsedResponse.autoFillData);
-        }
-        if (parsedResponse.stageComplete && onStageComplete) {
-          onStageComplete();
-        }
-        break;
-      }
-    }
-  }, [stageId, currentStageData, allStageData, initializeLLMClient, onAutoFill, onStageComplete]);
-
-  // Edge Function processing (server-side)
+  // Edge Function processing (server-side) - this is where all the logic should be
   const processWithEdgeFunction = useCallback(async (
     conversationId: string,
     userMessage: string,
@@ -277,10 +234,25 @@ export const useAgentChat = ({
       allStageData,
       userMessage,
       conversationId,
-      memory: {},
-      conversationHistory: [],
+      memory, // Pass memory to Edge Function
+      conversationHistory: state.historyMessages, // Pass conversation history
+      recommendations, // Pass recommendations to Edge Function
       llmProvider // Pass the provider preference
     };
+
+    // Direct LLM processing (client-side) - simplified
+  const processWithDirectLLM = useCallback(async (
+    userMessage: string,
+    conversationId: string
+  ): Promise<void> => {
+    // For direct LLM, we should still use the Edge Function for prompt generation
+    // The "direct" part refers to bypassing some middleware, not prompt generation
+    console.warn('Direct LLM processing should still use Edge Functions for prompts');
+    
+    // Fall back to Edge Function processing
+    const controller = new AbortController();
+    await processWithEdgeFunction(conversationId, userMessage, controller.signal);
+  }, [processWithEdgeFunction]);
 
     const response = await fetch(`${supabaseUrl}/functions/v1/agent-prompt`, {
       method: 'POST',
@@ -315,7 +287,7 @@ export const useAgentChat = ({
     }
 
     await processStreamResponse(response, conversationId);
-  }, [stageId, currentStageData, allStageData, session]);
+  }, [stageId, currentStageData, allStageData, session, memory, recommendations, state.historyMessages]);
 
   const processStreamResponse = useCallback(async (
     response: Response,
@@ -488,37 +460,26 @@ export const useAgentChat = ({
           }
         }
 
-        // Choose processing method
-        if (useDirectLLM) {
-          console.log('🔄 Using direct LLM processing');
-          await processWithDirectLLM(userMessage, conversationId);
-        } else {
-          console.log('🔄 Using Edge Function processing');
-          await processWithEdgeFunction(conversationId, userMessage, controller.signal);
-        }
+        // Always use Edge Function processing (since prompts are handled there)
+        console.log('🔄 Using Edge Function processing');
+        await processWithEdgeFunction(conversationId, userMessage, controller.signal);
         
-            // Success
+        // Success
         setState(prev => ({ ...prev, isLoading: false }));
         retryCountRef.current = 0;
         
-        // Add assistant response to history
-        if (response.content) {
-          const assistantMsg: ChatMessage = {
-            id: `assistant-${Date.now()}`,
-            content: response.content,
-            timestamp: new Date(),
-            type: 'assistant',
-            suggestions: response.suggestions || [],
-            autoFillData: response.autoFillData || {},
-            isComplete: response.isComplete || false,
-          };
-          
-          setState(prev => ({
-            ...prev,
-            historyMessages: [...prev.historyMessages, assistantMsg]
-          }));
-        }
-
+        // Add user message to history
+        const userMsg: ChatMessage = {
+          id: `user-${Date.now()}`,
+          content: userMessage,
+          timestamp: new Date(),
+          type: 'user',
+        };
+        
+        setState(prev => ({
+          ...prev,
+          historyMessages: [...prev.historyMessages, userMsg]
+        }));
       } catch (error: any) {
         if (error.name === 'AbortError') {
           console.log('🔌 Request aborted');
@@ -552,7 +513,7 @@ export const useAgentChat = ({
     };
 
     await attemptRequest();
-  }, [state.conversationId, createConversation, attemptRecovery, processWithDirectLLM, processWithEdgeFunction, useDirectLLM, user, session]);
+  }, [state.conversationId, createConversation, attemptRecovery,  processWithEdgeFunction, useDirectLLM, user, session]);
 
   const retry = useCallback(() => {
     if (state.error) {
@@ -572,12 +533,19 @@ export const useAgentChat = ({
   };
 };
 
-// Helper functions for direct LLM usage
-function generateSystemPrompt(stageId: string, currentStageData: any, allStageData: any): string {
-  // This should match your Edge Function's prompt generation logic
+// Helper functions for direct LLM usage should match edge function implementation!!
+function generateSystemPrompt(
+  stageId: string, 
+  currentStageData: any, 
+  allStageData: any, 
+  memory: any, 
+  recommendations: any[]
+): string {
   return `You are an AI assistant helping users with stage ${stageId}. 
 Current stage data: ${JSON.stringify(currentStageData)}
 All stage data: ${JSON.stringify(allStageData)}
+Memory context: ${JSON.stringify(memory)}
+Recommendations: ${JSON.stringify(recommendations)}
 
 Please provide helpful responses and suggest next steps. Format your response as JSON with:
 {
@@ -588,9 +556,13 @@ Please provide helpful responses and suggest next steps. Format your response as
 }`;
 }
 
-function generateUserPrompt(userMessage: string, currentStageData: any): string {
+function generateUserPrompt(userMessage: string, currentStageData: any, historyMessages: ChatMessage[]): string {
+  const recentHistory = historyMessages.slice(-5).map(msg => `${msg.type}: ${msg.content}`).join('\n');
+  
   return `User message: ${userMessage}
-Current context: ${JSON.stringify(currentStageData)}`;
+Current context: ${JSON.stringify(currentStageData)}
+Recent conversation:
+${recentHistory}`;
 }
 
 function parseAgentResponse(content: string): {

@@ -5,6 +5,7 @@ import { CanvasConnection } from './CanvasConnection';
 import { CanvasToolbar } from './CanvasToolbar';
 import { Stage, StageData } from '../../types';
 
+
 interface SpatialCanvasProps {
   currentStage?: Stage;
   stageData: StageData;
@@ -15,11 +16,12 @@ interface Connection {
   id: string;
   from: string;
   to: string;
+  type?: 'reference' | 'dependency' | 'flow';
 }
 
+
 export const SpatialCanvas: React.FC<SpatialCanvasProps> = ({
-  currentStage,
-  stageData,
+  stageData
 }) => {
   const canvasRef = useRef<HTMLDivElement>(null);
   const [nodes, setNodes] = useState<CanvasNodeData[]>([]);

@@ -14,17 +14,17 @@ import {
 import { 
   GiBroom,
   GiSave,
-  GiSmashArrow,
+  GiSmashArrows,
   GiLightBulb,
-  GiLightningBolt,
-  GiPeople,
+  GiEnergise,
+  GiPerson,
   GiWindow,
   GiDatabase,
-  GiSpeech,
+  GiConversation,
   GiCube,
   GiAtom,
   GiMagicSwirl,
-  GiTreeStructure,
+  GiTreeBranch,
   GiCircuitry
 } from 'react-icons/gi';
 import { CanvasNodeData } from './CanvasNode';
@@ -62,22 +62,22 @@ export const CanvasToolbar: React.FC<CanvasToolbarProps> = ({
 }) => {
   const nodeTypes = [
     { type: 'concept' as const, label: 'Concept', icon: GiLightBulb, color: 'text-yellow-600' },
-    { type: 'feature' as const, label: 'Feature', icon: GiLightningBolt, color: 'text-blue-600' },
-    { type: 'ux-flow' as const, label: 'UX Flow', icon: GiPeople, color: 'text-green-600' },
+    { type: 'feature' as const, label: 'Feature', icon: GiEnergise, color: 'text-blue-600' },
+    { type: 'ux-flow' as const, label: 'UX Flow', icon: GiPerson, color: 'text-green-600' },
     { type: 'wireframe' as const, label: 'Wireframe', icon: GiWindow, color: 'text-purple-600' },
     { type: 'system' as const, label: 'System', icon: GiDatabase, color: 'text-red-600' },
-    { type: 'agent-output' as const, label: 'AI Output', icon: GiSpeech, color: 'text-gray-600' },
+    { type: 'agent-output' as const, label: 'AI Output', icon: GiConversation, color: 'text-gray-600' },
   ];
 
   const layoutTools = [
     { action: onToggleGrid, icon: Grid, label: 'Toggle Grid', active: showGrid },
-    { action: onAutoLayout, icon: GiTreeStructure, label: 'Auto Layout', active: false },
+    { action: onAutoLayout, icon: GiTreeBranch, label: 'Auto Layout', active: false },
     { action: onResetView, icon: RotateCcw, label: 'Reset View', active: false },
   ];
 
   const actionTools = [
     { action: onSave, icon: GiSave, label: 'Save Canvas' },
-    { action: onExport, icon: GiSmashArrow, label: 'Export Canvas' },
+    { action: onExport, icon: GiSmashArrows, label: 'Export Canvas' },
     ...(onClearCanvas ? [{ action: onClearCanvas, icon: GiBroom, label: 'Clear Canvas' }] : []),
   ];
 
