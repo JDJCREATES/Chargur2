@@ -95,48 +95,45 @@ export const useAgentChat = ({
       }
 
       console.log('🔐 Creating conversation with authenticated user:', user.id);
+      console.log('🌐 Supabase URL:', supabaseUrl);
+      console.log('🔑 Has anon key:', !!supabaseAnonKey);
+      
+      const requestBody = {
+        stage_id: stageId,
+        metadata: {
+          currentStageData,
+          allStageData,
+          timestamp: new Date().toISOString(),
+          llmProvider,
+          useDirectLLM
+        }
+      };
+      
+      console.log('📦 Request body:', requestBody);
+
       const response = await fetch(`${supabaseUrl}/rest/v1/chat_conversations`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
           'Authorization': `Bearer ${session.access_token}`,
           'apikey': supabaseAnonKey,
+          'Prefer': 'return=representation'  // Add this to get the created record back
         },
-        body: JSON.stringify({
-          stage_id: stageId,
-          metadata: {
-            currentStageData,
-            allStageData,
-            timestamp: new Date().toISOString(),
-            llmProvider,
-            useDirectLLM
-          }
-        })
+        body: JSON.stringify(requestBody)
       });
 
+      console.log('📡 Response status:', response.status);
+      console.log('📋 Response headers:', Object.fromEntries(response.headers.entries()));
+
       if (!response.ok) {
-        let errorMessage = 'Unknown error';
-        
-        try {
-          const responseText = await response.text();
-          if (responseText.trim()) {
-            try {
-              const errorData = JSON.parse(responseText);
-              errorMessage = errorData.message || errorData.error || 'Server error';
-            } catch (parseError) {
-              errorMessage = responseText;
-            }
-          } else {
-            errorMessage = `HTTP ${response.status}: ${response.statusText}`;
-          }
-        } catch (textError) {
-          errorMessage = `HTTP ${response.status}: ${response.statusText}`;
-        }
-        
-        throw new Error(`Failed to create conversation: ${response.status} - ${errorMessage}`);
+        const responseText = await response.text();
+        console.log('❌ Error response text:', responseText);
+        throw new Error(`Failed to create conversation: ${response.status} - ${responseText}`);
       }
 
       const responseText = await response.text();
+      console.log('✅ Success response text:', responseText);
+      
       if (!responseText.trim()) {
         throw new Error('Empty response from server');
       }
