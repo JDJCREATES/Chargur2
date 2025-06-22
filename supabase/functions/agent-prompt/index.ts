@@ -264,6 +264,7 @@ async function processAgentRequest(controller: ReadableStreamDefaultController, 
   // Track stream state more reliably
   let streamClosed = false
   let tokenIndex = (lastTokenIndex || -1) + 1
+  let heartbeatInterval: number | null = null
 
   // Helper function to safely enqueue data
   const safeEnqueue = (data: any): boolean => {
@@ -293,6 +294,13 @@ async function processAgentRequest(controller: ReadableStreamDefaultController, 
       return
     }
     
+    // Clear heartbeat interval when closing
+    if (heartbeatInterval !== null) {
+      clearInterval(heartbeatInterval)
+      heartbeatInterval = null
+      console.log('💓 Heartbeat interval cleared')
+    }
+    
     try {
       controller.close()
       streamClosed = true
@@ -307,9 +315,47 @@ async function processAgentRequest(controller: ReadableStreamDefaultController, 
     }
   }
 
+  // Helper function to start heartbeat
+  const startHeartbeat = () => {
+    if (heartbeatInterval !== null) return // Already started
+    
+    console.log('💓 Starting heartbeat to keep connection alive')
+    heartbeatInterval = setInterval(() => {
+      if (streamClosed) {
+        clearInterval(heartbeatInterval!)
+        heartbeatInterval = null
+        return
+      }
+      
+      const pingData = {
+        type: 'ping',
+        timestamp: new Date().toISOString(),
+        conversationId
+      }
+      
+      if (!safeEnqueue(pingData)) {
+        console.log('💓 Heartbeat failed - client disconnected')
+        clearInterval(heartbeatInterval!)
+        heartbeatInterval = null
+      }
+    }, 12000) // Send heartbeat every 12 seconds
+  }
+  
+  // Helper function to stop heartbeat
+  const stopHeartbeat = () => {
+    if (heartbeatInterval !== null) {
+      clearInterval(heartbeatInterval)
+      heartbeatInterval = null
+      console.log('💓 Heartbeat stopped')
+    }
+  }
+
   try {
     console.log('🔍 Starting processAgentRequest for stage:', stageId)
     console.log('📝 User message:', userMessage)
+    
+    // Start heartbeat immediately to keep connection alive during processing
+    startHeartbeat()
     
     // Initialize LLM client
     console.log('🤖 Initializing LLM client...')
@@ -330,6 +376,9 @@ async function processAgentRequest(controller: ReadableStreamDefaultController, 
       promptData.maxTokens
     )
     console.log('✅ LLM response received')
+    
+    // Stop heartbeat once we start streaming actual content
+    stopHeartbeat()
     
     // Early check if stream is still open
     if (streamClosed) {
@@ -397,6 +446,9 @@ async function processAgentRequest(controller: ReadableStreamDefaultController, 
       message: error.message,
       stack: error.stack
     })
+    
+    // Stop heartbeat on error
+    stopHeartbeat()
     
     // Handle stream errors gracefully
     if (!streamClosed) {
