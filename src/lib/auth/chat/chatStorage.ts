@@ -38,6 +38,7 @@ export interface ChatResponseToken {
 export interface ChatResponse {
   id: string;
   conversation_id: string;
+  user_prompt: string;
   full_content: string;
   suggestions: string[];
   auto_fill_data: any;

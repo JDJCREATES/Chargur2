@@ -29,8 +29,8 @@ export class ChatRecoveryManager {
       console.log('🔄 Attempting to recover conversation:', conversationId);
       
       // Check for complete response first
-      const completeResponse = await this.getCompleteResponse(conversationId);
-      if (completeResponse) {
+      const completeResponse = await ChatStorageManager.getCompleteResponse(conversationId);
+      if (completeResponse && completeResponse.is_complete) {
         return {
           success: true,
           content: completeResponse.full_content,
@@ -42,13 +42,27 @@ export class ChatRecoveryManager {
       }
       
       // Check for partial content in conversation
-      const conversation = await this.getConversation(conversationId);
-      if (conversation?.last_content) {
+      const conversation = await ChatStorageManager.getConversation(conversationId);
+      if (conversation?.metadata?.last_content) {
         return {
           success: true,
-          content: conversation.last_content,
+          content: conversation.metadata.last_content,
           isComplete: false
         };
+      }
+      
+      // Try to reconstruct from any saved tokens (if you still have them)
+      try {
+        const reconstructedContent = await ChatStorageManager.reconstructContentFromTokens(conversationId);
+        if (reconstructedContent) {
+          return {
+            success: true,
+            content: reconstructedContent,
+            isComplete: false
+          };
+        }
+      } catch (error) {
+        console.warn('⚠️ Could not reconstruct from tokens:', error);
       }
       
       return {
@@ -108,9 +122,7 @@ export class ChatRecoveryManager {
       throw new Error('Missing Supabase environment variables');
     }
     
-    // Get the last token index using ChatStorageManager
-    const lastTokenIndex = await ChatStorageManager.getLastTokenIndex(conversationId);
-    console.log('🔄 Resuming streaming from token index:', lastTokenIndex);
+    console.log('🔄 Resuming streaming for conversation:', conversationId);
     
     return fetch(`${supabaseUrl}/functions/v1/agent-prompt`, {
       method: 'POST',
@@ -121,7 +133,6 @@ export class ChatRecoveryManager {
       body: JSON.stringify({
         ...agentContext,
         conversationId,
-        lastTokenIndex,
         resumeStreaming: true
       }),
       // Add a longer timeout for the fetch request
@@ -135,9 +146,8 @@ export class ChatRecoveryManager {
   static async getRecoveryStatus(conversationId: string): Promise<{
     conversationExists: boolean;
     conversationStatus?: string;
-    tokenCount: number;
+    hasContent: boolean;
     isComplete: boolean;
-    lastTokenIndex: number;
   }> {
     try {
       const conversation = await ChatStorageManager.getConversation(conversationId);
@@ -145,40 +155,36 @@ export class ChatRecoveryManager {
       if (!conversation) {
         return {
           conversationExists: false,
-          tokenCount: 0,
-          isComplete: false,
-          lastTokenIndex: -1
+          hasContent: false,
+          isComplete: false
         };
       }
       
       const isComplete = await ChatStorageManager.isConversationComplete(conversationId);
-      const lastTokenIndex = await ChatStorageManager.getLastTokenIndex(conversationId);
-      const tokens = await ChatStorageManager.getTokensAfterIndex(conversationId, -1);
+      const completeResponse = await ChatStorageManager.getCompleteResponse(conversationId);
+      const hasContent = !!(completeResponse?.full_content || conversation.metadata?.last_content);
       
       console.log('📊 Recovery status:', {
         conversationId,
         conversationExists: true,
         conversationStatus: conversation.status,
-        tokenCount: tokens.length,
-        isComplete,
-        lastTokenIndex
+        hasContent,
+        isComplete
       });
       
       return {
         conversationExists: true,
         conversationStatus: conversation.status,
-        tokenCount: tokens.length,
-        isComplete,
-        lastTokenIndex
+        hasContent,
+        isComplete
       };
       
     } catch (error) {
       console.error('Failed to get recovery status:', error);
       return {
         conversationExists: false,
-        tokenCount: 0,
-        isComplete: false,
-        lastTokenIndex: -1
+        hasContent: false,
+        isComplete: false
       };
     }
   }
@@ -253,23 +259,22 @@ export class ChatRecoveryManager {
         return { isValid: false, issues, canRecover: false };
       }
       
-      // Check for tokens
-      const tokens = await ChatStorageManager.getTokensAfterIndex(conversationId, -1);
-      if (tokens.length === 0) {
-        issues.push('No tokens found');
+      // Check for complete response
+      const completeResponse = await ChatStorageManager.getCompleteResponse(conversationId);
+      if (completeResponse && completeResponse.is_complete) {
+        // Conversation is complete and valid
+        return { isValid: true, issues, canRecover: true };
       }
       
-      // Check for gaps in token sequence
-      const tokenIndexes = tokens.map(t => t.token_index).sort((a, b) => a - b);
-      for (let i = 1; i < tokenIndexes.length; i++) {
-        if (tokenIndexes[i] !== tokenIndexes[i-1] + 1) {
-          issues.push(`Token sequence gap between ${tokenIndexes[i-1]} and ${tokenIndexes[i]}`);
-        }
+      // Check for partial content
+      const hasPartialContent = !!(conversation.metadata?.last_content);
+      if (!hasPartialContent) {
+        issues.push('No content found');
       }
       
       // Check if conversation is in a recoverable state
       const canRecover = conversation.status === 'active' || 
-                        (conversation.status === 'failed' && tokens.length > 0);
+                        (conversation.status === 'failed' && hasPartialContent);
       
       return {
         isValid: issues.length === 0,
