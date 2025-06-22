@@ -51,6 +51,8 @@ const getCorsHeaders = (request: Request) => ({
   'Access-Control-Expose-Headers': 'content-type, cache-control',
 })
 
+const corsHeaders = getCorsHeaders({ headers: { get: () => null } } as Request)
+
 // LLM Client for Edge Functions
 class EdgeLLMClient {
   private apiKey: string
@@ -217,6 +219,8 @@ interface AgentResponse {
 }
 
 serve(async (req) => {
+  const corsHeaders = getCorsHeaders(req)
+  
   // Handle CORS preflight requests
   if (req.method === 'OPTIONS') {
     return new Response('ok', { headers: corsHeaders })
@@ -238,7 +242,7 @@ serve(async (req) => {
 
     return new Response(stream, {
       headers: {
-        ...corsHeaders,
+        ...getCorsHeaders(req),
         'Content-Type': 'text/event-stream',
         'Cache-Control': 'no-cache',
         'Connection': 'keep-alive',
@@ -252,7 +256,7 @@ serve(async (req) => {
       JSON.stringify({ error: 'Internal server error' }),
       {
         status: 500,
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+        headers: { ...getCorsHeaders(req), 'Content-Type': 'application/json' },
       }
     )
   }
@@ -537,12 +541,13 @@ function parseAndValidateResponse(llmResponse: string, stageId: string): AgentRe
 
 // Additional helper functions for error handling and response validation
 function validateEnvironmentVariables(): void {
-  const requiredVars = ['OPENAI_API_KEY']
+  const requiredVars = ['OPENAI_API_KEY', 'ANTHROPIC_API_KEY']
   const missingVars = requiredVars.filter(varName => !Deno.env.get(varName))
   
   if (missingVars.length > 0) {
-    console.warn(`Missing environment variables: ${missingVars.join(', ')}`)
-    console.warn('Falling back to mock responses for development')
+    console.error(`❌ Missing environment variables: ${missingVars.join(', ')}`)
+    console.error('🔧 Please set these environment variables in your Supabase project settings')
+    console.error('📋 Available environment variables:', Object.keys(Deno.env.toObject()))
   }
 }
 

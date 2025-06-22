@@ -12,6 +12,7 @@ import { CanvasHeader } from './CanvasHeader';
 import { SpatialCanvas } from '../canvas/SpatialCanvas';
 import { useAgent } from '../agent/AgentContextProvider';
 import { ChatStorageManager } from '../../lib/auth/chat/chatStorage';
+import { ChatRecoveryManager } from '../../lib/auth/chat/chatRecovery';
 import { Stage } from '../../types';
 
 interface CanvasProps {
