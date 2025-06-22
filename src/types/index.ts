@@ -4,7 +4,6 @@ export interface Stage {
   description: string;
   completed: boolean;
   active: boolean;
-  comingSoon?: boolean;
 }
 
 export interface StageData {

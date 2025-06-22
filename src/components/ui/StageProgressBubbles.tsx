@@ -50,7 +50,6 @@ export const StageProgressBubbles: React.FC<StageProgressBubblesProps> = ({
       {stages.map((stage, index) => {
         const isActive = stage.active;
         const isCompleted = stage.completed;
-        const isComingSoon = stage.comingSoon;
         
         return (
           <motion.div
@@ -61,10 +60,9 @@ export const StageProgressBubbles: React.FC<StageProgressBubblesProps> = ({
             transition={{ delay: index * 0.1, duration: 0.3 }}
           >
             <motion.button
-              onClick={() => !isComingSoon && onStageClick(stage.id)}
-              disabled={isComingSoon}
-              whileHover={!isComingSoon ? { scale: 1.05 } : {}}
-              whileTap={!isComingSoon ? { scale: 0.95 } : {}}
+              onClick={() => onStageClick(stage.id)}
+              whileHover={{ scale: 1.05 }}
+              whileTap={{ scale: 0.95 }}
               className={`
                 relative flex items-center justify-center rounded-full font-medium transition-all duration-300 group
                 ${isActive 
@@ -75,8 +73,6 @@ export const StageProgressBubbles: React.FC<StageProgressBubblesProps> = ({
                   ? 'bg-gradient-to-br from-green-400 to-green-600 text-white shadow-md hover:shadow-lg'
                   : isActive
                   ? 'bg-gradient-to-br from-blue-500 to-blue-700 text-white shadow-md'
-                  : isComingSoon
-                  ? 'bg-gradient-to-br from-gray-200 to-gray-300 text-gray-400 cursor-not-allowed'
                   : 'bg-gradient-to-br from-gray-100 to-gray-200 text-gray-600 hover:from-gray-200 hover:to-gray-300 hover:shadow-md'
                 }
               `}
@@ -161,9 +157,6 @@ export const StageProgressBubbles: React.FC<StageProgressBubblesProps> = ({
                 <div className={`font-medium text-gray-800 truncate ${sizeClasses[size].text}`}>
                   {stage.title}
                 </div>
-                {isComingSoon && (
-                  <div className="text-xs text-gray-500">Coming Soon</div>
-                )}
               </motion.div>
             )}
 
