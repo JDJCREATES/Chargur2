@@ -142,6 +142,8 @@ export class ChatRecoveryManager {
       throw new Error('Missing Supabase environment variables');
     }
     
+    console.log('🔄 Resuming streaming from token index:', lastTokenIndex);
+    
     return fetch(`${supabaseUrl}/functions/v1/agent-prompt`, {
       method: 'POST',
       headers: {
@@ -154,6 +156,8 @@ export class ChatRecoveryManager {
         lastTokenIndex,
         resumeStreaming: true
       }),
+      // Add a longer timeout for the fetch request
+      signal: AbortSignal.timeout(2 * 60 * 1000), // 2 minute timeout
     });
   }
   
@@ -184,6 +188,15 @@ export class ChatRecoveryManager {
       const lastTokenIndex = await ChatStorageManager.getLastTokenIndex(conversationId);
       const tokens = await ChatStorageManager.getTokensAfterIndex(conversationId, -1);
       const isComplete = await ChatStorageManager.isConversationComplete(conversationId);
+      
+      console.log('📊 Recovery status:', {
+        conversationId,
+        exists: !!conversation,
+        status: conversation?.status,
+        tokenCount: tokens.length,
+        lastTokenIndex,
+        isComplete
+      });
       
       return {
         conversationExists: !!conversation,
