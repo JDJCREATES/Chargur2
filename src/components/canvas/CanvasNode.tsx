@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { motion } from 'framer-motion';
+import {
   Edit3,
   Trash2,
   Link,
@@ -233,6 +234,5 @@ const getNodeIcon = () => {
           </button>
         )}
     </div>
- * New code should use DefaultCanvasNode.tsx and DraggableConnectableWrapper.tsx.
   );
 };
