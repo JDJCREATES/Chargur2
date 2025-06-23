@@ -221,7 +221,6 @@ interface AgentRequest {
   memory: any
   recommendations?: any[]
   conversationId?: string
-  lastTokenIndex?: number
   llmProvider?: 'openai' | 'anthropic'
 }
 

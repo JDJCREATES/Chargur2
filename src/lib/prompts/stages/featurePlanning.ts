@@ -39,9 +39,16 @@ ${JSON.stringify(currentStageData, null, 2)}
 
 AUTO-FILL STRATEGY:
 1. Analyze app idea keywords for feature pack suggestions
-2. Consider target users for feature prioritization
+2. Design appropiate feature prioritization based on the user personas
 3. Suggest custom features based on unique value proposition
-4. Recommend MVP feature subset for initial launch`;
+4. Recommend MVP feature subset for initial launch
+
+STAGE COMPLETION CRITERIA:
+Mark this stage as complete when you have provided a comprehensive feature plan or when the user indicates they are satisfied with the current plan or when the user indicates they want to proceed to the next stage.
+`;
+
+
+
 
   const userPrompt = `User message: "${userMessage}"
 
@@ -49,7 +56,7 @@ Based on the app concept and user message, help plan features strategically. Con
 
 Provide intelligent feature recommendations and help prioritize for MVP success.
 
-Respond in this exact JSON format:
+Respond in this exact JSON format with no comments or extra whitespace:
 {
   "content": "Your strategic response about feature planning",
   "suggestions": ["Feature suggestion 1", "Priority guidance", "MVP advice"],

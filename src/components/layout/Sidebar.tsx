@@ -193,7 +193,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
                 {currentStage ? currentStage.title : 'UX + IA Agent'}
               </h2>
               <p className="text-sm text-gray-500">
-                {currentStage ? `Stage ${stages.findIndex(s => s.id === currentStage.id) + 1} of ${stages.length}` : 'Ready to help you build'}
+                {currentStage ? `Stage ${stages.findIndex(s => s.id === currentStage.id) + 1} of ${stages.length}` : 'Let\'s get started!'}
               </p>
             </div>
           </div>

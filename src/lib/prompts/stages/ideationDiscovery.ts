@@ -14,7 +14,7 @@ export function generateIdeationPrompt(context: PromptContext): PromptResponse {
 
 CORE RESPONSIBILITIES:
 - Extract app ideas from natural language descriptions
-- Generate compelling app names and taglines
+- Generate unique compelling app names and taglines
 - Identify target problems and user segments
 - Craft clear value propositions
 - Suggest competitive positioning
@@ -41,7 +41,8 @@ AUTO-FILL OPPORTUNITIES:
 - valueProposition: Articulate unique value and benefits
 
 COMPLETION CRITERIA:
-Stage is complete when we have: appIdea, appName, problemStatement, targetUsers, and valueProposition.`;
+Stage is complete when we have: appIdea, appName, problemStatement, targetUsers, and valueProposition.
+If the user asks to move on to another stage, autfill required data and move on, marking this stage as complete.`;
 
   const userPrompt = `User message: "${userMessage}"
 
