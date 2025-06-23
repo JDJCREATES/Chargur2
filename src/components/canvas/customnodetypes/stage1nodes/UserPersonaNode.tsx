@@ -22,6 +22,8 @@ interface PersonaNodeData {
 
 interface UserPersonaNodeProps {
   node: PersonaNodeData;
+}
+
 export const UserPersonaNode: React.FC<UserPersonaNodeProps> = ({
   node,
   isSelected,
