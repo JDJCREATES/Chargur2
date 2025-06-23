@@ -93,42 +93,61 @@ export class CanvasDataProcessor {
 
     const newNodes: CanvasNodeData[] = [];
 
-    // Remove old ideation nodes to replace with updated ones
-    const filteredNodes = currentState.nodes.filter(node => 
-      !node.metadata?.stage || 
-      node.metadata.stage !== 'ideation-discovery' ||
-      !Object.values(STAGE1_NODE_TYPES).includes(node.type as any)
-    );
+    // Only replace specific singleton nodes (like app name), not all ideation nodes
+    const existingAppNameNode = currentState.nodes.find(node => node.id === STAGE1_NODE_TYPES.APP_NAME);
+    const existingTaglineNode = currentState.nodes.find(node => node.id === STAGE1_NODE_TYPES.TAGLINE);
+    const existingCoreProblemNode = currentState.nodes.find(node => node.id === STAGE1_NODE_TYPES.CORE_PROBLEM);
+    const existingMissionNode = currentState.nodes.find(node => node.id === STAGE1_NODE_TYPES.MISSION);
+    const existingValuePropNode = currentState.nodes.find(node => node.id === STAGE1_NODE_TYPES.VALUE_PROPOSITION);
 
-    // Create custom ideation nodes based on data
-    if (ideationData.appName) {
+    // Create or update singleton nodes (these should replace existing ones)
+    if (ideationData.appName && (!existingAppNameNode || existingAppNameNode.value !== ideationData.appName)) {
       newNodes.push(this.createAppNameNode(ideationData.appName));
     }
 
-    if (ideationData.tagline) {
+    if (ideationData.tagline && (!existingTaglineNode || existingTaglineNode.value !== ideationData.tagline)) {
       newNodes.push(this.createTaglineNode(ideationData.tagline));
     }
 
-    if (ideationData.problemStatement) {
+    if (ideationData.problemStatement && (!existingCoreProblemNode || existingCoreProblemNode.value !== ideationData.problemStatement)) {
       newNodes.push(this.createCoreProblemNode(ideationData.problemStatement));
     }
 
-    if (ideationData.appIdea) {
+    if (ideationData.appIdea && (!existingMissionNode || existingMissionNode.value !== ideationData.appIdea)) {
       newNodes.push(this.createMissionNode(ideationData.appIdea));
     }
 
-    if (ideationData.valueProposition) {
+    if (ideationData.valueProposition && (!existingValuePropNode || existingValuePropNode.value !== ideationData.valueProposition)) {
       newNodes.push(this.createValuePropNode(ideationData.valueProposition));
     }
 
-    // Create user persona nodes
+    // For multi-instance nodes like user personas, only add new ones
     if (ideationData.userPersonas && Array.isArray(ideationData.userPersonas)) {
+      const existingPersonas = currentState.nodes.filter(node => 
+        node.metadata?.stage === 'ideation-discovery' && node.metadata?.nodeType === 'userPersona'
+      );
+    
+      // Only add personas that don't already exist
       ideationData.userPersonas.forEach((persona: any, index: number) => {
-        newNodes.push(this.createUserPersonaNode(persona, index));
+        const personaExists = existingPersonas.some(existing => 
+          existing.name === persona.name && existing.role === persona.role
+        );
+      
+        if (!personaExists) {
+          newNodes.push(this.createUserPersonaNode(persona, index));
+        }
       });
     } else if (ideationData.targetUsers && !ideationData.userPersonas) {
-      // Fallback for legacy targetUsers
-      newNodes.push(this.createLegacyUserPersonaNode(ideationData.targetUsers));
+      // Check if legacy persona already exists
+      const legacyPersonaExists = currentState.nodes.some(node => 
+        node.metadata?.stage === 'ideation-discovery' && 
+        node.metadata?.nodeType === 'userPersona' &&
+        node.painPoint === ideationData.targetUsers
+      );
+    
+      if (!legacyPersonaExists) {
+        newNodes.push(this.createLegacyUserPersonaNode(ideationData.targetUsers));
+      }
     }
 
     return newNodes;

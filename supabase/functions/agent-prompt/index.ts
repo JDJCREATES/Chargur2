@@ -241,7 +241,8 @@ async function saveCompleteResponse(
   supabase: any,
   conversationId: string,
   response: any,
-  userPrompt: string
+  userPrompt: string,
+  userId?: string  // Add this parameter
 ) {
   try {
     const { error } = await supabase
@@ -256,7 +257,8 @@ async function saveCompleteResponse(
         is_complete: true,
         context: {
           timestamp: new Date().toISOString(),
-          model_used: 'gpt-4o-mini'
+          model_used: 'gpt-4o-mini',
+          user_id: userId  // Use userId here
         }
       })
 
@@ -288,7 +290,7 @@ serve(async (req: Request) => {
     // Create a streaming response with better connection handling
     const stream = new ReadableStream({
       start(controller) {
-        processAgentRequest(controller, requestData)
+        processAgentRequest(controller, requestData, req) // Pass req here
       },
       cancel(reason) {
         console.log('🔌 Stream cancelled by client:', reason)
@@ -338,7 +340,10 @@ serve(async (req: Request) => {
   }
 })
 
-async function processAgentRequest(controller: ReadableStreamDefaultController, request: AgentRequest) {
+async function processAgentRequest(controller: ReadableStreamDefaultController, request: AgentRequest,
+  req: Request) {
+
+  
   const { 
     stageId, 
     currentStageData, 
@@ -347,7 +352,6 @@ async function processAgentRequest(controller: ReadableStreamDefaultController, 
     memory, 
     recommendations, 
     conversationId, 
-    lastTokenIndex,
     llmProvider = 'openai'
   } = request
 
@@ -363,9 +367,22 @@ async function processAgentRequest(controller: ReadableStreamDefaultController, 
   const supabase = createClient(supabaseUrl, supabaseServiceKey)
   console.log('✅ Supabase client initialized for database operations')
 
+    // Get user from JWT token
+  const authHeader = req.headers.get('authorization')
+  const token = authHeader?.replace('Bearer ', '')
+  
+  let userId = null
+  if (token) {
+    try {
+      const { data: { user } } = await supabase.auth.getUser(token)
+      userId = user?.id
+    } catch (error) {
+      console.error('Failed to get user from token:', error)
+    }
+  }
+
   // Track stream state more reliably
   let streamClosed = false
-  let tokenIndex = (lastTokenIndex || -1) + 1
   let heartbeatInterval: number | null = null
 
   // Helper function to safely enqueue data
@@ -471,7 +488,6 @@ async function processAgentRequest(controller: ReadableStreamDefaultController, 
     // Generate stage-specific prompt using modular system
     console.log('📋 Generating stage-specific prompt...')
     const promptData = EdgeStagePromptEngine.generatePrompt(request)
-    console.log('✅ Prompt generated successfully')
     
     // Get LLM response (not streaming in this simplified version)
     console.log('🚀 Calling LLM API...')
@@ -524,7 +540,7 @@ async function processAgentRequest(controller: ReadableStreamDefaultController, 
       }
       
       if (safeEnqueue(completionData)) {
-        await saveCompleteResponse(supabase, conversationId!, response, userMessage)
+        await saveCompleteResponse(supabase, conversationId!, response, userMessage, userId)
       }
     }
     
@@ -654,45 +670,5 @@ function parseAndValidateResponse(llmResponse: string, stageId: string): AgentRe
       stageComplete: false,
       context: { parseError: true, originalResponse: llmResponse }
     }
-  }
-}
-
-// Additional helper functions for error handling and response validation
-function validateEnvironmentVariables(): void {
-  const requiredVars = ['OPENAI_API_KEY'] // Only require OpenAI key
-  const missingVars = requiredVars.filter(varName => !Deno.env.get(varName))
-  
-  if (missingVars.length > 0) {
-    console.error(`❌ Missing environment variables: ${missingVars.join(', ')}`)
-    console.error('🔧 Please set these environment variables in your Supabase project settings')
-    // Don't log all env vars for security
-    console.error('📋 Required: OPENAI_API_KEY')
-  }
-}
-
-// Initialize environment check
-validateEnvironmentVariables()
-
-// Just save conversation state for recovery
-async function saveConversationState(
-  supabase: any,
-  conversationId: string,
-  state: 'streaming' | 'completed' | 'failed',
-  lastContent?: string
-) {
-  try {
-    const { error } = await supabase
-      .from('chat_conversations')
-      .update({ 
-        status: state,
-        last_content: lastContent,
-        updated_at: new Date().toISOString()
-      })
-      .eq('id', conversationId)
-
-    if (error) throw error
-    console.log(`✅ Conversation state updated: ${state}`)
-  } catch (error) {
-    console.error('❌ Failed to save conversation state:', error)
   }
 }

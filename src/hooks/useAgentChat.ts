@@ -179,44 +179,56 @@ export const useAgentChat = ({
   // Load chat history from database
   const loadChatHistory = useCallback(async (conversationId: string) => {
     try {
-      console.log('📚 Loading chat history for conversation:', conversationId);
-      const chatResponses = await ChatStorageManager.getChatResponsesForConversation(conversationId);
-      
-      const historyMessages: ChatMessage[] = [];
-      
-      chatResponses.forEach((response) => {
-        // Add user message
-        if (response.user_prompt) {
-          historyMessages.push({
-            id: `user-${response.id}`,
-            content: response.user_prompt,
-            timestamp: new Date(response.created_at),
-            type: 'user',
-          });
+      if (!session?.access_token) return;
+
+      const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
+      const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY;
+
+      const response = await fetch(
+        `${supabaseUrl}/rest/v1/chat_responses?conversation_id=eq.${conversationId}&order=created_at.asc`,
+        {
+          headers: {
+            'Authorization': `Bearer ${session.access_token}`,
+            'apikey': supabaseAnonKey,
+          }
         }
+      );
+
+      if (response.ok) {
+        const responses = await response.json();
+        const historyMessages: ChatMessage[] = [];
         
-        // Add assistant message
-        if (response.full_content) {
-          historyMessages.push({
-            id: `assistant-${response.id}`,
-            content: response.full_content,
-            timestamp: new Date(response.updated_at || response.created_at),
-            type: 'assistant',
-            suggestions: response.suggestions || [],
-            autoFillData: response.auto_fill_data || {},
-            isComplete: response.is_complete || false,
-          });
-        }
-      });
-      
-      console.log('✅ Loaded chat history:', historyMessages.length, 'messages');
-      setState(prev => ({ ...prev, historyMessages }));
-      
+        responses.forEach((resp: any) => {
+          // Add user message
+          if (resp.user_prompt) {
+            historyMessages.push({
+              id: `user-${resp.id}`,
+              content: resp.user_prompt,
+              timestamp: new Date(resp.created_at),
+              type: 'user',
+            });
+          }
+          
+          // Add AI response
+          if (resp.full_content && resp.is_complete) {
+            historyMessages.push({
+              id: `assistant-${resp.id}`,
+              content: resp.full_content,
+              timestamp: new Date(resp.created_at),
+              type: 'assistant',
+              suggestions: resp.suggestions || [],
+              autoFillData: resp.auto_fill_data || {},
+              isComplete: resp.is_complete,
+            });
+          }
+        });
+        
+        setState(prev => ({ ...prev, historyMessages }));
+      }
     } catch (error) {
       console.error('❌ Failed to load chat history:', error);
-      // Don't throw - continue without history
     }
-  }, []);
+  }, [session]);
   
 
   // REPLACE the entire processWithEdgeFunction with this:
