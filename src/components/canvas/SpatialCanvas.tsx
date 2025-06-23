@@ -779,7 +779,7 @@ export const SpatialCanvas: React.FC<SpatialCanvasProps> = ({
   };
 
   return (
-    <div className="relative w-full h-96 overflow-hidden bg-gray-50 rounded-lg border border-gray-200">
+    <div className="relative w-full h-full flex flex-col overflow-hidden bg-gray-50 rounded-lg border border-gray-200">
       <CanvasToolbar
         onAddNode={addNode}
         onZoomIn={() => setScale(prev => Math.min(3, prev * 1.2))}

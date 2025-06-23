@@ -94,7 +94,7 @@ export const CanvasToolbar: React.FC<CanvasToolbarProps> = ({
       initial={{ y: 100, opacity: 0 }}
       animate={{ y: 0, opacity: 1 }}
       transition={{ type: "spring", stiffness: 300, damping: 30 }}
-      className="absolute bottom-4 left-4 z-20"
+      className="absolute bottom-2 left-4 z-20"
     >
       {/* Toggle Button - Always Visible */}
       <motion.button
