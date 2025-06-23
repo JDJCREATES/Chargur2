@@ -409,6 +409,18 @@ const processWithEdgeFunction = useCallback(async (
       abortControllerRef.current.abort();
     }
 
+    // Add user message to history immediately
+    const userMsg: ChatMessage = {
+      id: `user-${Date.now()}`,
+      content: userMessage,
+      timestamp: new Date(),
+      type: 'user',
+    };
+    
+    setState(prev => ({
+      ...prev,
+      historyMessages: [...prev.historyMessages, userMsg]
+    }));
     // Reset state
     setState(prev => ({
       ...prev,
@@ -442,22 +454,30 @@ const processWithEdgeFunction = useCallback(async (
         console.log('🔄 Using Edge Function processing');
         await processWithEdgeFunction(conversationId, userMessage, controller.signal);
         
-        // Success
-        setState(prev => ({ ...prev, isLoading: false }));
+        // Success - add AI response to history and clear current response
+        setState(prev => {
+          const aiMsg: ChatMessage = {
+            id: `assistant-${Date.now()}`,
+            content: prev.content,
+            timestamp: new Date(),
+            type: 'assistant',
+            suggestions: prev.suggestions,
+            autoFillData: prev.autoFillData,
+            isComplete: prev.isComplete,
+          };
+          
+          return {
+            ...prev,
+            isLoading: false,
+            historyMessages: [...prev.historyMessages, aiMsg],
+            // Clear current response area
+            content: '',
+            suggestions: [],
+            autoFillData: {},
+            isComplete: false
+          };
+        });
         retryCountRef.current = 0;
-        
-        // Add user message to history
-        const userMsg: ChatMessage = {
-          id: `user-${Date.now()}`,
-          content: userMessage,
-          timestamp: new Date(),
-          type: 'user',
-        };
-        
-        setState(prev => ({
-          ...prev,
-          historyMessages: [...prev.historyMessages, userMsg]
-        }));
       } catch (error: any) {
         if (error.name === 'AbortError') {
           console.log('🔌 Request aborted');
