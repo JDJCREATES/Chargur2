@@ -3,6 +3,17 @@ import { motion } from 'framer-motion';
 import { CanvasNode, CanvasNodeData } from './CanvasNode';
 import { CanvasConnection } from './CanvasConnection';
 import { CanvasToolbar } from './CanvasToolbar';
+import { 
+  AppNameNode, 
+  TaglineNode, 
+  CoreProblemNode, 
+  MissionNode, 
+  UserPersonaNode, 
+  ValuePropositionNode, 
+  CompetitorNode,
+  STAGE1_NODE_TYPES,
+  STAGE1_NODE_DEFAULTS 
+} from './customnodetypes/stage1nodes';
 import { Stage, StageData } from '../../types';
 
 
@@ -86,9 +97,6 @@ export const SpatialCanvas: React.FC<SpatialCanvasProps> = ({
   }, [stageData]);
 
   const updateCanvasFromStageData = () => {
-    const newNodes: CanvasNodeData[] = [];
-    let nodeId = 1;
-
     // Check what data has changed and only add new nodes
     const currentDataHash = JSON.stringify(stageData);
     const lastDataHash = JSON.stringify(lastProcessedData);
@@ -97,87 +105,122 @@ export const SpatialCanvas: React.FC<SpatialCanvasProps> = ({
       return; // No changes, don't update
     }
 
+    const newNodes: CanvasNodeData[] = [];
+    let nodeId = 1;
+
     // Process ideation data
     const ideationData = stageData['ideation-discovery'];
     const lastIdeationData = lastProcessedData['ideation-discovery'] || {};
     
     if (ideationData && JSON.stringify(ideationData) !== JSON.stringify(lastIdeationData)) {
       // Remove old ideation nodes
-      setNodes(prev => prev.filter(node => !node.metadata?.stage || node.metadata.stage !== 'ideation-discovery'));
+      setNodes(prev => prev.filter(node => 
+        !node.metadata?.stage || 
+        node.metadata.stage !== 'ideation-discovery' ||
+        !Object.values(STAGE1_NODE_TYPES).includes(node.type as any)
+      ));
       
-      let xOffset = 100;
-      let yOffset = 100;
-      
-      if (ideationData.appName || ideationData.appIdea) {
+      // Create custom ideation nodes based on data
+      if (ideationData.appName) {
         newNodes.push({
-          id: `concept-${nodeId++}`,
-          type: 'concept',
-          title: ideationData.appName || 'App Concept',
-          content: `${ideationData.tagline || 'No tagline yet'}\n\n${ideationData.appIdea || 'App idea in development...'}`,
-          position: { x: xOffset, y: yOffset },
-          size: { width: 220, height: 140 },
-          color: 'yellow',
+          id: STAGE1_NODE_TYPES.APP_NAME,
+          type: 'appName',
+          title: 'App Name',
+          content: '',
+          position: STAGE1_NODE_DEFAULTS.appName.position,
+          size: STAGE1_NODE_DEFAULTS.appName.size,
+          color: 'appName',
           connections: [],
-          metadata: { stage: 'ideation-discovery' }
+          metadata: { stage: 'ideation-discovery', nodeType: 'appName' },
+          value: ideationData.appName,
+          editable: true,
+          nameHistory: []
         });
-        xOffset += 250;
+      }
+
+      if (ideationData.tagline) {
+        newNodes.push({
+          id: STAGE1_NODE_TYPES.TAGLINE,
+          type: 'tagline',
+          title: 'Tagline',
+          content: '',
+          position: STAGE1_NODE_DEFAULTS.tagline.position,
+          size: STAGE1_NODE_DEFAULTS.tagline.size,
+          color: 'tagline',
+          connections: [],
+          metadata: { stage: 'ideation-discovery', nodeType: 'tagline' },
+          value: ideationData.tagline,
+          editable: true
+        });
       }
 
       if (ideationData.problemStatement) {
         newNodes.push({
-          id: `concept-${nodeId++}`,
-          type: 'concept',
-          title: 'Problem Statement',
-          content: ideationData.problemStatement,
-          position: { x: xOffset, y: yOffset },
-          size: { width: 200, height: 120 },
-          color: 'yellow',
+          id: STAGE1_NODE_TYPES.CORE_PROBLEM,
+          type: 'coreProblem',
+          title: 'Core Problem',
+          content: '',
+          position: STAGE1_NODE_DEFAULTS.coreProblem.position,
+          size: STAGE1_NODE_DEFAULTS.coreProblem.size,
+          color: 'coreProblem',
           connections: [],
-          metadata: { stage: 'ideation-discovery' }
+          metadata: { stage: 'ideation-discovery', nodeType: 'coreProblem' },
+          value: ideationData.problemStatement,
+          editable: true,
+          keywords: []
         });
-        xOffset += 230;
       }
 
-      if (ideationData.targetUsers) {
+      if (ideationData.appIdea) {
         newNodes.push({
-          id: `concept-${nodeId++}`,
-          type: 'concept',
-          title: 'Target Users',
-          content: ideationData.targetUsers,
-          position: { x: 100, y: yOffset + 160 },
-          size: { width: 200, height: 100 },
-          color: 'yellow',
+          id: STAGE1_NODE_TYPES.MISSION,
+          type: 'mission',
+          title: 'Mission',
+          content: '',
+          position: STAGE1_NODE_DEFAULTS.mission.position,
+          size: STAGE1_NODE_DEFAULTS.mission.size,
+          color: 'mission',
           connections: [],
-          metadata: { stage: 'ideation-discovery' }
+          metadata: { stage: 'ideation-discovery', nodeType: 'mission' },
+          value: ideationData.appIdea,
+          editable: true
         });
       }
 
       if (ideationData.valueProposition) {
         newNodes.push({
-          id: `concept-${nodeId++}`,
-          type: 'concept',
+          id: STAGE1_NODE_TYPES.VALUE_PROPOSITION,
+          type: 'valueProp',
           title: 'Value Proposition',
-          content: ideationData.valueProposition,
-          position: { x: 320, y: yOffset + 160 },
-          size: { width: 200, height: 100 },
-          color: 'yellow',
+          content: '',
+          position: STAGE1_NODE_DEFAULTS.valueProp.position,
+          size: STAGE1_NODE_DEFAULTS.valueProp.size,
+          color: 'valueProp',
           connections: [],
-          metadata: { stage: 'ideation-discovery' }
+          metadata: { stage: 'ideation-discovery', nodeType: 'valueProp' },
+          value: ideationData.valueProposition,
+          editable: true,
+          bulletPoints: []
         });
       }
 
-      // Add selected tags as concept nodes
-      if (ideationData.keyFeatures && ideationData.keyFeatures.length > 0) {
+      // Create a user persona node if target users are defined
+      if (ideationData.targetUsers) {
         newNodes.push({
-          id: `concept-${nodeId++}`,
-          type: 'concept',
-          title: 'Key Features',
-          content: ideationData.keyFeatures.join('\n• '),
-          position: { x: 540, y: yOffset + 160 },
-          size: { width: 180, height: 120 },
-          color: 'yellow',
+          id: `userPersona-${Date.now()}`,
+          type: 'userPersona',
+          title: 'User Persona',
+          content: '',
+          position: STAGE1_NODE_DEFAULTS.userPersona.position,
+          size: STAGE1_NODE_DEFAULTS.userPersona.size,
+          color: 'userPersona',
           connections: [],
-          metadata: { stage: 'ideation-discovery', type: 'features' }
+          metadata: { stage: 'ideation-discovery', nodeType: 'userPersona' },
+          name: 'Target User',
+          role: 'Primary User',
+          painPoint: ideationData.targetUsers,
+          emoji: '👤',
+          editable: true
         });
       }
     }
@@ -646,19 +689,50 @@ export const SpatialCanvas: React.FC<SpatialCanvasProps> = ({
   }, []);
 
   const addNode = useCallback((type: CanvasNodeData['type']) => {
-    const newNode: CanvasNodeData = {
-      id: `${type}-${Date.now()}`,
-      type,
-      title: `New ${type.charAt(0).toUpperCase() + type.slice(1)}`,
-      content: 'Click edit to add content...',
-      position: { 
-        x: Math.random() * 300 + 150, 
-        y: Math.random() * 200 + 150 
-      },
-      size: { width: 180, height: 100 },
-      color: type,
-      connections: [],
-    };
+    let newNode: CanvasNodeData;
+    
+    // Check if it's a custom ideation node type
+    if (Object.values(STAGE1_NODE_TYPES).includes(type as any)) {
+      const defaults = STAGE1_NODE_DEFAULTS[type as keyof typeof STAGE1_NODE_DEFAULTS];
+      newNode = {
+        id: type === 'userPersona' || type === 'competitor' ? `${type}-${Date.now()}` : type,
+        type,
+        title: `New ${type.charAt(0).toUpperCase() + type.slice(1)}`,
+        content: '',
+        position: { 
+          x: defaults.position.x + Math.random() * 50 - 25, 
+          y: defaults.position.y + Math.random() * 50 - 25 
+        },
+        size: defaults.size,
+        color: type,
+        connections: [],
+        metadata: { stage: 'ideation-discovery', nodeType: type },
+        // Add custom properties for ideation nodes
+        ...(type === 'appName' && { value: '', editable: true, nameHistory: [] }),
+        ...(type === 'tagline' && { value: '', editable: true }),
+        ...(type === 'coreProblem' && { value: '', editable: true, keywords: [] }),
+        ...(type === 'mission' && { value: '', editable: true }),
+        ...(type === 'userPersona' && { name: '', role: '', painPoint: '', emoji: '👤', editable: true }),
+        ...(type === 'valueProp' && { value: '', editable: true, bulletPoints: [] }),
+        ...(type === 'competitor' && { name: '', notes: '', link: '', editable: true }),
+      };
+    } else {
+      // Default node creation for other types
+      newNode = {
+        id: `${type}-${Date.now()}`,
+        type,
+        title: `New ${type.charAt(0).toUpperCase() + type.slice(1)}`,
+        content: 'Click edit to add content...',
+        position: { 
+          x: Math.random() * 300 + 150, 
+          y: Math.random() * 200 + 150 
+        },
+        size: { width: 180, height: 100 },
+        color: type,
+        connections: [],
+      };
+    }
+    
     setNodes(prev => [...prev, newNode]);
   }, []);
 
@@ -845,18 +919,91 @@ export const SpatialCanvas: React.FC<SpatialCanvasProps> = ({
 
           {/* Render nodes */}
           {nodes.map((node) => (
-            <CanvasNode
-              key={node.id}
-              node={node}
-              isSelected={selectedNodeId === node.id}
-              isConnecting={connectingFrom !== null}
-              onSelect={setSelectedNodeId}
-              onUpdate={updateNode}
-              onDelete={deleteNode}
-              onStartConnection={startConnection}
-              onEndConnection={endConnection}
-              scale={scale}
-            />
+            <React.Fragment key={node.id}>
+              {/* Render custom ideation nodes */}
+              {node.metadata?.stage === 'ideation-discovery' && Object.values(STAGE1_NODE_TYPES).includes(node.type as any) ? (
+                <>
+                  {node.type === 'appName' && (
+                    <AppNameNode
+                      node={node as any}
+                      isSelected={selectedNodeId === node.id}
+                      onUpdate={updateNode}
+                      onSelect={setSelectedNodeId}
+                      scale={scale}
+                    />
+                  )}
+                  {node.type === 'tagline' && (
+                    <TaglineNode
+                      node={node as any}
+                      isSelected={selectedNodeId === node.id}
+                      onUpdate={updateNode}
+                      onSelect={setSelectedNodeId}
+                      scale={scale}
+                    />
+                  )}
+                  {node.type === 'coreProblem' && (
+                    <CoreProblemNode
+                      node={node as any}
+                      isSelected={selectedNodeId === node.id}
+                      onUpdate={updateNode}
+                      onSelect={setSelectedNodeId}
+                      scale={scale}
+                    />
+                  )}
+                  {node.type === 'mission' && (
+                    <MissionNode
+                      node={node as any}
+                      isSelected={selectedNodeId === node.id}
+                      onUpdate={updateNode}
+                      onSelect={setSelectedNodeId}
+                      scale={scale}
+                    />
+                  )}
+                  {node.type === 'userPersona' && (
+                    <UserPersonaNode
+                      node={node as any}
+                      isSelected={selectedNodeId === node.id}
+                      onUpdate={updateNode}
+                      onSelect={setSelectedNodeId}
+                      onDelete={deleteNode}
+                      scale={scale}
+                    />
+                  )}
+                  {node.type === 'valueProp' && (
+                    <ValuePropositionNode
+                      node={node as any}
+                      isSelected={selectedNodeId === node.id}
+                      onUpdate={updateNode}
+                      onSelect={setSelectedNodeId}
+                      scale={scale}
+                    />
+                  )}
+                  {node.type === 'competitor' && (
+                    <CompetitorNode
+                      node={node as any}
+                      isSelected={selectedNodeId === node.id}
+                      onUpdate={updateNode}
+                      onSelect={setSelectedNodeId}
+                      onDelete={deleteNode}
+                      scale={scale}
+                    />
+                  )}
+                </>
+              ) : (
+                /* Render default canvas node for non-ideation nodes */
+                <CanvasNode
+                  node={node}
+                  isSelected={selectedNodeId === node.id}
+                  isConnecting={connectingFrom !== null}
+                  onSelect={setSelectedNodeId}
+                  onUpdate={updateNode}
+                  onDelete={deleteNode}
+                  onStartConnection={startConnection}
+                  onEndConnection={endConnection}
+                  scale={scale}
+                />
+              )}
+            </React.Fragment>
           ))}
 
           {/* Connection preview */}
