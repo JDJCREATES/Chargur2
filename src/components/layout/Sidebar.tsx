@@ -1,6 +1,7 @@
 import React from 'react';
 import { motion } from 'framer-motion';
-import { ChevronLeft, ChevronRight, ChevronDown, MessageSquare } from 'lucide-react';
+import { ChevronLeft, ChevronRight, ChevronDown } from 'lucide-react';
+import { GiUnplugged } from 'react-icons/gi';
 import { Accordion, AccordionSummary, AccordionDetails, Typography } from '@mui/material';
 import { ChatHistory } from '../ui/ChatHistory';
 import { ChatInterface } from '../chat/ChatInterface';
@@ -189,7 +190,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
             <Avatar size="lg" />
             <div className={`transition-opacity duration-200 ${isOpen ? 'opacity-100' : 'opacity-0'}`}>
               <h2 className="font-semibold text-gray-800">
-                {currentStage ? currentStage.title : 'Chargur AI Agent'}
+                {currentStage ? currentStage.title : 'UX + IA Agent'}
               </h2>
               <p className="text-sm text-gray-500">
                 {currentStage ? `Stage ${stages.findIndex(s => s.id === currentStage.id) + 1} of ${stages.length}` : 'Ready to help you build'}
@@ -225,8 +226,8 @@ export const Sidebar: React.FC<SidebarProps> = ({
               className="border-t border-gray-200"
             >
               <div className="flex items-center gap-2">
-                <MessageSquare className="w-4 h-4 text-blue-600" />
-                <Typography className="font-semibold text-gray-800">AI Assistant</Typography>
+                <GiUnplugged className="w-4 h-4 text-teal-500" />
+                <Typography className="font-semibold text-gray-800">Charg</Typography>
               </div>
             </AccordionSummary>
             <AccordionDetails className="p-0">

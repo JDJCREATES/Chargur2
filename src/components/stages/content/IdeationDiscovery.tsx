@@ -239,8 +239,22 @@ export const IdeationDiscovery: React.FC<IdeationDiscoveryProps> = ({
                 className="w-full p-2 border border-gray-200 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
               />
             </div>
+          </div>
+        </AccordionDetails>
+      </Accordion>
+
+      {/* 1.3 Target Users & Personas - NEW SEPARATE SECTION */}
+      <Accordion>
+        <AccordionSummary expandIcon={<ChevronDown size={16} />}>
+          <div className="flex items-center gap-2">
+            <Users className="w-4 h-4 text-green-600" />
+            <Typography className="font-medium text-sm">Target Users & Personas</Typography>
+          </div>
+        </AccordionSummary>
+        <AccordionDetails>
+          <div className="space-y-3">
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">Who has this problem?</label>
+              <label className="block text-sm font-medium text-gray-700 mb-2">Who has this problem?</label>
               <div className="space-y-2">
                 <div className="grid grid-cols-2 gap-2">
                   {personas.map((persona) => (
@@ -285,7 +299,7 @@ export const IdeationDiscovery: React.FC<IdeationDiscoveryProps> = ({
         </AccordionDetails>
       </Accordion>
 
-      {/* 1.3 Target Users / Personas */}
+      {/* 1.4 Value Proposition */}
       <Accordion>
         <AccordionSummary expandIcon={<ChevronDown size={16} />}>
           <div className="flex items-center gap-2">
@@ -309,7 +323,7 @@ export const IdeationDiscovery: React.FC<IdeationDiscoveryProps> = ({
         </AccordionDetails>
       </Accordion>
 
-      {/* 1.4 Competitor Awareness */}
+      {/* 1.5 Competitor Awareness */}
       <Accordion>
         <AccordionSummary expandIcon={<ChevronDown size={16} />}>
           <div className="flex items-center gap-2">
@@ -333,7 +347,7 @@ export const IdeationDiscovery: React.FC<IdeationDiscoveryProps> = ({
         </AccordionDetails>
       </Accordion>
 
-      {/* 1.5 Platform & Device Intent */}
+      {/* 1.6 Platform & Device Intent */}
       <Accordion>
         <AccordionSummary expandIcon={<ChevronDown size={16} />}>
           <div className="flex items-center gap-2">
@@ -392,7 +406,7 @@ export const IdeationDiscovery: React.FC<IdeationDiscoveryProps> = ({
         </AccordionDetails>
       </Accordion>
 
-      {/* 1.6 UI Style Preferences */}
+      {/* 1.7 UI Style Preferences */}
       <Accordion>
         <AccordionSummary expandIcon={<ChevronDown size={16} />}>
           <div className="flex items-center gap-2">
@@ -420,7 +434,7 @@ export const IdeationDiscovery: React.FC<IdeationDiscoveryProps> = ({
         </AccordionDetails>
       </Accordion>
 
-      {/* 1.7 AI Recap Summary */}
+      {/* 1.8 AI Recap Summary */}
       <Accordion>
         <AccordionSummary expandIcon={<ChevronDown size={16} />}>
           <div className="flex items-center gap-2">
@@ -437,14 +451,14 @@ export const IdeationDiscovery: React.FC<IdeationDiscoveryProps> = ({
             
             <button
               onClick={onComplete}
-              disabled={!formData.appIdea.trim() || formData.userPersonas.length === 0}
+              disabled={!formData.appIdea.trim() || stage.completed}
               className={`w-full py-2 px-4 rounded-lg font-medium transition-colors ${
-                formData.appIdea.trim() && formData.userPersonas.length > 0
+                formData.appIdea.trim() && !stage.completed
                   ? 'bg-green-600 text-white hover:bg-green-700'
                   : 'bg-gray-200 text-gray-400 cursor-not-allowed'
               }`}
             >
-              Complete Ideation & Discovery
+              {stage.completed ? '✅ Stage Complete' : `Complete ${stage.title || 'Ideation & Discovery'}`}
             </button>
           </div>
         </AccordionDetails>
