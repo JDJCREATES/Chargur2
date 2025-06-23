@@ -88,8 +88,9 @@ export const DraggableConnectableWrapper: React.FC<DraggableConnectableWrapperPr
     >
       {/* Node Content */}
       <div className={`
-        w-full h-full relative
-        ${isConnecting ? 'ring-2 ring-blue-400 ring-opacity-30' : ''}
+        w-full h-full relative 
+        ${isConnecting ? 'ring-2 ring-blue-400 ring-opacity-30' : ''} 
+        ${isSelected ? '' : 'ring-0'}
       `}>
         {children}
         

@@ -1,6 +1,13 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { User, Edit3, RefreshCw } from 'lucide-react';
 
+interface UserPersonaNodeProps {
+  node: PersonaNodeData;
+  isSelected: boolean;
+  onUpdate: (nodeId: string, updates: Partial<PersonaNodeData>) => void;
+  onDelete: (nodeId: string) => void;
+}
+
 interface PersonaNodeData {
   id: string;
   name: string;
@@ -15,13 +22,6 @@ interface PersonaNodeData {
 
 interface UserPersonaNodeProps {
   node: PersonaNodeData;
-  isSelected: boolean;
-  onUpdate: (nodeId: string, updates: Partial<PersonaNodeData>) => void;
-  onSelect: (nodeId: string) => void;
-  onDelete: (nodeId: string) => void;
-  scale: number;
-}
-
 export const UserPersonaNode: React.FC<UserPersonaNodeProps> = ({
   node,
   isSelected,
@@ -86,7 +86,7 @@ export const UserPersonaNode: React.FC<UserPersonaNodeProps> = ({
       ${isSelected ? 'border-blue-400 shadow-lg' : 'border-blue-200'}
     `}>
         {/* Avatar Head */}
-        <div className="flex justify-center -mt-6 mb-2">
+        <div className="flex justify-center -mt-6 mb-2 relative">
           <div className="relative">
             <div className="w-12 h-12 bg-gradient-to-br from-blue-400 to-indigo-500 rounded-full flex items-center justify-center text-white text-xl shadow-lg">
               {node.avatarUrl ? (

@@ -171,7 +171,14 @@ export const CanvasRenderer: React.FC<CanvasRendererProps> = ({
                     case 'mission':
                       return <MissionNode {...commonProps} />;
                     case 'userPersona':
-                      return <UserPersonaNode {...commonProps} onDelete={onNodeDelete} />;
+                      return (
+                        <UserPersonaNode 
+                          node={node as any} 
+                          isSelected={selectedNodeId === node.id} 
+                          onUpdate={onNodeUpdate} 
+                          onDelete={onNodeDelete} 
+                        />
+                      );
                     case 'valueProp':
                       return <ValuePropositionNode {...commonProps} />;
                     case 'competitor':
