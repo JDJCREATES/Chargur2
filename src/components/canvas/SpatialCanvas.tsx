@@ -204,8 +204,33 @@ export const SpatialCanvas: React.FC<SpatialCanvasProps> = ({
         });
       }
 
-      // Create a user persona node if target users are defined
-      if (ideationData.targetUsers) {
+      // Create user persona nodes from structured data
+      if (ideationData.userPersonas && Array.isArray(ideationData.userPersonas)) {
+        ideationData.userPersonas.forEach((persona, index) => {
+          newNodes.push({
+            id: `userPersona-${Date.now()}-${index}`,
+            type: 'userPersona',
+            title: 'User Persona',
+            content: '',
+            position: { 
+              x: STAGE1_NODE_DEFAULTS.userPersona.position.x + (index * 180), 
+              y: STAGE1_NODE_DEFAULTS.userPersona.position.y 
+            },
+            size: STAGE1_NODE_DEFAULTS.userPersona.size,
+            color: 'userPersona',
+            connections: [],
+            metadata: { stage: 'ideation-discovery', nodeType: 'userPersona' },
+            name: persona.name || 'User Persona',
+            role: persona.role || 'Role',
+            painPoint: persona.painPoint || 'Pain point',
+            emoji: persona.emoji || '👤',
+            editable: true
+          });
+        });
+      }
+      
+      // Fallback: Create a user persona node if legacy targetUsers is defined
+      if (ideationData.targetUsers && !ideationData.userPersonas) {
         newNodes.push({
           id: `userPersona-${Date.now()}`,
           type: 'userPersona',

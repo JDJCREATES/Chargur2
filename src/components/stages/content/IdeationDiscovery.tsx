@@ -33,10 +33,14 @@ export const IdeationDiscovery: React.FC<IdeationDiscoveryProps> = ({
     appName: '',
     tagline: '',
     problemStatement: '',
-    targetUsers: '',
+    userPersonas: [] as Array<{
+      name: string;
+      role: string;
+      painPoint: string;
+      emoji: string;
+    }>,
     valueProposition: '',
     competitors: '',
-    keyFeatures: [] as string[],
     platform: 'web',
     techStack: [] as string[],
     uiStyle: 'clean-minimal',
@@ -57,18 +61,22 @@ export const IdeationDiscovery: React.FC<IdeationDiscoveryProps> = ({
   ];
 
   const personas = [
-    { id: 'student', emoji: '🧑‍🎓', label: 'Student' },
-    { id: 'developer', emoji: '🧑‍💻', label: 'Developer' },
-    { id: 'manager', emoji: '🧑‍💼', label: 'Manager' },
-    { id: 'shopper', emoji: '🛍️', label: 'Shopper' },
-    { id: 'creator', emoji: '🎨', label: 'Creator' },
-    { id: 'entrepreneur', emoji: '🚀', label: 'Entrepreneur' },
-  ];
-
-  const commonFeatures = [
-    'User Authentication', 'Real-time Chat', 'Push Notifications', 'Payment Processing',
-    'Map Integration', 'File Upload', 'Search & Filters', 'Analytics Dashboard',
-    'Social Sharing', 'Offline Support', 'Multi-language', 'Dark Mode'
+    { id: 'student', emoji: '🧑‍🎓', label: 'Student', role: 'Student' },
+    { id: 'developer', emoji: '🧑‍💻', label: 'Developer', role: 'Software Developer' },
+    { id: 'manager', emoji: '🧑‍💼', label: 'Manager', role: 'Business Manager' },
+    { id: 'shopper', emoji: '🛍️', label: 'Shopper', role: 'Consumer' },
+    { id: 'creator', emoji: '🎨', label: 'Creator', role: 'Content Creator' },
+    { id: 'entrepreneur', emoji: '🚀', label: 'Entrepreneur', role: 'Business Owner' },
+    { id: 'teacher', emoji: '👨‍🏫', label: 'Teacher', role: 'Educator' },
+    { id: 'doctor', emoji: '👨‍⚕️', label: 'Doctor', role: 'Healthcare Professional' },
+    { id: 'designer', emoji: '👨‍🎨', label: 'Designer', role: 'UX/UI Designer' },
+    { id: 'analyst', emoji: '👨‍💼', label: 'Analyst', role: 'Data Analyst' },
+    { id: 'freelancer', emoji: '💼', label: 'Freelancer', role: 'Independent Worker' },
+    { id: 'parent', emoji: '👨‍👩‍👧‍👦', label: 'Parent', role: 'Family Caregiver' },
+    { id: 'athlete', emoji: '🏃‍♂️', label: 'Athlete', role: 'Sports Professional' },
+    { id: 'chef', emoji: '👨‍🍳', label: 'Chef', role: 'Culinary Professional' },
+    { id: 'traveler', emoji: '🧳', label: 'Traveler', role: 'Travel Enthusiast' },
+    { id: 'gamer', emoji: '🎮', label: 'Gamer', role: 'Gaming Enthusiast' },
   ];
 
   const techOptions = [
@@ -91,10 +99,24 @@ export const IdeationDiscovery: React.FC<IdeationDiscoveryProps> = ({
   };
 
   const togglePersona = (persona: string) => {
-    const updated = selectedPersonas.includes(persona)
-      ? selectedPersonas.filter(p => p !== persona)
-      : [...selectedPersonas, persona];
-    setSelectedPersonas(updated);
+    const personaData = personas.find(p => p.id === persona);
+    if (!personaData) return;
+    
+    if (selectedPersonas.includes(persona)) {
+      // Remove persona
+      setSelectedPersonas(selectedPersonas.filter(p => p !== persona));
+      updateFormData('userPersonas', formData.userPersonas.filter(p => p.name !== personaData.label));
+    } else {
+      // Add persona
+      setSelectedPersonas([...selectedPersonas, persona]);
+      const newPersona = {
+        name: personaData.label,
+        role: personaData.role,
+        painPoint: `Needs solutions for ${personaData.label.toLowerCase()}-specific challenges`,
+        emoji: personaData.emoji,
+      };
+      updateFormData('userPersonas', [...formData.userPersonas, newPersona]);
+    }
   };
 
   const toggleTechStack = (tech: string) => {
@@ -112,7 +134,7 @@ export const IdeationDiscovery: React.FC<IdeationDiscoveryProps> = ({
 
 **Problem:** ${formData.problemStatement || 'Solving user pain points'}
 
-**Target Users:** ${selectedPersonas.join(', ') || 'Various user types'}
+**Target Users:** ${formData.userPersonas.map(p => p.name).join(', ') || 'Various user types'}
 
 **Value Proposition:** ${formData.valueProposition || 'Unique value for users'}
 
@@ -219,52 +241,51 @@ export const IdeationDiscovery: React.FC<IdeationDiscoveryProps> = ({
             </div>
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">Who has this problem?</label>
-              <input
-                type="text"
-                value={formData.targetUsers}
-                onChange={(e) => updateFormData('targetUsers', e.target.value)}
-                placeholder="Describe your target users..."
-                className="w-full p-2 border border-gray-200 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
-              />
+              <div className="space-y-2">
+                <div className="grid grid-cols-2 gap-2">
+                  {personas.map((persona) => (
+                    <button
+                      key={persona.id}
+                      onClick={() => togglePersona(persona.id)}
+                      className={`p-2 rounded-lg border text-left transition-colors ${
+                        selectedPersonas.includes(persona.id)
+                          ? 'bg-green-50 border-green-200 text-green-700'
+                          : 'bg-gray-50 border-gray-200 text-gray-600 hover:bg-gray-100'
+                      }`}
+                    >
+                      <div className="flex items-center gap-2">
+                        <span className="text-lg">{persona.emoji}</span>
+                        <div>
+                          <div className="text-sm font-medium">{persona.label}</div>
+                          <div className="text-xs opacity-75">{persona.role}</div>
+                        </div>
+                      </div>
+                    </button>
+                  ))}
+                </div>
+                
+                {/* Display selected personas */}
+                {formData.userPersonas.length > 0 && (
+                  <div className="mt-3 p-3 bg-green-50 rounded-lg">
+                    <h4 className="text-sm font-medium text-green-800 mb-2">Selected User Personas:</h4>
+                    <div className="space-y-2">
+                      {formData.userPersonas.map((persona, index) => (
+                        <div key={index} className="flex items-center gap-2 text-sm">
+                          <span>{persona.emoji}</span>
+                          <span className="font-medium">{persona.name}</span>
+                          <span className="text-green-600">({persona.role})</span>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
+              </div>
             </div>
           </div>
         </AccordionDetails>
       </Accordion>
 
       {/* 1.3 Target Users / Personas */}
-      <Accordion>
-        <AccordionSummary expandIcon={<ChevronDown size={16} />}>
-          <div className="flex items-center gap-2">
-            <Users className="w-4 h-4 text-green-600" />
-            <Typography className="font-medium text-sm">Target Users & Personas</Typography>
-          </div>
-        </AccordionSummary>
-        <AccordionDetails>
-          <div className="space-y-3">
-            <p className="text-sm text-gray-600">Who is this for?</p>
-            <div className="grid grid-cols-2 gap-2">
-              {personas.map((persona) => (
-                <button
-                  key={persona.id}
-                  onClick={() => togglePersona(persona.id)}
-                  className={`p-2 rounded-lg border text-left transition-colors ${
-                    selectedPersonas.includes(persona.id)
-                      ? 'bg-green-50 border-green-200 text-green-700'
-                      : 'bg-gray-50 border-gray-200 text-gray-600 hover:bg-gray-100'
-                  }`}
-                >
-                  <div className="flex items-center gap-2">
-                    <span className="text-lg">{persona.emoji}</span>
-                    <span className="text-sm font-medium">{persona.label}</span>
-                  </div>
-                </button>
-              ))}
-            </div>
-          </div>
-        </AccordionDetails>
-      </Accordion>
-
-      {/* 1.4 Value Proposition */}
       <Accordion>
         <AccordionSummary expandIcon={<ChevronDown size={16} />}>
           <div className="flex items-center gap-2">
@@ -288,7 +309,7 @@ export const IdeationDiscovery: React.FC<IdeationDiscoveryProps> = ({
         </AccordionDetails>
       </Accordion>
 
-      {/* 1.5 Competitor Awareness */}
+      {/* 1.4 Competitor Awareness */}
       <Accordion>
         <AccordionSummary expandIcon={<ChevronDown size={16} />}>
           <div className="flex items-center gap-2">
@@ -312,7 +333,7 @@ export const IdeationDiscovery: React.FC<IdeationDiscoveryProps> = ({
         </AccordionDetails>
       </Accordion>
 
-      {/* 1.7 Platform & Device Intent */}
+      {/* 1.5 Platform & Device Intent */}
       <Accordion>
         <AccordionSummary expandIcon={<ChevronDown size={16} />}>
           <div className="flex items-center gap-2">
@@ -371,7 +392,7 @@ export const IdeationDiscovery: React.FC<IdeationDiscoveryProps> = ({
         </AccordionDetails>
       </Accordion>
 
-      {/* 1.8 UI Style Preferences */}
+      {/* 1.6 UI Style Preferences */}
       <Accordion>
         <AccordionSummary expandIcon={<ChevronDown size={16} />}>
           <div className="flex items-center gap-2">
@@ -399,7 +420,7 @@ export const IdeationDiscovery: React.FC<IdeationDiscoveryProps> = ({
         </AccordionDetails>
       </Accordion>
 
-      {/* 1.9 AI Recap Summary */}
+      {/* 1.7 AI Recap Summary */}
       <Accordion>
         <AccordionSummary expandIcon={<ChevronDown size={16} />}>
           <div className="flex items-center gap-2">
@@ -416,9 +437,9 @@ export const IdeationDiscovery: React.FC<IdeationDiscoveryProps> = ({
             
             <button
               onClick={onComplete}
-              disabled={!formData.appIdea.trim()}
+              disabled={!formData.appIdea.trim() || formData.userPersonas.length === 0}
               className={`w-full py-2 px-4 rounded-lg font-medium transition-colors ${
-                formData.appIdea.trim()
+                formData.appIdea.trim() && formData.userPersonas.length > 0
                   ? 'bg-green-600 text-white hover:bg-green-700'
                   : 'bg-gray-200 text-gray-400 cursor-not-allowed'
               }`}

@@ -35,15 +35,22 @@ AUTO-FILL OPPORTUNITIES:
 - appName: Generate from keywords in the idea (2-3 words, PascalCase)
 - tagline: Create memorable 3-5 word tagline
 - problemStatement: Identify the core user problem being solved
-- targetUsers: Suggest user segments based on the app idea
+- userPersonas: Create structured persona objects with name, role, painPoint, emoji
 - valueProposition: Articulate unique value and benefits
 
+USER PERSONA EXTRACTION:
+When users describe target users, extract and structure them as persona objects:
+- name: Descriptive persona name (e.g., "Busy Professional", "College Student")
+- role: Their primary role or descriptor (e.g., "Marketing Manager", "Computer Science Student")
+- painPoint: Their main challenge or goal (e.g., "Struggles with time management", "Needs study organization")
+- emoji: Appropriate emoji representing them (e.g., "👨‍💼", "👩‍🎓", "👨‍💻")
+
 COMPLETION CRITERIA:
-Stage is complete when we have: appIdea, appName, problemStatement, targetUsers, and valueProposition.`;
+Stage is complete when we have: appIdea, appName, problemStatement, userPersonas, and valueProposition.`;
 
   const userPrompt = `User message: "${userMessage}"
 
-Based on this message and our conversation history, help the user develop their app concept. If you can extract specific information, provide it in the autoFillData. If the stage appears complete, set stageComplete to true.
+Based on this message and our conversation history, help the user develop their app concept. If you can extract specific information, provide it in the autoFillData. When users mention target users, create structured persona objects. If the stage appears complete, set stageComplete to true.
 
 Respond in this exact JSON format:
 {
@@ -54,7 +61,14 @@ Respond in this exact JSON format:
     "appName": "suggested app name",
     "tagline": "memorable tagline",
     "problemStatement": "core problem statement",
-    "targetUsers": "target user description",
+    "userPersonas": [
+      {
+        "name": "Primary User",
+        "role": "Professional Role",
+        "painPoint": "Main challenge or goal",
+        "emoji": "👤"
+      }
+    ],
     "valueProposition": "unique value proposition"
   },
   "stageComplete": false,
