@@ -29,6 +29,10 @@ export interface InteractionState {
   connectingFrom: string | null;
   draggedNode: string | null;
   lastPanPoint: { x: number; y: number };
+  isResizing: boolean;
+  resizingNode: string | null;
+  initialMousePos: { x: number; y: number };
+  initialNodeSize: { width: number; height: number };
 }
 
 export interface InteractionHandlers {
@@ -43,6 +47,9 @@ export interface InteractionHandlers {
   onMouseMove: (event: React.MouseEvent) => void;
   onMouseUp: (event: React.MouseEvent) => void;
   onKeyDown: (event: React.KeyboardEvent) => void;
+  onResizeStart: (nodeId: string, initialMousePos: { x: number; y: number }, initialSize: { width: number; height: number }) => void;
+  onResize: (event: React.MouseEvent) => void;
+  onResizeEnd: () => void;
 }
 
 const DEFAULT_INTERACTION_STATE: InteractionState = {
@@ -51,7 +58,11 @@ const DEFAULT_INTERACTION_STATE: InteractionState = {
   isConnecting: false,
   connectingFrom: null,
   draggedNode: null,
-  lastPanPoint: { x: 0, y: 0 }
+  lastPanPoint: { x: 0, y: 0 },
+  isResizing: false,
+  resizingNode: null,
+  initialMousePos: { x: 0, y: 0 },
+  initialNodeSize: { width: 0, height: 0 }
 };
 
 export const useCanvasInteractionManager = (
@@ -114,15 +125,30 @@ export const useCanvasInteractionManager = (
         ...prev,
         lastPanPoint: { x: e.clientX, y: e.clientY }
       }));
+    } else if (interactionState.isResizing && interactionState.resizingNode) {
+      e.preventDefault();
+      
+      // Calculate new width and height based on mouse movement
+      const deltaX = (e.clientX - interactionState.initialMousePos.x) / scale;
+      const deltaY = (e.clientY - interactionState.initialMousePos.y) / scale;
+      
+      const newWidth = Math.max(100, interactionState.initialNodeSize.width + deltaX);
+      const newHeight = Math.max(50, interactionState.initialNodeSize.height + deltaY);
+      
+      onNodeUpdate(interactionState.resizingNode, {
+        size: { width: newWidth, height: newHeight }
+      });
     }
-  }, [interactionState.isPanning, interactionState.lastPanPoint, onOffsetChange]);
+  }, [interactionState, scale, onOffsetChange, onNodeUpdate]);
 
   const handleMouseUp = useCallback(() => {
     setInteractionState(prev => ({
       ...prev,
       isPanning: false,
       isDragging: false,
-      draggedNode: null
+      draggedNode: null,
+      isResizing: false,
+      resizingNode: null
     }));
   }, []);
 
@@ -193,6 +219,28 @@ export const useCanvasInteractionManager = (
     }));
   }, []);
 
+  const startResizing = useCallback((
+    nodeId: string, 
+    initialMousePos: { x: number; y: number }, 
+    initialSize: { width: number; height: number }
+  ) => {
+    setInteractionState(prev => ({
+      ...prev,
+      isResizing: true,
+      resizingNode: nodeId,
+      initialMousePos,
+      initialNodeSize: initialSize
+    }));
+  }, []);
+
+  const endResizing = useCallback(() => {
+    setInteractionState(prev => ({
+      ...prev,
+      isResizing: false,
+      resizingNode: null
+    }));
+  }, []);
+
   const handlers: InteractionHandlers = {
     onNodeSelect,
     onNodeUpdate,
@@ -204,7 +252,10 @@ export const useCanvasInteractionManager = (
     onMouseDown: handleMouseDown,
     onMouseMove: handleMouseMove,
     onMouseUp: handleMouseUp,
-    onKeyDown: handleKeyDown
+    onKeyDown: handleKeyDown,
+    onResizeStart: startResizing,
+    onResize: handleMouseMove,
+    onResizeEnd: endResizing
   };
 
   return {

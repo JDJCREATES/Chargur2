@@ -12,7 +12,7 @@
  * - Creates a unified interaction layer for all node types
  */
 
-import React, { useState } from 'react';
+import React, { useState, useRef } from 'react';
 import { motion } from 'framer-motion';
 import { CanvasNodeData } from './CanvasNode';
 
@@ -42,6 +42,9 @@ export const DraggableConnectableWrapper: React.FC<DraggableConnectableWrapperPr
   children
 }) => {
   const [isDragging, setIsDragging] = useState(false);
+  const [isResizing, setIsResizing] = useState(false);
+  const initialMousePosRef = useRef({ x: 0, y: 0 });
+  const initialNodeSizeRef = useRef({ width: 0, height: 0 });
 
   const handleDragStart = () => {
     setIsDragging(true);
@@ -57,6 +60,34 @@ export const DraggableConnectableWrapper: React.FC<DraggableConnectableWrapperPr
 
   const handleDragEnd = () => {
     setIsDragging(false);
+  };
+
+  const handleResizeStart = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    setIsResizing(true);
+    initialMousePosRef.current = { x: e.clientX, y: e.clientY };
+    initialNodeSizeRef.current = { width: node.size.width, height: node.size.height };
+  };
+
+  const handleResize = (e: React.MouseEvent) => {
+    if (!isResizing) return;
+    
+    e.stopPropagation();
+    e.preventDefault();
+    
+    const deltaX = (e.clientX - initialMousePosRef.current.x) / scale;
+    const deltaY = (e.clientY - initialMousePosRef.current.y) / scale;
+    
+    const newWidth = Math.max(100, initialNodeSizeRef.current.width + deltaX);
+    const newHeight = Math.max(50, initialNodeSizeRef.current.height + deltaY);
+    
+    onUpdate(node.id, {
+      size: { width: newWidth, height: newHeight }
+    });
+  };
+
+  const handleResizeEnd = () => {
+    setIsResizing(false);
   };
 
   return (
@@ -85,6 +116,9 @@ export const DraggableConnectableWrapper: React.FC<DraggableConnectableWrapperPr
         e.stopPropagation();
         onSelect(node.id);
       }}
+      onMouseMove={isResizing ? handleResize : undefined}
+      onMouseUp={isResizing ? handleResizeEnd : undefined}
+      onMouseLeave={isResizing ? handleResizeEnd : undefined}
     >
       {/* Node Content */}
       <div className={`
@@ -139,6 +173,15 @@ export const DraggableConnectableWrapper: React.FC<DraggableConnectableWrapperPr
             }
           }}
         />
+
+        {/* Resize Handle */}
+        {isSelected && (
+          <div
+            className="absolute bottom-0 right-0 w-4 h-4 bg-white border border-gray-300 rounded-bl-sm rounded-tr-sm cursor-nwse-resize hover:bg-gray-100"
+            onMouseDown={handleResizeStart}
+            onClick={(e) => e.stopPropagation()}
+          />
+        )}
       </div>
     </motion.div>
   );

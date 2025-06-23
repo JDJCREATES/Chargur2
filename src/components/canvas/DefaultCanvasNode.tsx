@@ -50,6 +50,7 @@ export interface CanvasNodeData {
   connections: string[];
   metadata?: any;
   collapsed?: boolean;
+  resizable?: boolean;
   // Add properties that match the custom nodes from SpatialCanvas
   value?: string;
   editable?: boolean;
@@ -205,7 +206,7 @@ export const DefaultCanvasNode: React.FC<DefaultCanvasNodeProps> = ({
 
       {/* Node Content */}
       {!node.collapsed && (
-        <div className="p-3">
+        <div className="p-3 flex-1 overflow-auto">
           {isEditing ? (
             <textarea
               ref={inputRef}
@@ -213,12 +214,13 @@ export const DefaultCanvasNode: React.FC<DefaultCanvasNodeProps> = ({
               onChange={(e) => setEditContent(e.target.value)}
               onKeyDown={handleKeyPress}
               onBlur={handleSaveEdit}
-              className="w-full h-20 p-2 text-xs bg-white bg-opacity-50 border border-current border-opacity-30 rounded resize-none focus:outline-none focus:ring-1 focus:ring-current"
+              className="w-full h-full p-2 text-xs bg-white bg-opacity-50 border border-current border-opacity-30 rounded resize-none focus:outline-none focus:ring-1 focus:ring-current"
               autoFocus
               placeholder="Enter content..."
+              style={{ minHeight: '20px', height: node.size.height - 60 }}
             />
           ) : (
-            <div className="text-xs leading-relaxed">
+            <div className="text-xs leading-relaxed h-full overflow-auto">
               {node.content || 'Click edit to add content...'}
             </div>
           )}
@@ -227,12 +229,15 @@ export const DefaultCanvasNode: React.FC<DefaultCanvasNodeProps> = ({
           {node.metadata && (
             <div className="mt-2 pt-2 border-t border-current border-opacity-20">
               <div className="text-xs opacity-75">
-                {Object.entries(node.metadata).map(([key, value]) => (
-                  <div key={key} className="flex justify-between">
-                    <span className="capitalize">{key}:</span>
-                    <span>{String(value)}</span>
-                  </div>
-                ))}
+                {Object.entries(node.metadata)
+                  .filter(([key]) => !key.startsWith('_') && key !== 'stage' && key !== 'nodeType' && key !== 'generated')
+                  .map(([key, value]) => (
+                    <div key={key} className="flex justify-between">
+                      <span className="capitalize">{key}:</span>
+                      <span>{String(value)}</span>
+                    </div>
+                  ))
+                }
               </div>
             </div>
           )}

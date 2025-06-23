@@ -397,7 +397,8 @@ export class CanvasDataProcessor {
       metadata: { stage: 'ideation-discovery', nodeType: 'appName' },
       value: appName,
       editable: true,
-      nameHistory: []
+      nameHistory: [],
+      resizable: true
     };
   }
 
@@ -413,7 +414,8 @@ export class CanvasDataProcessor {
       connections: [],
       metadata: { stage: 'ideation-discovery', nodeType: 'tagline' },
       value: tagline,
-      editable: true
+      editable: true,
+      resizable: true
     };
   }
 
@@ -430,7 +432,8 @@ export class CanvasDataProcessor {
       metadata: { stage: 'ideation-discovery', nodeType: 'coreProblem' },
       value: problemStatement,
       editable: true,
-      keywords: []
+      keywords: [],
+      resizable: true
     };
   }
 
@@ -446,7 +449,8 @@ export class CanvasDataProcessor {
       connections: [],
       metadata: { stage: 'ideation-discovery', nodeType: 'mission' },
       value: appIdea,
-      editable: true
+      editable: true,
+      resizable: true
     };
   }
 
@@ -463,7 +467,8 @@ export class CanvasDataProcessor {
       metadata: { stage: 'ideation-discovery', nodeType: 'valueProp' },
       value: valueProposition,
       editable: true,
-      bulletPoints: []
+      bulletPoints: [],
+      resizable: true
     };
   }
 
@@ -485,7 +490,8 @@ export class CanvasDataProcessor {
       role: persona.role || 'Role',
       painPoint: persona.painPoint || 'Pain point',
       emoji: persona.emoji || '👤',
-      editable: true
+      editable: true,
+      resizable: true
     };
   }
 
@@ -504,7 +510,8 @@ export class CanvasDataProcessor {
       role: 'Primary User',
       painPoint: targetUsers,
       emoji: '👤',
-      editable: true
+      editable: true,
+      resizable: true
     };
   }
 
@@ -529,7 +536,8 @@ export class CanvasDataProcessor {
       size: { width: 180, height: 100 },
       color: 'blue',
       connections: [],
-      metadata: { stage: 'feature-planning', pack }
+      metadata: { stage: 'feature-planning', pack },
+      resizable: true
     };
   }
 
@@ -546,7 +554,8 @@ export class CanvasDataProcessor {
       size: { width: 180, height: 120 },
       color: 'blue',
       connections: [],
-      metadata: { stage: 'feature-planning', custom: true }
+      metadata: { stage: 'feature-planning', custom: true },
+      resizable: true
     };
   }
 
@@ -560,7 +569,8 @@ export class CanvasDataProcessor {
       size: { width: 220, height: 140 },
       color: 'blue',
       connections: [],
-      metadata: { stage: 'feature-planning', type: 'description' }
+      metadata: { stage: 'feature-planning', type: 'description' },
+      resizable: true
     };
   }
 
@@ -574,7 +584,8 @@ export class CanvasDataProcessor {
       size: { width: 150, height: 100 },
       color: 'green',
       connections: [],
-      metadata: { stage: 'structure-flow', screenType: screen.type }
+      metadata: { stage: 'structure-flow', screenType: screen.type },
+      resizable: true
     };
   }
 
@@ -588,7 +599,8 @@ export class CanvasDataProcessor {
       size: { width: 200, height: 120 },
       color: 'green',
       connections: [],
-      metadata: { stage: 'structure-flow', flowType: 'user-journey' }
+      metadata: { stage: 'structure-flow', flowType: 'user-journey' },
+      resizable: true
     };
   }
 
@@ -602,7 +614,8 @@ export class CanvasDataProcessor {
       size: { width: 180, height: 100 },
       color: 'red',
       connections: [],
-      metadata: { stage: 'architecture-design', tableType: 'database' }
+      metadata: { stage: 'architecture-design', tableType: 'database' },
+      resizable: true
     };
   }
 
@@ -616,7 +629,8 @@ export class CanvasDataProcessor {
       size: { width: 160, height: 80 },
       color: 'red',
       connections: [],
-      metadata: { stage: 'architecture-design', systemType: 'api' }
+      metadata: { stage: 'architecture-design', systemType: 'api' },
+      resizable: true
     };
   }
 
@@ -630,7 +644,8 @@ export class CanvasDataProcessor {
       size: { width: 140, height: 90 },
       color: 'red',
       connections: [],
-      metadata: { stage: 'architecture-design', routeType: 'page' }
+      metadata: { stage: 'architecture-design', routeType: 'page' },
+      resizable: true
     };
   }
 
@@ -644,7 +659,8 @@ export class CanvasDataProcessor {
       size: { width: 160, height: 80 },
       color: 'purple',
       connections: [],
-      metadata: { stage: 'interface-interaction', uiType: 'design-system' }
+      metadata: { stage: 'interface-interaction', uiType: 'design-system' },
+      resizable: true
     };
   }
 
@@ -658,7 +674,8 @@ export class CanvasDataProcessor {
       size: { width: 140, height: 80 },
       color: 'purple',
       connections: [],
-      metadata: { stage: 'interface-interaction', uiType: 'branding' }
+      metadata: { stage: 'interface-interaction', uiType: 'branding' },
+      resizable: true
     };
   }
 
@@ -672,7 +689,8 @@ export class CanvasDataProcessor {
       size: { width: 160, height: 80 },
       color: 'purple',
       connections: [],
-      metadata: { stage: 'interface-interaction', uiType: 'layout' }
+      metadata: { stage: 'interface-interaction', uiType: 'layout' },
+      resizable: true
     };
   }
 
@@ -686,7 +704,8 @@ export class CanvasDataProcessor {
       size: { width: 180, height: 100 },
       color: 'red',
       connections: [],
-      metadata: { stage: 'user-auth-flow', authType: 'methods' }
+      metadata: { stage: 'user-auth-flow', authType: 'methods' },
+      resizable: true
     };
   }
 
@@ -700,7 +719,8 @@ export class CanvasDataProcessor {
       size: { width: 180, height: 120 },
       color: 'red',
       connections: [],
-      metadata: { stage: 'user-auth-flow', authType: 'roles' }
+      metadata: { stage: 'user-auth-flow', authType: 'roles' },
+      resizable: true
     };
   }
 
@@ -714,7 +734,8 @@ export class CanvasDataProcessor {
       size: { width: 200, height: 100 },
       color: 'red',
       connections: [],
-      metadata: { stage: 'user-auth-flow', authType: 'security' }
+      metadata: { stage: 'user-auth-flow', authType: 'security' },
+      resizable: true
     };
   }
 }

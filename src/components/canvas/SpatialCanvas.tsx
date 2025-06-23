@@ -34,6 +34,14 @@ import { CanvasDataProcessor, ProcessorState } from './core/CanvasDataProcessor'
 import { useCanvasStateManager } from './core/CanvasStateManager';
 import { useCanvasInteractionManager } from './core/CanvasInteractionManager';
 import { CanvasNodeData } from './CanvasNode';
+import { STAGE1_NODE_TYPES, STAGE1_NODE_DEFAULTS } from './customnodetypes/stage1nodes';
+
+interface SpatialCanvasProps {
+  currentStage?: any;
+  stageData: any;
+  onSendMessage: (message: string) => void;
+}
+
 export const SpatialCanvas: React.FC<SpatialCanvasProps> = ({
   stageData,
   onSendMessage
@@ -104,22 +112,208 @@ export const SpatialCanvas: React.FC<SpatialCanvasProps> = ({
   }, [stageData, isLoaded, state.nodes, state.lastProcessedData, updateState]);
 
   const handleAddNode = useCallback((type: CanvasNodeData['type']) => {
-    const newNode: CanvasNodeData = {
-      id: `${type}-${Date.now()}`,
-      type,
-      title: `New ${type.charAt(0).toUpperCase() + type.slice(1)}`,
-      content: 'Click edit to add content...',
-      position: { 
-        x: Math.random() * 300 + 150, 
-        y: Math.random() * 200 + 150 
-      },
-      size: { width: 180, height: 100 },
-      color: type,
-      connections: [],
-    };
-    
-    addNode(newNode);
-  }, [addNode]);
+    // Check if it's a custom ideation node type
+    if (Object.values(STAGE1_NODE_TYPES).includes(type as any)) {
+      const defaults = STAGE1_NODE_DEFAULTS[type as keyof typeof STAGE1_NODE_DEFAULTS];
+      
+      // For singleton nodes, check if they already exist
+      if (type === 'appName' || type === 'tagline' || type === 'coreProblem' || 
+          type === 'mission' || type === 'valueProp') {
+        // Check if this singleton node already exists
+        const existingNode = state.nodes.find(n => n.id === type);
+        if (existingNode) {
+          // Select the existing node instead of creating a new one
+          setSelectedNode(existingNode.id);
+          return;
+        }
+      }
+      
+      // Create the appropriate custom node
+      let newNode: CanvasNodeData;
+      
+      switch (type) {
+        case 'appName':
+          newNode = {
+            id: type,
+            type,
+            title: 'App Name',
+            content: '',
+            position: { 
+              x: defaults.position.x + Math.random() * 50 - 25, 
+              y: defaults.position.y + Math.random() * 50 - 25 
+            },
+            size: defaults.size,
+            color: type,
+            connections: [],
+            metadata: { stage: 'ideation-discovery', nodeType: type },
+            value: '',
+            editable: true,
+            nameHistory: [],
+            resizable: true
+          };
+          break;
+        case 'tagline':
+          newNode = {
+            id: type,
+            type,
+            title: 'Tagline',
+            content: '',
+            position: { 
+              x: defaults.position.x + Math.random() * 50 - 25, 
+              y: defaults.position.y + Math.random() * 50 - 25 
+            },
+            size: defaults.size,
+            color: type,
+            connections: [],
+            metadata: { stage: 'ideation-discovery', nodeType: type },
+            value: '',
+            editable: true,
+            resizable: true
+          };
+          break;
+        case 'coreProblem':
+          newNode = {
+            id: type,
+            type,
+            title: 'Core Problem',
+            content: '',
+            position: { 
+              x: defaults.position.x + Math.random() * 50 - 25, 
+              y: defaults.position.y + Math.random() * 50 - 25 
+            },
+            size: defaults.size,
+            color: type,
+            connections: [],
+            metadata: { stage: 'ideation-discovery', nodeType: type },
+            value: '',
+            editable: true,
+            keywords: [],
+            resizable: true
+          };
+          break;
+        case 'mission':
+          newNode = {
+            id: type,
+            type,
+            title: 'Mission',
+            content: '',
+            position: { 
+              x: defaults.position.x + Math.random() * 50 - 25, 
+              y: defaults.position.y + Math.random() * 50 - 25 
+            },
+            size: defaults.size,
+            color: type,
+            connections: [],
+            metadata: { stage: 'ideation-discovery', nodeType: type },
+            value: '',
+            editable: true,
+            resizable: true
+          };
+          break;
+        case 'valueProp':
+          newNode = {
+            id: type,
+            type,
+            title: 'Value Proposition',
+            content: '',
+            position: { 
+              x: defaults.position.x + Math.random() * 50 - 25, 
+              y: defaults.position.y + Math.random() * 50 - 25 
+            },
+            size: defaults.size,
+            color: type,
+            connections: [],
+            metadata: { stage: 'ideation-discovery', nodeType: type },
+            value: '',
+            editable: true,
+            bulletPoints: [],
+            resizable: true
+          };
+          break;
+        case 'userPersona':
+          newNode = {
+            id: `${type}-${Date.now()}`,
+            type,
+            title: 'User Persona',
+            content: '',
+            position: { 
+              x: defaults.position.x + Math.random() * 50 - 25, 
+              y: defaults.position.y + Math.random() * 50 - 25 
+            },
+            size: defaults.size,
+            color: type,
+            connections: [],
+            metadata: { stage: 'ideation-discovery', nodeType: type },
+            name: '',
+            role: '',
+            painPoint: '',
+            emoji: '👤',
+            editable: true,
+            resizable: true
+          };
+          break;
+        case 'competitor':
+          newNode = {
+            id: `${type}-${Date.now()}`,
+            type,
+            title: 'Competitor',
+            content: '',
+            position: { 
+              x: defaults.position.x + Math.random() * 50 - 25, 
+              y: defaults.position.y + Math.random() * 50 - 25 
+            },
+            size: defaults.size,
+            color: type,
+            connections: [],
+            metadata: { stage: 'ideation-discovery', nodeType: type },
+            name: '',
+            notes: '',
+            link: '',
+            editable: true,
+            resizable: true
+          };
+          break;
+        default:
+          // Default node creation for other types
+          newNode = {
+            id: `${type}-${Date.now()}`,
+            type,
+            title: `New ${type.charAt(0).toUpperCase() + type.slice(1)}`,
+            content: 'Click edit to add content...',
+            position: { 
+              x: Math.random() * 300 + 150, 
+              y: Math.random() * 200 + 150 
+            },
+            size: { width: 180, height: 100 },
+            color: type,
+            connections: [],
+            resizable: true
+          };
+      }
+      
+      addNode(newNode);
+      setSelectedNode(newNode.id);
+    } else {
+      // Default node creation for other types
+      const newNode: CanvasNodeData = {
+        id: `${type}-${Date.now()}`,
+        type,
+        title: `New ${type.charAt(0).toUpperCase() + type.slice(1)}`,
+        content: 'Click edit to add content...',
+        position: { 
+          x: Math.random() * 300 + 150, 
+          y: Math.random() * 200 + 150 
+        },
+        size: { width: 180, height: 100 },
+        color: type,
+        connections: [],
+        resizable: true
+      };
+      
+      addNode(newNode);
+      setSelectedNode(newNode.id);
+    }
+  }, [addNode, setSelectedNode, state.nodes]);
 
   const handleAutoLayout = useCallback(() => {
     // Simple force-directed layout
