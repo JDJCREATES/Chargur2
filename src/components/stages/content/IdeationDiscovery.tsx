@@ -4,8 +4,7 @@ import {
   Lightbulb, 
   Target, 
   Users, 
-  TrendingUp, 
-  Zap, 
+  TrendingUp,  
   Settings,
   Smartphone,
   Monitor,
@@ -13,8 +12,6 @@ import {
   Palette,
   Star,
   CheckCircle,
-  Plus,
-  X
 } from 'lucide-react';
 import { Accordion, AccordionSummary, AccordionDetails, Typography } from '@mui/material';
 import { ChevronDown } from 'lucide-react';
@@ -47,7 +44,6 @@ export const IdeationDiscovery: React.FC<IdeationDiscoveryProps> = ({
 
   const [selectedTags, setSelectedTags] = useState<string[]>([]);
   const [selectedPersonas, setSelectedPersonas] = useState<string[]>([]);
-  const [customFeature, setCustomFeature] = useState('');
 
   const updateFormData = (key: string, value: any) => {
     const updated = { ...formData, [key]: value };
@@ -101,20 +97,6 @@ export const IdeationDiscovery: React.FC<IdeationDiscoveryProps> = ({
     setSelectedPersonas(updated);
   };
 
-  const toggleFeature = (feature: string) => {
-    const updated = formData.keyFeatures.includes(feature)
-      ? formData.keyFeatures.filter(f => f !== feature)
-      : [...formData.keyFeatures, feature];
-    updateFormData('keyFeatures', updated);
-  };
-
-  const addCustomFeature = () => {
-    if (customFeature.trim() && !formData.keyFeatures.includes(customFeature.trim())) {
-      updateFormData('keyFeatures', [...formData.keyFeatures, customFeature.trim()]);
-      setCustomFeature('');
-    }
-  };
-
   const toggleTechStack = (tech: string) => {
     const updated = formData.techStack.includes(tech)
       ? formData.techStack.filter(t => t !== tech)
@@ -133,8 +115,6 @@ export const IdeationDiscovery: React.FC<IdeationDiscoveryProps> = ({
 **Target Users:** ${selectedPersonas.join(', ') || 'Various user types'}
 
 **Value Proposition:** ${formData.valueProposition || 'Unique value for users'}
-
-**Key Features:** ${formData.keyFeatures.join(', ') || 'Core functionality'}
 
 **Platform:** ${formData.platform} | **Style:** ${uiStyles.find(s => s.id === formData.uiStyle)?.label}
 
@@ -327,50 +307,6 @@ export const IdeationDiscovery: React.FC<IdeationDiscoveryProps> = ({
                 rows={2}
                 className="w-full p-2 border border-gray-200 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
               />
-            </div>
-          </div>
-        </AccordionDetails>
-      </Accordion>
-
-      {/* 1.6 Key Features */}
-      <Accordion>
-        <AccordionSummary expandIcon={<ChevronDown size={16} />}>
-          <div className="flex items-center gap-2">
-            <Zap className="w-4 h-4 text-blue-600" />
-            <Typography className="font-medium text-sm">Key Features</Typography>
-          </div>
-        </AccordionSummary>
-        <AccordionDetails>
-          <div className="space-y-3">
-            <div className="grid grid-cols-1 gap-1">
-              {commonFeatures.map((feature) => (
-                <label key={feature} className="flex items-center gap-2 cursor-pointer p-1 hover:bg-gray-50 rounded">
-                  <input
-                    type="checkbox"
-                    checked={formData.keyFeatures.includes(feature)}
-                    onChange={() => toggleFeature(feature)}
-                    className="w-3 h-3 text-blue-600 rounded focus:ring-blue-500"
-                  />
-                  <span className="text-sm text-gray-700">{feature}</span>
-                </label>
-              ))}
-            </div>
-            
-            <div className="flex gap-2">
-              <input
-                type="text"
-                value={customFeature}
-                onChange={(e) => setCustomFeature(e.target.value)}
-                placeholder="Add custom feature..."
-                className="flex-1 p-2 border border-gray-200 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
-                onKeyPress={(e) => e.key === 'Enter' && addCustomFeature()}
-              />
-              <button
-                onClick={addCustomFeature}
-                className="px-3 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors"
-              >
-                <Plus className="w-4 h-4" />
-              </button>
             </div>
           </div>
         </AccordionDetails>
