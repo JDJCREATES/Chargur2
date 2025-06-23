@@ -235,87 +235,43 @@ interface AgentResponse {
   userPrompt?: string // Add this to track the original user input
 }
 
-// Database helper functions
-async function saveTokenToDatabase(
-  supabase: ReturnType<typeof createClient>,
-  conversationId: string,
-  tokenIndex: number,
-  content: string,
-  tokenType: string = 'content'
-) {
-  try {
-    const { error } = await supabase
-      .from('chat_response_tokens')
-      .upsert({
-        conversation_id: conversationId,
-        token_index: tokenIndex,
-        token_content: content,
-        token_type: tokenType
-      }, {
-        onConflict: 'conversation_id,token_index',
-        ignoreDuplicates: false
-      })
-
-    if (error) {
-      console.error('❌ Failed to save token:', error)
-      throw error
-    }
-
-    console.log(`✅ Token ${tokenIndex} saved successfully`)
-  } catch (error) {
-    console.error('❌ Database error saving token:', error)
-    // Don't throw - continue streaming even if token save fails
-  }
-}
+export
 
 async function saveCompleteResponse(
   supabase: any,
   conversationId: string,
-  response: AgentResponse,
-  userPrompt: string // Add user prompt parameter
+  response: any,
+  userPrompt: string
 ) {
   try {
-    console.log('💾 Saving complete response to database...')
-    console.log('📋 Response data:', {
-      conversationId,
-      userPromptLength: userPrompt?.length,
-      contentLength: response.content?.length,
-      suggestionsCount: response.suggestions?.length,
-      hasAutoFillData: !!response.autoFillData
-    })
-    
-    // Save complete response with user prompt
-    const { data, error: responseError } = await supabase
+    const { error } = await supabase
       .from('chat_responses')
-      .upsert({
+      .insert({
         conversation_id: conversationId,
-        user_prompt: userPrompt, // Save the user's input
+        user_prompt: userPrompt,
         full_content: response.content,
         suggestions: response.suggestions || [],
         auto_fill_data: response.autoFillData || {},
         stage_complete: response.stageComplete || false,
-        context: response.context || {},
-        is_complete: true
-      }, {
-        onConflict: 'conversation_id',
-        ignoreDuplicates: false
+        is_complete: true,
+        context: {
+          timestamp: new Date().toISOString(),
+          model_used: 'gpt-4o-mini'
+        }
       })
-      .select() // Add this to see what was inserted
 
-    if (responseError) {
-      console.error('❌ Failed to save complete response:', responseError)
-      throw responseError
+    if (error) {
+      console.error('❌ Failed to save complete response:', error)
+      throw error
     }
 
-    console.log('✅ Complete response saved successfully:', data)
-    return data
-
+    console.log('✅ Complete response saved successfully')
   } catch (error) {
-    console.error('❌ Database error saving complete response:', error)
-    throw error // Re-throw so we can see the error in logs
+    console.error('❌ Error saving complete response:', error)
+    throw error
   }
 }
-// Fix the main serve function
+
 serve(async (req: Request) => {
   const corsHeaders = getCorsHeaders(req)
   
@@ -499,29 +455,6 @@ async function processAgentRequest(controller: ReadableStreamDefaultController, 
     }
   }
 
-   // In your streaming loop, periodically update the conversation with last content
-    async function updateConversationProgress(
-      supabase: any,
-      conversationId: string,
-      lastContent: string
-    ) {
-      try {
-        const { error } = await supabase
-          .from('chat_conversations')
-          .update({ 
-            last_content: lastContent,
-            updated_at: new Date().toISOString()
-          })
-          .eq('id', conversationId)
-
-        if (error) {
-          console.error('❌ Failed to update conversation progress:', error)
-        }
-      } catch (error) {
-        console.error('❌ Error updating conversation progress:', error)
-      }
-    }
-
   try {
     console.log('🔍 Starting processAgentRequest for stage:', stageId)
     console.log('🤖 Using LLM provider:', llmProvider)
@@ -540,7 +473,7 @@ async function processAgentRequest(controller: ReadableStreamDefaultController, 
     const promptData = EdgeStagePromptEngine.generatePrompt(request)
     console.log('✅ Prompt generated successfully')
     
-    // Get LLM response
+    // Get LLM response (not streaming in this simplified version)
     console.log('🚀 Calling LLM API...')
     const llmResponse = await llmClient.generateResponse(
       promptData.systemPrompt,
@@ -550,88 +483,51 @@ async function processAgentRequest(controller: ReadableStreamDefaultController, 
     )
     console.log('✅ LLM response received')
     
-    // Stop heartbeat once we start streaming actual content
-    stopHeartbeat()
-    
-    // Early check if stream is still open
-    if (streamClosed) {
-      console.log('🔌 Stream closed during LLM call, aborting')
-      return
-    }
-    
     // Parse and validate response
     console.log('🔧 Parsing and validating response...')
     const response = parseAndValidateResponse(llmResponse, stageId)
     console.log('✅ Response parsed successfully')
     
-    // Stream the content with better error handling
-    console.log('📡 Starting content streaming...')
+    // Stream the content word by word for better UX
     const words = response.content.split(' ')
-    console.log('📝 Total words to stream:', words.length)
+    let fullContent = ''
     
-   
-
-    // Stream content word by word
     for (let i = 0; i < words.length && !streamClosed; i++) {
-      const chunk = words.slice(0, i + 1).join(' ')
+      fullContent = words.slice(0, i + 1).join(' ')
       
-      const tokenData = {
+      const streamData = {
         type: 'content',
-        content: chunk,
-        conversationId,
-        tokenIndex: tokenIndex++
+        content: fullContent,
+        conversationId
       }
       
-      // Save token to database (async, don't wait)
-      saveTokenToDatabase(supabase, conversationId!, tokenIndex - 1, chunk, 'content')
-        .catch(error => console.error('⚠️ Token save failed but continuing stream:', error))
-      
-      // Use safe enqueue - if it returns false, client disconnected
-      if (!safeEnqueue(tokenData)) {
-        console.log('🔌 Client disconnected during streaming, stopping gracefully')
+      if (!safeEnqueue(streamData)) {
+        console.log('🔌 Client disconnected')
         break
       }
       
-      // Save progress every 20 words for recovery
-      if (i % 20 === 0) {
-        updateConversationProgress(supabase, conversationId!, chunk)
-          .catch(error => console.error('⚠️ Progress save failed:', error))
-      }
-      
-      // Add realistic delay only if stream is still open
-      if (!streamClosed && i < words.length - 1) {
+      // Add small delay for streaming effect
+      if (i < words.length - 1) {
         await new Promise(resolve => setTimeout(resolve, 50))
       }
     }
     
-    console.log('✅ Content streaming completed')
-
-    // Send completion data only if stream is still open
-    if (!streamClosed) {
-      console.log('🏁 Sending completion data...')
+    // Send completion and save complete response
+    if (!streamClosed && fullContent) {
       const completionData = {
-        type: 'complete', 
-        ...response,
+        type: 'complete',
+        content: fullContent,
+        suggestions: response.suggestions || [],
+        autoFillData: response.autoFillData || {},
+        stageComplete: response.stageComplete || false,
         conversationId
       }
       
       if (safeEnqueue(completionData)) {
-        console.log('✅ Completion data sent')
-        
-        // Save complete response to database (async, don't wait for stream)
-        saveCompleteResponse(supabase, conversationId!, response, userMessage)
-          .catch((error) => {
-            const getErrorMessage = (err: unknown): string => {
-              if (err instanceof Error) return err.message
-              if (typeof err === 'string') return err
-              return 'Unknown error'
-            }
-            console.error('⚠️ Complete response save failed:', getErrorMessage(error))
-          })
+        await saveCompleteResponse(supabase, conversationId!, response, userMessage)
       }
     }
     
-    // Close stream safely
     safeClose()
     console.log('🎉 processAgentRequest completed successfully')
 

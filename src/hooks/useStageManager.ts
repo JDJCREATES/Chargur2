@@ -78,7 +78,7 @@ export const useStageManager = () => {
 
   const goToStage = useCallback((stageId: string) => {
     const stage = stages.find(s => s.id === stageId);
-    if (stage && !stage.comingSoon) {
+    if (stage) {
       setStages(prev => prev.map(s => ({
         ...s,
         active: s.id === stageId

@@ -370,4 +370,41 @@ export class ChatStorageManager {
 
     return data || [];
   }
+
+  static async getLastResponse(conversationId: string) {
+    try {
+      const { data, error } = await supabase
+        .from('chat_responses')
+        .select('*')
+        .eq('conversation_id', conversationId)
+        .order('created_at', { ascending: false })
+        .limit(1)
+        .single();
+
+      if (error) throw error;
+      return data;
+    } catch (error) {
+      console.error('Failed to get last response:', error);
+      return null;
+    }
+  }
+
+  static async getLastCompleteResponse(conversationId: string) {
+    try {
+      const { data, error } = await supabase
+        .from('chat_responses')
+        .select('*')
+        .eq('conversation_id', conversationId)
+        .eq('is_complete', true)
+        .order('created_at', { ascending: false })
+        .limit(1)
+        .single();
+
+      if (error) throw error;
+      return data;
+    } catch (error) {
+      console.error('Failed to get last complete response:', error);
+      return null;
+    }
+  }
 }

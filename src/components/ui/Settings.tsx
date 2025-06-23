@@ -11,7 +11,7 @@ export const Settings: React.FC = () => {
   const handleAutoGenerate = () => {
     // This would trigger AI auto-generation for the current stage
     console.log('Auto-generating content for current stage...');
-    // TODO: Implement AI auto-generation logic
+    // TODO: Implement AI auto-generation logic, should be moved to another file!! ~JDJ
   };
 
   const handleAuthAction = async () => {

@@ -1,6 +1,14 @@
+/** 
+ * The useAgentChat hook should focus only on:
+
+      Managing chat state
+      Calling Edge Functions
+      Handling streaming responses
+      Managing conversation lifecycle
+*/
+
 import { useState, useCallback, useRef } from 'react';
 import { useAuth } from './useAuth';
-import { ChatRecoveryManager } from '../lib/auth/chat/chatRecovery';
 import { ChatStorageManager } from '../lib/auth/chat/chatStorage';
 import { createLLMClient, LLMRequest } from '../lib/llm/llmClient';
 
@@ -366,32 +374,23 @@ export const useAgentChat = ({
     try {
       console.log('🔄 Attempting conversation recovery...');
       
-      const integrity = await ChatRecoveryManager.validateConversationIntegrity(conversationId);
-      if (!integrity.canRecover) {
-        console.log('❌ Conversation cannot be recovered:', integrity.issues);
-        return false;
-      }
+      // Get the last complete response from chat_responses table
+      const lastResponse = await ChatStorageManager.getLastCompleteResponse(conversationId);
       
-      if (integrity.issues.length > 0) {
-        console.warn('⚠️ Conversation has issues but may be recoverable:', integrity.issues);
-      }
-      
-      const recovery = await ChatRecoveryManager.recoverConversation(conversationId);
-      
-      if (recovery.success && recovery.content) {
+      if (lastResponse && lastResponse.full_content) {
         setState(prev => ({
           ...prev,
-          content: recovery.content || '',
-          suggestions: recovery.suggestions || [],
-          autoFillData: recovery.autoFillData || {},
-          isComplete: recovery.isComplete || false
+          content: lastResponse.full_content || '',
+          suggestions: lastResponse.suggestions || [],
+          autoFillData: lastResponse.auto_fill_data || {},
+          isComplete: lastResponse.is_complete || false
         }));
         
-        if (recovery.isComplete) {
-          if (recovery.autoFillData && onAutoFill) {
-            onAutoFill(recovery.autoFillData);
+        if (lastResponse.is_complete) {
+          if (lastResponse.auto_fill_data && onAutoFill) {
+            onAutoFill(lastResponse.auto_fill_data);
           }
-          if (recovery.stageComplete && onStageComplete) {
+          if (lastResponse.stage_complete && onStageComplete) {
             onStageComplete();
           }
         }
@@ -451,15 +450,6 @@ export const useAgentChat = ({
           throw new Error('Failed to create or retrieve conversation ID');
         }
 
-        // Try recovery first if this is a retry
-        if (retryCountRef.current > 0) {
-          const recovered = await attemptRecovery(conversationId);
-          if (recovered) {
-            setState(prev => ({ ...prev, isLoading: false }));
-            return;
-          }
-        }
-
         // Always use Edge Function processing (since prompts are handled there)
         console.log('🔄 Using Edge Function processing');
         await processWithEdgeFunction(conversationId, userMessage, controller.signal);
@@ -513,7 +503,7 @@ export const useAgentChat = ({
     };
 
     await attemptRequest();
-  }, [state.conversationId, createConversation, attemptRecovery,  processWithEdgeFunction, useDirectLLM, user, session]);
+  }, [state.conversationId, createConversation, processWithEdgeFunction, user, session]);
 
   const retry = useCallback(() => {
     if (state.error) {
@@ -533,56 +523,3 @@ export const useAgentChat = ({
   };
 };
 
-// Helper functions for direct LLM usage should match edge function implementation!!
-function generateSystemPrompt(
-  stageId: string, 
-  currentStageData: any, 
-  allStageData: any, 
-  memory: any, 
-  recommendations: any[]
-): string {
-  return `You are an AI assistant helping users with stage ${stageId}. 
-Current stage data: ${JSON.stringify(currentStageData)}
-All stage data: ${JSON.stringify(allStageData)}
-Memory context: ${JSON.stringify(memory)}
-Recommendations: ${JSON.stringify(recommendations)}
-
-Please provide helpful responses and suggest next steps. Format your response as JSON with:
-{
-  "content": "your response text",
-  "suggestions": ["suggestion1", "suggestion2"],
-  "autoFillData": {},
-  "stageComplete": false
-}`;
-}
-
-function generateUserPrompt(userMessage: string, currentStageData: any, historyMessages: ChatMessage[]): string {
-  const recentHistory = historyMessages.slice(-5).map(msg => `${msg.type}: ${msg.content}`).join('\n');
-  
-  return `User message: ${userMessage}
-Current context: ${JSON.stringify(currentStageData)}
-Recent conversation:
-${recentHistory}`;
-}
-
-function parseAgentResponse(content: string): {
-  suggestions: string[];
-  autoFillData: any;
-  stageComplete: boolean;
-} {
-  try {
-    const parsed = JSON.parse(content);
-    return {
-      suggestions: parsed.suggestions || [],
-      autoFillData: parsed.autoFillData || {},
-      stageComplete: parsed.stageComplete || false
-    };
-  } catch (error) {
-    console.warn('Failed to parse agent response as JSON:', error);
-    return {
-      suggestions: [],
-      autoFillData: {},
-      stageComplete: false
-    };
-  }
-}

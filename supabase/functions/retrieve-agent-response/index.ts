@@ -51,16 +51,9 @@ const getCorsHeaders = (request: Request) => ({
 
 interface RetrieveRequest {
   conversationId: string
-  lastTokenIndex?: number
 }
 
 interface RetrieveResponse {
-  tokens: Array<{
-    token_index: number
-    token_content: string
-    token_type: string
-    created_at: string
-  }>
   completeResponse?: {
     full_content: string
     suggestions: string[]
@@ -103,12 +96,9 @@ serve(async (req: Request) => {
     
     const supabase = createClient(supabaseUrl, supabaseServiceKey)
     
-    const { conversationId, lastTokenIndex = -1 }: RetrieveRequest = await req.json()
+    const { conversationId }: RetrieveRequest = await req.json()
     
-    console.log('📋 Request parameters:', {
-      conversationId,
-      lastTokenIndex
-    })
+    console.log('📋 Request parameters:', { conversationId })
     
     // Verify conversation exists and get status
     const { data: conversation, error: conversationError } = await supabase
@@ -130,32 +120,14 @@ serve(async (req: Request) => {
     
     console.log('✅ Conversation found with status:', conversation.status)
     
-    // Get tokens after the specified index
-    const { data: tokens, error: tokensError } = await supabase
-      .from('chat_response_tokens')
-      .select('token_index, token_content, token_type, created_at')
-      .eq('conversation_id', conversationId)
-      .gt('token_index', lastTokenIndex)
-      .order('token_index', { ascending: true })
-    
-    if (tokensError) {
-      console.error('❌ Failed to retrieve tokens:', tokensError)
-      return new Response(
-        JSON.stringify({ error: 'Failed to retrieve tokens' }),
-        {
-          status: 500,
-          headers: { ...corsHeaders, 'Content-Type': 'application/json' },
-        }
-      )
-    }
-    
-    console.log('📦 Retrieved tokens:', tokens?.length || 0)
-    
-    // Get complete response if available
+    // Get complete response only (no tokens)
     const { data: completeResponse, error: responseError } = await supabase
       .from('chat_responses')
       .select('full_content, suggestions, auto_fill_data, stage_complete, context, is_complete')
       .eq('conversation_id', conversationId)
+      .eq('is_complete', true)
+      .order('created_at', { ascending: false })
+      .limit(1)
       .single()
     
     if (responseError && responseError.code !== 'PGRST116') { // PGRST116 = no rows returned
@@ -165,12 +137,11 @@ serve(async (req: Request) => {
     console.log('📄 Complete response available:', !!completeResponse?.is_complete)
     
     const response: RetrieveResponse = {
-      tokens: tokens || [],
       completeResponse: completeResponse?.is_complete ? completeResponse : undefined,
       conversationStatus: conversation.status
     }
     
-    console.log('✅ Sending response with', response.tokens.length, 'tokens')
+    console.log('✅ Sending response')
     
     return new Response(
       JSON.stringify(response),

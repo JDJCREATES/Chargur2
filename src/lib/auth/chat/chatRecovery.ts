@@ -28,8 +28,8 @@ export class ChatRecoveryManager {
     try {
       console.log('🔄 Attempting to recover conversation:', conversationId);
       
-      // Check for complete response first
-      const completeResponse = await ChatStorageManager.getCompleteResponse(conversationId);
+      // Get the last complete response from chat_responses table
+      const completeResponse = await ChatStorageManager.getLastCompleteResponse(conversationId);
       if (completeResponse && completeResponse.is_complete) {
         return {
           success: true,
@@ -41,28 +41,16 @@ export class ChatRecoveryManager {
         };
       }
       
-      // Check for partial content in conversation
-      const conversation = await ChatStorageManager.getConversation(conversationId);
-      if (conversation?.metadata?.last_content) {
+      // Check for any response (even incomplete)
+      const anyResponse = await ChatStorageManager.getLastResponse(conversationId);
+      if (anyResponse?.full_content) {
         return {
           success: true,
-          content: conversation.metadata.last_content,
+          content: anyResponse.full_content,
+          suggestions: anyResponse.suggestions || [],
+          autoFillData: anyResponse.auto_fill_data || {},
           isComplete: false
         };
-      }
-      
-      // Try to reconstruct from any saved tokens (if you still have them)
-      try {
-        const reconstructedContent = await ChatStorageManager.reconstructContentFromTokens(conversationId);
-        if (reconstructedContent) {
-          return {
-            success: true,
-            content: reconstructedContent,
-            isComplete: false
-          };
-        }
-      } catch (error) {
-        console.warn('⚠️ Could not reconstruct from tokens:', error);
       }
       
       return {
@@ -78,14 +66,6 @@ export class ChatRecoveryManager {
         error: error instanceof Error ? error.message : 'Unknown error'
       };
     }
-  }
-  
-  private static async getCompleteResponse(conversationId: string) {
-    // Implementation to get complete response from chat_responses table
-  }
-  
-  private static async getConversation(conversationId: string) {
-    // Implementation to get conversation with last_content
   }
   
   /**

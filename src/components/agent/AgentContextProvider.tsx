@@ -8,7 +8,7 @@
  * - Manages persistent agent memory and learning
  */
 
-import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
+import React, { createContext, useContext, useState, useEffect, ReactNode, useCallback } from 'react';
 
 interface AgentState {
   isActive: boolean;
@@ -17,6 +17,24 @@ interface AgentState {
   crossStageInsights: string[];
   autoSuggestions: { [stageId: string]: any };
   learningData: { [key: string]: any };
+}
+
+interface AgentMemory {
+  stageData: { [stageId: string]: any };
+  completedStages: string[];
+  userPreferences: { [key: string]: any };
+  crossStageInsights: string[];
+  lastUpdated: string;
+}
+
+interface AgentRecommendation {
+  id: string;
+  type: 'suggestion' | 'warning' | 'feature-pack' | 'security' | 'optimization';
+  content: string;
+  priority: 'low' | 'medium' | 'high';
+  stageId: string;
+  data?: any;
+  timestamp: string;
 }
 
 interface AgentContextType {
@@ -28,6 +46,10 @@ interface AgentContextType {
   resetAgent: () => void;
   isAgentThinking: boolean;
   setIsAgentThinking: (thinking: boolean) => void;
+  memory: AgentMemory;
+  recommendations: AgentRecommendation[];
+  updateMemory: (updates: Partial<AgentMemory>) => void;
+  updateRecommendations: (recommendations: AgentRecommendation[]) => void;
 }
 
 const AgentContext = createContext<AgentContextType | undefined>(undefined);
@@ -47,6 +69,16 @@ export const AgentContextProvider: React.FC<AgentContextProviderProps> = ({ chil
   });
 
   const [isAgentThinking, setIsAgentThinking] = useState(false);
+
+  const [memory, setMemory] = useState<AgentMemory>({
+    stageData: {},
+    completedStages: [],
+    userPreferences: {},
+    crossStageInsights: [],
+    lastUpdated: new Date().toISOString(),
+  });
+
+  const [recommendations, setRecommendations] = useState<AgentRecommendation[]>([]);
 
   // Load agent state from localStorage
   useEffect(() => {
@@ -150,6 +182,14 @@ export const AgentContextProvider: React.FC<AgentContextProviderProps> = ({ chil
     localStorage.removeItem('chargur-agent-state');
   };
 
+  const updateMemory = useCallback((updates: Partial<AgentMemory>) => {
+    setMemory(prev => ({ ...prev, ...updates, lastUpdated: new Date().toISOString() }))
+  }, [])
+
+  const updateRecommendations = useCallback((newRecommendations: AgentRecommendation[]) => {
+    setRecommendations(newRecommendations)
+  }, [])
+
   const contextValue: AgentContextType = {
     agentState,
     updateAgentMemory,
@@ -159,6 +199,10 @@ export const AgentContextProvider: React.FC<AgentContextProviderProps> = ({ chil
     resetAgent,
     isAgentThinking,
     setIsAgentThinking,
+    memory,
+    recommendations,
+    updateMemory,
+    updateRecommendations,
   };
 
   return (
