@@ -21,7 +21,9 @@
 
 import React from 'react';
 import { motion } from 'framer-motion';
-import { CanvasNode, CanvasNodeData } from '../CanvasNode';
+import { CanvasNodeData } from '../CanvasNode';
+import { DefaultCanvasNode } from '../DefaultCanvasNode';
+import { DraggableConnectableWrapper } from '../DraggableConnectableWrapper';
 import { CanvasConnection } from '../CanvasConnection';
 import { 
   AppNameNode, 
@@ -88,68 +90,6 @@ export const CanvasRenderer: React.FC<CanvasRendererProps> = ({
     };
   };
 
-  const renderCustomNode = (node: CanvasNodeData) => {
-    // Check if this is a custom ideation node
-    if (node.metadata?.stage === 'ideation-discovery' && Object.values(STAGE1_NODE_TYPES).includes(node.type as any)) {
-      const commonProps = {
-        node: node as any,
-        isSelected: selectedNodeId === node.id,
-        onUpdate: onNodeUpdate,
-        onSelect: onNodeSelect,
-        scale: scale
-      };
-
-      switch (node.type) {
-        case 'appName':
-          return <AppNameNode key={node.id} {...commonProps} />;
-        case 'tagline':
-          return <TaglineNode key={node.id} {...commonProps} />;
-        case 'coreProblem':
-          return <CoreProblemNode key={node.id} {...commonProps} />;
-        case 'mission':
-          return <MissionNode key={node.id} {...commonProps} />;
-        case 'userPersona':
-          return (
-            <UserPersonaNode 
-              key={node.id} 
-              {...commonProps} 
-              onDelete={onNodeDelete}
-            />
-          );
-        case 'valueProp':
-          return <ValuePropositionNode key={node.id} {...commonProps} />;
-        case 'competitor':
-          return (
-            <CompetitorNode 
-              key={node.id} 
-              {...commonProps} 
-              onDelete={onNodeDelete}
-            />
-          );
-        default:
-          return null;
-      }
-    }
-    return null;
-  };
-
-  const renderDefaultNode = (node: CanvasNodeData) => {
-    return (
-      <CanvasNode
-        key={node.id}
-        node={node}
-        isSelected={selectedNodeId === node.id}
-        isConnecting={connectingFrom !== null}
-        onSelect={onNodeSelect}
-        onUpdate={onNodeUpdate}
-        onDelete={onNodeDelete}
-        onStartConnection={onConnectionStart}
-        onEndConnection={onConnectionEnd}
-        scale={scale}
-      />
-    );
-  };
-
   return (
     <div className="relative w-full h-full">
       {/* Grid Background */}
@@ -195,14 +135,69 @@ export const CanvasRenderer: React.FC<CanvasRendererProps> = ({
 
         {/* Render Nodes */}
         {nodes.map((node) => {
-          // Try to render custom node first
-          const customNode = renderCustomNode(node);
-          if (customNode) {
-            return customNode;
-          }
-          
-          // Fallback to default node rendering
-          return renderDefaultNode(node);
+          const isCustomIdeationNode = node.metadata?.stage === 'ideation-discovery' && 
+                                      Object.values(STAGE1_NODE_TYPES).includes(node.type as any);
+
+          return (
+            <DraggableConnectableWrapper
+              key={node.id}
+              node={node}
+              isSelected={selectedNodeId === node.id}
+              isConnecting={connectingFrom !== null}
+              onSelect={onNodeSelect}
+              onUpdate={onNodeUpdate}
+              onDelete={onNodeDelete}
+              onStartConnection={onConnectionStart}
+              onEndConnection={onConnectionEnd}
+              scale={scale}
+            >
+              {isCustomIdeationNode ? (
+                // Render custom ideation node
+                (() => {
+                  const commonProps = {
+                    node: node as any,
+                    isSelected: selectedNodeId === node.id,
+                    onUpdate: onNodeUpdate,
+                    onSelect: onNodeSelect
+                  };
+
+                  switch (node.type) {
+                    case 'appName':
+                      return <AppNameNode {...commonProps} />;
+                    case 'tagline':
+                      return <TaglineNode {...commonProps} />;
+                    case 'coreProblem':
+                      return <CoreProblemNode {...commonProps} />;
+                    case 'mission':
+                      return <MissionNode {...commonProps} />;
+                    case 'userPersona':
+                      return <UserPersonaNode {...commonProps} onDelete={onNodeDelete} />;
+                    case 'valueProp':
+                      return <ValuePropositionNode {...commonProps} />;
+                    case 'competitor':
+                      return <CompetitorNode {...commonProps} onDelete={onNodeDelete} />;
+                    default:
+                      return <DefaultCanvasNode 
+                                node={node} 
+                                isSelected={selectedNodeId === node.id}
+                                onUpdate={onNodeUpdate}
+                                onDelete={onNodeDelete}
+                                onStartConnection={onConnectionStart}
+                              />;
+                  }
+                })()
+              ) : (
+                // Render default node
+                <DefaultCanvasNode 
+                  node={node} 
+                  isSelected={selectedNodeId === node.id}
+                  onUpdate={onNodeUpdate}
+                  onDelete={onNodeDelete}
+                  onStartConnection={onConnectionStart}
+                />
+              )}
+            </DraggableConnectableWrapper>
+          );
         })}
 
         {/* Connection Preview */}

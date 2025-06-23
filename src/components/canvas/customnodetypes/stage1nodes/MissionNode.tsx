@@ -1,5 +1,4 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { motion } from 'framer-motion';
 import { Target, Edit3, Sparkles } from 'lucide-react';
 
 interface MissionNodeData {
@@ -22,8 +21,7 @@ export const MissionNode: React.FC<MissionNodeProps> = ({
   node,
   isSelected,
   onUpdate,
-  onSelect,
-  scale,
+  onSelect
 }) => {
   const [isEditing, setIsEditing] = useState(false);
   const [editValue, setEditValue] = useState(node.value);
@@ -70,32 +68,12 @@ export const MissionNode: React.FC<MissionNodeProps> = ({
   const isPlaceholder = !node.value;
 
   return (
-    <motion.div
-      className={`
-        absolute cursor-pointer select-none transition-all duration-300
-        ${isSelected ? 'z-50' : 'z-10'}
-      `}
-      style={{
-        left: `${node.position.x}px`,
-        top: `${node.position.y}px`,
-        width: node.size.width,
-        minHeight: node.size.height,
-      }}
-      onClick={(e) => {
-        e.stopPropagation();
-        onSelect(node.id);
-      }}
-      whileHover={{ scale: 1.02 }}
-      animate={{
-        scale: isSelected ? 1.05 : 1,
-      }}
-    >
-      <div className={`
-        relative w-full h-full bg-gradient-to-r from-green-50 to-emerald-50 
-        rounded-lg shadow-md border-2 transition-all duration-300
-        ${isSelected ? 'border-green-400 shadow-lg' : 'border-green-200'}
-        ${isPlaceholder ? 'opacity-70' : 'opacity-100'}
-      `}>
+    <div className={`
+      relative w-full h-full bg-gradient-to-r from-green-50 to-emerald-50 
+      rounded-lg shadow-md border-2 transition-all duration-300
+      ${isSelected ? 'border-green-400 shadow-lg' : 'border-green-200'}
+      ${isPlaceholder ? 'opacity-70' : 'opacity-100'}
+    `}>
         {/* Header */}
         <div className="flex items-center gap-2 p-3 border-b border-green-200">
           <Target className="w-4 h-4 text-green-600" />
@@ -166,7 +144,6 @@ export const MissionNode: React.FC<MissionNodeProps> = ({
             {editValue.length} chars
           </div>
         )}
-      </div>
-    </motion.div>
+    </div>
   );
 };

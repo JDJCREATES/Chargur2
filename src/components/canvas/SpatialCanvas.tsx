@@ -34,14 +34,6 @@ import { CanvasDataProcessor, ProcessorState } from './core/CanvasDataProcessor'
 import { useCanvasStateManager } from './core/CanvasStateManager';
 import { useCanvasInteractionManager } from './core/CanvasInteractionManager';
 import { CanvasNodeData } from './CanvasNode';
-import { Stage, StageData } from '../../types';
-
-interface SpatialCanvasProps {
-  currentStage?: Stage;
-  stageData: StageData;
-  onSendMessage: (message: string) => void;
-}
-
 export const SpatialCanvas: React.FC<SpatialCanvasProps> = ({
   stageData,
   onSendMessage

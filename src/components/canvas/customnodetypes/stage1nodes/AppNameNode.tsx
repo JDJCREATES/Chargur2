@@ -1,5 +1,4 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { motion } from 'framer-motion';
 import { Edit3, History, Sparkles } from 'lucide-react';
 
 interface AppNameNodeData {
@@ -24,8 +23,7 @@ export const AppNameNode: React.FC<AppNameNodeProps> = ({
   node,
   isSelected,
   onUpdate,
-  onSelect,
-  scale,
+  onSelect
 }) => {
   const [isEditing, setIsEditing] = useState(false);
   const [editValue, setEditValue] = useState(node.value);
@@ -70,33 +68,15 @@ export const AppNameNode: React.FC<AppNameNodeProps> = ({
   const isPlaceholder = !node.value;
 
   return (
-    <motion.div
+    <div 
       className={`
-        absolute cursor-pointer select-none transition-all duration-300
-        ${isSelected ? 'z-50' : 'z-20'}
+      relative w-full h-full bg-gradient-to-r from-blue-600 to-purple-600 
+      rounded-xl shadow-lg border-2 transition-all duration-300
+      ${isSelected ? 'border-white shadow-2xl' : 'border-blue-400'}
+      ${isPlaceholder ? 'opacity-70' : 'opacity-100'}
       `}
-      style={{
-        left: `${node.position.x}px`,
-        top: `${node.position.y}px`,
-        width: node.size.width,
-        minHeight: node.size.height,
-      }}
-      onClick={(e) => {
-        e.stopPropagation();
-        onSelect(node.id);
-      }}
       onDoubleClick={handleDoubleClick}
-      whileHover={{ scale: 1.02 }}
-      animate={{
-        scale: isSelected ? 1.05 : 1,
-      }}
     >
-      <div className={`
-        relative w-full h-full bg-gradient-to-r from-blue-600 to-purple-600 
-        rounded-xl shadow-lg border-2 transition-all duration-300
-        ${isSelected ? 'border-white shadow-2xl' : 'border-blue-400'}
-        ${isPlaceholder ? 'opacity-70' : 'opacity-100'}
-      `}>
         {/* Main Content */}
         <div className="p-6 flex flex-col items-center justify-center h-full">
           {isEditing ? (
@@ -164,8 +144,7 @@ export const AppNameNode: React.FC<AppNameNodeProps> = ({
         )}
 
         {/* Glow Effect */}
-        <div className="absolute inset-0 bg-gradient-to-r from-blue-400 to-purple-400 rounded-xl opacity-20 blur-xl -z-10" />
-      </div>
-    </motion.div>
+      <div className="absolute inset-0 bg-gradient-to-r from-blue-400 to-purple-400 rounded-xl opacity-20 blur-xl -z-10" />
+    </div>
   );
 };

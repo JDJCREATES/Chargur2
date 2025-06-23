@@ -1,6 +1,5 @@
 import React, { useState } from 'react';
 import { motion } from 'framer-motion';
-import { 
   Edit3,
   Trash2,
   Link,
@@ -53,27 +52,22 @@ export interface CanvasNodeData {
 interface CanvasNodeProps {
   node: CanvasNodeData;
   isSelected: boolean;
-  isConnecting: boolean;
   onSelect: (nodeId: string) => void;
   onUpdate: (nodeId: string, updates: Partial<CanvasNodeData>) => void;
   onDelete: (nodeId: string) => void;
   onStartConnection: (nodeId: string) => void;
   onEndConnection: (nodeId: string) => void;
-  scale: number;
 }
 
 export const CanvasNode: React.FC<CanvasNodeProps> = ({
   node,
   isSelected,
-  isConnecting,
   onSelect,
   onUpdate,
   onDelete,
   onStartConnection,
   onEndConnection,
-  scale,
 }) => {
-  const [isDragging, setIsDragging] = useState(false);
   const [isEditing, setIsEditing] = useState(false);
   const [editContent, setEditContent] = useState(node.content);
 
@@ -116,22 +110,6 @@ const getNodeIcon = () => {
     return colors[node.type] || colors['agent-output'];
   };
 
-  const handleDragStart = () => {
-    setIsDragging(true);
-  };
-
-  const handleDrag = (event: any, info: any) => {
-    const newPosition = {
-      x: Math.max(0, node.position.x + info.delta.x / scale),
-      y: Math.max(0, node.position.y + info.delta.y / scale),
-    };
-    onUpdate(node.id, { position: newPosition });
-  };
-
-  const handleDragEnd = () => {
-    setIsDragging(false);
-  };
-
   const handleSaveEdit = () => {
     onUpdate(node.id, { content: editContent });
     setIsEditing(false);
@@ -149,38 +127,11 @@ const getNodeIcon = () => {
   };
 
   return (
-    <motion.div
-      drag
-      dragMomentum={false}
-      dragElastic={0}
-      dragConstraints={false}
-      onDragStart={handleDragStart}
-      onDrag={handleDrag}
-      onDragEnd={handleDragEnd}
-      whileHover={{ scale: 1.02 }}
-      whileDrag={{ scale: 1.05, zIndex: 1000 }}
-      className={`
-        absolute cursor-move select-none transition-shadow
-        ${isDragging ? 'z-50' : 'z-10'}
-        ${isSelected ? 'ring-2 ring-blue-500 ring-opacity-50' : ''}
-      `}
-      style={{
-        left: `${node.position.x}px`,
-        top: `${node.position.y}px`,
-        width: node.size.width,
-        minHeight: node.size.height,
-      }}
-      onClick={(e) => {
-        e.stopPropagation();
-        onSelect(node.id);
-      }}
-    >
-      <div className={`
-        w-full h-full rounded-lg border-2 shadow-sm transition-all
-        ${getNodeColors()}
-        ${isSelected ? 'shadow-lg' : 'shadow-sm'}
-        ${isConnecting ? 'ring-2 ring-blue-400 ring-opacity-30' : ''}
-      `}>
+    <div className={`
+      w-full h-full rounded-lg border-2 shadow-sm transition-all
+      ${getNodeColors()}
+      ${isSelected ? 'shadow-lg' : 'shadow-sm'}
+    `}>
         {/* Node Header */}
         <div className="flex items-center justify-between p-2 border-b border-current border-opacity-20">
           <div className="flex items-center gap-2">
@@ -281,13 +232,7 @@ const getNodeIcon = () => {
             <EyeOff className="w-3 h-3" />
           </button>
         )}
-
-        {/* Connection Points */}
-        <div className="absolute -top-1 left-1/2 w-2 h-2 bg-current rounded-full opacity-30 transform -translate-x-1/2"></div>
-        <div className="absolute -bottom-1 left-1/2 w-2 h-2 bg-current rounded-full opacity-30 transform -translate-x-1/2"></div>
-        <div className="absolute -left-1 top-1/2 w-2 h-2 bg-current rounded-full opacity-30 transform -translate-y-1/2"></div>
-        <div className="absolute -right-1 top-1/2 w-2 h-2 bg-current rounded-full opacity-30 transform -translate-y-1/2"></div>
-      </div>
-    </motion.div>
+    </div>
+ * New code should use DefaultCanvasNode.tsx and DraggableConnectableWrapper.tsx.
   );
 };

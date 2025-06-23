@@ -1,5 +1,4 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { motion } from 'framer-motion';
 import { ExternalLink, Edit3, FileText, Trash2 } from 'lucide-react';
 
 interface CompetitorNodeData {
@@ -25,9 +24,7 @@ export const CompetitorNode: React.FC<CompetitorNodeProps> = ({
   node,
   isSelected,
   onUpdate,
-  onSelect,
-  onDelete,
-  scale,
+  onDelete
 }) => {
   const [isEditing, setIsEditing] = useState(false);
   const [showNotes, setShowNotes] = useState(false);
@@ -78,31 +75,11 @@ export const CompetitorNode: React.FC<CompetitorNodeProps> = ({
   const hasNotes = node.notes && node.notes.trim().length > 0;
 
   return (
-    <motion.div
-      className={`
-        absolute cursor-pointer select-none transition-all duration-300
-        ${isSelected ? 'z-50' : 'z-10'}
-      `}
-      style={{
-        left: `${node.position.x}px`,
-        top: `${node.position.y}px`,
-        width: node.size.width,
-        minHeight: node.size.height,
-      }}
-      onClick={(e) => {
-        e.stopPropagation();
-        onSelect(node.id);
-      }}
-      whileHover={{ scale: 1.02 }}
-      animate={{
-        scale: isSelected ? 1.05 : 1,
-      }}
-    >
-      <div className={`
-        relative w-full h-full bg-gradient-to-br from-red-50 to-pink-50 
-        rounded-lg shadow-md border-2 transition-all duration-300
-        ${isSelected ? 'border-red-400 shadow-lg' : 'border-red-200'}
-      `}>
+    <div className={`
+      relative w-full h-full bg-gradient-to-br from-red-50 to-pink-50 
+      rounded-lg shadow-md border-2 transition-all duration-300
+      ${isSelected ? 'border-red-400 shadow-lg' : 'border-red-200'}
+    `}>
         {/* Main Content */}
         <div className="p-3">
           {isEditing ? (
@@ -234,7 +211,6 @@ export const CompetitorNode: React.FC<CompetitorNodeProps> = ({
             <Trash2 className="w-3 h-3" />
           </button>
         )}
-      </div>
-    </motion.div>
+    </div>
   );
 };

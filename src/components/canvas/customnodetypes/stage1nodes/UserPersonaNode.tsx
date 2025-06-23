@@ -1,5 +1,4 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { motion } from 'framer-motion';
 import { User, Edit3, RefreshCw } from 'lucide-react';
 
 interface PersonaNodeData {
@@ -27,9 +26,7 @@ export const UserPersonaNode: React.FC<UserPersonaNodeProps> = ({
   node,
   isSelected,
   onUpdate,
-  onSelect,
-  onDelete,
-  scale,
+  onDelete
 }) => {
   const [isEditing, setIsEditing] = useState(false);
   const [editData, setEditData] = useState({
@@ -83,31 +80,11 @@ export const UserPersonaNode: React.FC<UserPersonaNodeProps> = ({
   const displayPainPoint = node.painPoint || "Pain point or goal...";
 
   return (
-    <motion.div
-      className={`
-        absolute cursor-pointer select-none transition-all duration-300
-        ${isSelected ? 'z-50' : 'z-10'}
-      `}
-      style={{
-        left: `${node.position.x}px`,
-        top: `${node.position.y}px`,
-        width: node.size.width,
-        minHeight: node.size.height,
-      }}
-      onClick={(e) => {
-        e.stopPropagation();
-        onSelect(node.id);
-      }}
-      whileHover={{ scale: 1.02 }}
-      animate={{
-        scale: isSelected ? 1.05 : 1,
-      }}
-    >
-      <div className={`
-        relative w-full bg-gradient-to-b from-blue-50 to-indigo-50 
-        rounded-lg shadow-md border-2 transition-all duration-300
-        ${isSelected ? 'border-blue-400 shadow-lg' : 'border-blue-200'}
-      `}>
+    <div className={`
+      relative w-full bg-gradient-to-b from-blue-50 to-indigo-50 
+      rounded-lg shadow-md border-2 transition-all duration-300
+      ${isSelected ? 'border-blue-400 shadow-lg' : 'border-blue-200'}
+    `}>
         {/* Avatar Head */}
         <div className="flex justify-center -mt-6 mb-2">
           <div className="relative">
@@ -229,7 +206,6 @@ export const UserPersonaNode: React.FC<UserPersonaNodeProps> = ({
             ×
           </button>
         )}
-      </div>
-    </motion.div>
+    </div>
   );
 };

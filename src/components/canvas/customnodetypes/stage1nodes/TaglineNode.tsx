@@ -1,5 +1,4 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { motion } from 'framer-motion';
 import { Edit3, Info } from 'lucide-react';
 
 interface TaglineNodeData {
@@ -22,8 +21,7 @@ export const TaglineNode: React.FC<TaglineNodeProps> = ({
   node,
   isSelected,
   onUpdate,
-  onSelect,
-  scale,
+  onSelect
 }) => {
   const [isEditing, setIsEditing] = useState(false);
   const [editValue, setEditValue] = useState(node.value);
@@ -58,32 +56,12 @@ export const TaglineNode: React.FC<TaglineNodeProps> = ({
   const isPlaceholder = !node.value;
 
   return (
-    <motion.div
-      className={`
-        absolute cursor-pointer select-none transition-all duration-300
-        ${isSelected ? 'z-50' : 'z-10'}
-      `}
-      style={{
-        left: `${node.position.x}px`,
-        top: `${node.position.y}px`,
-        width: node.size.width,
-        minHeight: node.size.height,
-      }}
-      onClick={(e) => {
-        e.stopPropagation();
-        onSelect(node.id);
-      }}
-      whileHover={{ scale: 1.02 }}
-      animate={{
-        scale: isSelected ? 1.05 : 1,
-      }}
-    >
-      <div className={`
-        relative w-full h-full bg-gradient-to-r from-purple-100 to-pink-100 
-        rounded-full shadow-md border-2 transition-all duration-300
-        ${isSelected ? 'border-purple-400 shadow-lg' : 'border-purple-200'}
-        ${isPlaceholder ? 'opacity-70' : 'opacity-100'}
-      `}>
+    <div className={`
+      relative w-full h-full bg-gradient-to-r from-purple-100 to-pink-100 
+      rounded-full shadow-md border-2 transition-all duration-300
+      ${isSelected ? 'border-purple-400 shadow-lg' : 'border-purple-200'}
+      ${isPlaceholder ? 'opacity-70' : 'opacity-100'}
+    `}>
         <div className="px-6 py-3 flex items-center justify-center h-full">
           {isEditing ? (
             <input
@@ -131,11 +109,7 @@ export const TaglineNode: React.FC<TaglineNodeProps> = ({
 
         {/* Tooltip */}
         {showTooltip && (
-          <motion.div
-            initial={{ opacity: 0, y: -10 }}
-            animate={{ opacity: 1, y: 0 }}
-            className="absolute top-8 right-0 bg-white rounded-lg shadow-lg p-3 min-w-64 z-60 border border-purple-200"
-          >
+          <div className="absolute top-8 right-0 bg-white rounded-lg shadow-lg p-3 min-w-64 z-60 border border-purple-200">
             <h4 className="font-medium text-purple-800 mb-2 text-sm">Why Taglines Matter</h4>
             <p className="text-xs text-gray-600 leading-relaxed">
               A great tagline captures your app's core value in just a few words. 
@@ -143,9 +117,8 @@ export const TaglineNode: React.FC<TaglineNodeProps> = ({
               memorable. Think "Just Do It" or "Think Different" - short, powerful, 
               and unforgettable.
             </p>
-          </motion.div>
+          </div>
         )}
-      </div>
-    </motion.div>
+    </div>
   );
 };

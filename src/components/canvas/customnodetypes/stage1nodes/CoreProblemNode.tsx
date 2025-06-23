@@ -1,5 +1,4 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { motion } from 'framer-motion';
 import { AlertTriangle, Edit3, Link, Lightbulb } from 'lucide-react';
 
 interface CoreProblemNodeData {
@@ -24,8 +23,7 @@ export const CoreProblemNode: React.FC<CoreProblemNodeProps> = ({
   node,
   isSelected,
   onUpdate,
-  onSelect,
-  scale,
+  onSelect
 }) => {
   const [isEditing, setIsEditing] = useState(false);
   const [editValue, setEditValue] = useState(node.value);
@@ -86,32 +84,12 @@ export const CoreProblemNode: React.FC<CoreProblemNodeProps> = ({
   const isPlaceholder = !node.value;
 
   return (
-    <motion.div
-      className={`
-        absolute cursor-pointer select-none transition-all duration-300
-        ${isSelected ? 'z-50' : 'z-10'}
-      `}
-      style={{
-        left: `${node.position.x}px`,
-        top: `${node.position.y}px`,
-        width: node.size.width,
-        minHeight: node.size.height,
-      }}
-      onClick={(e) => {
-        e.stopPropagation();
-        onSelect(node.id);
-      }}
-      whileHover={{ scale: 1.02 }}
-      animate={{
-        scale: isSelected ? 1.05 : 1,
-      }}
-    >
-      <div className={`
-        relative w-full h-full bg-gradient-to-br from-orange-100 to-red-100 
-        rounded-lg shadow-md border-2 transition-all duration-300 transform rotate-1
-        ${isSelected ? 'border-orange-400 shadow-lg rotate-0' : 'border-orange-200'}
-        ${isPlaceholder ? 'opacity-70' : 'opacity-100'}
-      `}>
+    <div className={`
+      relative w-full h-full bg-gradient-to-br from-orange-100 to-red-100 
+      rounded-lg shadow-md border-2 transition-all duration-300 transform rotate-1
+      ${isSelected ? 'border-orange-400 shadow-lg rotate-0' : 'border-orange-200'}
+      ${isPlaceholder ? 'opacity-70' : 'opacity-100'}
+    `}>
         {/* Sticky Note Header */}
         <div className="absolute top-0 left-1/2 transform -translate-x-1/2 -translate-y-1 w-8 h-3 bg-orange-300 rounded-t-sm"></div>
         
@@ -198,7 +176,6 @@ export const CoreProblemNode: React.FC<CoreProblemNodeProps> = ({
             </div>
           </div>
         )}
-      </div>
-    </motion.div>
+    </div>
   );
 };

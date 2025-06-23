@@ -1,5 +1,4 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { motion } from 'framer-motion';
 import { CheckCircle, Edit3, Sparkles, Plus, X } from 'lucide-react';
 
 interface ValuePropNodeData {
@@ -23,8 +22,7 @@ export const ValuePropositionNode: React.FC<ValuePropositionNodeProps> = ({
   node,
   isSelected,
   onUpdate,
-  onSelect,
-  scale,
+  onSelect
 }) => {
   const [isEditing, setIsEditing] = useState(false);
   const [editValue, setEditValue] = useState(node.value);
@@ -95,32 +93,12 @@ export const ValuePropositionNode: React.FC<ValuePropositionNodeProps> = ({
   const isPlaceholder = !node.value;
 
   return (
-    <motion.div
-      className={`
-        absolute cursor-pointer select-none transition-all duration-300
-        ${isSelected ? 'z-50' : 'z-10'}
-      `}
-      style={{
-        left: `${node.position.x}px`,
-        top: `${node.position.y}px`,
-        width: node.size.width,
-        minHeight: node.size.height,
-      }}
-      onClick={(e) => {
-        e.stopPropagation();
-        onSelect(node.id);
-      }}
-      whileHover={{ scale: 1.02 }}
-      animate={{
-        scale: isSelected ? 1.05 : 1,
-      }}
-    >
-      <div className={`
-        relative w-full h-full bg-gradient-to-br from-emerald-50 to-teal-50 
-        rounded-lg shadow-md border-2 transition-all duration-300
-        ${isSelected ? 'border-emerald-400 shadow-lg' : 'border-emerald-200'}
-        ${isPlaceholder ? 'opacity-70' : 'opacity-100'}
-      `}>
+    <div className={`
+      relative w-full h-full bg-gradient-to-br from-emerald-50 to-teal-50 
+      rounded-lg shadow-md border-2 transition-all duration-300
+      ${isSelected ? 'border-emerald-400 shadow-lg' : 'border-emerald-200'}
+      ${isPlaceholder ? 'opacity-70' : 'opacity-100'}
+    `}>
         {/* Header */}
         <div className="flex items-center gap-2 p-3 border-b border-emerald-200">
           <CheckCircle className="w-4 h-4 text-emerald-600" />
@@ -257,7 +235,6 @@ export const ValuePropositionNode: React.FC<ValuePropositionNodeProps> = ({
             )}
           </div>
         )}
-      </div>
-    </motion.div>
+    </div>
   );
 };
