@@ -219,90 +219,78 @@ export const useAgentChat = ({
   }, []);
   
 
-  // Edge Function processing (server-side) - this is where all the logic should be
-  const processWithEdgeFunction = useCallback(async (
-    conversationId: string,
-    userMessage: string,
-    signal: AbortSignal
-  ): Promise<void> => {
-    // Check authentication
-    if (!session?.access_token) {
-      throw new Error('Authentication required for agent requests');
-    }
+  // REPLACE the entire processWithEdgeFunction with this:
+const processWithEdgeFunction = useCallback(async (
+  conversationId: string,
+  userMessage: string,
+  signal: AbortSignal
+): Promise<void> => {
+  // Check authentication
+  if (!session?.access_token) {
+    throw new Error('Authentication required for agent requests');
+  }
 
-    const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
+  const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
 
-    if (!supabaseUrl) {
-      throw new Error('Missing Supabase configuration');
-    }
+  if (!supabaseUrl) {
+    throw new Error('Missing Supabase configuration');
+  }
 
-    const requestBody = {
-      stageId,
-      currentStageData,
-      allStageData,
-      userMessage,
-      conversationId,
-      memory, // Pass memory to Edge Function
-      conversationHistory: state.historyMessages, // Pass conversation history
-      recommendations, // Pass recommendations to Edge Function
-      llmProvider // Pass the provider preference
-    };
+  const requestBody = {
+    stageId,
+    currentStageData,
+    allStageData,
+    userMessage,
+    conversationId,
+    memory, // Pass memory to Edge Function
+    conversationHistory: state.historyMessages, // Pass conversation history
+    recommendations, // Pass recommendations to Edge Function
+    llmProvider // Pass the provider preference
+  };
 
-    // Direct LLM processing (client-side) - simplified
-  const processWithDirectLLM = useCallback(async (
-    userMessage: string,
-    conversationId: string
-  ): Promise<void> => {
-    // For direct LLM, we should still use the Edge Function for prompt generation
-    // The "direct" part refers to bypassing some middleware, not prompt generation
-    console.warn('Direct LLM processing should still use Edge Functions for prompts');
+  const response = await fetch(`${supabaseUrl}/functions/v1/agent-prompt`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      'Authorization': `Bearer ${session.access_token}`,
+    },
+    body: JSON.stringify(requestBody),
+    signal
+  });
+
+  if (!response.ok) {
+    let errorMessage = 'Unknown error';
     
-    // Fall back to Edge Function processing
-    const controller = new AbortController();
-    await processWithEdgeFunction(conversationId, userMessage, controller.signal);
-  }, [processWithEdgeFunction]);
-
-    const response = await fetch(`${supabaseUrl}/functions/v1/agent-prompt`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'Authorization': `Bearer ${session.access_token}`,
-      },
-      body: JSON.stringify(requestBody),
-      signal
-    });
-
-    if (!response.ok) {
-      let errorMessage = 'Unknown error';
-      
-      try {
-        const responseText = await response.text();
-        if (responseText.trim()) {
-          try {
-            const errorData = JSON.parse(responseText);
-            errorMessage = errorData.error || errorData.message || 'Server error';
-          } catch (parseError) {
-            errorMessage = responseText;
-          }
-        } else {
-          errorMessage = `HTTP ${response.status}: ${response.statusText}`;
+    try {
+      const responseText = await response.text();
+      if (responseText.trim()) {
+        try {
+          const errorData = JSON.parse(responseText);
+          errorMessage = errorData.error || errorData.message || 'Server error';
+        } catch (parseError) {
+          errorMessage = responseText;
         }
-      } catch (textError) {
+      } else {
         errorMessage = `HTTP ${response.status}: ${response.statusText}`;
       }
-      
-      throw new Error(`Agent function failed: ${response.status} - ${errorMessage}`);
+    } catch (textError) {
+      errorMessage = `HTTP ${response.status}: ${response.statusText}`;
     }
+    
+    throw new Error(`Agent function failed: ${response.status} - ${errorMessage}`);
+  }
 
-    await processStreamResponse(response, conversationId);
-  }, [stageId, currentStageData, allStageData, session, memory, recommendations, state.historyMessages]);
+  // Process the streaming response
+  await processStreamResponse(response, conversationId);
+}, [stageId, currentStageData, allStageData, session, memory, recommendations, state.historyMessages, llmProvider]);
+
 
   const processStreamResponse = useCallback(async (
     response: Response,
     conversationId: string
   ): Promise<void> => {
     if (!response.body) {
-      throw new Error('No response body received');
+      throw new Error('No response body received for: ' + response.url);
     }
 
     const reader = response.body.getReader();
