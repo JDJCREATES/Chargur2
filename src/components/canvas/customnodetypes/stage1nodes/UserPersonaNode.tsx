@@ -86,7 +86,7 @@ export const UserPersonaNode: React.FC<UserPersonaNodeProps> = ({
       {/* Avatar Head */}
       <div className="flex justify-center -mt-6 mb-2">
         <div className="relative">
-          <div className="w-12 h-12 bg-gradient-to-br from-blue-400 to-indigo-500 rounded-full flex items-center justify-center text-white text-xl shadow-lg">
+          <div className="w-12 h-12 bg-gradient-to-br from-blue-400 to-indigo-500 rounded-full flex items-center justify-center text-white text-xl shadow-lg" style={{ zIndex: 20 }}>
             {node.avatarUrl ? (
               <img 
                 src={node.avatarUrl} 

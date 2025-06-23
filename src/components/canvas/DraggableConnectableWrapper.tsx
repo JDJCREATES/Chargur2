@@ -92,7 +92,7 @@ export const DraggableConnectableWrapper: React.FC<DraggableConnectableWrapperPr
 
   return (
     <motion.div
-      drag
+      drag={!isResizing}
       dragMomentum={false}
       dragElastic={0}
       dragConstraints={false}
@@ -103,8 +103,8 @@ export const DraggableConnectableWrapper: React.FC<DraggableConnectableWrapperPr
       whileDrag={{ scale: 1.05, zIndex: 1000 }}
       className={`
         absolute cursor-move select-none transition-shadow
-        ${isDragging ? 'z-50' : 'z-10'}
-        ${isSelected ? 'ring-2 ring-blue-500 ring-opacity-50' : ''}
+        ${isDragging ? 'z-50' : isSelected ? 'z-30' : 'z-10'}
+        ${isSelected ? 'ring-2 ring-blue-500 ring-opacity-100' : ''}
       `}
       style={{
         left: `${node.position.x}px`,

@@ -32,8 +32,8 @@ export const CanvasConnection: React.FC<CanvasConnectionProps> = ({
 
   return (
     <svg
-      className="absolute inset-0 pointer-events-none"
-      style={{ zIndex: 1 }}
+      className="absolute inset-0 pointer-events-none" 
+      style={{ zIndex: 5 }}
     >
       <defs>
         <marker
