@@ -43,7 +43,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
   isOpen,
   onToggle,
 }) => {
-  const { agentState, updateAgentMemory, getStageRecommendations } = useAgent();
+  const { agentState, updateAgentMemory, getStageRecommendations, memory, recommendations } = useAgent();
   
   const agentChat = useAgentChat({
     stageId: currentStage?.id || '',
@@ -51,8 +51,8 @@ export const Sidebar: React.FC<SidebarProps> = ({
     allStageData: stageData,
     useDirectLLM: false,
     llmProvider: 'openai',
-    memory: agentState.memory,
-    recommendations: getStageRecommendations(currentStage?.id || ''),
+    memory: memory,
+    recommendations: recommendations,
     onAutoFill: (data) => {
       if (currentStage?.id) {
         onUpdateStageData(currentStage.id, data);

@@ -32,7 +32,7 @@ export const Canvas: React.FC<CanvasProps> = ({
   onOpenSidebar,
 }) => {
   const [lastUserMessage, setLastUserMessage] = useState<string>('');
-  const { agentState, updateAgentMemory, getStageRecommendations } = useAgent();
+  const { agentState, updateAgentMemory, getStageRecommendations, memory, recommendations } = useAgent();
   
   const agentChat = useAgentChat({
     stageId: currentStage?.id || '',
@@ -40,8 +40,8 @@ export const Canvas: React.FC<CanvasProps> = ({
     allStageData: stageData,
     useDirectLLM: false,
     llmProvider: 'openai',
-    memory: agentState.memory,
-    recommendations: getStageRecommendations(currentStage?.id || ''),
+    memory: memory,
+    recommendations: recommendations,
     onAutoFill: (data) => {
       if (currentStage?.id && onUpdateStageData) {
         onUpdateStageData(currentStage.id, data);
