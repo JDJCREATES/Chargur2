@@ -15,12 +15,19 @@ import {
   GiWindow,
   GiDatabase,
   GiConversation,
-  GiScrollQuill
+  GiScrollQuill,
+  GiCrown,
+  GiQuill,
+  GiBullseye,
+  GiDiamonds,
+  GiCrossedSwords
 } from 'react-icons/gi';
+
 
 export interface CanvasNodeData {
   id: string;
-  type: 'concept' | 'feature' | 'ux-flow' | 'wireframe' | 'system' | 'agent-output';
+  type: 'concept' | 'feature' | 'ux-flow' | 'wireframe' | 'system' | 'agent-output' | 
+        'appName' | 'tagline' | 'coreProblem' | 'mission' | 'userPersona' | 'valueProp' | 'competitor';
   title: string;
   content: string;
   position: { x: number; y: number };
@@ -29,6 +36,18 @@ export interface CanvasNodeData {
   connections: string[];
   metadata?: any;
   collapsed?: boolean;
+  // Add properties that match the custom nodes from SpatialCanvas
+  value?: string;
+  editable?: boolean;
+  nameHistory?: string[];
+  keywords?: string[];
+  bulletPoints?: string[];
+  name?: string;
+  role?: string;
+  painPoint?: string;
+  emoji?: string;
+  notes?: string;
+  link?: string;
 }
 
 interface CanvasNodeProps {
@@ -58,17 +77,25 @@ export const CanvasNode: React.FC<CanvasNodeProps> = ({
   const [isEditing, setIsEditing] = useState(false);
   const [editContent, setEditContent] = useState(node.content);
 
-  const getNodeIcon = () => {
-    switch (node.type) {
-      case 'concept': return <GiLightBulb className="w-4 h-4" />;
-      case 'feature': return <GiEnergise className="w-4 h-4" />;
-      case 'ux-flow': return <GiPerson className="w-4 h-4" />;
-      case 'wireframe': return <GiWindow className="w-4 h-4" />;
-      case 'system': return <GiDatabase className="w-4 h-4" />;
-      case 'agent-output': return <GiConversation className="w-4 h-4" />;
-      default: return <GiScrollQuill className="w-4 h-4" />;
-    }
-  };
+const getNodeIcon = () => {
+  switch (node.type) {
+    case 'concept': return <GiLightBulb className="w-4 h-4" />;
+    case 'feature': return <GiEnergise className="w-4 h-4" />;
+    case 'ux-flow': return <GiPerson className="w-4 h-4" />;
+    case 'wireframe': return <GiWindow className="w-4 h-4" />;
+    case 'system': return <GiDatabase className="w-4 h-4" />;
+    case 'agent-output': return <GiConversation className="w-4 h-4" />;
+    case 'appName': return <GiCrown className="w-4 h-4" />;
+    case 'tagline': return <GiQuill className="w-4 h-4" />;
+    case 'coreProblem': return <GiLightBulb className="w-4 h-4" />;
+    case 'mission': return <GiBullseye className="w-4 h-4" />;
+    case 'userPersona': return <GiPerson className="w-4 h-4" />;
+    case 'valueProp': return <GiDiamonds className="w-4 h-4" />;
+    case 'competitor': return <GiCrossedSwords className="w-4 h-4" />;
+    default: return <GiScrollQuill className="w-4 h-4" />;
+  }
+};
+
 
   const getNodeColors = () => {
     const colors = {
@@ -78,6 +105,13 @@ export const CanvasNode: React.FC<CanvasNodeProps> = ({
       wireframe: 'bg-purple-100 border-purple-300 text-purple-800',
       system: 'bg-red-100 border-red-300 text-red-800',
       'agent-output': 'bg-gray-100 border-gray-300 text-gray-800',
+      appName: 'bg-blue-100 border-blue-300 text-blue-800',
+      tagline: 'bg-purple-100 border-purple-300 text-purple-800',
+      coreProblem: 'bg-orange-100 border-orange-300 text-orange-800',
+      mission: 'bg-green-100 border-green-300 text-green-800',
+      userPersona: 'bg-blue-100 border-blue-300 text-blue-800',
+      valueProp: 'bg-emerald-100 border-emerald-300 text-emerald-800',
+      competitor: 'bg-red-100 border-red-300 text-red-800',
     };
     return colors[node.type] || colors['agent-output'];
   };

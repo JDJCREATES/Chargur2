@@ -1,14 +1,11 @@
 import React from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { 
-  Plus, 
   ZoomIn, 
   ZoomOut, 
   RotateCcw, 
   ChevronUp,
-  ChevronDown,
   Grid,
-  Move,
   Eye
 } from 'lucide-react';
 import { 
@@ -17,11 +14,11 @@ import {
   GiSmashArrows,
   GiCrown,
   GiQuill,
-  GiExclamation,
-  GiTarget,
+  GiThink,
+  GiBullseye,
   GiPerson,
   GiDiamonds,
-  GiSwords,
+  GiCrossedSwords,
   GiDatabase,
   GiConversation,
   GiCube,
@@ -66,11 +63,11 @@ export const CanvasToolbar: React.FC<CanvasToolbarProps> = ({
   const nodeTypes = [
     { type: 'appName' as const, label: 'App Name', icon: GiCrown, color: 'text-blue-600' },
     { type: 'tagline' as const, label: 'Tagline', icon: GiQuill, color: 'text-purple-600' },
-    { type: 'coreProblem' as const, label: 'Core Problem', icon: GiExclamation, color: 'text-orange-600' },
-    { type: 'mission' as const, label: 'Mission', icon: GiTarget, color: 'text-green-600' },
+    { type: 'coreProblem' as const, label: 'Core Problem', icon: GiThink, color: 'text-orange-600' },
+    { type: 'mission' as const, label: 'Mission', icon: GiBullseye, color: 'text-green-600' },
     { type: 'userPersona' as const, label: 'User Persona', icon: GiPerson, color: 'text-blue-600' },
     { type: 'valueProp' as const, label: 'Value Prop', icon: GiDiamonds, color: 'text-emerald-600' },
-    { type: 'competitor' as const, label: 'Competitor', icon: GiSwords, color: 'text-red-600' },
+    { type: 'competitor' as const, label: 'Competitor', icon: GiCrossedSwords, color: 'text-red-600' },
     { type: 'ux-flow' as const, label: 'UX Flow', icon: GiPerson, color: 'text-green-600' },
     { type: 'system' as const, label: 'System', icon: GiDatabase, color: 'text-red-600' },
     { type: 'agent-output' as const, label: 'AI Output', icon: GiConversation, color: 'text-gray-600' },
