@@ -126,17 +126,17 @@ export const CanvasToolbar: React.FC<CanvasToolbarProps> = ({
       >
         <AnimatePresence mode="wait">
           <motion.div
-            key={isCollapsed ? 'up' : 'down'}
+            key={isCollapsed ? 'collapsed' : 'expanded'}
             initial={{ opacity: 0, scale: 0.8 }}
             animate={{ opacity: 1, scale: 1 }}
             exit={{ opacity: 0, scale: 0.8 }}
             transition={{ duration: 0.2 }}
           >
-            <ChevronUp 
-              className={`w-5 h-5 ${
-                isCollapsed ? 'text-gray-700' : 'text-gray-600'
-              } ${isCollapsed ? '' : 'rotate-180'}`} 
-            />
+            {isCollapsed ? (
+              <ChevronUp className="w-5 h-5 text-gray-700" />
+            ) : (
+              <ChevronDown className="w-5 h-5 text-gray-600" />
+            )}
           </motion.div>
         </AnimatePresence>
       </motion.button>
