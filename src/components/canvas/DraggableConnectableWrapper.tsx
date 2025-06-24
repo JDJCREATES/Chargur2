@@ -40,7 +40,6 @@ export const DraggableConnectableWrapper: React.FC<DraggableConnectableWrapperPr
   onStartConnection,
   onEndConnection,
   onSendMessage,
-  onSendMessage,
   scale,
   children
 }) => {
