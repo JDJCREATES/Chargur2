@@ -64,11 +64,6 @@ export const SpatialCanvas: React.FC<SpatialCanvasProps> = ({
     exportState,
     importState
   } = useCanvasStateManager();
-  
-  const {
-    takeScreenshot,
-    screenshotRef
-  } = useCanvasStateManager();
 
   const {
     interactionState,
