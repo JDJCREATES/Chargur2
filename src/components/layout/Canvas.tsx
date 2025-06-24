@@ -91,8 +91,8 @@ export const Canvas: React.FC<CanvasProps> = ({
       >
         <div className="flex items-center justify-between">
           <div>
-            <h1 className="text-xl font-semibold text-gray-800">{currentStage.title} w/  
-               <p className="flex items-center space-x-2 pr-5 font-chargur">ChargUr </p>
+            <h1 className="text-xl font-semibold text-gray-800">{currentStage.title}   
+              
             </h1>
             <p className="text-sm text-gray-600 mt-1">{currentStage.description}</p>
             <div className="flex items-center mt-2"> {currentStage.completed && (
@@ -105,7 +105,9 @@ export const Canvas: React.FC<CanvasProps> = ({
               Completed
             </motion.span>
           )}
-        </div> </div>
+        </div> 
+         <h2 className="items-center space-x-2 pr-5 font-chargur inline-flex">ChargUr </h2>
+        </div>
       
           </div>
          

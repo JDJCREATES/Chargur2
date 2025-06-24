@@ -85,7 +85,7 @@ export const ConversationStarters: React.FC<ConversationStartersProps> = ({ onSe
         transition={{ delay: 0.2 }}
         className="flex flex-wrap gap-2"
       >
-        {starters.slice(0, 15).map((starter, index) => (
+        {starters.slice(0, 4).map((starter, index) => (
           <motion.button
             key={index}
             initial={{ opacity: 0, scale: 0.9, y: 10 }}
