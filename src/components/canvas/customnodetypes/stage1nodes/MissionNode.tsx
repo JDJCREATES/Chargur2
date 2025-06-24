@@ -256,7 +256,7 @@ export const MissionNode: React.FC<MissionNodeProps> = ({
                   }
                 `}
               >
-                <Sparkles className={`w-3 h-3 ${isRefining ? 'animate-spin' : ''}`} />
+                <Sparkles className={\`w-3 h-3 ${isRefining ? 'animate-spin' : ''}`} />
                 {isRefining ? 'Refining...' : 'Refine via AI'}
               </button>
             )}
