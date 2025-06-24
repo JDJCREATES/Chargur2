@@ -1,6 +1,6 @@
-import React, { useState, useRef, useEffect } from 'react';
-import { Send, Loader2, AlertCircle, RefreshCw } from 'lucide-react';
-import { motion, AnimatePresence } from 'framer-motion';
+import React, { useState, useRef, useEffect } from "react";
+import { Send, Loader2, AlertCircle, RefreshCw } from "lucide-react";
+import { motion, AnimatePresence } from "framer-motion";
 
 interface ChatInterfaceProps {
   onSendMessage: (message: string) => void;
@@ -15,24 +15,24 @@ export const ChatInterface: React.FC<ChatInterfaceProps> = ({
   isLoading,
   error,
   onRetry,
-  disabled = false
+  disabled = false,
 }) => {
-  const [message, setMessage] = useState('');
+  const [message, setMessage] = useState("");
   const textareaRef = useRef<HTMLTextAreaElement>(null);
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (message.trim() && !isLoading && !disabled) {
       onSendMessage(message.trim());
-      setMessage('');
+      setMessage("");
       if (textareaRef.current) {
-        textareaRef.current.style.height = 'auto';
+        textareaRef.current.style.height = "auto";
       }
     }
   };
 
   const handleKeyPress = (e: React.KeyboardEvent) => {
-    if (e.key === 'Enter' && !e.shiftKey) {
+    if (e.key === "Enter" && !e.shiftKey) {
       e.preventDefault();
       handleSubmit(e);
     }
@@ -40,8 +40,11 @@ export const ChatInterface: React.FC<ChatInterfaceProps> = ({
 
   const adjustTextareaHeight = () => {
     if (textareaRef.current) {
-      textareaRef.current.style.height = 'auto';
-      textareaRef.current.style.height = `${Math.min(textareaRef.current.scrollHeight, 120)}px`;
+      textareaRef.current.style.height = "auto";
+      textareaRef.current.style.height = `${Math.min(
+        textareaRef.current.scrollHeight,
+        120
+      )}px`;
     }
   };
 
@@ -55,7 +58,7 @@ export const ChatInterface: React.FC<ChatInterfaceProps> = ({
         {error && (
           <motion.div
             initial={{ opacity: 0, height: 0 }}
-            animate={{ opacity: 1, height: 'auto' }}
+            animate={{ opacity: 1, height: "auto" }}
             exit={{ opacity: 0, height: 0 }}
             className="px-4 py-3 bg-red-50 border-b border-red-200"
           >
@@ -66,7 +69,7 @@ export const ChatInterface: React.FC<ChatInterfaceProps> = ({
               </div>
               <button
                 onClick={onRetry}
-                className="flex items-center gap-1 px-2 py-1 text-xs bg-red-600 text-white rounded hover:bg-red-700 transition-colors"
+                className="flex items-center gap-1 px-2 py-1 text-xs bg-red-500 text-white rounded hover:bg-red-700 transition-colors"
               >
                 <RefreshCw className="w-3 h-3" />
                 Retry
@@ -76,20 +79,23 @@ export const ChatInterface: React.FC<ChatInterfaceProps> = ({
         )}
       </AnimatePresence>
 
-      <form onSubmit={handleSubmit} className="p-4">
+      <form
+        onSubmit={handleSubmit}
+        className="p-2 flex items-center gap-2"
+      >
         <div className="flex gap-3">
-          <div className="flex-1 relative">
+          <div className="flex-1 relative text-sm">
             <textarea
               ref={textareaRef}
               value={message}
               onChange={(e) => setMessage(e.target.value)}
               onKeyPress={handleKeyPress}
               onInput={adjustTextareaHeight}
-              placeholder="Describe your app idea or ask for help..."
+              placeholder="Ready to start designing?"
               disabled={isLoading || disabled}
-              className="w-full px-3 py-2 border border-gray-300 rounded-lg resize-none focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent disabled:bg-gray-50 disabled:text-gray-500"
+              className="w-full px-4 py-3 border border-gray-200 rounded-xl resize-none focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent disabled:bg-gray-50 disabled:text-gray-500 text-sm leading-relaxed"
               rows={1}
-              style={{ minHeight: '40px', maxHeight: '120px' }}
+              style={{ minHeight: "48px", maxHeight: "120px" }}
             />
           </div>
           <button

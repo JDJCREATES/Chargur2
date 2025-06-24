@@ -220,7 +220,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
               </div>
             </AccordionSummary>
             <AccordionDetails className="p-0">
-              <div className="flex flex-col max-h-96">
+              <div className="flex flex-col max-h-[400px] bg-gray-25">
                 <ChatHistory
                   messages={agentChat.historyMessages || []}
                   currentResponse={
@@ -237,13 +237,15 @@ export const Sidebar: React.FC<SidebarProps> = ({
                   onSuggestionClick={handleSuggestionClick}
                   onRetry={handleRetry}
                 />
-                <ChatInterface
-                  onSendMessage={handleSendMessage}
-                  isLoading={agentChat.isLoading}
-                  error={agentChat.error}
-                  onRetry={handleRetry}
-                  disabled={!currentStage}
-                />
+                <div className="border-t border-gray-100">
+                  <ChatInterface
+                    onSendMessage={handleSendMessage}
+                    isLoading={agentChat.isLoading}
+                    error={agentChat.error}
+                    onRetry={handleRetry}
+                    disabled={!currentStage}
+                  />
+                </div>
               </div>
             </AccordionDetails>
           </Accordion>

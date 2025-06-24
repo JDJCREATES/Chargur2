@@ -1,8 +1,7 @@
 import React, { useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { ChatMessage } from '../../types';
-import { Avatar } from './Avatar';
-import { StreamingResponse } from '../chat/StreamingResponse';
+
 import { Bot, User, Sparkles, Clock, CheckCircle, AlertTriangle } from 'lucide-react';
 
 // Ensure we have a proper type for ChatMessage
@@ -87,14 +86,14 @@ export const ChatHistory: React.FC<ChatHistoryProps> = ({
           {/* Message Bubble */}
           <div
             className={`
-              p-3 rounded-lg text-sm leading-relaxed
+              p-4 rounded-2xl text-sm leading-relaxed max-w-none
               ${isUser 
-                ? 'bg-blue-600 text-white rounded-tr-sm' 
-                : 'bg-gray-100 text-gray-800 rounded-tl-sm'
+                ? 'bg-gradient-to-br from-blue-600 to-blue-700 text-white rounded-tr-md shadow-sm' 
+                : 'bg-gray-50 text-gray-800 rounded-tl-md border border-gray-100'
               }
             `}
           >
-            <div className="whitespace-pre-wrap">{message.content}</div>
+            <div className="whitespace-pre-wrap break-words">{message.content}</div>
           </div>
         </div>
       </motion.div>
@@ -172,15 +171,15 @@ export const ChatHistory: React.FC<ChatHistoryProps> = ({
 
           {/* Response Bubble */}
           {currentResponse.content && (
-            <div className="bg-gray-100 text-gray-800 rounded-lg rounded-tl-sm p-3 mb-3">
+            <div className="bg-gray-50 text-gray-800 rounded-2xl rounded-tl-md p-4 mb-3 border border-gray-100">
               <div className="prose prose-sm max-w-none">
-                <div className="whitespace-pre-wrap text-gray-700">
+                <div className="whitespace-pre-wrap break-words text-gray-700 leading-relaxed">
                   {currentResponse.content}
                   {currentResponse.isStreaming && (
                     <motion.span
                       animate={{ opacity: [1, 0, 1] }}
                       transition={{ duration: 1, repeat: Infinity }}
-                      className="inline-block w-2 h-4 bg-purple-600 ml-1"
+                      className="inline-block w-0.5 h-4 bg-blue-600 ml-1 rounded-full"
                     />
                   )}
                 </div>
@@ -224,7 +223,7 @@ export const ChatHistory: React.FC<ChatHistoryProps> = ({
   return (
     <div 
       ref={scrollRef} 
-      className="flex-1 overflow-y-auto p-4 space-y-4 bg-gray-50"
+      className="flex-1 overflow-y-auto px-3 py-4 space-y-6 bg-transparent"
       style={{ maxHeight: 'calc(100vh - 200px)' }}
     >
       {(!messages || messages.length === 0) && !currentResponse ? (
