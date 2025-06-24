@@ -1,11 +1,13 @@
 import React from 'react';
-import { Settings as SettingsIcon, Moon, Sun, HelpCircle, Wand2, LogIn, LogOut, User } from 'lucide-react';
+import { Settings as SettingsIcon, Moon, Sun, HelpCircle, Wand2, LogIn, LogOut, User, Info } from 'lucide-react';
 import { useAuth } from '../../hooks/useAuth';
 import { LoginModal } from '../auth/LoginModal';
+import { AboutUsModal } from './AboutUsModal';
 
 export const Settings: React.FC = () => {
   const [darkMode, setDarkMode] = React.useState(false);
   const [showLoginModal, setShowLoginModal] = React.useState(false);
+  const [showAboutModal, setShowAboutModal] = React.useState(false);
   const { user, signOut, loading } = useAuth();
 
   const handleAutoGenerate = () => {
@@ -89,6 +91,14 @@ export const Settings: React.FC = () => {
             {user ? 'Sign Out' : 'Sign In'}
           </button>
         
+          <button 
+            onClick={() => setShowAboutModal(true)}
+            className="flex items-center gap-2 text-sm text-gray-600 hover:text-gray-800 transition-colors"
+          >
+            <Info size={16} />
+            About Chargur
+          </button>
+        
           <button className="flex items-center gap-2 text-sm text-gray-600 hover:text-gray-800 transition-colors">
             <HelpCircle size={16} />
             Help & Support
@@ -99,6 +109,11 @@ export const Settings: React.FC = () => {
       <LoginModal 
         isOpen={showLoginModal} 
         onClose={() => setShowLoginModal(false)} 
+      />
+      
+      <AboutUsModal
+        isOpen={showAboutModal}
+        onClose={() => setShowAboutModal(false)}
       />
     </>
   );
