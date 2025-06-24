@@ -1,292 +1,269 @@
-import React from 'react';
-import { motion } from 'framer-motion';
-import { ChevronLeft, ChevronRight, ChevronDown } from 'lucide-react';
-import { GiUnplugged } from 'react-icons/gi';
-import { Accordion, AccordionSummary, AccordionDetails, Typography } from '@mui/material';
-import { ChatHistory } from '../ui/ChatHistory';
-import { ChatInterface } from '../chat/ChatInterface';
-import { Settings } from '../ui/Settings';
-import { Avatar } from '../ui/Avatar';
-import { IdeationDiscovery } from '../stages/content/IdeationDiscovery';
-import { FeaturePlanning } from '../stages/content/FeaturePlanning';
-import { StructureFlow } from '../stages/content/StructureFlow';
-import { InterfaceInteraction } from '../stages/content/InterfaceInteraction';
-import { ArchitectureDesign } from '../stages/content/ArchitectureDesign';
-import { UserAuthFlow } from '../stages/content/UserAuthFlow';
-import { UXReviewUserCheck } from '../stages/content/UXReviewUserCheck';
-import { AutoPromptEngine } from '../stages/content/AutoPromptEngine';
-import { ExportPanel } from '../export/ExportPanel';
-import { Stage, ChatMessage } from '../../types';
-import { useAgent } from '../agent/AgentContextProvider';
+import React, { useEffect, useRef } from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
+import { ChatMessage } from '../../types';
 
-// Import the enhanced StageProgressBubbles component
-import { StageProgressBubbles } from '../ui/StageProgressBubbles';
+import { Bot, User, Sparkles, Clock, CheckCircle, AlertTriangle } from 'lucide-react';
 
-interface AgentChatProps {
-  sendMessage: (message: string) => void;
-  historyMessages: ChatMessage[];
-  content: string;
-  suggestions: string[];
-  autoFillData: any;
-  isComplete: boolean;
-  isLoading: boolean;
-  error: string | null;
-  retry: () => void;
-  isStreaming: boolean;
+// Ensure we have a proper type for ChatMessage
+import { ChatMessage as ChatMessageType } from '../../types';
+
+interface ChatHistoryProps {
+  messages: ChatMessageType[];
+  currentResponse?: {
+    content: string;
+    isComplete: boolean;
+    suggestions: string[];
+    isStreaming: boolean;
+    error?: string | null;
+  };
+  onSuggestionClick?: (suggestion: string) => void;
+  onRetry?: () => void;
 }
 
-interface SidebarProps {
-  stages: Stage[];
-  currentStage?: Stage;
-  stageData: any;
-  onStageClick: (stageId: string) => void;
-  onCompleteStage: (stageId: string) => void;
-  onUpdateStageData: (stageId: string, data: any) => void;
-  isOpen: boolean;
-  onToggle: () => void;
-  agentChat: AgentChatProps;
-}
-
-export const Sidebar: React.FC<SidebarProps> = ({
-  stages,
-  currentStage,
-  stageData,
-  onStageClick,
-  onCompleteStage,
-  onUpdateStageData,
-  isOpen,
-  onToggle,
-  agentChat
+export const ChatHistory: React.FC<ChatHistoryProps> = ({ 
+  messages, 
+  currentResponse,
+  onSuggestionClick,
+  onRetry
 }) => {
-  const { agentState } = useAgent();
+  const scrollRef = useRef<HTMLDivElement>(null);
+  const messagesEndRef = useRef<HTMLDivElement>(null);
 
-  const handleSendMessage = (content: string) => {
-    agentChat.sendMessage(content);
-  };
-
-  const handleSuggestionClick = (suggestion: string) => {
-    handleSendMessage(suggestion);
-  };
-
-  const handleRetry = () => {
-    agentChat.retry();
-  };
-
-  const renderStageForm = () => {
-    if (!currentStage) return null;
-
-    switch (currentStage.id) {
-      case 'ideation-discovery':
-        return (
-          <IdeationDiscovery
-            stage={currentStage}
-            onComplete={() => onCompleteStage(currentStage.id)}
-            onUpdateData={(data: any) => onUpdateStageData(currentStage.id, data)}
-          />
-        );
-      case 'feature-planning':
-        return (
-          <FeaturePlanning
-            stage={currentStage}
-            onComplete={() => onCompleteStage(currentStage.id)}
-            onUpdateData={(data: any) => onUpdateStageData(currentStage.id, data)}
-          />
-        );
-      case 'structure-flow':
-        return (
-          <StructureFlow
-            stage={currentStage}
-            onComplete={() => onCompleteStage(currentStage.id)}
-            onUpdateData={(data: any) => onUpdateStageData(currentStage.id, data)}
-          />
-        );
-      case 'interface-interaction':
-        return (
-          <InterfaceInteraction
-            stage={currentStage}
-            onComplete={() => onCompleteStage(currentStage.id)}
-            onUpdateData={(data: any) => onUpdateStageData(currentStage.id, data)}
-          />
-        );
-      case 'architecture-design':
-        return (
-          <ArchitectureDesign
-            stage={currentStage}
-            onComplete={() => onCompleteStage(currentStage.id)}
-            onUpdateData={(data: any) => onUpdateStageData(currentStage.id, data)}
-          />
-        );
-      case 'user-auth-flow':
-        return (
-          <UserAuthFlow
-            stage={currentStage}
-            onComplete={() => onCompleteStage(currentStage.id)}
-            onUpdateData={(data: any) => onUpdateStageData(currentStage.id, data)}
-          />
-        );
-      case 'ux-review-check':
-        return (
-          <UXReviewUserCheck
-            stage={currentStage}
-            stages={stages}
-            stageData={stageData}
-            onComplete={() => onCompleteStage(currentStage.id)}
-            onUpdateData={(data: any) => onUpdateStageData(currentStage.id, data)}
-            onGoToStage={onStageClick}
-          />
-        );
-      case 'auto-prompt-engine':
-        return (
-          <AutoPromptEngine
-            stage={currentStage}
-            stages={stages}
-            stageData={stageData}
-            onComplete={() => onCompleteStage(currentStage.id)}
-            onUpdateData={(data: any) => onUpdateStageData(currentStage.id, data)}
-          />
-        );
-      case 'export-handoff':
-        return (
-          <ExportPanel
-            stages={stages}
-            stageData={stageData}
-          />
-        );
-      default:
-        return null;
+  // Auto-scroll to bottom when new content arrives
+  useEffect(() => {
+    if (messagesEndRef.current && (messages.length > 0 || currentResponse?.content)) {
+      messagesEndRef.current.scrollIntoView({ behavior: 'smooth' });
     }
+  }, [messages, currentResponse?.content]);
+
+  const formatTimestamp = (timestamp: Date) => {
+    return new Intl.DateTimeFormat('en-US', {
+      hour: '2-digit',
+      minute: '2-digit',
+      hour12: true
+    }).format(timestamp);
+  };
+
+  const renderMessage = (message: ChatMessage, index: number) => {
+    // Ensure we have a valid message type
+    const isUser = message && message.type === 'user';
+    const isLast = index === messages.length - 1;
+
+    return (
+      <motion.div
+        key={message.id}
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ delay: index * 0.1 }}
+        className={`flex gap-3 ${isUser ? 'flex-row-reverse' : ''} ${isLast ? 'mb-4' : 'mb-6'} transition-colors duration-200`}
+      >
+        {/* Avatar */}
+        <div className="flex-shrink-0">
+          {isUser ? (
+            <div className="w-8 h-8 bg-blue-600 dark:bg-blue-700 rounded-full flex items-center justify-center">
+              <User className="w-4 h-4 text-white" />
+            </div>
+          ) : (
+            <div className="w-8 h-8 bg-purple-100 dark:bg-gray-700 rounded-full flex items-center justify-center">
+              <Bot className="w-4 h-4 text-purple-600 dark:text-purple-400" />
+            </div>
+          )}
+        </div>
+
+        {/* Message Content */}
+        <div className={`flex-1 max-w-[80%] ${isUser ? 'text-right' : ''}`}>
+          {/* Message Header */}
+          <div className={`flex items-center gap-2 mb-1 ${isUser ? 'justify-end' : ''}`}>
+            <span className="text-xs font-medium text-gray-600 dark:text-gray-300">
+              {isUser ? 'You' : 'AI Assistant'}
+            </span>
+            <div className="flex items-center gap-1 text-xs text-gray-400 dark:text-gray-500">
+              <Clock className="w-3 h-3" />
+              <span>{formatTimestamp(message.timestamp)}</span>
+            </div>
+          </div>
+
+          {/* Message Bubble */}
+          <div
+            className={`
+              p-3 rounded-lg text-sm leading-relaxed transition-colors duration-200
+              ${isUser 
+                ? 'bg-blue-600 dark:bg-blue-700 text-white rounded-tr-sm' 
+                : 'bg-gray-100 dark:bg-gray-700 text-gray-800 dark:text-gray-200 rounded-tl-sm'
+              }
+            `}
+          >
+            <div className="whitespace-pre-wrap break-words">{message.content}</div>
+          </div>
+        </div>
+      </motion.div>
+    );
+  };
+
+  const renderCurrentResponse = () => {
+    if (!currentResponse) return null;
+
+    return (
+      <motion.div
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        className="flex gap-3 mb-4 transition-colors duration-200"
+      >
+        {/* AI Avatar */}
+        <div className="flex-shrink-0">
+          <div className="w-8 h-8 bg-purple-100 dark:bg-gray-700 rounded-full flex items-center justify-center">
+            <Bot className="w-4 h-4 text-purple-600 dark:text-purple-400" />
+          </div>
+        </div>
+
+        {/* Response Content */}
+        <div className="flex-1">
+          {/* Response Header */}
+          <div className="flex items-center gap-2 mb-2">
+            <span className="text-xs font-medium text-gray-600 dark:text-gray-300">AI Assistant</span>
+            
+            {currentResponse.isStreaming && (
+              <div className="flex items-center gap-1 text-purple-600 dark:text-purple-400">
+                <Sparkles className="w-3 h-3 animate-pulse" />
+                <span className="text-xs">Thinking...</span>
+              </div>
+            )}
+            
+            {currentResponse.isComplete && !currentResponse.error && (
+              <div className="flex items-center gap-1 text-green-600 dark:text-green-400">
+                <CheckCircle className="w-3 h-3" />
+                <span className="text-xs">Complete</span>
+              </div>
+            )}
+
+            {currentResponse.error && (
+              <div className="flex items-center gap-1 text-red-600 dark:text-red-400">
+                <AlertTriangle className="w-3 h-3" />
+                <span className="text-xs">Error</span>
+              </div>
+            )}
+
+            <div className="flex items-center gap-1 text-xs text-gray-400 dark:text-gray-500">
+              <Clock className="w-3 h-3" />
+              <span>Now</span>
+            </div>
+          </div>
+
+          {/* Error Display */}
+          {currentResponse.error && (
+            <div className="mb-3 p-3 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800/30 rounded-lg">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-2 text-red-700 dark:text-red-400">
+                  <AlertTriangle className="w-4 h-4" />
+                  <span className="text-sm">{currentResponse.error}</span>
+                </div>
+                {onRetry && (
+                  <button
+                    onClick={onRetry}
+                    className="px-2 py-1 text-xs bg-red-600 dark:bg-red-700 text-white rounded hover:bg-red-700 dark:hover:bg-red-600 transition-colors"
+                  >
+                    Retry
+                  </button>
+                )}
+              </div>
+            </div>
+          )}
+
+          {/* Response Bubble */}
+          {currentResponse.content && (
+            <div className="bg-gray-100 dark:bg-gray-700 text-gray-800 dark:text-gray-200 rounded-lg rounded-tl-sm p-3 mb-3 transition-colors duration-200">
+              <div className="prose prose-sm max-w-none">
+                <div className="whitespace-pre-wrap text-gray-700 dark:text-gray-300">
+                  {currentResponse.content}
+                  {currentResponse.isStreaming && (
+                    <motion.span
+                      animate={{ opacity: [1, 0, 1] }}
+                      transition={{ duration: 1, repeat: Infinity }}
+                      className="inline-block w-2 h-4 bg-purple-600 dark:bg-purple-400 ml-1"
+                    />
+                  )}
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* Suggestions */}
+          {currentResponse.suggestions.length > 0 && currentResponse.isComplete && onSuggestionClick && (
+            <motion.div
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.3 }}
+              className="bg-purple-50 dark:bg-gray-700/50 rounded-lg p-3 border border-purple-200 dark:border-gray-600 transition-colors duration-200"
+            >
+              <div className="flex items-center gap-2 mb-2">
+                <Sparkles className="w-3 h-3 text-purple-600 dark:text-purple-400" />
+                <span className="text-xs font-medium text-purple-700 dark:text-purple-300">Quick Actions</span>
+              </div>
+              <div className="flex flex-wrap gap-2">
+                {currentResponse.suggestions.map((suggestion, index) => (
+                  <motion.button
+                    key={index}
+                    initial={{ opacity: 0, scale: 0.9 }}
+                    animate={{ opacity: 1, scale: 1 }}
+                    transition={{ delay: 0.1 * index }}
+                    onClick={() => onSuggestionClick(suggestion)}
+                    className="px-3 py-1.5 text-xs bg-white dark:bg-gray-800 text-purple-700 dark:text-purple-300 rounded-full border border-purple-200 dark:border-gray-600 hover:bg-purple-100 dark:hover:bg-gray-700 hover:border-purple-300 dark:hover:border-gray-500 transition-colors"
+                  >
+                    {suggestion}
+                  </motion.button>
+                ))}
+              </div>
+            </motion.div>
+          )}
+        </div>
+      </motion.div>
+    );
   };
 
   return (
-    <div className="fixed right-0 top-0 h-full z-50">
-      <motion.div
-        initial={{ x: 300 }}
-        animate={{ x: isOpen ? 0 : 268 }}
-        transition={{ duration: 0.3, ease: 'easeInOut' }}
-        className="w-80 bg-white dark:bg-gray-800 border-l border-gray-200 dark:border-gray-700 flex flex-col h-full shadow-lg transition-colors duration-200"
-      >
-        {/* Toggle Button */}
-        <button
-          onClick={onToggle}
-          className="absolute -left-12 top-4 w-12 h-12 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-l-lg flex items-center justify-center hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors shadow-md"
-        >
-          {isOpen ? <ChevronRight size={20} className="text-gray-700 dark:text-gray-300" /> : <ChevronLeft size={20} className="text-gray-700 dark:text-gray-300" />}
-        </button>
-
-        {/* Header */}
-        <div className="p-4 border-b border-gray-200 dark:border-gray-700">
-          <div className="flex items-center gap-3">
-            <Avatar size="lg" />
-            <div className={`transition-opacity duration-200 ${isOpen ? 'opacity-100' : 'opacity-0'}`}>
-              <h2 className="font-semibold text-gray-800 dark:text-gray-200">
-                {currentStage ? currentStage.title : 'UX + IA Agent'}
-              </h2>
-              <p className="text-sm text-gray-500 dark:text-gray-400">
-                {currentStage ? `Stage ${stages.findIndex(s => s.id === currentStage.id) + 1} of ${stages.length}` : 'Let\'s get started!'}
-              </p>
-            </div>
+    <div 
+      ref={scrollRef} 
+      className="flex-1 overflow-y-auto px-3 py-4 space-y-6 bg-transparent dark:bg-gray-800/30 transition-colors duration-200"
+      style={{ maxHeight: 'calc(100vh - 200px)' }}
+    >
+      {(!messages || messages.length === 0) && !currentResponse ? (
+        <div className="flex flex-col items-center justify-center h-full text-center py-12 transition-colors duration-200">
+          <div className="w-16 h-16 bg-purple-100 dark:bg-purple-900/30 rounded-full flex items-center justify-center mb-4">
+            <Bot className="w-8 h-8 text-purple-600 dark:text-purple-400" />
+          </div>
+          <h3 className="text-lg font-semibold text-gray-800 dark:text-gray-200 mb-2">
+            Welcome to Chargur AI Assistant
+          </h3>
+          <p className="text-gray-600 dark:text-gray-300 max-w-md">
+            I'm here to help you plan and design your app. Start by describing your app idea, 
+            and I'll guide you through each stage of the development process.
+          </p>
+          <div className="mt-6 flex flex-wrap gap-2 justify-center">
+            {[
+              "I want to build a social media app",
+              "Help me plan an e-commerce platform", 
+              "I need a productivity tool for teams"
+            ].map((example, index) => (
+              <button
+                key={index}
+                onClick={() => onSuggestionClick?.(example)}
+                className="px-3 py-1.5 text-xs bg-purple-100 dark:bg-gray-700 text-purple-700 dark:text-purple-300 rounded-full hover:bg-purple-200 dark:hover:bg-gray-600 transition-colors"
+              >
+                {example}
+              </button>
+            ))}
           </div>
         </div>
-
-        {/* Stage Progress */}
-        <div className={`transition-opacity duration-200 ${isOpen ? 'opacity-100' : 'opacity-0'}`}>
-          <div className="p-4 border-b border-gray-200 dark:border-gray-700">
-            <StageProgressBubbles 
-              stages={stages} 
-              onStageClick={onStageClick}
-              orientation="horizontal"
-              size="md"
-            />
-          </div>
-        </div>
-
-        {/* Stage Form */}
-        <div className={`flex-1 overflow-y-auto transition-opacity duration-200 ${isOpen ? 'opacity-100' : 'opacity-0'}`}>
-          {renderStageForm()}
-        </div>
-
-        {/* AI Assistant */}
-        <div className={`transition-opacity duration-200 ${isOpen ? 'opacity-100' : 'opacity-0'}`}>
-          <Accordion>
-            <AccordionSummary 
-              expandIcon={<ChevronDown size={20} />}
-              aria-controls="ai-assistant-content"
-              id="ai-assistant-header"
-              className="border-t border-gray-200 dark:border-gray-700"
-            >
-              <div className="flex items-center gap-2">
-                <GiUnplugged className="w-5 h-5 text-teal-500" />
-                <Typography className="font-semibold text-gray-800 dark:text-gray-200 font-nova-round">Charg</Typography>
-              </div>
-            </AccordionSummary>
-            <AccordionDetails className="p-0">
-              <div className="flex flex-col max-h-[400px] bg-gray-25">
-                <ChatHistory
-                  messages={agentChat.historyMessages || []}
-                  currentResponse={
-                    agentChat.content || agentChat.isLoading
-                      ? {
-                          content: agentChat.content,
-                          isComplete: agentChat.isComplete,
-                          suggestions: agentChat.suggestions,
-                          isStreaming: agentChat.isStreaming,
-                          error: agentChat.error,
-                        }
-                      : undefined
-                  }
-                  onSuggestionClick={handleSuggestionClick}
-                  onRetry={handleRetry}
-                />
-                <div className="border-t border-gray-100">
-                  <ChatInterface
-                    onSendMessage={handleSendMessage}
-                    isLoading={agentChat.isLoading}
-                    error={agentChat.error}
-                    onRetry={handleRetry}
-                    disabled={!currentStage}
-                  />
-                </div>
-              </div>
-            </AccordionDetails>
-          </Accordion>
-        </div>
-
-        {/* Settings */}
-        <div className={`transition-opacity duration-200 ${isOpen ? 'opacity-100' : 'opacity-0'}`}>
-          <Accordion>
-            <AccordionSummary 
-              expandIcon={<ChevronDown size={20} />}
-              aria-controls="settings-content"
-              id="settings-header"
-              className="border-t border-gray-200 dark:border-gray-700"
-            >
-              <Typography className="font-semibold text-gray-800 dark:text-gray-200">Settings</Typography>
-            </AccordionSummary>
-            <AccordionDetails className="p-0">
-              <Settings />
-            </AccordionDetails>
-          </Accordion>
-        </div>
-      </motion.div>
-      
-      {/* Collapsed Sidebar - Vertical Stage Bubbles */}
-      {!isOpen && (
-        <motion.div
-          initial={{ opacity: 0, x: -20 }}
-          animate={{ opacity: 1, x: 0 }}
-          transition={{ delay: 0.3, duration: 0.3 }}
-          className="fixed right-12 top-20 z-40"
-        >
-          <div className="bg-white dark:bg-gray-800 bg-opacity-95 dark:bg-opacity-95 backdrop-blur-sm rounded-lg shadow-lg border border-gray-200 dark:border-gray-700 p-3 transition-colors duration-200">
-            <StageProgressBubbles 
-              stages={stages} 
-              onStageClick={onStageClick}
-              orientation="vertical"
-              size="sm"
-              showLabels={false}
-            />
-          </div>
-        </motion.div>
+      ) : (
+        <>
+          <AnimatePresence>
+            {messages && messages.map((message, index) => renderMessage(message, index))}
+          </AnimatePresence>
+          
+          {renderCurrentResponse()}
+          
+          <div ref={messagesEndRef} />
+        </>
       )}
     </div>
   );

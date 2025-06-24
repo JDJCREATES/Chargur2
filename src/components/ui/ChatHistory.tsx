@@ -55,17 +55,17 @@ export const ChatHistory: React.FC<ChatHistoryProps> = ({
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
         transition={{ delay: index * 0.1 }}
-        className={`flex gap-3 ${isUser ? 'flex-row-reverse' : ''} ${isLast ? 'mb-4' : 'mb-6'}`}
+        className={`flex gap-3 ${isUser ? 'flex-row-reverse' : ''} ${isLast ? 'mb-4' : 'mb-6'} transition-colors duration-200`}
       >
         {/* Avatar */}
         <div className="flex-shrink-0">
           {isUser ? (
-            <div className="w-8 h-8 bg-blue-600 rounded-full flex items-center justify-center">
+            <div className="w-8 h-8 bg-blue-600 dark:bg-blue-700 rounded-full flex items-center justify-center">
               <User className="w-4 h-4 text-white" />
             </div>
           ) : (
-            <div className="w-8 h-8 bg-purple-100 rounded-full flex items-center justify-center">
-              <Bot className="w-4 h-4 text-purple-600" />
+            <div className="w-8 h-8 bg-purple-100 dark:bg-gray-700 rounded-full flex items-center justify-center">
+              <Bot className="w-4 h-4 text-purple-600 dark:text-purple-400" />
             </div>
           )}
         </div>
@@ -74,10 +74,10 @@ export const ChatHistory: React.FC<ChatHistoryProps> = ({
         <div className={`flex-1 max-w-[80%] ${isUser ? 'text-right' : ''}`}>
           {/* Message Header */}
           <div className={`flex items-center gap-2 mb-1 ${isUser ? 'justify-end' : ''}`}>
-            <span className="text-xs font-medium text-gray-600">
+            <span className="text-xs font-medium text-gray-600 dark:text-gray-300">
               {isUser ? 'You' : 'AI Assistant'}
             </span>
-            <div className="flex items-center gap-1 text-xs text-gray-400">
+            <div className="flex items-center gap-1 text-xs text-gray-400 dark:text-gray-500">
               <Clock className="w-3 h-3" />
               <span>{formatTimestamp(message.timestamp)}</span>
             </div>
@@ -86,10 +86,10 @@ export const ChatHistory: React.FC<ChatHistoryProps> = ({
           {/* Message Bubble */}
           <div
             className={`
-              p-4 rounded-2xl text-sm leading-relaxed max-w-none
+              p-3 rounded-lg text-sm leading-relaxed transition-colors duration-200
               ${isUser 
-                ? 'bg-gradient-to-br from-blue-600 to-blue-700 text-white rounded-tr-md shadow-sm' 
-                : 'bg-gray-50 text-gray-800 rounded-tl-md border border-gray-100'
+                ? 'bg-blue-600 dark:bg-blue-700 text-white rounded-tr-sm' 
+                : 'bg-gray-100 dark:bg-gray-700 text-gray-800 dark:text-gray-200 rounded-tl-sm'
               }
             `}
           >
@@ -107,12 +107,12 @@ export const ChatHistory: React.FC<ChatHistoryProps> = ({
       <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
-        className="flex gap-3 mb-4"
+        className="flex gap-3 mb-4 transition-colors duration-200"
       >
         {/* AI Avatar */}
         <div className="flex-shrink-0">
-          <div className="w-8 h-8 bg-purple-100 rounded-full flex items-center justify-center">
-            <Bot className="w-4 h-4 text-purple-600" />
+          <div className="w-8 h-8 bg-purple-100 dark:bg-gray-700 rounded-full flex items-center justify-center">
+            <Bot className="w-4 h-4 text-purple-600 dark:text-purple-400" />
           </div>
         </div>
 
@@ -120,30 +120,30 @@ export const ChatHistory: React.FC<ChatHistoryProps> = ({
         <div className="flex-1">
           {/* Response Header */}
           <div className="flex items-center gap-2 mb-2">
-            <span className="text-xs font-medium text-gray-600">AI Assistant</span>
+            <span className="text-xs font-medium text-gray-600 dark:text-gray-300">AI Assistant</span>
             
             {currentResponse.isStreaming && (
-              <div className="flex items-center gap-1 text-purple-600">
+              <div className="flex items-center gap-1 text-purple-600 dark:text-purple-400">
                 <Sparkles className="w-3 h-3 animate-pulse" />
                 <span className="text-xs">Thinking...</span>
               </div>
             )}
             
             {currentResponse.isComplete && !currentResponse.error && (
-              <div className="flex items-center gap-1 text-green-600">
+              <div className="flex items-center gap-1 text-green-600 dark:text-green-400">
                 <CheckCircle className="w-3 h-3" />
                 <span className="text-xs">Complete</span>
               </div>
             )}
 
             {currentResponse.error && (
-              <div className="flex items-center gap-1 text-red-600">
+              <div className="flex items-center gap-1 text-red-600 dark:text-red-400">
                 <AlertTriangle className="w-3 h-3" />
                 <span className="text-xs">Error</span>
               </div>
             )}
 
-            <div className="flex items-center gap-1 text-xs text-gray-400">
+            <div className="flex items-center gap-1 text-xs text-gray-400 dark:text-gray-500">
               <Clock className="w-3 h-3" />
               <span>Now</span>
             </div>
@@ -151,16 +151,16 @@ export const ChatHistory: React.FC<ChatHistoryProps> = ({
 
           {/* Error Display */}
           {currentResponse.error && (
-            <div className="mb-3 p-3 bg-red-50 border border-red-200 rounded-lg">
+            <div className="mb-3 p-3 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800/30 rounded-lg">
               <div className="flex items-center justify-between">
-                <div className="flex items-center gap-2 text-red-700">
+                <div className="flex items-center gap-2 text-red-700 dark:text-red-400">
                   <AlertTriangle className="w-4 h-4" />
                   <span className="text-sm">{currentResponse.error}</span>
                 </div>
                 {onRetry && (
                   <button
                     onClick={onRetry}
-                    className="px-2 py-1 text-xs bg-red-600 text-white rounded hover:bg-red-700 transition-colors"
+                    className="px-2 py-1 text-xs bg-red-600 dark:bg-red-700 text-white rounded hover:bg-red-700 dark:hover:bg-red-600 transition-colors"
                   >
                     Retry
                   </button>
@@ -171,15 +171,15 @@ export const ChatHistory: React.FC<ChatHistoryProps> = ({
 
           {/* Response Bubble */}
           {currentResponse.content && (
-            <div className="bg-gray-50 text-gray-800 rounded-2xl rounded-tl-md p-4 mb-3 border border-gray-100">
+            <div className="bg-gray-100 dark:bg-gray-700 text-gray-800 dark:text-gray-200 rounded-lg rounded-tl-sm p-3 mb-3 transition-colors duration-200">
               <div className="prose prose-sm max-w-none">
-                <div className="whitespace-pre-wrap break-words text-gray-700 leading-relaxed">
+                <div className="whitespace-pre-wrap text-gray-700 dark:text-gray-300">
                   {currentResponse.content}
                   {currentResponse.isStreaming && (
                     <motion.span
                       animate={{ opacity: [1, 0, 1] }}
                       transition={{ duration: 1, repeat: Infinity }}
-                      className="inline-block w-0.5 h-4 bg-blue-600 ml-1 rounded-full"
+                      className="inline-block w-2 h-4 bg-purple-600 dark:bg-purple-400 ml-1"
                     />
                   )}
                 </div>
@@ -193,11 +193,11 @@ export const ChatHistory: React.FC<ChatHistoryProps> = ({
               initial={{ opacity: 0, y: 10 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.3 }}
-              className="bg-purple-50 rounded-lg p-3 border border-purple-200"
+              className="bg-purple-50 dark:bg-gray-700/50 rounded-lg p-3 border border-purple-200 dark:border-gray-600 transition-colors duration-200"
             >
               <div className="flex items-center gap-2 mb-2">
-                <Sparkles className="w-3 h-3 text-purple-600" />
-                <span className="text-xs font-medium text-purple-700">Quick Actions</span>
+                <Sparkles className="w-3 h-3 text-purple-600 dark:text-purple-400" />
+                <span className="text-xs font-medium text-purple-700 dark:text-purple-300">Quick Actions</span>
               </div>
               <div className="flex flex-wrap gap-2">
                 {currentResponse.suggestions.map((suggestion, index) => (
@@ -207,7 +207,7 @@ export const ChatHistory: React.FC<ChatHistoryProps> = ({
                     animate={{ opacity: 1, scale: 1 }}
                     transition={{ delay: 0.1 * index }}
                     onClick={() => onSuggestionClick(suggestion)}
-                    className="px-3 py-1.5 text-xs bg-white text-purple-700 rounded-full border border-purple-200 hover:bg-purple-100 hover:border-purple-300 transition-colors"
+                    className="px-3 py-1.5 text-xs bg-white dark:bg-gray-800 text-purple-700 dark:text-purple-300 rounded-full border border-purple-200 dark:border-gray-600 hover:bg-purple-100 dark:hover:bg-gray-700 hover:border-purple-300 dark:hover:border-gray-500 transition-colors"
                   >
                     {suggestion}
                   </motion.button>
@@ -223,18 +223,19 @@ export const ChatHistory: React.FC<ChatHistoryProps> = ({
   return (
     <div 
       ref={scrollRef} 
-      className="flex-1 overflow-y-auto px-3 py-4 space-y-6 bg-transparent"
+      className="flex-1 overflow-y-auto px-3 py-4 space-y-6 bg-transparent dark:bg-gray-800/30 transition-colors duration-200"
       style={{ maxHeight: 'calc(100vh - 200px)' }}
     >
       {(!messages || messages.length === 0) && !currentResponse ? (
-        <div className="flex flex-col items-center justify-center h-full text-center py-12">
-          <div className="w-16 h-16 bg-purple-100 rounded-full flex items-center justify-center mb-4">
-            <Bot className="w-8 h-8 text-purple-600" />
+        <div className="flex flex-col items-center justify-center h-full text-center py-12 transition-colors duration-200">
+          <div className="w-16 h-16 bg-purple-100 dark:bg-purple-900/30 rounded-full flex items-center justify-center mb-4">
+            <Bot className="w-8 h-8 text-purple-600 dark:text-purple-400" />
           </div>
-          <h3 className="text-lg font-semibold text-gray-800 mb-2">
+          <h3 className="text-lg font-semibold text-gray-800 dark:text-gray-200 mb-2">
             Welcome to Chargur AI Assistant
           </h3>
           <p className="text-gray-600 max-w-md">
+          <p className="text-gray-600 dark:text-gray-300 max-w-md">
             I'm here to help you plan and design your app. Start by describing your app idea, 
             and I'll guide you through each stage of the development process.
           </p>
@@ -247,7 +248,7 @@ export const ChatHistory: React.FC<ChatHistoryProps> = ({
               <button
                 key={index}
                 onClick={() => onSuggestionClick?.(example)}
-                className="px-3 py-1.5 text-xs bg-purple-100 text-purple-700 rounded-full hover:bg-purple-200 transition-colors"
+                className="px-3 py-1.5 text-xs bg-purple-100 dark:bg-gray-700 text-purple-700 dark:text-purple-300 rounded-full hover:bg-purple-200 dark:hover:bg-gray-600 transition-colors"
               >
                 {example}
               </button>
