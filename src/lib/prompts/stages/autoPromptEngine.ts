@@ -21,7 +21,7 @@ CORE RESPONSIBILITIES:
 
 PROMPT OPTIMIZATION PRINCIPLES:
 1. Specificity: Include exact technical requirements
-2. No extra characters, icons, bullet points, or whitespaces
+2. Concise: No extra characters, icons, bullet points, or whitespaces
 3. Structure: Organize information logically for AI consumption
 4. Completeness: Include all necessary implementation details
 5. Actionability: Generate prompts that produce working code

@@ -194,6 +194,6 @@ src/lib/supabase/
 
 src/components/auth/
 # src/components/layout/
-src/components/content/
+# src/components/stages/content/
 src/hooks/useAuth.ts
 src/lib/prompts/
