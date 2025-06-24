@@ -5,10 +5,10 @@ import {
   ZoomOut,
   RotateCcw,
   ChevronUp,
+  ChevronDown,
   Grid,
   Eye,
-  Camera,
-  Save
+  Camera
 } from 'lucide-react';
 import { 
   GiBroom,
@@ -30,7 +30,6 @@ import {
   GiCircuitry
 } from 'react-icons/gi';
 import { Accordion, AccordionSummary, AccordionDetails, Typography } from '@mui/material';
-import { ChevronDown } from 'lucide-react';
 import { CanvasNodeData } from './CanvasNode';
 
 interface CanvasToolbarProps {
@@ -91,7 +90,7 @@ export const CanvasToolbar: React.FC<CanvasToolbarProps> = ({
   ];
 
   const actionTools = [
-    { action: onSave, icon: Save, label: 'Save Canvas' },
+    { action: onSave, icon: GiSave, label: 'Save Canvas' },
     { action: onExport, icon: GiSmashArrows, label: 'Export Canvas' },
     { action: onScreenshot, icon: Camera, label: 'Screenshot Canvas' },
     ...(onClearCanvas ? [{ action: onClearCanvas, icon: GiBroom, label: 'Clear Canvas' }] : []),
@@ -151,7 +150,7 @@ export const CanvasToolbar: React.FC<CanvasToolbarProps> = ({
             >
               <Accordion>
                 <AccordionSummary
-                  expandIcon={<ChevronDown size={16} />}
+                  expandIcon={<ChevronDown className="w-4 h-4 text-gray-500" />}
                   aria-controls="context-nodes-content"
                   id="context-nodes-header"
                 >

@@ -26,7 +26,7 @@
  * comprehensive visual representation of their entire project.
  */
 
-import React, { useEffect, useCallback } from 'react';
+import React, { useEffect, useCallback, useState } from 'react';
 import { motion } from 'framer-motion';
 import { CanvasToolbar } from './CanvasToolbar';
 import { CanvasRenderer } from './core/CanvasRenderer';
@@ -114,6 +114,8 @@ export const SpatialCanvas: React.FC<SpatialCanvasProps> = ({
 
   // Initialize screenshot functionality
   const { takeScreenshot, canvasRef } = useCanvasScreenshot();
+
+  const [isToolbarCollapsed, setIsToolbarCollapsed] = useState(false);
 
   const handleAddNode = useCallback((type: CanvasNodeData['type']) => {
     // Check if it's a custom ideation node type
@@ -393,6 +395,8 @@ export const SpatialCanvas: React.FC<SpatialCanvasProps> = ({
         onClearCanvas={clearCanvas}
         showGrid={state.showGrid}
         scale={state.scale}
+        isCollapsed={isToolbarCollapsed}
+        onToggleCollapse={() => setIsToolbarCollapsed(!isToolbarCollapsed)}
       />
 
       {/* Main Canvas Area */}
