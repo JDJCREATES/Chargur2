@@ -142,144 +142,152 @@ export const CanvasToolbar: React.FC<CanvasToolbarProps> = ({
             }}
             className="bg-white bg-opacity-95 backdrop-blur-sm rounded-xl shadow-lg border border-gray-200 p-3 space-y-4 min-w-64"
           >
-            {/* Add Node Section */}
-            <Accordion
+            {/* Add Node Section - Context Nodes */}
+            <motion.div
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.1 }}
               className="border-b border-gray-200 border-opacity-50"
             >
-              <AccordionSummary
-                expandIcon={<ChevronDown size={16} />}
-                aria-controls="context-nodes-content"
-                id="context-nodes-header"
-              >
-                <div className="text-xs font-medium text-gray-700 flex items-center gap-2">
-                  <GiCube className="w-3 h-3" />
-                  Context Nodes
-                </div>
-              </AccordionSummary>
-              <AccordionDetails>
-                <div className="grid grid-cols-2 gap-1">
-                  {nodeTypes
-                    .filter(nodeType => nodeType.category === 'context')
-                    .map((nodeType, index) => {
-                      const Icon = nodeType.icon;
-                      return (
-                        <motion.button
-                          key={nodeType.type}
-                          initial={{ opacity: 0, scale: 0.8 }}
-                          animate={{ opacity: 1, scale: 1 }}
-                          transition={{ delay: 0.1 + index * 0.05 }}
-                          whileHover={{ scale: 1.05, y: -2 }}
-                          whileTap={{ scale: 0.95 }}
-                          onClick={() => handleToolAction(() => onAddNode(nodeType.type), `Add ${nodeType.label}`)}
-                          className={`
-                            flex items-center gap-1 px-2 py-1.5 text-xs rounded-md hover:bg-gray-50 transition-all duration-200
-                            ${nodeType.color} hover:shadow-sm
-                          `}
-                          title={`Add ${nodeType.label} node`}
-                        >
-                          <Icon className="w-3 h-3" />
-                          <span className="font-medium">{nodeType.label}</span>
-                        </motion.button>
-                      );
-                    })}
-                </div>
-              </AccordionDetails>
-            </Accordion>
+              <Accordion>
+                <AccordionSummary
+                  expandIcon={<ChevronDown size={16} />}
+                  aria-controls="context-nodes-content"
+                  id="context-nodes-header"
+                >
+                  <div className="text-xs font-medium text-gray-700 flex items-center gap-2">
+                    <GiCube className="w-3 h-3" />
+                    Context Nodes
+                  </div>
+                </AccordionSummary>
+                <AccordionDetails>
+                  <div className="grid grid-cols-2 gap-1">
+                    {nodeTypes
+                      .filter(nodeType => nodeType.category === 'context')
+                      .map((nodeType, index) => {
+                        const Icon = nodeType.icon;
+                        return (
+                          <motion.button
+                            key={nodeType.type}
+                            initial={{ opacity: 0, scale: 0.8 }}
+                            animate={{ opacity: 1, scale: 1 }}
+                            transition={{ delay: 0.1 + index * 0.05 }}
+                            whileHover={{ scale: 1.05, y: -2 }}
+                            whileTap={{ scale: 0.95 }}
+                            onClick={() => handleToolAction(() => onAddNode(nodeType.type), `Add ${nodeType.label}`)}
+                            className={`
+                              flex items-center gap-1 px-2 py-1.5 text-xs rounded-md hover:bg-gray-50 transition-all duration-200
+                              ${nodeType.color} hover:shadow-sm
+                            `}
+                            title={`Add ${nodeType.label} node`}
+                          >
+                            <Icon className="w-3 h-3" />
+                            <span className="font-medium">{nodeType.label}</span>
+                          </motion.button>
+                        );
+                      })}
+                  </div>
+                </AccordionDetails>
+              </Accordion>
+            </motion.div>
             
-            <Accordion
+            {/* User Nodes */}
+            <motion.div
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.15 }}
               className="border-b border-gray-200 border-opacity-50"
             >
-              <AccordionSummary
-                expandIcon={<ChevronDown size={16} />}
-                aria-controls="user-nodes-content"
-                id="user-nodes-header"
-              >
-                <div className="text-xs font-medium text-gray-700 flex items-center gap-2">
-                  <GiPerson className="w-3 h-3" />
-                  User Nodes
-                </div>
-              </AccordionSummary>
-              <AccordionDetails>
-                <div className="grid grid-cols-2 gap-1">
-                  {nodeTypes
-                    .filter(nodeType => nodeType.category === 'user')
-                    .map((nodeType, index) => {
-                      const Icon = nodeType.icon;
-                      return (
-                        <motion.button
-                          key={nodeType.type}
-                          initial={{ opacity: 0, scale: 0.8 }}
-                          animate={{ opacity: 1, scale: 1 }}
-                          transition={{ delay: 0.1 + index * 0.05 }}
-                          whileHover={{ scale: 1.05, y: -2 }}
-                          whileTap={{ scale: 0.95 }}
-                          onClick={() => handleToolAction(() => onAddNode(nodeType.type), `Add ${nodeType.label}`)}
-                          className={`
-                            flex items-center gap-1 px-2 py-1.5 text-xs rounded-md hover:bg-gray-50 transition-all duration-200
-                            ${nodeType.color} hover:shadow-sm
-                          `}
-                          title={`Add ${nodeType.label} node`}
-                        >
-                          <Icon className="w-3 h-3" />
-                          <span className="font-medium">{nodeType.label}</span>
-                        </motion.button>
-                      );
-                    })}
-                </div>
-              </AccordionDetails>
-            </Accordion>
+              <Accordion>
+                <AccordionSummary
+                  expandIcon={<ChevronDown size={16} />}
+                  aria-controls="user-nodes-content"
+                  id="user-nodes-header"
+                >
+                  <div className="text-xs font-medium text-gray-700 flex items-center gap-2">
+                    <GiPerson className="w-3 h-3" />
+                    User Nodes
+                  </div>
+                </AccordionSummary>
+                <AccordionDetails>
+                  <div className="grid grid-cols-2 gap-1">
+                    {nodeTypes
+                      .filter(nodeType => nodeType.category === 'user')
+                      .map((nodeType, index) => {
+                        const Icon = nodeType.icon;
+                        return (
+                          <motion.button
+                            key={nodeType.type}
+                            initial={{ opacity: 0, scale: 0.8 }}
+                            animate={{ opacity: 1, scale: 1 }}
+                            transition={{ delay: 0.1 + index * 0.05 }}
+                            whileHover={{ scale: 1.05, y: -2 }}
+                            whileTap={{ scale: 0.95 }}
+                            onClick={() => handleToolAction(() => onAddNode(nodeType.type), `Add ${nodeType.label}`)}
+                            className={`
+                              flex items-center gap-1 px-2 py-1.5 text-xs rounded-md hover:bg-gray-50 transition-all duration-200
+                              ${nodeType.color} hover:shadow-sm
+                            `}
+                            title={`Add ${nodeType.label} node`}
+                          >
+                            <Icon className="w-3 h-3" />
+                            <span className="font-medium">{nodeType.label}</span>
+                          </motion.button>
+                        );
+                      })}
+                  </div>
+                </AccordionDetails>
+              </Accordion>
+            </motion.div>
             
-            <Accordion
+            {/* System Nodes */}
+            <motion.div
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.2 }}
               className="border-b border-gray-200 border-opacity-50"
             >
-              <AccordionSummary
-                expandIcon={<ChevronDown size={16} />}
-                aria-controls="system-nodes-content"
-                id="system-nodes-header"
-              >
-                <div className="text-xs font-medium text-gray-700 flex items-center gap-2">
-                  <GiDatabase className="w-3 h-3" />
-                  System Nodes
-                </div>
-              </AccordionSummary>
-              <AccordionDetails>
-                <div className="grid grid-cols-2 gap-1">
-                  {nodeTypes
-                    .filter(nodeType => nodeType.category === 'system')
-                    .map((nodeType, index) => {
-                      const Icon = nodeType.icon;
-                      return (
-                        <motion.button
-                          key={nodeType.type}
-                          initial={{ opacity: 0, scale: 0.8 }}
-                          animate={{ opacity: 1, scale: 1 }}
-                          transition={{ delay: 0.1 + index * 0.05 }}
-                          whileHover={{ scale: 1.05, y: -2 }}
-                          whileTap={{ scale: 0.95 }}
-                          onClick={() => handleToolAction(() => onAddNode(nodeType.type), `Add ${nodeType.label}`)}
-                          className={`
-                            flex items-center gap-1 px-2 py-1.5 text-xs rounded-md hover:bg-gray-50 transition-all duration-200
-                            ${nodeType.color} hover:shadow-sm
-                          `}
-                          title={`Add ${nodeType.label} node`}
-                        >
-                          <Icon className="w-3 h-3" />
-                          <span className="font-medium">{nodeType.label}</span>
-                        </motion.button>
-                      );
-                    })}
-                </div>
-              </AccordionDetails>
-            </Accordion>
+              <Accordion>
+                <AccordionSummary
+                  expandIcon={<ChevronDown size={16} />}
+                  aria-controls="system-nodes-content"
+                  id="system-nodes-header"
+                >
+                  <div className="text-xs font-medium text-gray-700 flex items-center gap-2">
+                    <GiDatabase className="w-3 h-3" />
+                    System Nodes
+                  </div>
+                </AccordionSummary>
+                <AccordionDetails>
+                  <div className="grid grid-cols-2 gap-1">
+                    {nodeTypes
+                      .filter(nodeType => nodeType.category === 'system')
+                      .map((nodeType, index) => {
+                        const Icon = nodeType.icon;
+                        return (
+                          <motion.button
+                            key={nodeType.type}
+                            initial={{ opacity: 0, scale: 0.8 }}
+                            animate={{ opacity: 1, scale: 1 }}
+                            transition={{ delay: 0.1 + index * 0.05 }}
+                            whileHover={{ scale: 1.05, y: -2 }}
+                            whileTap={{ scale: 0.95 }}
+                            onClick={() => handleToolAction(() => onAddNode(nodeType.type), `Add ${nodeType.label}`)}
+                            className={`
+                              flex items-center gap-1 px-2 py-1.5 text-xs rounded-md hover:bg-gray-50 transition-all duration-200
+                              ${nodeType.color} hover:shadow-sm
+                            `}
+                            title={`Add ${nodeType.label} node`}
+                          >
+                            <Icon className="w-3 h-3" />
+                            <span className="font-medium">{nodeType.label}</span>
+                          </motion.button>
+                        );
+                      })}
+                  </div>
+                </AccordionDetails>
+              </Accordion>
+            </motion.div>
 
             {/* View Controls */}
             <motion.div
