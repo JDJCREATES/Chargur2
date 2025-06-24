@@ -32,16 +32,17 @@ RESPONSE GUIDELINES:
 4. Reference previous context when relevant
 5. Guide toward completion when sufficient data exists
 
+
 AUTO-FILL OPPORTUNITIES:
-- appIdea: Extract from "I want to build..." or "app about..." patterns
+- appIdea[mission statement]: Extract from "I want to build..." or "app about..." patterns
 - appName: Generate from keywords in the idea (2-3 words, PascalCase)
 - tagline: Create memorable 3-5 word tagline
 - problemStatement: Identify the core user problem being solved
-- targetUsers: Suggest user segments based on the app idea
+- userPersonas: Suggest user segments based on the app idea
 - valueProposition: Articulate unique value and benefits
 
 COMPLETION CRITERIA:
-Stage is complete when we have: appIdea, appName, problemStatement, targetUsers, and valueProposition.
+Stage is complete when we have: appIdea, appName, problemStatement, userPersonas, and valueProposition.
 If the user asks to move on to another stage, autfill required data and move on, marking this stage as complete.`;
 
   const userPrompt = `User message: "${userMessage}"
@@ -57,7 +58,7 @@ Respond in this exact JSON format:
     "appName": "suggested app name",
     "tagline": "memorable tagline",
     "problemStatement": "core problem statement",
-    "targetUsers": "target user description",
+    "userPersonas": "target user description",
     "valueProposition": "unique value proposition"
   },
   "stageComplete": false,

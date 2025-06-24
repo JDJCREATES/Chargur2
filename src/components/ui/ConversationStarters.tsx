@@ -94,7 +94,7 @@ export const ConversationStarters: React.FC<ConversationStartersProps> = ({ onSe
             whileHover={{ scale: 1.03, y: -2 }}
             whileTap={{ scale: 0.97 }}
             onClick={() => onSelect(starter)}
-            className="px-3 py-1.5 text-sm bg-gradient-to-r from-blue-50 to-purple-50 text-blue-700 rounded-full border border-blue-200 hover:border-blue-300 hover:from-blue-100 hover:to-purple-100 transition-all shadow-sm"
+            className="px-2 py-1.5 text-xs bg-gradient-to-r from-blue-50 to-purple-50 text-blue-700 rounded-full border border-blue-200 hover:border-blue-300 hover:from-blue-100 hover:to-purple-100 transition-all shadow-sm"
           >
             {starter}
           </motion.button>
@@ -109,7 +109,7 @@ export const ConversationStarters: React.FC<ConversationStartersProps> = ({ onSe
       >
         <button
           onClick={() => {
-            // Show a different set of starters each time
+            // Chooses a random starter idea ~JDJ
             const randomStarter = starters[Math.floor(Math.random() * starters.length)];
             onSelect(randomStarter);
           }}
