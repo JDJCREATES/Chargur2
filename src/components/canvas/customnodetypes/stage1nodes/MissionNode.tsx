@@ -195,7 +195,7 @@ export const MissionNode: React.FC<MissionNodeProps> = ({
               <button
                 onClick={(e) => {
                   e.stopPropagation();
-                  rewriteWithAI();
+                  refineWithAI();
                 }}
                 disabled={isRefining}
                 className={`
@@ -217,58 +217,6 @@ export const MissionNode: React.FC<MissionNodeProps> = ({
         {isEditing && (
           <div className="absolute bottom-2 right-2 text-xs text-green-500">
             {editValue.length} / {editMissionStatement.length} chars
-          </div>
-        )}
-    </div>
-  );
-};
-
-            `}>
-              {displayValue}
-            </div>
-          )}
-        </div>
-
-        {/* Action Buttons */}
-        {!isEditing && (
-          <div className="flex items-center justify-between p-3 border-t border-green-200">
-            <button
-              onClick={(e) => {
-                e.stopPropagation();
-                setIsEditing(true);
-              }}
-              className="flex items-center gap-1 text-xs text-green-600 hover:text-green-800 transition-colors"
-            >
-              <Edit3 className="w-3 h-3" />
-              Edit
-            </button>
-            
-            {node.value && (
-              <button
-                onClick={(e) => {
-                  e.stopPropagation();
-                  refineWithAI();
-                }}
-                disabled={isRefining}
-                className={`
-                  flex items-center gap-1 text-xs transition-colors
-                  ${isRefining 
-                    ? 'text-green-400 cursor-not-allowed' 
-                    : 'text-green-600 hover:text-green-800'
-                  }
-                `}
-              >
-                <Sparkles className={\`w-3 h-3 ${isRefining ? 'animate-spin' : ''}`} />
-                {isRefining ? 'Refining...' : 'Refine via AI'}
-              </button>
-            )}
-          </div>
-        )}
-
-        {/* Character Count */}
-        {isEditing && (
-          <div className="absolute bottom-2 right-2 text-xs text-green-500">
-            {editValue.length} chars
           </div>
         )}
     </div>
