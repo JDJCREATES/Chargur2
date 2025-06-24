@@ -505,7 +505,6 @@ const processWithEdgeFunction = useCallback(async (
       autoFillData: {},
       isComplete: false,
       goToStageId: null
-      goToStageId: null
     }));
 
     retryCountRef.current = 0;
