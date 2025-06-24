@@ -153,22 +153,15 @@ export const DraggableConnectableWrapper: React.FC<DraggableConnectableWrapperPr
                <motion.div
               className="absolute inset-0 rounded-lg pointer-events-none ring-8 ring-teal-400/20"
               animate={{ scale: [1, 1.04, 1], opacity: [0, 1, 0] }}
-              transition={{ duration: 2, repeat: Infinity, ease: "easeInOut", delay: .8 }}
+              transition={{ duration: 2, repeat: Infinity, ease: "easeInOut", delay: 0.2 }}
             />
             
-            
-            {/* Middle Ring */}
-            <motion.div
-              className="absolute inset-0 rounded-lg pointer-events-none ring-4 ring-blue-500/40"
-              animate={{ scale: [1, 1.08, 1], opacity: [0, 1, 0] }}
-              transition={{ duration: 2, repeat: Infinity, ease: "easeInOut", delay: 0.3 }}
-            />
             
             {/* Inner Ring */}
             <motion.div
               className="absolute inset-0 rounded-lg pointer-events-none ring-2 ring-yellow-600/60"
-              animate={{ scale: [1, 1.04, 1], opacity: [0, .8, 0] }}
-              transition={{ duration: 3, repeat: Infinity, ease: "easeInOut", delay: 0.6 }}
+              animate={{ scale: [1, 1.05, 1], opacity: [0, .8, 0] }}
+              transition={{ duration: 1.5, repeat: Infinity, ease: "easeInOut", delay: 0.3 }}
             />
           </>
         )}
