@@ -14,6 +14,7 @@ import { generateAuthFlowPrompt } from './userAuthFlow.ts';
 import { generateUXReviewPrompt } from './uxReviewCheck.ts';
 import { generateAutoPromptPrompt } from './autoPromptEngine.ts';
 import { generateExportPrompt } from './exportHandoff.ts';
+import { generateIntentClassificationPrompt } from './intentClassifier.ts';
 
 // Interface for prompt data
 interface PromptData {
@@ -36,23 +37,52 @@ export {
 };
 
 export class EdgeStagePromptEngine {
-  static generatePrompt(context: any): PromptData {
+  static async generatePrompt(context: any, llmClient: any): PromptData {
     // First, determine if we need to classify intent
     const { userMessage, stageId } = context;
     
-    // Perform lightweight intent classification
-    const relevantStageIds = this.classifyUserIntent(userMessage, stageId, context);
-    console.log('🧠 Intent classification results:', relevantStageIds);
-    
-    // If we only have one stage (the current one), use the standard approach
-    if (relevantStageIds.length === 1 && relevantStageIds[0] === stageId) {
-      console.log('📝 Using single stage prompt for:', stageId);
+    try {
+      // Use LLM for intent classification
+      console.log('🧠 Performing LLM-based intent classification');
+      const intentPrompt = generateIntentClassificationPrompt(context);
+      
+      const intentResponse = await llmClient.generateResponse(
+        intentPrompt.systemPrompt,
+        intentPrompt.userPrompt,
+        0.2, // Low temperature for more deterministic results
+        500  // Small token limit for quick response
+      );
+      
+      // Parse the intent classification response
+      const intentData = JSON.parse(intentResponse);
+      console.log('🧠 Intent classification results:', intentData);
+      
+      // Extract the relevant stage IDs
+      const relevantStageIds = intentData.relevantStageIds || [];
+      
+      // If no stages were identified, default to current stage
+      if (relevantStageIds.length === 0) {
+        console.log('⚠️ No relevant stages identified, defaulting to current stage');
+        return this.generateSingleStagePrompt(stageId, context);
+      }
+      
+      // If we only have one stage (the current one), use the standard approach
+      if (relevantStageIds.length === 1 && relevantStageIds[0] === stageId) {
+        console.log('📝 Using single stage prompt for:', stageId);
+        return this.generateSingleStagePrompt(stageId, context);
+      }
+      
+      // Otherwise, use prompt fusion for multiple stages
+      console.log('🔄 Using prompt fusion for stages:', relevantStageIds);
+      return this.generateFusedPrompt(relevantStageIds, context);
+      
+    } catch (error) {
+      // If intent classification fails, fall back to current stage
+      console.error('❌ Intent classification failed:', error);
+      console.log('⚠️ Falling back to current stage prompt');
       return this.generateSingleStagePrompt(stageId, context);
     }
     
-    // Otherwise, use prompt fusion for multiple stages
-    console.log('🔄 Using prompt fusion for stages:', relevantStageIds);
-    return this.generateFusedPrompt(relevantStageIds, context);
   }
   
   private static generateSingleStagePrompt(stageId: string, context: any): PromptData {
@@ -80,52 +110,6 @@ export class EdgeStagePromptEngine {
     }
   }
 
-  private static classifyUserIntent(userMessage: string, currentStageId: string, context: any): string[] {
-    // Simple keyword-based intent classification
-    const stageKeywords: Record<string, string[]> = {
-      'ideation-discovery': ['idea', 'concept', 'name', 'problem', 'mission', 'tagline', 'user', 'persona', 'competitor'],
-      'feature-planning': ['feature', 'functionality', 'mvp', 'priority', 'moscow', 'core feature'],
-      'structure-flow': ['structure', 'flow', 'screen', 'navigation', 'user flow', 'journey', 'sitemap'],
-      'interface-interaction': ['interface', 'ui', 'design', 'color', 'layout', 'component', 'style', 'visual'],
-      'architecture-design': ['architecture', 'database', 'schema', 'api', 'endpoint', 'technical', 'folder', 'structure'],
-      'user-auth-flow': ['auth', 'authentication', 'login', 'register', 'user', 'role', 'permission', 'security'],
-      'ux-review-check': ['review', 'check', 'validate', 'test', 'assessment', 'evaluation'],
-      'auto-prompt-engine': ['prompt', 'generate', 'bolt', 'code', 'export', 'development'],
-      'export-handoff': ['export', 'handoff', 'documentation', 'readme', 'deliver']
-    };
-    
-    // Normalize message for better matching
-    const normalizedMessage = userMessage.toLowerCase();
-    
-    // Check for explicit stage mentions
-    const relevantStages: string[] = [];
-    
-    // First check for explicit mentions of stage names
-    Object.entries(stageKeywords).forEach(([stageId, keywords]) => {
-      // Check if any keyword is in the message
-      const hasKeyword = keywords.some(keyword => 
-        normalizedMessage.includes(keyword.toLowerCase())
-      );
-      
-      if (hasKeyword) {
-        relevantStages.push(stageId);
-      }
-    });
-    
-    // If no explicit mentions, default to current stage
-    if (relevantStages.length === 0) {
-      return [currentStageId];
-    }
-    
-    // Always include current stage if it's not already included
-    if (!relevantStages.includes(currentStageId)) {
-      relevantStages.unshift(currentStageId);
-    }
-    
-    // Limit to at most 3 stages to keep prompts manageable
-    return relevantStages.slice(0, 3);
-  }
-  
   private static generateFusedPrompt(stageIds: string[], context: any): PromptData {
     console.log('🔄 Generating fused prompt for stages:', stageIds);
     

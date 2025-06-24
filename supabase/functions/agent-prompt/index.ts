@@ -239,9 +239,9 @@ export
 async function saveCompleteResponse(
   supabase: any,
   conversationId: string,
-  response: any,
+  response: AgentResponse,
   userPrompt: string,
-  userId?: string  // Add this parameter
+  userId: string | null
 ) {
   try {
     const { error } = await supabase
@@ -257,7 +257,7 @@ async function saveCompleteResponse(
         context: {
           timestamp: new Date().toISOString(),
           model_used: 'gpt-4o-mini',
-          user_id: userId  // Use userId here
+          user_id: userId || undefined
         }
       })
 
@@ -482,12 +482,12 @@ async function processAgentRequest(controller: ReadableStreamDefaultController, 
     // Initialize LLM client with requested provider
     console.log('🤖 Initializing LLM client...')
     const llmClient = new EdgeLLMClient(llmProvider)
-    console.log('✅ LLM client initialized successfully')
+    console.log('✅ LLM client initialized successfully with provider:', llmProvider)
     
     // Generate stage-specific prompt using modular system
     console.log('📋 Generating stage-specific prompt...')
-    const promptData = EdgeStagePromptEngine.generatePrompt(request)
-    
+    const promptData = await EdgeStagePromptEngine.generatePrompt(request, llmClient)
+    console.log('✅ Prompt generated successfully with temperature:', promptData.temperature)
     // Get LLM response (not streaming in this simplified version)
     console.log('🚀 Calling LLM API...')
     const llmResponse = await llmClient.generateResponse(
@@ -539,7 +539,7 @@ async function processAgentRequest(controller: ReadableStreamDefaultController, 
       }
       
       if (safeEnqueue(completionData)) {
-        await saveCompleteResponse(supabase, conversationId!, response, userMessage, userId)
+        await saveCompleteResponse(supabase, conversationId!, response, userMessage, userId || null)
       }
     }
     
