@@ -32,6 +32,7 @@ import { CanvasToolbar } from './CanvasToolbar';
 import { CanvasRenderer } from './core/CanvasRenderer';
 import { CanvasDataProcessor, ProcessorState } from './core/CanvasDataProcessor';
 import { useCanvasStateManager } from './core/CanvasStateManager';
+import { useCanvasScreenshot } from './core/CanvasScreenshot';
 import { useCanvasInteractionManager } from './core/CanvasInteractionManager';
 import { CanvasNodeData } from './CanvasNode';
 import { STAGE1_NODE_TYPES, STAGE1_NODE_DEFAULTS } from './customnodetypes/stage1nodes';
@@ -62,6 +63,11 @@ export const SpatialCanvas: React.FC<SpatialCanvasProps> = ({
     toggleGrid,
     exportState,
     importState
+  } = useCanvasStateManager();
+  
+  const {
+    takeScreenshot,
+    screenshotRef
   } = useCanvasStateManager();
 
   const {
@@ -110,6 +116,9 @@ export const SpatialCanvas: React.FC<SpatialCanvasProps> = ({
       }
     );
   }, [stageData, isLoaded, state.nodes, state.lastProcessedData, updateState]);
+
+  // Initialize screenshot functionality
+  const { takeScreenshot, canvasRef } = useCanvasScreenshot();
 
   const handleAddNode = useCallback((type: CanvasNodeData['type']) => {
     // Check if it's a custom ideation node type
@@ -337,8 +346,18 @@ export const SpatialCanvas: React.FC<SpatialCanvasProps> = ({
     });
   }, [state.nodes, updateNode]);
 
+  // Save canvas state to localStorage
   const handleSave = useCallback(() => {
-    console.log('Canvas saved automatically');
+    // Canvas is already auto-saved via useCanvasStateManager
+    // Just provide visual feedback
+    const savedNotification = document.createElement('div');
+    savedNotification.className = 'fixed top-4 right-4 bg-green-100 text-green-800 px-4 py-2 rounded-lg shadow-md z-50';
+    savedNotification.textContent = 'Canvas saved successfully';
+    document.body.appendChild(savedNotification);
+    
+    setTimeout(() => {
+      savedNotification.remove();
+    }, 2000);
   }, []);
 
   const handleExport = useCallback(() => {
@@ -374,6 +393,7 @@ export const SpatialCanvas: React.FC<SpatialCanvasProps> = ({
         onSave={handleSave}
         onExport={handleExport}
         onToggleGrid={toggleGrid}
+        onScreenshot={() => takeScreenshot(canvasRef)}
         onAutoLayout={handleAutoLayout}
         onClearCanvas={clearCanvas}
         showGrid={state.showGrid}
@@ -381,7 +401,8 @@ export const SpatialCanvas: React.FC<SpatialCanvasProps> = ({
       />
 
       {/* Main Canvas Area */}
-      <div
+      <div 
+        ref={canvasRef}
         className={`w-full h-full ${interactionState.isPanning ? 'cursor-grabbing' : 'cursor-grab'}`}
         onClick={handlers.onCanvasClick}
         onWheel={handlers.onWheel}
