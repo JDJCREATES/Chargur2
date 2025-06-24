@@ -25,6 +25,7 @@ interface DraggableConnectableWrapperProps {
   onDelete: (nodeId: string) => void;
   onStartConnection: (nodeId: string) => void;
   onEndConnection: (nodeId: string) => void;
+  onSendMessage?: (message: string) => void;
   scale: number;
   children: React.ReactNode;
 }
@@ -38,6 +39,7 @@ export const DraggableConnectableWrapper: React.FC<DraggableConnectableWrapperPr
   onDelete,
   onStartConnection,
   onEndConnection,
+  onSendMessage,
   scale,
   children
 }) => {

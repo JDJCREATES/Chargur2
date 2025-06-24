@@ -15,6 +15,7 @@ interface MissionNodeProps {
   isSelected: boolean;
   onUpdate: (nodeId: string, updates: Partial<MissionNodeData>) => void;
   onSelect: (nodeId: string) => void;
+  onSendMessage?: (message: string) => void;
   scale: number;
 }
 
@@ -22,7 +23,8 @@ export const MissionNode: React.FC<MissionNodeProps> = ({
   node,
   isSelected,
   onUpdate,
-  onSelect
+  onSelect,
+  onSendMessage
 }) => {
   const [isEditing, setIsEditing] = useState(false);
   const [editValue, setEditValue] = useState(node.value);
@@ -70,13 +72,12 @@ export const MissionNode: React.FC<MissionNodeProps> = ({
   const refineWithAI = async () => {
     if (!node.value) return;
     
-    setIsRefining(true);
-    // Simulate AI refinement
-    setTimeout(() => {
-      const refined = `${node.value.trim()}${node.value.endsWith('.') ? '' : '.'} We empower users to achieve their goals through innovative technology.`;
-      onUpdate(node.id, { value: refined });
-      setIsRefining(false);
-    }, 2000);
+    if (onSendMessage) {
+      setIsRefining(true);
+      onSendMessage(`Please refine this app purpose description to be more clear and professional: "${node.value}"`);
+      // Note: The actual update will happen via the onAutoFill callback in App.tsx
+      // when the AI response comes back with updated data
+    }
   };
 
   const displayValue = node.value || "Describe your app's mission and purpose...";
@@ -86,11 +87,12 @@ export const MissionNode: React.FC<MissionNodeProps> = ({
   const refineMissionStatement = () => {
     if (!node.value) return;
     
-    setIsRefining(true);
-    setTimeout(() => {
-      onUpdate(node.id, { missionStatement: `Our mission is to ${node.value.toLowerCase().includes('app') ? 'provide a platform that' : ''} empower users to achieve their goals through innovative technology while maintaining the highest standards of quality and user experience.` });
-      setIsRefining(false);
-    }, 2000);
+    if (onSendMessage) {
+      setIsRefining(true);
+      onSendMessage(`Based on this app purpose: "${node.value}", please generate a formal mission statement that captures the app's core values and goals.`);
+      // Note: The actual update will happen via the onAutoFill callback in App.tsx
+      // when the AI response comes back with updated data
+    }
   };
   const isPlaceholder = !node.value;
 

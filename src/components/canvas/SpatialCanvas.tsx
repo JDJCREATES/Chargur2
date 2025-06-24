@@ -41,10 +41,12 @@ interface SpatialCanvasProps {
   currentStage?: any;
   stageData: any;
   onSendMessage: (message: string) => void;
+  onSendMessage: (message: string) => void;
 }
 
 export const SpatialCanvas: React.FC<SpatialCanvasProps> = ({
   stageData,
+  onSendMessage
   onSendMessage
 }) => {
   const {
@@ -425,6 +427,7 @@ export const SpatialCanvas: React.FC<SpatialCanvasProps> = ({
           onNodeDelete={removeNode}
           onConnectionStart={handlers.onConnectionStart}
           onConnectionEnd={handlers.onConnectionEnd}
+          onSendMessage={onSendMessage}
         />
       </div>
 

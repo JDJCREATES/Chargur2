@@ -35,6 +35,7 @@ AUTO-FILL OPPORTUNITIES:
 - appName: Generate from keywords in the idea (2-3 words, PascalCase)
 - tagline: Create memorable 3-5 word tagline
 - problemStatement: Identify the core user problem being solved
+- missionStatement: Create a formal mission statement distinct from the app idea
 - userPersonas: Create structured persona objects with name, role, painPoint, emoji
 - valueProposition: Articulate unique value and benefits
 
@@ -46,7 +47,16 @@ When users describe target users, extract and structure them as persona objects:
 - emoji: Appropriate emoji representing them (e.g., "👨‍💼", "👩‍🎓", "👨‍💻")
 
 COMPLETION CRITERIA:
-Stage is complete when we have: appIdea, appName, problemStatement, userPersonas, and valueProposition.`;
+Stage is complete when we have: appIdea, appName, problemStatement, missionStatement, userPersonas, and valueProposition.
+
+MISSION STATEMENT GUIDANCE:
+When asked to generate or refine a mission statement:
+- Make it distinct from the app idea description
+- Focus on purpose, values, and vision
+- Keep it concise but impactful (1-2 sentences)
+- Include who the app serves and how it serves them
+- Avoid technical jargon and focus on benefits
+- Use present tense and active voice`;
 
   const userPrompt = `User message: "${userMessage}"
 
@@ -61,6 +71,7 @@ Respond in this exact JSON format:
     "appName": "suggested app name",
     "tagline": "memorable tagline",
     "problemStatement": "core problem statement",
+    "missionStatement": "formal mission statement",
     "userPersonas": [
       {
         "name": "Primary User",

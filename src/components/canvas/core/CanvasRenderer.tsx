@@ -56,6 +56,7 @@ interface CanvasRendererProps {
   onNodeDelete: (nodeId: string) => void;
   onConnectionStart: (nodeId: string) => void;
   onConnectionEnd: (nodeId: string) => void;
+  onSendMessage: (message: string) => void;
 }
 
 export const CanvasRenderer: React.FC<CanvasRendererProps> = ({
@@ -71,6 +72,7 @@ export const CanvasRenderer: React.FC<CanvasRendererProps> = ({
   onNodeDelete,
   onConnectionStart,
   onConnectionEnd
+  onSendMessage
 }) => {
   const getConnectionPath = (connection: Connection) => {
     const fromNode = nodes.find(n => n.id === connection.from);
@@ -183,6 +185,8 @@ export const CanvasRenderer: React.FC<CanvasRendererProps> = ({
                       return <ValuePropositionNode {...commonProps} />;
                     case 'competitor':
                       return <CompetitorNode {...commonProps} onDelete={onNodeDelete} />;
+                    case 'mission':
+                      return <MissionNode {...commonProps} onSendMessage={onSendMessage} />;
                     default:
                       return <DefaultCanvasNode 
                                 node={node} 

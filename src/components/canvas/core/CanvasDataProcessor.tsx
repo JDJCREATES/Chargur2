@@ -146,14 +146,21 @@ export class CanvasDataProcessor {
         // Update existing node
         const index = updatedNodes.findIndex(node => node.id === STAGE1_NODE_TYPES.MISSION);
         if (index !== -1) {
+          const updates: Partial<CanvasNodeData> = { value: ideationData.appIdea };
+          
+          // Add mission statement if available
+          if (ideationData.missionStatement) {
+            updates.missionStatement = ideationData.missionStatement;
+          }
+          
           updatedNodes[index] = {
             ...updatedNodes[index],
-            value: ideationData.appIdea
+            ...updates
           };
         }
       } else {
         // Create new node
-        updatedNodes.push(this.createMissionNode(ideationData.appIdea));
+        updatedNodes.push(this.createMissionNode(ideationData.appIdea, ideationData.missionStatement));
       }
     }
 
@@ -479,7 +486,7 @@ export class CanvasDataProcessor {
     };
   }
 
-  private static createMissionNode(appIdea: string): CanvasNodeData {
+  private static createMissionNode(appIdea: string, missionStatement?: string): CanvasNodeData {
     return {
       id: STAGE1_NODE_TYPES.MISSION,
       type: 'mission',
@@ -491,6 +498,7 @@ export class CanvasDataProcessor {
       connections: [],
       metadata: { stage: 'ideation-discovery', nodeType: 'mission' },
       value: appIdea,
+      missionStatement: missionStatement || '',
       editable: true,
       resizable: true
     };

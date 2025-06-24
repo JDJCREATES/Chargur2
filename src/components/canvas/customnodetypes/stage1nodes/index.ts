@@ -41,7 +41,7 @@ export const STAGE1_NODE_DEFAULTS = {
     editable: true,
   },
   mission: {
-    size: { width: 260, height: 140 },
+    size: { width: 300, height: 140 },
     position: { x: 350, y: 220 },
     editable: true,
   },
