@@ -57,8 +57,8 @@ export const DraggableConnectableWrapper: React.FC<DraggableConnectableWrapperPr
   const handleDrag = (event: any, info: any) => {
     // Use the offset from drag start instead of delta
     const newPosition = {
-      x: Math.max(0, dragStart.x + info.offset.x / scale),
-      y: Math.max(0, dragStart.y + info.offset.y / scale),
+      x: Math.max(0, dragStart.x + info.offset.x ),
+      y: Math.max(0, dragStart.y + info.offset.y ),
     };
     onUpdate(node.id, { position: newPosition });
   };
