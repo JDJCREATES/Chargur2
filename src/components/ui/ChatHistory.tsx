@@ -234,7 +234,6 @@ export const ChatHistory: React.FC<ChatHistoryProps> = ({
           <h3 className="text-lg font-semibold text-gray-800 dark:text-gray-200 mb-2">
             Welcome to Chargur AI Assistant
           </h3>
-          <p className="text-gray-600 max-w-md">
           <p className="text-gray-600 dark:text-gray-300 max-w-md">
             I'm here to help you plan and design your app. Start by describing your app idea, 
             and I'll guide you through each stage of the development process.
