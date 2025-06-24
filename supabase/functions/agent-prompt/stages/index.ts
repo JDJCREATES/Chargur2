@@ -86,32 +86,38 @@ export class EdgeStagePromptEngine {
   }
   
   private static generateSingleStagePrompt(stageId: string, context: any): PromptData {
+    // Extract suggestedGoToStageId from intent classification if available
+    const suggestedGoToStageId = context.intentData?.suggestedPrimaryStage || null;
+    
     switch (stageId) {
       case 'ideation-discovery':
-        return generateIdeationPrompt(context);
+        return this.addGoToStageIdToPrompt(generateIdeationPrompt(context), suggestedGoToStageId);
       case 'feature-planning':
-        return generateFeaturePlanningPrompt(context);
+        return this.addGoToStageIdToPrompt(generateFeaturePlanningPrompt(context), suggestedGoToStageId);
       case 'structure-flow':
-        return generateStructureFlowPrompt(context);
+        return this.addGoToStageIdToPrompt(generateStructureFlowPrompt(context), suggestedGoToStageId);
       case 'interface-interaction':
-        return generateInterfacePrompt(context);
+        return this.addGoToStageIdToPrompt(generateInterfacePrompt(context), suggestedGoToStageId);
       case 'architecture-design':
-        return generateArchitecturePrompt(context);
+        return this.addGoToStageIdToPrompt(generateArchitecturePrompt(context), suggestedGoToStageId);
       case 'user-auth-flow':
-        return generateAuthFlowPrompt(context);
+        return this.addGoToStageIdToPrompt(generateAuthFlowPrompt(context), suggestedGoToStageId);
       case 'ux-review-check':
-        return generateUXReviewPrompt(context);
+        return this.addGoToStageIdToPrompt(generateUXReviewPrompt(context), suggestedGoToStageId);
       case 'auto-prompt-engine':
-        return generateAutoPromptPrompt(context);
+        return this.addGoToStageIdToPrompt(generateAutoPromptPrompt(context), suggestedGoToStageId);
       case 'export-handoff':
-        return generateExportPrompt(context);
+        return this.addGoToStageIdToPrompt(generateExportPrompt(context), suggestedGoToStageId);
       default:
-        return this.generateDefaultPrompt(context);
+        return this.addGoToStageIdToPrompt(this.generateDefaultPrompt(context), suggestedGoToStageId);
     }
   }
 
   private static generateFusedPrompt(stageIds: string[], context: any): PromptData {
     console.log('🔄 Generating fused prompt for stages:', stageIds);
+    
+    // Extract suggestedGoToStageId from intent classification if available
+    const suggestedGoToStageId = context.intentData?.suggestedPrimaryStage || null;
     
     // Generate individual prompts for each stage
     const stagePrompts = stageIds.map(stageId => {
@@ -178,7 +184,8 @@ Respond in this exact JSON format:
   "context": {
     "relevantStages": [${stageIds.map(id => `"${id}"`).join(', ')}],
     "crossStageInsights": "Any insights about how these stages interact"
-  }
+  },
+  "goToStageId": ${suggestedGoToStageId ? `"${suggestedGoToStageId}"` : 'null'}
 }`;
 
     // Calculate appropriate temperature and token limits
@@ -190,6 +197,32 @@ Respond in this exact JSON format:
       userPrompt: fusedUserPrompt,
       temperature: avgTemperature,
       maxTokens: maxTokens
+    };
+  }
+
+  // Helper method to add goToStageId to prompt templates
+  private static addGoToStageIdToPrompt(promptData: PromptData, suggestedGoToStageId: string | null): PromptData {
+    // Only modify if we have a suggested stage
+    if (!suggestedGoToStageId) return promptData;
+    
+    // Find the position of the closing JSON brace in the user prompt
+    const userPrompt = promptData.userPrompt;
+    const lastBraceIndex = userPrompt.lastIndexOf('}');
+    
+    if (lastBraceIndex === -1) return promptData; // Invalid JSON format
+    
+    // Check if goToStageId is already in the template
+    if (userPrompt.includes('"goToStageId"')) return promptData;
+    
+    // Insert goToStageId field before the closing brace
+    const updatedUserPrompt = 
+      userPrompt.substring(0, lastBraceIndex) + 
+      `,\n  "goToStageId": "${suggestedGoToStageId}"` + 
+      userPrompt.substring(lastBraceIndex);
+    
+    return {
+      ...promptData,
+      userPrompt: updatedUserPrompt
     };
   }
 
