@@ -1,19 +1,11 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { Target, Edit3, Sparkles } from 'lucide-react';
-
-interface MissionNodeData {
-  id: 'mission';
-  value: string;
-  missionStatement?: string;
-  editable: boolean;
-  position: { x: number; y: number };
-  size: { width: number; height: number };
-}
+import { CanvasNodeData } from '../../CanvasNode';
 
 interface MissionNodeProps {
-  node: MissionNodeData;
+  node: CanvasNodeData;
   isSelected: boolean;
-  onUpdate: (nodeId: string, updates: Partial<MissionNodeData>) => void;
+  onUpdate: (nodeId: string, updates: Partial<CanvasNodeData>) => void;
   onSelect: (nodeId: string) => void;
   onSendMessage?: (message: string) => void;
   scale: number;
@@ -27,7 +19,7 @@ export const MissionNode: React.FC<MissionNodeProps> = ({
   onSendMessage
 }) => {
   const [isEditing, setIsEditing] = useState(false);
-  const [editValue, setEditValue] = useState(node.value);
+  const [editValue, setEditValue] = useState(node.value || '');
   const [editMissionStatement, setEditMissionStatement] = useState(node.missionStatement || '');
   const [isRefining, setIsRefining] = useState(false);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
@@ -41,9 +33,9 @@ export const MissionNode: React.FC<MissionNodeProps> = ({
   }, [isEditing]);
 
   const handleSave = () => {
-    const updates: Partial<MissionNodeData> = {};
+    const updates: Partial<CanvasNodeData> = {};
     
-    if (editValue.trim() !== node.value) {
+    if (editValue.trim() !== (node.value || '')) {
       updates.value = editValue.trim();
     }
     
@@ -63,7 +55,7 @@ export const MissionNode: React.FC<MissionNodeProps> = ({
       handleSave();
     }
     if (e.key === 'Escape') {
-      setEditValue(node.value);
+      setEditValue(node.value || '');
       setEditMissionStatement(node.missionStatement || '');
       setIsEditing(false);
     }

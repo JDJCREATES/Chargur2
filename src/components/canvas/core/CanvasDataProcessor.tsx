@@ -146,8 +146,10 @@ export class CanvasDataProcessor {
         // Update existing node
         const index = updatedNodes.findIndex(node => node.id === STAGE1_NODE_TYPES.MISSION);
         if (index !== -1) {
-          const updates: Partial<CanvasNodeData> = { value: ideationData.appIdea };
-          
+          const updates: Partial<CanvasNodeData> = { 
+            value: ideationData.appIdea 
+          };
+
           // Add mission statement if available
           if (ideationData.missionStatement) {
             updates.missionStatement = ideationData.missionStatement;

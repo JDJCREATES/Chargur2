@@ -71,7 +71,7 @@ export const CanvasRenderer: React.FC<CanvasRendererProps> = ({
   onNodeUpdate,
   onNodeDelete,
   onConnectionStart,
-  onConnectionEnd
+  onConnectionEnd,
   onSendMessage
 }) => {
   const getConnectionPath = (connection: Connection) => {
@@ -160,7 +160,9 @@ export const CanvasRenderer: React.FC<CanvasRendererProps> = ({
                     node: node as any,
                     isSelected: selectedNodeId === node.id,
                     onUpdate: onNodeUpdate,
-                    onSelect: onNodeSelect
+
+                    onSelect: onNodeSelect,
+                    scale: scale
                   };
 
                   switch (node.type) {
@@ -171,22 +173,13 @@ export const CanvasRenderer: React.FC<CanvasRendererProps> = ({
                     case 'coreProblem':
                       return <CoreProblemNode {...commonProps} />;
                     case 'mission':
-                      return <MissionNode {...commonProps} />;
+                      return <MissionNode {...commonProps} onSendMessage={onSendMessage} />;
                     case 'userPersona':
-                      return (
-                        <UserPersonaNode 
-                          node={node as any} 
-                          isSelected={selectedNodeId === node.id} 
-                          onUpdate={onNodeUpdate} 
-                          onDelete={onNodeDelete} 
-                        />
-                      );
+                      return <UserPersonaNode {...commonProps} onDelete={onNodeDelete} />;
                     case 'valueProp':
                       return <ValuePropositionNode {...commonProps} />;
                     case 'competitor':
                       return <CompetitorNode {...commonProps} onDelete={onNodeDelete} />;
-                    case 'mission':
-                      return <MissionNode {...commonProps} onSendMessage={onSendMessage} />;
                     default:
                       return <DefaultCanvasNode 
                                 node={node} 

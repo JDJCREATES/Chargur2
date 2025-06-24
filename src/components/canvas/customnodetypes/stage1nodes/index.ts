@@ -61,3 +61,4 @@ export const STAGE1_NODE_DEFAULTS = {
     editable: true,
   },
 };
+

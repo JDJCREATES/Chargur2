@@ -3,7 +3,7 @@
  * 
  * Prompt engineering for the Ideation & Discovery stage.
  * Focuses on extracting app concepts, generating names, and defining core problems.
- */
+*/
 
 import { PromptContext, PromptResponse } from '../types';
 
@@ -31,10 +31,11 @@ RESPONSE GUIDELINES:
 3. Provide specific, actionable auto-fill suggestions
 4. Reference previous context when relevant
 5. Guide toward completion when sufficient data exists
-
+6: Move on immediately and mark stages as complete when asked using autofill data
 
 AUTO-FILL OPPORTUNITIES:
-- appIdea[mission statement]: Extract from "I want to build..." or "app about..." patterns
+- appIdea: Extract from "I want to build..." or "app about..." patterns
+- missionstatement: Generate or add when asked/brainstormed with user
 - appName: Generate from keywords in the idea (2-3 words, PascalCase)
 - tagline: Create memorable 3-5 word tagline
 - problemStatement: Identify the core user problem being solved
@@ -43,7 +44,7 @@ AUTO-FILL OPPORTUNITIES:
 
 COMPLETION CRITERIA:
 Stage is complete when we have: appIdea, appName, problemStatement, userPersonas, and valueProposition.
-If the user asks to move on to another stage, autfill required data and move on, marking this stage as complete.`;
+If the user asks to move on to another stage, autofill required data and move on, marking this stage as complete.`;
 
   const userPrompt = `User message: "${userMessage}"
 
@@ -54,7 +55,8 @@ Respond in this exact JSON format:
   "content": "Your conversational response to the user",
   "suggestions": ["Quick action 1", "Quick action 2", "Quick action 3"],
   "autoFillData": {
-    "appIdea": "extracted or suggested app idea",
+    "appIdea": "extracted or suggested app idea/original idea",
+    "missionstatement": "mission statement",
     "appName": "suggested app name",
     "tagline": "memorable tagline",
     "problemStatement": "core problem statement",

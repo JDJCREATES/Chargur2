@@ -1,30 +1,4 @@
-import React, { useState } from 'react';
-import { motion } from 'framer-motion';
-import {
-  Edit3,
-  Trash2,
-  Link,
-  Plus,
-  Eye,
-  EyeOff
-} from 'lucide-react';
-import { 
-  GiLightBulb,
-  GiEnergise,
-  GiPerson,
-  GiWindow,
-  GiDatabase,
-  GiConversation,
-  GiScrollQuill,
-  GiCrown,
-  GiQuill,
-  GiBullseye,
-  GiDiamonds,
-  GiCrossedSwords
-} from 'react-icons/gi';
-
-
-export interface CanvasNodeData {
+    export interface CanvasNodeData {
   id: string;
   type: 'concept' | 'feature' | 'ux-flow' | 'wireframe' | 'system' | 'agent-output' | 
         'appName' | 'tagline' | 'coreProblem' | 'mission' | 'userPersona' | 'valueProp' | 'competitor';
@@ -49,6 +23,7 @@ export interface CanvasNodeData {
   emoji?: string;
   notes?: string;
   link?: string;
+  missionStatement?: string;
 }
 
 interface CanvasNodeProps {
