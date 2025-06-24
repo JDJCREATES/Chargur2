@@ -46,7 +46,6 @@ interface SpatialCanvasProps {
 export const SpatialCanvas: React.FC<SpatialCanvasProps> = ({
   stageData,
   onSendMessage
-  onSendMessage
 }) => {
   const {
     state,
