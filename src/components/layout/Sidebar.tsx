@@ -226,8 +226,8 @@ export const Sidebar: React.FC<SidebarProps> = ({
               className="border-t border-gray-200"
             >
               <div className="flex items-center gap-2">
-                <GiUnplugged className="w-4 h-4 text-teal-500" />
-                <Typography className="font-semibold text-gray-800">Charg</Typography>
+                <GiUnplugged className="w-5 h-5 text-teal-500" />
+                <Typography className="font-semibold text-gray-800 font-nova-round">Charg</Typography>
               </div>
             </AccordionSummary>
             <AccordionDetails className="p-0">

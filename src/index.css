@@ -1,3 +1,19 @@
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+
+
+/* Add this at the top of your CSS file */
+@font-face {
+     font-family: 'Nova Round';
+     src: url('/fonts/NovaRound-Regular.ttf') format('truetype');
+     font-weight: normal;
+     font-style: normal;
+     font-display: swap;
+}
+
+
+/* Create a utility class for the Chargur brand */
+.font-nova-round {
+     font-family: 'Nova Round', cursive;
+}

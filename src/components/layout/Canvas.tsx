@@ -108,8 +108,7 @@ export const Canvas: React.FC<CanvasProps> = ({
           <div>
             <h1 className="text-xl font-semibold text-gray-800">{currentStage.title}</h1>
             <p className="text-sm text-gray-600 mt-1">{currentStage.description}</p>
-          </div>
-          {currentStage.completed && (
+            <div className="flex items-center mt-2"> {currentStage.completed && (
             <motion.span
               initial={{ scale: 0 }}
               animate={{ scale: 1 }}
@@ -119,7 +118,10 @@ export const Canvas: React.FC<CanvasProps> = ({
               Completed
             </motion.span>
           )}
-        </div>
+        </div> </div>
+        <div className="flex items-center space-x-2 font-chargur">ChargUr </div>
+          </div>
+         
       </motion.div>
 
       {/* Canvas Content - Flexible Height with Chat Overlay */}

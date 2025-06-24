@@ -2,7 +2,12 @@
 export default {
   content: ['./index.html', './src/**/*.{js,ts,jsx,tsx}'],
   theme: {
-    extend: {},
+    extend: {
+      fontFamily: {
+        'nova-round': ['Nova Round', 'cursive'],
+        'chargur': ['Nova Round', 'cursive'],
+      },
+    },
   },
   plugins: [],
 };
