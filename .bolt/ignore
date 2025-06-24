@@ -193,7 +193,7 @@ src/lib/supabase/
 # JDJ
 
 src/components/auth/
-# src/components/layout/
-# src/components/stages/content/
+src/components/layout/
+src/components/stages/content/
 src/hooks/useAuth.ts
 src/lib/prompts/
