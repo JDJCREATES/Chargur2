@@ -40,6 +40,7 @@ export const DraggableConnectableWrapper: React.FC<DraggableConnectableWrapperPr
   onStartConnection,
   onEndConnection,
   onSendMessage,
+  onSendMessage,
   scale,
   children
 }) => {
@@ -57,8 +58,8 @@ export const DraggableConnectableWrapper: React.FC<DraggableConnectableWrapperPr
   const handleDrag = (event: any, info: any) => {
     // Use the offset from drag start instead of delta
     const newPosition = {
-      x: Math.max(0, dragStart.x + info.offset.x ),
-      y: Math.max(0, dragStart.y + info.offset.y ),
+      x: Math.max(0, dragStart.x + info.offset.x),
+      y: Math.max(0, dragStart.y + info.offset.y),
     };
     onUpdate(node.id, { position: newPosition });
   };
@@ -113,6 +114,8 @@ export const DraggableConnectableWrapper: React.FC<DraggableConnectableWrapperPr
       dragMomentum={false}
       dragElastic={0}
       dragConstraints={false}
+      x={node.position.x}
+      y={node.position.y}
       dragTransition={{ bounceStiffness: 600, bounceDamping: 20 }}
       onDragStart={handleDragStart}
       onDrag={handleDrag}
@@ -120,12 +123,10 @@ export const DraggableConnectableWrapper: React.FC<DraggableConnectableWrapperPr
       whileHover={{ scale: 1.02 }}
       whileDrag={{ scale: 1.05, zIndex: 1000 }}
       className={`
-        absolute cursor-move select-none transition-shadow
+        absolute cursor-move select-none transition-shadow transform
         ${isDragging ? 'z-50' : isSelected ? 'z-30' : 'z-10'}
       `}
       style={{
-        left: `${node.position.x}px`,
-        top: `${node.position.y}px`,
         width: node.size.width,
         minHeight: node.size.height,
       }}
