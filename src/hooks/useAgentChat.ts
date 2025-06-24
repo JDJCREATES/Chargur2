@@ -31,6 +31,7 @@ interface AgentChatState {
   isComplete: boolean;
   conversationId: string | null;
   historyMessages: ChatMessage[];
+  goToStageId: string | null;
 }
 
 interface UseAgentChatOptions {
@@ -39,6 +40,7 @@ interface UseAgentChatOptions {
   allStageData: any;
   onAutoFill?: (data: any) => void;
   onStageComplete?: () => void;
+  onGoToStage?: (stageId: string) => void;
   llmProvider?: 'openai' | 'anthropic';
   useDirectLLM?: boolean; // Maybe rename this to 'useStreamingResponse' or similar
   memory?: any;
@@ -51,6 +53,7 @@ export const useAgentChat = ({
   allStageData,
   onAutoFill,
   onStageComplete,
+  onGoToStage,
   llmProvider = 'openai',
   useDirectLLM = false,
   memory = {}, // Add this
@@ -66,6 +69,7 @@ export const useAgentChat = ({
     isComplete: false,
     conversationId: null,
     historyMessages: [],
+    goToStageId: null
   });
 
   const abortControllerRef = useRef<AbortController | null>(null);
@@ -339,7 +343,8 @@ const processWithEdgeFunction = useCallback(async (
                   ...prev,
                   suggestions: data.suggestions || [],
                   autoFillData: data.autoFillData || {},
-                  isComplete: true
+                  isComplete: true,
+                  goToStageId: data.goToStageId || null
                 }));  
 
                 // Trigger callbacks
@@ -376,6 +381,11 @@ const processWithEdgeFunction = useCallback(async (
                 
                 if (data.stageComplete && onStageComplete) {
                   onStageComplete();
+                }
+                
+                // Handle stage navigation if requested
+                if (data.goToStageId && onGoToStage) {
+                  onGoToStage(data.goToStageId);
                 }
               } else if (data.type === 'error') {
                 throw new Error(data.error || 'Stream error occurred');
@@ -487,7 +497,8 @@ const processWithEdgeFunction = useCallback(async (
       content: '',
       suggestions: [],
       autoFillData: {},
-      isComplete: false
+      isComplete: false,
+      goToStageId: null
     }));
 
     retryCountRef.current = 0;
@@ -568,7 +579,8 @@ const processWithEdgeFunction = useCallback(async (
     isStreaming: state.isLoading && !!state.content,
     // Expose configuration
     llmProvider,
-    useDirectLLM
+    useDirectLLM,
+    goToStageId: state.goToStageId
   };
 };
 

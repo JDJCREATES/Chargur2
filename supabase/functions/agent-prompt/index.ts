@@ -230,6 +230,7 @@ interface AgentResponse {
   autoFillData: any
   stageComplete: boolean
   context: any
+  goToStageId?: string
   memoryUpdate?: any
   userPrompt?: string // Add this to track the original user input
 }
@@ -535,6 +536,7 @@ async function processAgentRequest(controller: ReadableStreamDefaultController, 
         suggestions: response.suggestions || [],
         autoFillData: response.autoFillData || {},
         stageComplete: response.stageComplete || false,
+        goToStageId: response.goToStageId || null,
         conversationId
       }
       
@@ -632,11 +634,11 @@ function parseAndValidateResponse(llmResponse: string, stageId: string): AgentRe
     // Ensure autoFillData is an object
     if (!parsed.autoFillData || typeof parsed.autoFillData !== 'object') {
       console.log('⚠️ Fixing autoFillData field (not an object)')
-      parsed.autoFillData = {};
+      parsed.autoFillData = {}
     } else {
       // Process multi-stage autoFillData if present
       // This allows the LLM to return data for multiple stages
-      const processedAutoFillData = {};
+      const processedAutoFillData = {}
       
       // Check if autoFillData contains stage IDs as keys
       const hasStageKeys = Object.keys(parsed.autoFillData).some(key => 
@@ -647,19 +649,19 @@ function parseAndValidateResponse(llmResponse: string, stageId: string): AgentRe
       
       if (hasStageKeys) {
         // Multi-stage format - keep as is
-        Object.assign(processedAutoFillData, parsed.autoFillData);
+        Object.assign(processedAutoFillData, parsed.autoFillData)
       } else {
         // Single stage format - wrap in current stageId
-        processedAutoFillData[stageId] = parsed.autoFillData;
+        processedAutoFillData[stageId] = parsed.autoFillData
       }
       
-      parsed.autoFillData = processedAutoFillData;
+      parsed.autoFillData = processedAutoFillData
     }
     
     // Ensure stageComplete is boolean
     if (typeof parsed.stageComplete !== 'boolean') {
       console.log('⚠️ Fixing stageComplete field (not a boolean)')
-      parsed.stageComplete = false
+      parsed.stageComplete = Boolean(parsed.stageComplete)
     }
     
     // Ensure context is an object
@@ -668,13 +670,19 @@ function parseAndValidateResponse(llmResponse: string, stageId: string): AgentRe
       parsed.context = {}
     }
     
+    // Check for goToStageId field
+    if (parsed.goToStageId && typeof parsed.goToStageId === 'string') {
+      console.log(`🔄 Found goToStageId: ${parsed.goToStageId}`)
+    }
+    
     console.log('✅ Response validation completed successfully')
     return {
       content: parsed.content || '',
       suggestions: (parsed.suggestions || []).slice(0, 5), // Limit to 5 suggestions
       autoFillData: parsed.autoFillData || {},
       stageComplete: !!parsed.stageComplete,
-      context: parsed.context || {}
+      context: parsed.context || {},
+      goToStageId: parsed.goToStageId || null
     }
     
   } catch (error) {
@@ -688,7 +696,8 @@ function parseAndValidateResponse(llmResponse: string, stageId: string): AgentRe
       suggestions: ["Tell me more about your needs", "What should we focus on?", "Help me understand your goals"],
       autoFillData: { [stageId]: {} },
       stageComplete: false,
-      context: { parseError: true, originalResponse: llmResponse }
+      context: { parseError: true, originalResponse: llmResponse },
+      goToStageId: null
     }
   }
 }

@@ -32,6 +32,7 @@ function App() {
     error: agentError, 
     retry,
     isStreaming,
+    goToStageId
   } = useAgentChat({
     stageId: currentStage?.id || '',
     currentStageData: currentStage ? stageData[currentStage.id] : {},
@@ -44,8 +45,16 @@ function App() {
     onStageComplete: () => {
       if (currentStage) {
         completeStage(currentStage.id);
+        // After completing the current stage, check if we should go to the next stage
+        const nextStage = getNextStage();
+        if (nextStage) {
+          goToStage(nextStage.id);
+        }
       }
     },
+    onGoToStage: (stageId) => {
+      goToStage(stageId);
+    }
   });
 
   // Show loading screen while auth is initializing
