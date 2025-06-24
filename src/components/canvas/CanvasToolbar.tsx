@@ -116,7 +116,6 @@ export const CanvasToolbar: React.FC<CanvasToolbarProps> = ({
         onClick={onToggleCollapse}
         whileHover={{ scale: 1.05 }}
         whileTap={{ scale: 0.95 }}
-
         className={`w-12 h-12 ${
           isCollapsed 
             ? 'bg-transparent hover:bg-white hover:bg-opacity-20' 
@@ -125,15 +124,21 @@ export const CanvasToolbar: React.FC<CanvasToolbarProps> = ({
           isCollapsed ? 'border-transparent' : 'border-gray-200'
         } rounded-full flex items-center justify-center transition-colors shadow-lg mb-2`}
       >
-        <motion.div
-          animate={{ rotate: isCollapsed ? 0 : 180 }}
-          transition={{ duration: 0.3 }}
-        >
-
-          <ChevronUp className={`w-5 h-5 ${
-            isCollapsed ? 'text-gray-700' : 'text-gray-600'
-          }`} />
-        </motion.div>
+        <AnimatePresence mode="wait">
+          <motion.div
+            key={isCollapsed ? 'up' : 'down'}
+            initial={{ opacity: 0, scale: 0.8 }}
+            animate={{ opacity: 1, scale: 1 }}
+            exit={{ opacity: 0, scale: 0.8 }}
+            transition={{ duration: 0.2 }}
+          >
+            <ChevronUp 
+              className={`w-5 h-5 ${
+                isCollapsed ? 'text-gray-700' : 'text-gray-600'
+              } ${isCollapsed ? '' : 'rotate-180'}`} 
+            />
+          </motion.div>
+        </AnimatePresence>
       </motion.button>
 
       {/* Toolbar Content */}
