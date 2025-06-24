@@ -16,12 +16,13 @@ import { generateAutoPromptPrompt } from './autoPromptEngine.ts';
 import { generateExportPrompt } from './exportHandoff.ts';
 import { generateIntentClassificationPrompt } from './intentClassifier.ts';
 
-// Interface for prompt data
-interface PromptData {
+// Updated interface to include suggestedPrimaryStage
+interface PromptGenerationResult {
   systemPrompt: string;
   userPrompt: string;
   temperature: number;
   maxTokens: number;
+  suggestedPrimaryStage: string | null;
 }
 
 export {
@@ -37,7 +38,7 @@ export {
 };
 
 export class EdgeStagePromptEngine {
-  static async generatePrompt(context: any, llmClient: any): PromptData {
+  static async generatePrompt(context: any, llmClient: any): Promise<PromptGenerationResult> {
     // First, determine if we need to classify intent
     const { userMessage, stageId } = context;
     
@@ -59,65 +60,72 @@ export class EdgeStagePromptEngine {
       
       // Extract the relevant stage IDs
       const relevantStageIds = intentData.relevantStageIds || [];
+      const suggestedPrimaryStage = intentData.suggestedPrimaryStage || null;
       
       // If no stages were identified, default to current stage
       if (relevantStageIds.length === 0) {
         console.log('⚠️ No relevant stages identified, defaulting to current stage');
-        return this.generateSingleStagePrompt(stageId, context);
+        return {
+          ...this.generateSingleStagePrompt(stageId, context),
+          suggestedPrimaryStage
+        };
       }
       
       // If we only have one stage (the current one), use the standard approach
       if (relevantStageIds.length === 1 && relevantStageIds[0] === stageId) {
         console.log('📝 Using single stage prompt for:', stageId);
-        return this.generateSingleStagePrompt(stageId, context);
+        return {
+          ...this.generateSingleStagePrompt(stageId, context),
+          suggestedPrimaryStage
+        };
       }
       
       // Otherwise, use prompt fusion for multiple stages
       console.log('🔄 Using prompt fusion for stages:', relevantStageIds);
-      return this.generateFusedPrompt(relevantStageIds, context);
+      return {
+        ...this.generateFusedPrompt(relevantStageIds, context),
+        suggestedPrimaryStage
+      };
       
     } catch (error) {
       // If intent classification fails, fall back to current stage
       console.error('❌ Intent classification failed:', error);
       console.log('⚠️ Falling back to current stage prompt');
-      return this.generateSingleStagePrompt(stageId, context);
+      return {
+        ...this.generateSingleStagePrompt(stageId, context),
+        suggestedPrimaryStage: null
+      };
     }
     
   }
   
-  private static generateSingleStagePrompt(stageId: string, context: any): PromptData {
-    // Extract suggestedGoToStageId from intent classification if available
-    const suggestedGoToStageId = context.intentData?.suggestedPrimaryStage || null;
-    
+  private static generateSingleStagePrompt(stageId: string, context: any): Omit<PromptGenerationResult, 'suggestedPrimaryStage'> {
     switch (stageId) {
       case 'ideation-discovery':
-        return this.addGoToStageIdToPrompt(generateIdeationPrompt(context), suggestedGoToStageId);
+        return generateIdeationPrompt(context);
       case 'feature-planning':
-        return this.addGoToStageIdToPrompt(generateFeaturePlanningPrompt(context), suggestedGoToStageId);
+        return generateFeaturePlanningPrompt(context);
       case 'structure-flow':
-        return this.addGoToStageIdToPrompt(generateStructureFlowPrompt(context), suggestedGoToStageId);
+        return generateStructureFlowPrompt(context);
       case 'interface-interaction':
-        return this.addGoToStageIdToPrompt(generateInterfacePrompt(context), suggestedGoToStageId);
+        return generateInterfacePrompt(context);
       case 'architecture-design':
-        return this.addGoToStageIdToPrompt(generateArchitecturePrompt(context), suggestedGoToStageId);
+        return generateArchitecturePrompt(context);
       case 'user-auth-flow':
-        return this.addGoToStageIdToPrompt(generateAuthFlowPrompt(context), suggestedGoToStageId);
+        return generateAuthFlowPrompt(context);
       case 'ux-review-check':
-        return this.addGoToStageIdToPrompt(generateUXReviewPrompt(context), suggestedGoToStageId);
+        return generateUXReviewPrompt(context);
       case 'auto-prompt-engine':
-        return this.addGoToStageIdToPrompt(generateAutoPromptPrompt(context), suggestedGoToStageId);
+        return generateAutoPromptPrompt(context);
       case 'export-handoff':
-        return this.addGoToStageIdToPrompt(generateExportPrompt(context), suggestedGoToStageId);
+        return generateExportPrompt(context);
       default:
-        return this.addGoToStageIdToPrompt(this.generateDefaultPrompt(context), suggestedGoToStageId);
+        return this.generateDefaultPrompt(context);
     }
   }
 
-  private static generateFusedPrompt(stageIds: string[], context: any): PromptData {
+  private static generateFusedPrompt(stageIds: string[], context: any): Omit<PromptGenerationResult, 'suggestedPrimaryStage'> {
     console.log('🔄 Generating fused prompt for stages:', stageIds);
-    
-    // Extract suggestedGoToStageId from intent classification if available
-    const suggestedGoToStageId = context.intentData?.suggestedPrimaryStage || null;
     
     // Generate individual prompts for each stage
     const stagePrompts = stageIds.map(stageId => {
@@ -184,8 +192,7 @@ Respond in this exact JSON format:
   "context": {
     "relevantStages": [${stageIds.map(id => `"${id}"`).join(', ')}],
     "crossStageInsights": "Any insights about how these stages interact"
-  },
-  "goToStageId": ${suggestedGoToStageId ? `"${suggestedGoToStageId}"` : 'null'}
+  }
 }`;
 
     // Calculate appropriate temperature and token limits
@@ -197,32 +204,6 @@ Respond in this exact JSON format:
       userPrompt: fusedUserPrompt,
       temperature: avgTemperature,
       maxTokens: maxTokens
-    };
-  }
-
-  // Helper method to add goToStageId to prompt templates
-  private static addGoToStageIdToPrompt(promptData: PromptData, suggestedGoToStageId: string | null): PromptData {
-    // Only modify if we have a suggested stage
-    if (!suggestedGoToStageId) return promptData;
-    
-    // Find the position of the closing JSON brace in the user prompt
-    const userPrompt = promptData.userPrompt;
-    const lastBraceIndex = userPrompt.lastIndexOf('}');
-    
-    if (lastBraceIndex === -1) return promptData; // Invalid JSON format
-    
-    // Check if goToStageId is already in the template
-    if (userPrompt.includes('"goToStageId"')) return promptData;
-    
-    // Insert goToStageId field before the closing brace
-    const updatedUserPrompt = 
-      userPrompt.substring(0, lastBraceIndex) + 
-      `,\n  "goToStageId": "${suggestedGoToStageId}"` + 
-      userPrompt.substring(lastBraceIndex);
-    
-    return {
-      ...promptData,
-      userPrompt: updatedUserPrompt
     };
   }
 

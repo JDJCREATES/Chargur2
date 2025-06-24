@@ -230,7 +230,6 @@ interface AgentResponse {
   autoFillData: any
   stageComplete: boolean
   context: any
-  goToStageId?: string
   memoryUpdate?: any
   userPrompt?: string // Add this to track the original user input
 }
@@ -484,11 +483,16 @@ async function processAgentRequest(controller: ReadableStreamDefaultController, 
     console.log('🤖 Initializing LLM client...')
     const llmClient = new EdgeLLMClient(llmProvider)
     console.log('✅ LLM client initialized successfully with provider:', llmProvider)
-    
+
     // Generate stage-specific prompt using modular system
     console.log('📋 Generating stage-specific prompt...')
     const promptData = await EdgeStagePromptEngine.generatePrompt(request, llmClient)
     console.log('✅ Prompt generated successfully with temperature:', promptData.temperature)
+    
+    // Capture the suggestedPrimaryStage from the prompt generation
+    const suggestedPrimaryStage = promptData.suggestedPrimaryStage
+    console.log('🔄 Suggested primary stage:', suggestedPrimaryStage || 'none')
+    
     // Get LLM response (not streaming in this simplified version)
     console.log('🚀 Calling LLM API...')
     const llmResponse = await llmClient.generateResponse(
@@ -536,7 +540,7 @@ async function processAgentRequest(controller: ReadableStreamDefaultController, 
         suggestions: response.suggestions || [],
         autoFillData: response.autoFillData || {},
         stageComplete: response.stageComplete || false,
-        goToStageId: response.goToStageId || null,
+        goToStageId: suggestedPrimaryStage,
         conversationId
       }
       
@@ -671,18 +675,13 @@ function parseAndValidateResponse(llmResponse: string, stageId: string): AgentRe
     }
     
     // Check for goToStageId field
-    if (parsed.goToStageId && typeof parsed.goToStageId === 'string') {
-      console.log(`🔄 Found goToStageId: ${parsed.goToStageId}`)
-    }
-    
     console.log('✅ Response validation completed successfully')
     return {
       content: parsed.content || '',
       suggestions: (parsed.suggestions || []).slice(0, 5), // Limit to 5 suggestions
       autoFillData: parsed.autoFillData || {},
       stageComplete: !!parsed.stageComplete,
-      context: parsed.context || {},
-      goToStageId: parsed.goToStageId || null
+      context: parsed.context || {}
     }
     
   } catch (error) {
@@ -696,8 +695,7 @@ function parseAndValidateResponse(llmResponse: string, stageId: string): AgentRe
       suggestions: ["Tell me more about your needs", "What should we focus on?", "Help me understand your goals"],
       autoFillData: { [stageId]: {} },
       stageComplete: false,
-      context: { parseError: true, originalResponse: llmResponse },
-      goToStageId: null
+      context: { parseError: true, originalResponse: llmResponse }
     }
   }
 }

@@ -344,7 +344,7 @@ const processWithEdgeFunction = useCallback(async (
                   suggestions: data.suggestions || [],
                   autoFillData: data.autoFillData || {},
                   isComplete: true,
-                  goToStageId: data.goToStageId || null
+                  goToStageId: data.goToStageId
                 }));  
 
                 // Trigger callbacks
@@ -381,6 +381,12 @@ const processWithEdgeFunction = useCallback(async (
                 
                 if (data.stageComplete && onStageComplete) {
                   onStageComplete();
+                }
+                
+                // Handle stage navigation if requested
+                if (data.goToStageId && onGoToStage) {
+                  console.log(`🔄 Navigating to stage: ${data.goToStageId}`);
+                  onGoToStage(data.goToStageId);
                 }
                 
                 // Handle stage navigation if requested
@@ -498,6 +504,7 @@ const processWithEdgeFunction = useCallback(async (
       suggestions: [],
       autoFillData: {},
       isComplete: false,
+      goToStageId: null
       goToStageId: null
     }));
 
