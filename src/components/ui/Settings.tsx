@@ -1,12 +1,32 @@
 import React from 'react';
 import { Settings as SettingsIcon, Moon, Sun, HelpCircle, Wand2, LogIn, LogOut, User } from 'lucide-react';
-import { useAuth } from '../../hooks/useAuth';
+import { useAuth } from '../../hooks/useAuth'; 
 import { LoginModal } from '../auth/LoginModal';
 
 export const Settings: React.FC = () => {
-  const [darkMode, setDarkMode] = React.useState(false);
+  const [darkMode, setDarkMode] = React.useState(() => {
+    // Check localStorage or system preference
+    if (typeof window !== 'undefined') {
+      const savedMode = localStorage.getItem('darkMode');
+      if (savedMode !== null) {
+        return savedMode === 'true';
+      }
+      return window.matchMedia('(prefers-color-scheme: dark)').matches;
+    }
+    return false;
+  });
   const [showLoginModal, setShowLoginModal] = React.useState(false);
   const { user, signOut, loading } = useAuth();
+
+  // Apply dark mode class to html element
+  React.useEffect(() => {
+    if (darkMode) {
+      document.documentElement.classList.add('dark');
+    } else {
+      document.documentElement.classList.remove('dark');
+    }
+    localStorage.setItem('darkMode', darkMode.toString());
+  }, [darkMode]);
 
   const handleAutoGenerate = () => {
     // This would trigger AI auto-generation for the current stage
@@ -62,13 +82,13 @@ export const Settings: React.FC = () => {
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-2">
               {darkMode ? <Moon size={16} /> : <Sun size={16} />}
-              <span className="text-sm text-gray-700">Dark Mode</span>
+              <span className="text-sm text-gray-700 dark:text-gray-300">Dark Mode</span>
             </div>
             <button
               onClick={() => setDarkMode(!darkMode)}
               className={`
                 relative w-10 h-6 rounded-full transition-colors
-                ${darkMode ? 'bg-blue-600' : 'bg-gray-200'}
+                ${darkMode ? 'bg-blue-600' : 'bg-gray-200 dark:bg-gray-700'}
               `}
             >
               <div
@@ -83,13 +103,13 @@ export const Settings: React.FC = () => {
           <button
             onClick={handleAuthAction}
             disabled={loading}
-            className="flex items-center gap-2 text-sm text-gray-600 hover:text-gray-800 transition-colors w-full text-left disabled:opacity-50"
+            className="flex items-center gap-2 text-sm text-gray-600 dark:text-gray-300 hover:text-gray-800 dark:hover:text-white transition-colors w-full text-left disabled:opacity-50"
           >
             {user ? <LogOut size={16} /> : <LogIn size={16} />}
             {user ? 'Sign Out' : 'Sign In'}
           </button>
         
-          <button className="flex items-center gap-2 text-sm text-gray-600 hover:text-gray-800 transition-colors">
+          <button className="flex items-center gap-2 text-sm text-gray-600 dark:text-gray-300 hover:text-gray-800 dark:hover:text-white transition-colors">
             <HelpCircle size={16} />
             Help & Support
           </button>

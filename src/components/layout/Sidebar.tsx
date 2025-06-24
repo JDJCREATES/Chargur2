@@ -163,25 +163,25 @@ export const Sidebar: React.FC<SidebarProps> = ({
         initial={{ x: 300 }}
         animate={{ x: isOpen ? 0 : 268 }}
         transition={{ duration: 0.3, ease: 'easeInOut' }}
-        className="w-80 bg-white border-l border-gray-200 flex flex-col h-full shadow-lg"
+        className="w-80 bg-white dark:bg-gray-800 border-l border-gray-200 dark:border-gray-700 flex flex-col h-full shadow-lg transition-colors duration-200"
       >
         {/* Toggle Button */}
         <button
           onClick={onToggle}
-          className="absolute -left-12 top-4 w-12 h-12 bg-white border border-gray-200 rounded-l-lg flex items-center justify-center hover:bg-gray-50 transition-colors shadow-md"
+          className="absolute -left-12 top-4 w-12 h-12 bg-white dark:bg-gray-800 border border-gray-200 dark:border-gray-700 rounded-l-lg flex items-center justify-center hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors shadow-md"
         >
-          {isOpen ? <ChevronRight size={20} /> : <ChevronLeft size={20} />}
+          {isOpen ? <ChevronRight size={20} className="text-gray-700 dark:text-gray-300" /> : <ChevronLeft size={20} className="text-gray-700 dark:text-gray-300" />}
         </button>
 
         {/* Header */}
-        <div className="p-4 border-b border-gray-200">
+        <div className="p-4 border-b border-gray-200 dark:border-gray-700">
           <div className="flex items-center gap-3">
             <Avatar size="lg" />
             <div className={`transition-opacity duration-200 ${isOpen ? 'opacity-100' : 'opacity-0'}`}>
-              <h2 className="font-semibold text-gray-800">
+              <h2 className="font-semibold text-gray-800 dark:text-gray-200">
                 {currentStage ? currentStage.title : 'UX + IA Agent'}
               </h2>
-              <p className="text-sm text-gray-500">
+              <p className="text-sm text-gray-500 dark:text-gray-400">
                 {currentStage ? `Stage ${stages.findIndex(s => s.id === currentStage.id) + 1} of ${stages.length}` : 'Let\'s get started!'}
               </p>
             </div>
@@ -190,7 +190,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
 
         {/* Stage Progress */}
         <div className={`transition-opacity duration-200 ${isOpen ? 'opacity-100' : 'opacity-0'}`}>
-          <div className="p-4 border-b border-gray-200">
+          <div className="p-4 border-b border-gray-200 dark:border-gray-700">
             <StageProgressBubbles 
               stages={stages} 
               onStageClick={onStageClick}
@@ -208,15 +208,15 @@ export const Sidebar: React.FC<SidebarProps> = ({
         {/* AI Assistant */}
         <div className={`transition-opacity duration-200 ${isOpen ? 'opacity-100' : 'opacity-0'}`}>
           <Accordion>
-            <AccordionSummary
+            <AccordionSummary 
               expandIcon={<ChevronDown size={20} />}
               aria-controls="ai-assistant-content"
               id="ai-assistant-header"
-              className="border-t border-gray-200"
+              className="border-t border-gray-200 dark:border-gray-700"
             >
               <div className="flex items-center gap-2">
                 <GiUnplugged className="w-5 h-5 text-teal-500" />
-                <Typography className="font-semibold text-gray-800 font-nova-round">Charg</Typography>
+                <Typography className="font-semibold text-gray-800 dark:text-gray-200 font-nova-round">Charg</Typography>
               </div>
             </AccordionSummary>
             <AccordionDetails className="p-0">
@@ -254,13 +254,13 @@ export const Sidebar: React.FC<SidebarProps> = ({
         {/* Settings */}
         <div className={`transition-opacity duration-200 ${isOpen ? 'opacity-100' : 'opacity-0'}`}>
           <Accordion>
-            <AccordionSummary
+            <AccordionSummary 
               expandIcon={<ChevronDown size={20} />}
               aria-controls="settings-content"
               id="settings-header"
-              className="border-t border-gray-200"
+              className="border-t border-gray-200 dark:border-gray-700"
             >
-              <Typography className="font-semibold text-gray-800">Settings</Typography>
+              <Typography className="font-semibold text-gray-800 dark:text-gray-200">Settings</Typography>
             </AccordionSummary>
             <AccordionDetails className="p-0">
               <Settings />
@@ -277,7 +277,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
           transition={{ delay: 0.3, duration: 0.3 }}
           className="fixed right-12 top-20 z-40"
         >
-          <div className="bg-white bg-opacity-95 backdrop-blur-sm rounded-lg shadow-lg border border-gray-200 p-3">
+          <div className="bg-white dark:bg-gray-800 bg-opacity-95 dark:bg-opacity-95 backdrop-blur-sm rounded-lg shadow-lg border border-gray-200 dark:border-gray-700 p-3 transition-colors duration-200">
             <StageProgressBubbles 
               stages={stages} 
               onStageClick={onStageClick}

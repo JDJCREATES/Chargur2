@@ -60,10 +60,10 @@ function App() {
   // Show loading screen while auth is initializing
   if (authLoading) {
     return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+      <div className="min-h-screen bg-gray-50 dark:bg-gray-900 flex items-center justify-center transition-colors duration-200">
         <div className="text-center">
-          <div className="w-8 h-8 border-2 border-blue-600 border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
-          <p className="text-gray-600">Loading...</p>
+          <div className="w-8 h-8 border-2 border-blue-600 dark:border-blue-500 border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
+          <p className="text-gray-600 dark:text-gray-300">Loading...</p>
         </div>
       </div>
     );
@@ -78,8 +78,8 @@ function App() {
   };
 
   return (
-    <AgentContextProvider>
-      <div className="min-h-screen bg-gray-50 flex">
+    <AgentContextProvider> 
+      <div className="min-h-screen bg-gray-50 dark:bg-gray-900 flex transition-colors duration-200">
         {/* Main Content */}
         <div className={`flex-1 transition-all duration-300 ${isSidebarOpen ? 'mr-80' : 'mr-12'}`}>
           <Canvas
