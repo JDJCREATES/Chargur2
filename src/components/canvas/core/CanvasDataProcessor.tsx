@@ -99,7 +99,8 @@ export class CanvasDataProcessor {
           updatedNodes[index] = {
             ...updatedNodes[index],
             value: ideationData.appName,
-            nameHistory: [...(updatedNodes[index].nameHistory || []), updatedNodes[index].value].filter(Boolean)
+            nameHistory: [...(updatedNodes[index].nameHistory || []), updatedNodes[index].value]
+              .filter((name): name is string => name !== undefined && name !== null && name.trim() !== '')
           };
         }
       } else {

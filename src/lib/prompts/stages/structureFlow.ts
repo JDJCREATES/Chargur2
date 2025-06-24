@@ -52,9 +52,9 @@ ${JSON.stringify(currentStageData, null, 2)}`;
   const userPrompt = `User message: "${userMessage}"
 
 STAGE COMPLETION CRITERIA:
--
+-File structure, Core screens, data models, and user flows defined
 -User asks for stage completion
--If User asks to continue but required fields are undefined, auto-fill them based off app context.
+-If User asks to continue but required fields are undefined, auto-fill them intelligently based off of the app entirely and move on to the requested stage.
 
 Based on the selected features and app concept, help design the app structure and user flows. Consider the feature packs: ${JSON.stringify(featureData.selectedFeaturePacks || [])}.
 

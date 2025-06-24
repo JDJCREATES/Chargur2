@@ -115,7 +115,7 @@ export const Canvas: React.FC<CanvasProps> = ({
               initial={{ scale: 0 }}
               animate={{ scale: 1 }}
               transition={{ delay: 0.3, type: "spring" }}
-              className="px-2 py-1 bg-green-100 text-green-800 text-xs rounded-full"
+              className="px-2 py-1 pr-5 bg-green-100 text-green-800 text-xs rounded-full"
             >
               Completed
             </motion.span>
