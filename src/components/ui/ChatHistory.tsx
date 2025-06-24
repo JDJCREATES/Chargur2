@@ -5,8 +5,11 @@ import { Avatar } from './Avatar';
 import { StreamingResponse } from '../chat/StreamingResponse';
 import { Bot, User, Sparkles, Clock, CheckCircle, AlertTriangle } from 'lucide-react';
 
+// Ensure we have a proper type for ChatMessage
+import { ChatMessage as ChatMessageType } from '../../types';
+
 interface ChatHistoryProps {
-  messages: ChatMessage[];
+  messages: ChatMessageType[];
   currentResponse?: {
     content: string;
     isComplete: boolean;
@@ -29,7 +32,7 @@ export const ChatHistory: React.FC<ChatHistoryProps> = ({
 
   // Auto-scroll to bottom when new content arrives
   useEffect(() => {
-    if (messagesEndRef.current) {
+    if (messagesEndRef.current && (messages.length > 0 || currentResponse?.content)) {
       messagesEndRef.current.scrollIntoView({ behavior: 'smooth' });
     }
   }, [messages, currentResponse?.content]);
@@ -43,7 +46,8 @@ export const ChatHistory: React.FC<ChatHistoryProps> = ({
   };
 
   const renderMessage = (message: ChatMessage, index: number) => {
-    const isUser = message.type === 'user';
+    // Ensure we have a valid message type
+    const isUser = message && message.type === 'user';
     const isLast = index === messages.length - 1;
 
     return (
@@ -219,11 +223,11 @@ export const ChatHistory: React.FC<ChatHistoryProps> = ({
 
   return (
     <div 
-      ref={scrollRef}
+      ref={scrollRef} 
       className="flex-1 overflow-y-auto p-4 space-y-4 bg-gray-50"
       style={{ maxHeight: 'calc(100vh - 200px)' }}
     >
-      {messages.length === 0 && !currentResponse ? (
+      {(!messages || messages.length === 0) && !currentResponse ? (
         <div className="flex flex-col items-center justify-center h-full text-center py-12">
           <div className="w-16 h-16 bg-purple-100 rounded-full flex items-center justify-center mb-4">
             <Bot className="w-8 h-8 text-purple-600" />
@@ -254,7 +258,7 @@ export const ChatHistory: React.FC<ChatHistoryProps> = ({
       ) : (
         <>
           <AnimatePresence>
-            {messages.map((message, index) => renderMessage(message, index))}
+            {messages && messages.map((message, index) => renderMessage(message, index))}
           </AnimatePresence>
           
           {renderCurrentResponse()}

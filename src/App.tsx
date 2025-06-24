@@ -1,11 +1,11 @@
 import React, { useState } from 'react';
 import { motion } from 'framer-motion';
 import { useAuth } from './hooks/useAuth';
-import { useAgentChat } from './hooks/useAgentChat';
 import { AgentContextProvider } from './components/agent/AgentContextProvider';
 import { Sidebar } from './components/layout/Sidebar';
 import { Canvas } from './components/layout/Canvas';
 import { useStageManager } from './hooks/useStageManager';
+import { useAgentChat } from './hooks/useAgentChat';
 
 function App() {
   const [isSidebarOpen, setIsSidebarOpen] = useState(true);
@@ -20,11 +20,18 @@ function App() {
     getNextStage,
   } = useStageManager();
 
-  // Initialize agent chat for the current stage
+  // Initialize agent chat once at the App level
   const {
     sendMessage,
+    historyMessages,
+    content,
+    suggestions,
+    autoFillData,
+    isComplete,
     isLoading: agentLoading,
-    error: agentError,
+    error: agentError, 
+    retry,
+    isStreaming,
   } = useAgentChat({
     stageId: currentStage?.id || '',
     currentStageData: currentStage ? stageData[currentStage.id] : {},
@@ -61,33 +68,44 @@ function App() {
     setIsSidebarOpen(true);
   };
 
-  const handleSendMessage = async (message: string) => {
-    try {
-      await sendMessage(message);
-    } catch (error) {
-      console.error('Failed to send message:', error);
-    }
-  };
-
   return (
     <AgentContextProvider>
       <div className="min-h-screen bg-gray-50 flex">
         {/* Main Content */}
         <div className={`flex-1 transition-all duration-300 ${isSidebarOpen ? 'mr-80' : 'mr-12'}`}>
           <Canvas
+            agentChat={{
+              sendMessage,
+              historyMessages,
+              content,
+              suggestions,
+              autoFillData,
+              isComplete,
+              isLoading: agentLoading,
+              error: agentError,
+              retry,
+              isStreaming
+            }}
             currentStage={currentStage}
             stageData={stageData}
-            onUpdateStageData={updateStageData}
-            onCompleteStage={completeStage}
-            onGoToStage={goToStage}
-            getNextStage={() => getNextStage()}
             onOpenSidebar={openSidebar}
-            onSendMessage={handleSendMessage}
           />
         </div>
 
         {/* Sidebar */}
         <Sidebar
+          agentChat={{
+            sendMessage,
+            historyMessages,
+            content,
+            suggestions,
+            autoFillData,
+            isComplete,
+            isLoading: agentLoading,
+            error: agentError,
+            retry,
+            isStreaming
+          }}
           stages={stages}
           currentStage={currentStage}
           stageData={stageData}

@@ -10,51 +10,36 @@ import { motion } from 'framer-motion';
 import { Stage, StageData } from '../../types';
 import { SpatialCanvas } from '../canvas/SpatialCanvas';
 import { UserChatOverlay } from '../chat/UserChatOverlay';
-import { useAgentChat } from '../../hooks/useAgentChat';
 import { useAgent } from '../agent/AgentContextProvider';
+
+interface AgentChatProps {
+  sendMessage: (message: string) => void;
+  historyMessages: any[];
+  content: string;
+  suggestions: string[];
+  autoFillData: any;
+  isComplete: boolean;
+  isLoading: boolean;
+  error: string | null;
+  retry: () => void;
+  isStreaming: boolean;
+}
 
 interface CanvasProps {
   currentStage?: Stage;
   stageData: StageData;
-  onSendMessage: (message: string) => void;
-  onUpdateStageData?: (stageId: string, data: any) => void;
-  onCompleteStage?: (stageId: string) => void;
-  onGoToStage?: (stageId: string) => void;
-  getNextStage?: () => Stage | null;
   onOpenSidebar?: () => void;
+  agentChat: AgentChatProps;
 }
 
 export const Canvas: React.FC<CanvasProps> = ({
   currentStage,
   stageData,
-  onUpdateStageData,
-  onCompleteStage,
   onOpenSidebar,
+  agentChat
 }) => {
   const [lastUserMessage, setLastUserMessage] = useState<string>('');
-  const { agentState, updateAgentMemory, getStageRecommendations, memory, recommendations } = useAgent();
-  
-  const agentChat = useAgentChat({
-    stageId: currentStage?.id || '',
-    currentStageData: stageData,
-    allStageData: stageData,
-    useDirectLLM: false,
-    llmProvider: 'openai',
-    memory: memory,
-    recommendations: recommendations,
-    onAutoFill: (data) => {
-      if (currentStage?.id && onUpdateStageData) {
-        onUpdateStageData(currentStage.id, data);
-        updateAgentMemory(currentStage.id, data);
-      }
-    },
-    onStageComplete: () => {
-      if (currentStage?.id && onCompleteStage) {
-        onCompleteStage(currentStage.id);
-        updateAgentMemory(currentStage.id, { completed: true, completedAt: new Date().toISOString() });
-      }
-    },
-  });
+  const { agentState } = useAgent();
 
   const handleSendMessage = (message: string) => {
     setLastUserMessage(message);
@@ -143,7 +128,7 @@ export const Canvas: React.FC<CanvasProps> = ({
           <SpatialCanvas
             currentStage={currentStage}
             stageData={stageData}
-            onSendMessage={handleSendMessage}
+            onSendMessage={agentChat.sendMessage}
           />
         </motion.div>
 
@@ -156,7 +141,7 @@ export const Canvas: React.FC<CanvasProps> = ({
           <UserChatOverlay
             onSendMessage={handleSendMessage}
             onOpenSidebar={handleOpenSidebar}
-            isLoading={agentChat.isLoading}
+            isLoading={agentChat.isLoading || agentChat.isStreaming}
             lastUserMessage={lastUserMessage}
             disabled={!currentStage}
           />

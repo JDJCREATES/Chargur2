@@ -17,11 +17,23 @@ import { UXReviewUserCheck } from '../stages/content/UXReviewUserCheck';
 import { AutoPromptEngine } from '../stages/content/AutoPromptEngine';
 import { ExportPanel } from '../export/ExportPanel';
 import { Stage, ChatMessage } from '../../types';
-import { useAgentChat } from '../../hooks/useAgentChat';
 import { useAgent } from '../agent/AgentContextProvider';
 
 // Import the enhanced StageProgressBubbles component
 import { StageProgressBubbles } from '../ui/StageProgressBubbles';
+
+interface AgentChatProps {
+  sendMessage: (message: string) => void;
+  historyMessages: ChatMessage[];
+  content: string;
+  suggestions: string[];
+  autoFillData: any;
+  isComplete: boolean;
+  isLoading: boolean;
+  error: string | null;
+  retry: () => void;
+  isStreaming: boolean;
+}
 
 interface SidebarProps {
   stages: Stage[];
@@ -32,6 +44,7 @@ interface SidebarProps {
   onUpdateStageData: (stageId: string, data: any) => void;
   isOpen: boolean;
   onToggle: () => void;
+  agentChat: AgentChatProps;
 }
 
 export const Sidebar: React.FC<SidebarProps> = ({
@@ -43,33 +56,9 @@ export const Sidebar: React.FC<SidebarProps> = ({
   onUpdateStageData,
   isOpen,
   onToggle,
+  agentChat
 }) => {
-  const { agentState, updateAgentMemory, getStageRecommendations, memory, recommendations } = useAgent();
-  
-  const agentChat = useAgentChat({
-    stageId: currentStage?.id || '',
-    currentStageData: stageData,
-    allStageData: stageData,
-    useDirectLLM: false,
-    llmProvider: 'openai',
-    memory: memory,
-    recommendations: recommendations,
-    onAutoFill: (data) => {
-      if (currentStage?.id) {
-        onUpdateStageData(currentStage.id, data);
-        // Update global agent memory
-        updateAgentMemory(currentStage.id, data);
-        console.log('Sidebar Agent Chat -> Auto-filled data:', data);
-      }
-    },
-    onStageComplete: () => {
-      if (currentStage?.id) {
-        onCompleteStage(currentStage.id);
-        // Update agent memory that stage is complete
-        updateAgentMemory(currentStage.id, { completed: true, completedAt: new Date().toISOString() });
-      }
-    },
-  });
+  const { agentState } = useAgent();
 
   const handleSendMessage = (content: string) => {
     agentChat.sendMessage(content);
@@ -233,7 +222,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
             <AccordionDetails className="p-0">
               <div className="flex flex-col max-h-96">
                 <ChatHistory
-                  messages={agentChat.historyMessages}
+                  messages={agentChat.historyMessages || []}
                   currentResponse={
                     agentChat.content || agentChat.isLoading
                       ? {
