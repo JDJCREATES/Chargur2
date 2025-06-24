@@ -1,105 +1,270 @@
-import React from 'react';
-import { Settings as SettingsIcon, Moon, Sun, HelpCircle, Wand2, LogIn, LogOut, User } from 'lucide-react';
-import { useAuth } from '../../hooks/useAuth';
-import { LoginModal } from '../auth/LoginModal';
+import React, { useEffect, useRef } from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
+import { ChatMessage } from '../../types';
 
-export const Settings: React.FC = () => {
-  const [darkMode, setDarkMode] = React.useState(false);
-  const [showLoginModal, setShowLoginModal] = React.useState(false);
-  const { user, signOut, loading } = useAuth();
+import { Bot, User, Sparkles, Clock, CheckCircle, AlertTriangle } from 'lucide-react';
 
-  const handleAutoGenerate = () => {
-    // This would trigger AI auto-generation for the current stage
-    console.log('Auto-generating content for current stage...');
-    // TODO: Implement AI auto-generation logic, should be moved to another file!! ~JDJ
+// Ensure we have a proper type for ChatMessage
+import { ChatMessage as ChatMessageType } from '../../types';
+
+interface ChatHistoryProps {
+  messages: ChatMessageType[];
+  currentResponse?: {
+    content: string;
+    isComplete: boolean;
+    suggestions: string[];
+    isStreaming: boolean;
+    error?: string | null;
+  };
+  onSuggestionClick?: (suggestion: string) => void;
+  onRetry?: () => void;
+}
+
+export const ChatHistory: React.FC<ChatHistoryProps> = ({ 
+  messages, 
+  currentResponse,
+  onSuggestionClick,
+  onRetry
+}) => {
+  const scrollRef = useRef<HTMLDivElement>(null);
+  const messagesEndRef = useRef<HTMLDivElement>(null);
+
+  // Auto-scroll to bottom when new content arrives
+  useEffect(() => {
+    if (messagesEndRef.current && (messages.length > 0 || currentResponse?.content)) {
+      messagesEndRef.current.scrollIntoView({ behavior: 'smooth' });
+    }
+  }, [messages, currentResponse?.content]);
+
+  const formatTimestamp = (timestamp: Date) => {
+    return new Intl.DateTimeFormat('en-US', {
+      hour: '2-digit',
+      minute: '2-digit',
+      hour12: true
+    }).format(timestamp);
   };
 
-  const handleAuthAction = async () => {
-    if (user) {
-      // Sign out
-      const { error } = await signOut();
-      if (error) {
-        console.error('Sign out error:', error);
-      }
-    } else {
-      // Show login modal
-      setShowLoginModal(true);
-    }
+  const renderMessage = (message: ChatMessage, index: number) => {
+    // Ensure we have a valid message type
+    const isUser = message && message.type === 'user';
+    const isLast = index === messages.length - 1;
+
+    return (
+      <motion.div
+        key={message.id}
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ delay: index * 0.1 }}
+        className={`flex gap-3 ${isUser ? 'flex-row-reverse' : ''} ${isLast ? 'mb-4' : 'mb-6'}`}
+      >
+        {/* Avatar */}
+        <div className="flex-shrink-0">
+          {isUser ? (
+            <div className="w-8 h-8 bg-blue-600 rounded-full flex items-center justify-center">
+              <User className="w-4 h-4 text-white" />
+            </div>
+          ) : (
+            <div className="w-8 h-8 bg-purple-100 rounded-full flex items-center justify-center">
+              <Bot className="w-4 h-4 text-purple-600" />
+            </div>
+          )}
+        </div>
+
+        {/* Message Content */}
+        <div className={`flex-1 max-w-[80%] ${isUser ? 'text-right' : ''}`}>
+          {/* Message Header */}
+          <div className={`flex items-center gap-2 mb-1 ${isUser ? 'justify-end' : ''}`}>
+            <span className="text-xs font-medium text-gray-600">
+              {isUser ? 'You' : 'AI Assistant'}
+            </span>
+            <div className="flex items-center gap-1 text-xs text-gray-400">
+              <Clock className="w-3 h-3" />
+              <span>{formatTimestamp(message.timestamp)}</span>
+            </div>
+          </div>
+
+          {/* Message Bubble */}
+          <div
+            className={`
+              p-4 rounded-2xl text-sm leading-relaxed max-w-none
+              ${isUser 
+                ? 'bg-gradient-to-br from-blue-600 to-blue-700 text-white rounded-tr-md shadow-sm' 
+                : 'bg-gray-50 text-gray-800 rounded-tl-md border border-gray-100'
+              }
+            `}
+          >
+            <div className="whitespace-pre-wrap break-words">{message.content}</div>
+          </div>
+        </div>
+      </motion.div>
+    );
+  };
+
+  const renderCurrentResponse = () => {
+    if (!currentResponse) return null;
+
+    return (
+      <motion.div
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        className="flex gap-3 mb-4"
+      >
+        {/* AI Avatar */}
+        <div className="flex-shrink-0">
+          <div className="w-8 h-8 bg-purple-100 rounded-full flex items-center justify-center">
+            <Bot className="w-4 h-4 text-purple-600" />
+          </div>
+        </div>
+
+        {/* Response Content */}
+        <div className="flex-1">
+          {/* Response Header */}
+          <div className="flex items-center gap-2 mb-2">
+            <span className="text-xs font-medium text-gray-600">AI Assistant</span>
+            
+            {currentResponse.isStreaming && (
+              <div className="flex items-center gap-1 text-purple-600">
+                <Sparkles className="w-3 h-3 animate-pulse" />
+                <span className="text-xs">Thinking...</span>
+              </div>
+            )}
+            
+            {currentResponse.isComplete && !currentResponse.error && (
+              <div className="flex items-center gap-1 text-green-600">
+                <CheckCircle className="w-3 h-3" />
+                <span className="text-xs">Complete</span>
+              </div>
+            )}
+
+            {currentResponse.error && (
+              <div className="flex items-center gap-1 text-red-600">
+                <AlertTriangle className="w-3 h-3" />
+                <span className="text-xs">Error</span>
+              </div>
+            )}
+
+            <div className="flex items-center gap-1 text-xs text-gray-400">
+              <Clock className="w-3 h-3" />
+              <span>Now</span>
+            </div>
+          </div>
+
+          {/* Error Display */}
+          {currentResponse.error && (
+            <div className="mb-3 p-3 bg-red-50 border border-red-200 rounded-lg">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-2 text-red-700">
+                  <AlertTriangle className="w-4 h-4" />
+                  <span className="text-sm">{currentResponse.error}</span>
+                </div>
+                {onRetry && (
+                  <button
+                    onClick={onRetry}
+                    className="px-2 py-1 text-xs bg-red-600 text-white rounded hover:bg-red-700 transition-colors"
+                  >
+                    Retry
+                  </button>
+                )}
+              </div>
+            </div>
+          )}
+
+          {/* Response Bubble */}
+          {currentResponse.content && (
+            <div className="bg-gray-50 text-gray-800 rounded-2xl rounded-tl-md p-4 mb-3 border border-gray-100">
+              <div className="prose prose-sm max-w-none">
+                <div className="whitespace-pre-wrap break-words text-gray-700 leading-relaxed">
+                  {currentResponse.content}
+                  {currentResponse.isStreaming && (
+                    <motion.span
+                      animate={{ opacity: [1, 0, 1] }}
+                      transition={{ duration: 1, repeat: Infinity }}
+                      className="inline-block w-0.5 h-4 bg-blue-600 ml-1 rounded-full"
+                    />
+                  )}
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* Suggestions */}
+          {currentResponse.suggestions.length > 0 && currentResponse.isComplete && onSuggestionClick && (
+            <motion.div
+              initial={{ opacity: 0, y: 10 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.3 }}
+              className="bg-purple-50 rounded-lg p-3 border border-purple-200"
+            >
+              <div className="flex items-center gap-2 mb-2">
+                <Sparkles className="w-3 h-3 text-purple-600" />
+                <span className="text-xs font-medium text-purple-700">Quick Actions</span>
+              </div>
+              <div className="flex flex-wrap gap-2">
+                {currentResponse.suggestions.map((suggestion, index) => (
+                  <motion.button
+                    key={index}
+                    initial={{ opacity: 0, scale: 0.9 }}
+                    animate={{ opacity: 1, scale: 1 }}
+                    transition={{ delay: 0.1 * index }}
+                    onClick={() => onSuggestionClick(suggestion)}
+                    className="px-3 py-1.5 text-xs bg-white text-purple-700 rounded-full border border-purple-200 hover:bg-purple-100 hover:border-purple-300 transition-colors"
+                  >
+                    {suggestion}
+                  </motion.button>
+                ))}
+              </div>
+            </motion.div>
+          )}
+        </div>
+      </motion.div>
+    );
   };
 
   return (
-    <>
-      <div className="p-4 border-t border-gray-200">
-        {/* User Section */}
-        {user && (
-          <div className="mb-4 pb-4 border-b border-gray-200">
-            <div className="flex items-center gap-2 mb-2">
-              <User size={16} className="text-gray-600" />
-              <span className="text-sm font-medium text-gray-800">Account</span>
-            </div>
-            <div className="text-xs text-gray-600 mb-2 truncate">
-              {user.email}
-            </div>
+    <div 
+      ref={scrollRef} 
+      className="flex-1 overflow-y-auto px-3 py-4 space-y-6 bg-transparent dark:bg-gray-800/30 transition-colors duration-200"
+      style={{ maxHeight: 'calc(100vh - 200px)' }}
+    >
+      {(!messages || messages.length === 0) && !currentResponse ? (
+        <div className="flex flex-col items-center justify-center h-full text-center py-12 transition-colors duration-200">
+          <div className="w-16 h-16 bg-purple-100 dark:bg-purple-900/30 rounded-full flex items-center justify-center mb-4">
+            <Bot className="w-8 h-8 text-purple-600 dark:text-purple-400" />
           </div>
-        )}
-
-        <div className="flex items-center justify-between mb-4">
-          <div className="flex items-center gap-2">
-            <SettingsIcon size={20} className="text-gray-600" />
-            <h3 className="font-semibold text-gray-800">Settings</h3>
+          <h3 className="text-lg font-semibold text-gray-800 dark:text-gray-200 mb-2">
+            Welcome to Chargur AI Assistant
+          </h3>
+          <p className="text-gray-600 max-w-md">
+            I'm here to help you plan and design your app. Start by describing your app idea, 
+            and I'll guide you through each stage of the development process.
+          </p>
+          <div className="mt-6 flex flex-wrap gap-2 justify-center">
+            {[
+              "I want to build a social media app",
+              "Help me plan an e-commerce platform", 
+              "I need a productivity tool for teams"
+            ].map((example, index) => (
+              <button
+                key={index}
+                onClick={() => onSuggestionClick?.(example)}
+                className="px-3 py-1.5 text-xs bg-purple-100 text-purple-700 rounded-full hover:bg-purple-200 transition-colors"
+              >
+                {example}
+              </button>
+            ))}
           </div>
-          <button
-            onClick={handleAutoGenerate}
-            className="flex items-center gap-1 px-2 py-1 text-xs bg-purple-600 text-white rounded-md hover:bg-purple-700 transition-colors"
-            title="Auto-generate all text fields in current stage"
-          >
-            <Wand2 className="w-3 h-3" />
-            Auto-Gen
-          </button>
         </div>
-      
-        <div className="space-y-3">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-2">
-              {darkMode ? <Moon size={16} /> : <Sun size={16} />}
-              <span className="text-sm text-gray-700">Dark Mode</span>
-            </div>
-            <button
-              onClick={() => setDarkMode(!darkMode)}
-              className={`
-                relative w-10 h-6 rounded-full transition-colors
-                ${darkMode ? 'bg-blue-600' : 'bg-gray-200'}
-              `}
-            >
-              <div
-                className={`
-                  absolute w-4 h-4 bg-white rounded-full top-1 transition-transform
-                  ${darkMode ? 'translate-x-5' : 'translate-x-1'}
-                `}
-              />
-            </button>
-          </div>
+      ) : (
+        <>
+          <AnimatePresence>
+            {messages && messages.map((message, index) => renderMessage(message, index))}
+          </AnimatePresence>
           
-          <button
-            onClick={handleAuthAction}
-            disabled={loading}
-            className="flex items-center gap-2 text-sm text-gray-600 hover:text-gray-800 transition-colors w-full text-left disabled:opacity-50"
-          >
-            {user ? <LogOut size={16} /> : <LogIn size={16} />}
-            {user ? 'Sign Out' : 'Sign In'}
-          </button>
-        
-          <button className="flex items-center gap-2 text-sm text-gray-600 hover:text-gray-800 transition-colors">
-            <HelpCircle size={16} />
-            Help & Support
-          </button>
-        </div>
-      </div>
-
-      <LoginModal 
-        isOpen={showLoginModal} 
-        onClose={() => setShowLoginModal(false)} 
-      />
-    </>
+          {renderCurrentResponse()}
+          
+          <div ref={messagesEndRef} />
+        </>
+      )}
+    </div>
   );
 };
