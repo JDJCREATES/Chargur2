@@ -43,23 +43,38 @@ export const DraggableConnectableWrapper: React.FC<DraggableConnectableWrapperPr
 }) => {
   const [isDragging, setIsDragging] = useState(false);
   const [isResizing, setIsResizing] = useState(false);
+  const [dragStart, setDragStart] = useState({ x: 0, y: 0 });
   const initialMousePosRef = useRef({ x: 0, y: 0 });
   const initialNodeSizeRef = useRef({ width: 0, height: 0 });
 
-  const handleDragStart = () => {
+  const handleDragStart = (event: any, info: any) => {
     setIsDragging(true);
+    setDragStart({ x: node.position.x, y: node.position.y });
   };
 
   const handleDrag = (event: any, info: any) => {
+    // Use the offset from drag start instead of delta
     const newPosition = {
-      x: Math.max(0, node.position.x + info.delta.x / scale),
-      y: Math.max(0, node.position.y + info.delta.y / scale),
+      x: Math.max(0, dragStart.x + info.offset.x / scale),
+      y: Math.max(0, dragStart.y + info.offset.y / scale),
     };
     onUpdate(node.id, { position: newPosition });
   };
 
   const handleDragEnd = () => {
     setIsDragging(false);
+  };
+
+  // Alternative approach - use transform instead of position updates during drag
+  const handleDragAlternative = (event: any, info: any) => {
+    // Only update position on drag end for smoother performance
+    if (!isDragging) return;
+    
+    const newPosition = {
+      x: Math.max(0, node.position.x + info.delta.x / scale),
+      y: Math.max(0, node.position.y + info.delta.y / scale),
+    };
+    onUpdate(node.id, { position: newPosition });
   };
 
   const handleResizeStart = (e: React.MouseEvent) => {
@@ -96,6 +111,7 @@ export const DraggableConnectableWrapper: React.FC<DraggableConnectableWrapperPr
       dragMomentum={false}
       dragElastic={0}
       dragConstraints={false}
+      dragTransition={{ bounceStiffness: 600, bounceDamping: 20 }}
       onDragStart={handleDragStart}
       onDrag={handleDrag}
       onDragEnd={handleDragEnd}
