@@ -234,11 +234,12 @@ export const ChatHistory: React.FC<ChatHistoryProps> = ({
           <h3 className="text-lg font-semibold text-gray-800 dark:text-gray-200 mb-2">
             Welcome to Chargur AI Assistant
           </h3>
-            <div className="mt-2 pt-2 border-t border-current border-opacity-20 dark:border-opacity-30">
-              <div className="text-xs opacity-75 dark:opacity-60">
-            I'm here to help you plan and design your app. Start by describing your app idea, 
-            and I'll guide you through each stage of the development process.
-          </p>
+          <div className="mt-2 pt-2 border-t border-current border-opacity-20 dark:border-opacity-30">
+            <div className="text-xs opacity-75 dark:opacity-60">
+              I'm here to help you plan and design your app. Start by describing your app idea, 
+              and I'll guide you through each stage of the development process.
+            </div>
+          </div>
           <div className="mt-6 flex flex-wrap gap-2 justify-center">
             {[
               "I want to build a social media app",
