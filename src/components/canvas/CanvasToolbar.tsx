@@ -116,13 +116,23 @@ export const CanvasToolbar: React.FC<CanvasToolbarProps> = ({
         onClick={onToggleCollapse}
         whileHover={{ scale: 1.05 }}
         whileTap={{ scale: 0.95 }}
-        className="w-12 h-12 bg-white bg-opacity-95 backdrop-blur-sm border border-gray-200 rounded-full flex items-center justify-center hover:bg-gray-50 transition-colors shadow-lg mb-2"
+
+        className={`w-12 h-12 ${
+          isCollapsed 
+            ? 'bg-transparent hover:bg-white hover:bg-opacity-20' 
+            : 'bg-white bg-opacity-95 backdrop-blur-sm hover:bg-gray-50'
+        } border ${
+          isCollapsed ? 'border-transparent' : 'border-gray-200'
+        } rounded-full flex items-center justify-center transition-colors shadow-lg mb-2`}
       >
         <motion.div
           animate={{ rotate: isCollapsed ? 0 : 180 }}
           transition={{ duration: 0.3 }}
         >
-          <ChevronUp className="w-5 h-5 text-gray-600" />
+
+          <ChevronUp className={`w-5 h-5 ${
+            isCollapsed ? 'text-gray-700' : 'text-gray-600'
+          }`} />
         </motion.div>
       </motion.button>
 
@@ -412,7 +422,8 @@ export const CanvasToolbar: React.FC<CanvasToolbarProps> = ({
           initial={{ opacity: 0, y: 10 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.2, duration: 0.3 }}
-          className="absolute bottom-16 left-4 flex items-center gap-2"
+
+          className="flex items-center gap-2"
         >
           {actionTools.map((tool, index) => {
             const Icon = tool.icon;
@@ -425,7 +436,8 @@ export const CanvasToolbar: React.FC<CanvasToolbarProps> = ({
                 whileHover={{ scale: 1.1 }}
                 whileTap={{ scale: 0.9 }}
                 onClick={() => handleToolAction(tool.action, tool.label)}
-                className="w-8 h-8 rounded-full flex items-center justify-center text-gray-600 hover:text-gray-800 transition-colors"
+
+                className="w-10 h-10 bg-white bg-opacity-90 backdrop-blur-sm border border-gray-200 rounded-full flex items-center justify-center text-gray-600 hover:text-gray-800 hover:bg-gray-50 transition-colors shadow-md"
                 title={tool.label}
               >
                 <Icon className="w-4 h-4" />
