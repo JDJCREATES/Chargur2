@@ -445,8 +445,8 @@ export const IdeationDiscovery: React.FC<IdeationDiscoveryProps> = ({
         <AccordionDetails>
           <div className="space-y-3">
             <div className="bg-gray-50 rounded-lg p-3">
-              <h4 className="font-medium text-sm text-gray-800 mb-2">ProjectSummary</h4>
-              <span className="text-xxs text-gray-400">PROJECTSUMMARY.md</span>
+              <h4 className="font-medium text-sm text-gray-800 mb-2">Project Summary ~ .md</h4>
+             
               <pre className="text-xs text-gray-600 whitespace-pre-wrap">{generateAISummary()}</pre>
             </div>
             

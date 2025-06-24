@@ -44,7 +44,7 @@ AUTO-FILL STRATEGY:
 4. Recommend MVP feature subset for initial launch
 
 STAGE COMPLETION CRITERIA:
-Mark this stage as complete when you have provided a comprehensive feature plan or when the user indicates they are satisfied with the current plan or when the user indicates they want to proceed to the next stage.
+Mark this stage as complete when you have provided a comprehensive feature plan or when the user indicates they are satisfied with the current plan or when the user indicates they want to proceed to the next stage. When you are done with stage 1 (or users asks), mark this stage as complete, and move to the next one immediately without more questions but with a quick recap.
 `;
 
 
