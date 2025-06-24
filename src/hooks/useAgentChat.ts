@@ -340,12 +340,40 @@ const processWithEdgeFunction = useCallback(async (
                   suggestions: data.suggestions || [],
                   autoFillData: data.autoFillData || {},
                   isComplete: true
-                }));
+                }));  
 
                 // Trigger callbacks
-                if (data.autoFillData && onAutoFill) {
-                  onAutoFill(data.autoFillData);
+                if (data.autoFillData && Object.keys(data.autoFillData).length > 0 && onAutoFill) {
+                  // Process multi-stage autoFillData
+                  const processAutoFillData = (autoFillData: any) => {
+                    // Check if it's multi-stage format (has stage IDs as keys)
+                    const hasStageKeys = Object.keys(autoFillData).some(key => 
+                      ['ideation-discovery', 'feature-planning', 'structure-flow', 
+                       'interface-interaction', 'architecture-design', 'user-auth-flow',
+                       'ux-review-check', 'auto-prompt-engine', 'export-handoff'].includes(key)
+                    );
+                    
+                    if (hasStageKeys) {
+                      // Process each stage's data
+                      Object.entries(autoFillData).forEach(([stageId, stageData]) => {
+                        if (stageId === stageId && Object.keys(stageData as object).length > 0) {
+                          // Current stage data
+                          onAutoFill(stageData);
+                        } else if (stageId !== stageId && Object.keys(stageData as object).length > 0) {
+                          // Other stage data - would need a callback for this
+                          console.log(`Data for other stage (${stageId}) received:`, stageData);
+                          // If we had a callback for other stages: onOtherStageData(stageId, stageData);
+                        }
+                      });
+                    } else {
+                      // Legacy format - just pass the whole object
+                      onAutoFill(autoFillData);
+                    }
+                  };
+                  
+                  processAutoFillData(data.autoFillData);
                 }
+                
                 if (data.stageComplete && onStageComplete) {
                   onStageComplete();
                 }

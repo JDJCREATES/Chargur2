@@ -609,7 +609,7 @@ async function processAgentRequest(controller: ReadableStreamDefaultController, 
 function parseAndValidateResponse(llmResponse: string, stageId: string): AgentResponse {
   console.log('🔧 parseAndValidateResponse called')
   console.log('📄 Response to parse (first 500 chars):', llmResponse.substring(0, 500))
-  
+
   try {
     // Try to parse JSON response
     console.log('📋 Attempting to parse JSON...')
@@ -617,7 +617,7 @@ function parseAndValidateResponse(llmResponse: string, stageId: string): AgentRe
     console.log('✅ JSON parsed successfully')
     console.log('🔍 Parsed keys:', Object.keys(parsed))
     
-    // Validate required fields
+    // Validate required fields and handle multi-stage autoFillData
     if (!parsed.content || typeof parsed.content !== 'string') {
       console.error('❌ Missing or invalid content field')
       throw new Error('Missing or invalid content field')
@@ -632,7 +632,28 @@ function parseAndValidateResponse(llmResponse: string, stageId: string): AgentRe
     // Ensure autoFillData is an object
     if (!parsed.autoFillData || typeof parsed.autoFillData !== 'object') {
       console.log('⚠️ Fixing autoFillData field (not an object)')
-      parsed.autoFillData = {}
+      parsed.autoFillData = {};
+    } else {
+      // Process multi-stage autoFillData if present
+      // This allows the LLM to return data for multiple stages
+      const processedAutoFillData = {};
+      
+      // Check if autoFillData contains stage IDs as keys
+      const hasStageKeys = Object.keys(parsed.autoFillData).some(key => 
+        ['ideation-discovery', 'feature-planning', 'structure-flow', 
+         'interface-interaction', 'architecture-design', 'user-auth-flow',
+         'ux-review-check', 'auto-prompt-engine', 'export-handoff'].includes(key)
+      );
+      
+      if (hasStageKeys) {
+        // Multi-stage format - keep as is
+        Object.assign(processedAutoFillData, parsed.autoFillData);
+      } else {
+        // Single stage format - wrap in current stageId
+        processedAutoFillData[stageId] = parsed.autoFillData;
+      }
+      
+      parsed.autoFillData = processedAutoFillData;
     }
     
     // Ensure stageComplete is boolean
@@ -649,11 +670,11 @@ function parseAndValidateResponse(llmResponse: string, stageId: string): AgentRe
     
     console.log('✅ Response validation completed successfully')
     return {
-      content: parsed.content,
-      suggestions: parsed.suggestions.slice(0, 5), // Limit to 5 suggestions
-      autoFillData: parsed.autoFillData,
-      stageComplete: parsed.stageComplete,
-      context: parsed.context
+      content: parsed.content || '',
+      suggestions: (parsed.suggestions || []).slice(0, 5), // Limit to 5 suggestions
+      autoFillData: parsed.autoFillData || {},
+      stageComplete: !!parsed.stageComplete,
+      context: parsed.context || {}
     }
     
   } catch (error) {
@@ -665,7 +686,7 @@ function parseAndValidateResponse(llmResponse: string, stageId: string): AgentRe
     return {
       content: llmResponse || "I'm here to help you with this stage. What would you like to work on?",
       suggestions: ["Tell me more about your needs", "What should we focus on?", "Help me understand your goals"],
-      autoFillData: {},
+      autoFillData: { [stageId]: {} },
       stageComplete: false,
       context: { parseError: true, originalResponse: llmResponse }
     }
