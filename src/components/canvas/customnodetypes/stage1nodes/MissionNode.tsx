@@ -110,29 +110,31 @@ export const MissionNode: React.FC<MissionNodeProps> = ({
         {/* Main Content */}
         <div className="p-4">
           {isEditing ? (
-            <textarea
-              ref={textareaRef}
-              placeholder="Describe what your app does..."
-              value={editValue}
-              onChange={(e) => setEditValue(e.target.value)}
-              onBlur={handleSave}
-              onKeyDown={handleKeyPress}
-              className="w-full h-16 text-sm text-green-900 bg-transparent border-none resize-none focus:outline-none placeholder-green-500 mb-3"
-            />
-            
-            <div className="mb-2">
-              <label className="block text-xs font-medium text-green-700 mb-1">
-                Mission Statement:
-              </label>
+            <>
               <textarea
-                ref={missionStatementRef}
-                value={editMissionStatement}
-                onChange={(e) => setEditMissionStatement(e.target.value)}
+                ref={textareaRef}
+                placeholder="Describe what your app does..."
+                value={editValue}
+                onChange={(e) => setEditValue(e.target.value)}
+                onBlur={handleSave}
                 onKeyDown={handleKeyPress}
-                placeholder="Enter a formal mission statement..."
-                className="w-full h-20 text-sm text-green-900 bg-white bg-opacity-50 border border-green-200 rounded resize-none focus:outline-none focus:ring-1 focus:ring-green-500 p-2"
+                className="w-full h-16 text-sm text-green-900 bg-transparent border-none resize-none focus:outline-none placeholder-green-500 mb-3"
               />
-            </div>
+              
+              <div className="mb-2">
+                <label className="block text-xs font-medium text-green-700 mb-1">
+                  Mission Statement:
+                </label>
+                <textarea
+                  ref={missionStatementRef}
+                  value={editMissionStatement}
+                  onChange={(e) => setEditMissionStatement(e.target.value)}
+                  onKeyDown={handleKeyPress}
+                  placeholder="Enter a formal mission statement..."
+                  className="w-full h-20 text-sm text-green-900 bg-white bg-opacity-50 border border-green-200 rounded resize-none focus:outline-none focus:ring-1 focus:ring-green-500 p-2"
+                />
+              </div>
+            </>
           ) : (
             <div className="space-y-3">
               <h3 className="text-xs font-medium text-green-700">App Purpose:</h3>
