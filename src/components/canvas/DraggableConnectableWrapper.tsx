@@ -120,7 +120,6 @@ export const DraggableConnectableWrapper: React.FC<DraggableConnectableWrapperPr
       className={`
         absolute cursor-move select-none transition-shadow
         ${isDragging ? 'z-50' : isSelected ? 'z-30' : 'z-10'}
-        ${isSelected ? 'ring-2 ring-blue-500 ring-opacity-100' : ''}
       `}
       style={{
         left: `${node.position.x}px`,
@@ -139,9 +138,34 @@ export const DraggableConnectableWrapper: React.FC<DraggableConnectableWrapperPr
       {/* Node Content */}
       <div className={`
         w-full h-full relative 
-        ${isConnecting ? 'ring-2 ring-blue-400 ring-opacity-30' : ''} 
-        ${isSelected ? '' : 'ring-0'}
+        ${isConnecting ? 'ring-2 ring-blue-400 ring-opacity-30' : ''}
       `}>
+        {/* Pulsing Energy Border Layers - Only when selected */}
+        {isSelected && (
+          <>
+            {/* Outer Ring */}
+            <motion.div
+              className="absolute inset-0 rounded-lg pointer-events-none ring-8 ring-blue-400/20"
+              animate={{ scale: [1, 1.15, 1], opacity: [0, 1, 0] }}
+              transition={{ duration: 2.5, repeat: Infinity, ease: "easeInOut", delay: 0 }}
+            />
+            
+            {/* Middle Ring */}
+            <motion.div
+              className="absolute inset-0 rounded-lg pointer-events-none ring-4 ring-blue-500/40"
+              animate={{ scale: [1, 1.08, 1], opacity: [0, 1, 0] }}
+              transition={{ duration: 2, repeat: Infinity, ease: "easeInOut", delay: 0.3 }}
+            />
+            
+            {/* Inner Ring */}
+            <motion.div
+              className="absolute inset-0 rounded-lg pointer-events-none ring-2 ring-blue-600/60"
+              animate={{ scale: [1, 1.04, 1], opacity: [0, 1, 0] }}
+              transition={{ duration: 1.5, repeat: Infinity, ease: "easeInOut", delay: 0.6 }}
+            />
+          </>
+        )}
+        
         {children}
         
         {/* Connection Points */}
