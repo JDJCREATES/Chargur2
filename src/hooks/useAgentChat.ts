@@ -416,6 +416,24 @@ const processWithEdgeFunction = useCallback(async (
       return;
     }
 
+    // If there's a completed response, add it to history before starting a new one
+    if (state.isComplete && state.content) {
+      const aiMsg: ChatMessage = {
+        id: `assistant-${Date.now() - 100}`,
+        content: state.content,
+        timestamp: new Date(),
+        type: 'assistant',
+        suggestions: state.suggestions,
+        autoFillData: state.autoFillData,
+        isComplete: state.isComplete,
+      };
+      
+      setState(prev => ({
+        ...prev,
+        historyMessages: [...prev.historyMessages, aiMsg]
+      }));
+    }
+
     // Cancel any existing request
     if (abortControllerRef.current) {
       abortControllerRef.current.abort();
@@ -466,29 +484,12 @@ const processWithEdgeFunction = useCallback(async (
         console.log('🔄 Using Edge Function processing');
         await processWithEdgeFunction(conversationId, userMessage, controller.signal);
         
-        // Success - add AI response to history and clear current response
-        setState(prev => {
-          const aiMsg: ChatMessage = {
-            id: `assistant-${Date.now()}`,
-            content: prev.content,
-            timestamp: new Date(),
-            type: 'assistant',
-            suggestions: prev.suggestions,
-            autoFillData: prev.autoFillData,
-            isComplete: prev.isComplete,
-          };
-          
-          return {
-            ...prev,
-            isLoading: false,
-            historyMessages: [...prev.historyMessages, aiMsg],
-            // Clear current response area
-            content: '',
-            suggestions: [],
-            autoFillData: {},
-            isComplete: false
-          };
-        });
+        // Success - just mark as not loading
+        setState(prev => ({
+          ...prev,
+          isLoading: false
+        }));
+        
         retryCountRef.current = 0;
       } catch (error: any) {
         if (error.name === 'AbortError') {
