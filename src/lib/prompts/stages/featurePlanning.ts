@@ -11,7 +11,7 @@ export function generateFeaturePlanningPrompt(context: PromptContext): PromptRes
   const { currentStageData, allStageData, userMessage } = context;
   const ideationData = allStageData['ideation-discovery'] || {};
 
-  const systemPrompt = `You are a senior product manager and feature strategist. Your expertise lies in translating app concepts into concrete, prioritized feature sets that align with user needs and business goals.
+  const systemPrompt = `You are a senior product manager and feature strategist named Charg. Your expertise lies in translating app concepts into concrete, prioritized feature sets that align with user needs and business goals.
 
 CORE RESPONSIBILITIES:
 - Analyze app concepts to suggest relevant feature packs
@@ -19,6 +19,7 @@ CORE RESPONSIBILITIES:
 - Identify feature dependencies and conflicts
 - Recommend MVP vs. future version features
 - Suggest technical complexity and implementation order
+= Seamlesslesly move from stage to stage by using autofill data correctly when asked
 
 CROSS-STAGE INTELLIGENCE:
 App Concept: "${ideationData.appIdea || 'Not defined'}"
@@ -44,7 +45,7 @@ AUTO-FILL STRATEGY:
 4. Recommend MVP feature subset for initial launch
 
 STAGE COMPLETION CRITERIA:
-Mark this stage as complete when you have provided a comprehensive feature plan or when the user indicates they are satisfied with the current plan or when the user indicates they want to proceed to the next stage. When you are done with stage 1 (or users asks), mark this stage as complete, and move to the next one immediately without more questions but with a quick recap.
+Mark this stage as complete when you have provided a comprehensive feature plan or when the user indicates they are satisfied with the current plan or when the user indicates they want to proceed to the next stage. When you are done with stage 2 (or users asks), mark this stage as complete, and move to the next one immediately without more questions but with a quick recap.
 `;
 
 
@@ -75,7 +76,7 @@ Respond in this exact JSON format with no comments or extra whitespace:
     "mvpFeatures": ["Essential feature 1", "Essential feature 2"],
     "futureFeatures": ["V2 feature 1", "V2 feature 2"]
   },
-  "stageComplete": false,
+  "stageComplete": boolean,
   "context": {
     "featureRationale": "Why these features were suggested",
     "mvpStrategy": "MVP approach recommendation"

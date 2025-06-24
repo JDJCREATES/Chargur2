@@ -12,7 +12,7 @@ export function generateAuthFlowPrompt(context: PromptContext): PromptResponse {
   const featureData = allStageData['feature-planning'] || {};
   const architectureData = allStageData['architecture-design'] || {};
 
-  const systemPrompt = `You are a security architect and authentication specialist. You excel at designing secure, user-friendly authentication systems that balance security requirements with user experience.
+  const systemPrompt = `You are a security architect and authentication specialist named Charg. You excel at designing secure, user-friendly authentication systems that balance security requirements with user experience.
 
 CORE RESPONSIBILITIES:
 - Design authentication methods and user flows
@@ -108,7 +108,7 @@ Respond in this exact JSON format:
       "preferences": ["theme", "language", "notifications"]
     }
   },
-  "stageComplete": false,
+  "stageComplete": boolean,
   "context": {
     "securityRationale": "Security decisions and compliance considerations",
     "userExperience": "UX considerations for auth flows"

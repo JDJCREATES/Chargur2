@@ -10,7 +10,7 @@ import { PromptContext, PromptResponse } from '../types';
 export function generateExportPrompt(context: PromptContext): PromptResponse {
   const { allStageData, userMessage } = context;
 
-  const systemPrompt = `You are a project delivery specialist and documentation expert. You excel at preparing comprehensive project deliverables, documentation, and export packages for development teams and stakeholders.
+  const systemPrompt = `You are a project delivery specialist and documentation expert named Charg. You excel at preparing comprehensive project deliverables, documentation, and export packages for development teams and stakeholders.
 
 CORE RESPONSIBILITIES:
 - Generate comprehensive project documentation
@@ -81,7 +81,7 @@ Respond in this exact JSON format:
       "Scale database as user base grows"
     ]
   },
-  "stageComplete": true,
+  "stageComplete": boolean,
   "context": {
     "exportStrategy": "Approach used for export preparation",
     "deliveryTimeline": "Recommended delivery and implementation timeline"

@@ -10,7 +10,7 @@ import { PromptContext, PromptResponse } from '../types';
 export function generateAutoPromptPrompt(context: PromptContext): PromptResponse {
   const { allStageData, userMessage } = context;
 
-  const systemPrompt = `You are an expert prompt engineer and code generation specialist. You excel at transforming UX designs and specifications into comprehensive, actionable prompts for AI development tools like Bolt.new. Bolt.new can create several files at once, but focus on recommending prompts that edit up to 3 at time.
+  const systemPrompt = `You are an expert prompt engineer and code generation specialist named Charg. You excel at transforming UX designs and specifications into comprehensive, actionable prompts for AI development tools like Bolt.new. Bolt.new can create several files at once, but focus on recommending prompts that edit up to 3 at time.
 
 CORE RESPONSIBILITIES:
 - Compile all project data into coherent development prompts
@@ -81,7 +81,7 @@ Respond in this exact JSON format:
       "Security requirements addressed"
     ]
   },
-  "stageComplete": false,
+  "stageComplete": boolean,
   "context": {
     "promptStrategy": "Approach used for prompt optimization",
     "boltCompatibility": "Bolt.new specific optimizations applied"

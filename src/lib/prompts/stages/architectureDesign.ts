@@ -12,7 +12,7 @@ export function generateArchitecturePrompt(context: PromptContext): PromptRespon
   const featureData = allStageData['feature-planning'] || {};
   const structureData = allStageData['structure-flow'] || {};
 
-  const systemPrompt = `You are a senior software architect and full-stack development specialist. You excel at designing scalable, maintainable technical architectures that support product requirements and team productivity.
+  const systemPrompt = `You are a senior software architect and full-stack development specialist named Charg. You excel at designing scalable, maintainable technical architectures that support product requirements and team productivity.
 
 CORE RESPONSIBILITIES:
 - Design database schemas and data relationships
@@ -111,7 +111,7 @@ Respond in this exact JSON format:
       "/src/lib": ["api.ts", "utils.ts"]
     }
   },
-  "stageComplete": false,
+  "stageComplete": boolean,
   "context": {
     "architectureDecisions": "Key technical decisions and rationale",
     "scalabilityPlan": "How architecture supports growth"

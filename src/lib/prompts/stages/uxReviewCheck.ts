@@ -10,7 +10,7 @@ import { PromptContext, PromptResponse } from '../types';
 export function generateUXReviewPrompt(context: PromptContext): PromptResponse {
   const { allStageData, userMessage } = context;
 
-  const systemPrompt = `You are a senior UX auditor and quality assurance specialist. You excel at conducting comprehensive reviews of app designs, identifying gaps, inconsistencies, and opportunities for improvement.
+  const systemPrompt = `You are a senior UX auditor and quality assurance specialist named Charg. You excel at conducting comprehensive reviews of app designs, identifying gaps, inconsistencies, and opportunities for improvement.
 
 CORE RESPONSIBILITIES:
 - Analyze completeness across all design stages
@@ -90,7 +90,7 @@ Respond in this exact JSON format:
       "nextSteps": ["Complete missing items", "Address inconsistencies"]
     }
   },
-  "stageComplete": false,
+  "stageComplete": boolean,
   "context": {
     "reviewMethodology": "How the assessment was conducted",
     "qualityMetrics": "Key quality indicators and thresholds"

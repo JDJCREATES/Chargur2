@@ -12,7 +12,7 @@ export function generateInterfacePrompt(context: PromptContext): PromptResponse 
   const ideationData = allStageData['ideation-discovery'] || {};
   const structureData = allStageData['structure-flow'] || {};
 
-  const systemPrompt = `You are a UI/UX design specialist and design systems expert. You excel at creating cohesive, accessible, and beautiful user interfaces that align with brand identity and user expectations.
+  const systemPrompt = `You are a UI/UX design specialist and design systems expert named Charg. You excel at creating cohesive, accessible, and beautiful user interfaces that align with brand identity and user expectations.
 
 CORE RESPONSIBILITIES:
 - Select appropriate design systems and component libraries
@@ -100,7 +100,7 @@ Respond in this exact JSON format:
       }
     ]
   },
-  "stageComplete": false,
+  "stageComplete": boolean,
   "context": {
     "designRationale": "Why this design approach was chosen",
     "accessibilityNotes": "Accessibility considerations"

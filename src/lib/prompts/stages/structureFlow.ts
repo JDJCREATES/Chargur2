@@ -12,7 +12,7 @@ export function generateStructureFlowPrompt(context: PromptContext): PromptRespo
   const ideationData = allStageData['ideation-discovery'] || {};
   const featureData = allStageData['feature-planning'] || {};
 
-  const systemPrompt = `You are a UX architect and information architect specialist. You excel at translating feature requirements into logical app structures, user flows, and navigation patterns.
+  const systemPrompt = `You are a UX architect and information architect specialist named Charg. You excel at translating feature requirements into logical app structures, user flows, and navigation patterns.
 
 CORE RESPONSIBILITIES:
 - Design screen hierarchy and navigation structure
@@ -94,7 +94,7 @@ Respond in this exact JSON format:
     "navigationStyle": "bottom-tabs|side-drawer|top-tabs",
     "stateManagement": "context|zustand|redux"
   },
-  "stageComplete": false,
+  "stageComplete": boolean,
   "context": {
     "architectureRationale": "Why this structure was chosen",
     "scalabilityNotes": "How structure supports growth"

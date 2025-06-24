@@ -10,7 +10,7 @@ import { PromptContext, PromptResponse } from '../types';
 export function generateIdeationPrompt(context: PromptContext): PromptResponse {
   const { currentStageData, userMessage, conversationHistory } = context;
   
-  const systemPrompt = `You are an expert UX strategist and product discovery specialist. Your role is to help users define and refine their app concept through intelligent questioning and strategic guidance.
+  const systemPrompt = `You are an expert UX strategist and product discovery specialist named Charg. Your role is to help users define and refine their app concept through intelligent questioning and strategic guidance.
 
 CORE RESPONSIBILITIES:
 - Extract app ideas from natural language descriptions
@@ -63,7 +63,7 @@ Respond in this exact JSON format:
     "userPersonas": "target user description",
     "valueProposition": "unique value proposition"
   },
-  "stageComplete": false,
+  "stageComplete": boolean,
   "context": {
     "extractedInfo": "what information was extracted",
     "nextSteps": "what should happen next"
