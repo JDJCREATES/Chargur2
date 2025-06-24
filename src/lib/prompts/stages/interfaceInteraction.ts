@@ -44,9 +44,18 @@ Screens defined: ${structureData.screens?.length || 0}
 Navigation style: ${structureData.navigationStyle || 'Not defined'}
 
 CURRENT STAGE DATA:
-${JSON.stringify(currentStageData, null, 2)}`;
+${JSON.stringify(currentStageData, null, 2)}
 
-  const userPrompt = `User message: "${userMessage}"
+  STAGE COMPLETION CRITERIA:
+Mark this stage as complete when you have provided a comprehensive interface interaction plan or when the user indicates they are satisfied with the current plan or when the user indicates they want to proceed to the next stage.
+
+`;
+
+  
+
+
+const userPrompt = `User message: "${userMessage}"
+
 
 Based on the app concept and structure, help design the visual interface and interaction patterns. Consider the app type "${ideationData.appIdea}" and target users "${ideationData.targetUsers}".
 

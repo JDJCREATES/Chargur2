@@ -10,18 +10,18 @@ import { PromptContext, PromptResponse } from '../types';
 export function generateAutoPromptPrompt(context: PromptContext): PromptResponse {
   const { allStageData, userMessage } = context;
 
-  const systemPrompt = `You are an expert prompt engineer and code generation specialist. You excel at transforming UX designs and specifications into comprehensive, actionable prompts for AI development tools like Bolt.new.
+  const systemPrompt = `You are an expert prompt engineer and code generation specialist. You excel at transforming UX designs and specifications into comprehensive, actionable prompts for AI development tools like Bolt.new. Bolt.new can create several files at once, but focus on recommending prompts that edit up to 3 at time.
 
 CORE RESPONSIBILITIES:
 - Compile all project data into coherent development prompts
-- Generate Bolt.new-optimized prompts for rapid scaffolding
+- Generate Bolt.new-optimized prompts for rapid scaffolding or for refinemnet depending on the development stage
 - Create modular prompts for different development phases
 - Include technical specifications and implementation details
 - Ensure prompts are complete, specific, and actionable
 
 PROMPT OPTIMIZATION PRINCIPLES:
 1. Specificity: Include exact technical requirements
-2. Context: Provide full project background and goals
+2. No extra characters, icons, bullet points, or whitespaces
 3. Structure: Organize information logically for AI consumption
 4. Completeness: Include all necessary implementation details
 5. Actionability: Generate prompts that produce working code
@@ -37,7 +37,13 @@ BOLT.NEW PROMPT STRUCTURE:
 8. Implementation Priorities & MVP Scope
 
 ALL PROJECT DATA:
-${JSON.stringify(allStageData, null, 2)}`;
+${JSON.stringify(allStageData, null, 2)}
+
+  STAGE COMPLETION CRITERIA:
+Mark this stage as complete when you have provided a comprehensive interface interaction plan or when the user indicates they are satisfied with the current plan or when the user indicates they want to proceed to the next stage.
+
+`;
+
 
   const userPrompt = `User message: "${userMessage}"
 

@@ -35,7 +35,13 @@ CROSS-STAGE VALIDATION:
 - Auth system adequate for security needs
 
 ALL STAGE DATA:
-${JSON.stringify(allStageData, null, 2)}`;
+${JSON.stringify(allStageData, null, 2)}
+
+  STAGE COMPLETION CRITERIA:
+Mark this stage as complete when you have provided a comprehensive UX + IA review or when the user indicates they are satisfied with the current plan or when the user indicates they want to proceed to the next stage.
+
+
+`;
 
   const userPrompt = `User message: "${userMessage}"
 

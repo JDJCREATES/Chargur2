@@ -44,7 +44,12 @@ USER ROLE PATTERNS:
 - Enterprise → User, Manager, Admin, Super Admin
 
 CURRENT STAGE DATA:
-${JSON.stringify(currentStageData, null, 2)}`;
+${JSON.stringify(currentStageData, null, 2)}
+
+  STAGE COMPLETION CRITERIA:
+Mark this stage as complete when you have provided a comprehensive user authentication plan or when the user indicates they are satisfied with the current plan or when the user indicates they want to proceed to the next stage.
+
+`;
 
   const userPrompt = `User message: "${userMessage}"
 

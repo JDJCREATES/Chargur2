@@ -47,14 +47,16 @@ DATA MODEL INFERENCE:
 - Content features → Media, Categories, Tags
 
 CURRENT STAGE DATA:
-${JSON.stringify(currentStageData, null, 2)}`;
+${JSON.stringify(currentStageData, null, 2)}
+
+STAGE COMPLETION CRITERIA:
+Mark this stage as complete when you have provided a comprehensive structure flow plan or when the user indicates they are satisfied with the current plan or when the user indicates they want to proceed to the next stage.
+
+
+`;
 
   const userPrompt = `User message: "${userMessage}"
 
-STAGE COMPLETION CRITERIA:
--File structure, Core screens, data models, and user flows defined
--User asks for stage completion
--If User asks to continue but required fields are undefined, auto-fill them intelligently based off of the app entirely and move on to the requested stage.
 
 Based on the selected features and app concept, help design the app structure and user flows. Consider the feature packs: ${JSON.stringify(featureData.selectedFeaturePacks || [])}.
 
