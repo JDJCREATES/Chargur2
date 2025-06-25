@@ -1,7 +1,7 @@
 import { useState, useCallback, useEffect } from 'react';
 import { Stage, StageData, Project, Connection } from '../types';
 import { supabase } from '../lib/auth/supabase';
-import { useAuth } from './useAuth';
+import { useAuth } from './useAuth'; 
 import { CanvasNodeData } from '../components/canvas/CanvasNode';
 import { debounce } from '../utils/debounce';
 
@@ -78,7 +78,7 @@ const initialStages: Stage[] = [
 ];
 
 export const useStageManager = () => {
-  const { user } = useAuth();
+  const { user, loading: authLoading } = useAuth();
   const [stages, setStages] = useState<Stage[]>(initialStages);
   const [currentStageId, setCurrentStageId] = useState<string>('ideation-discovery');
   const [stageData, setStageData] = useState<StageData>({});
@@ -282,7 +282,14 @@ export const useStageManager = () => {
   // Initialize project on component mount
   useEffect(() => {
     const initializeProject = async () => {
-      if (!user) return;
+      // Wait for auth to complete before proceeding
+      if (authLoading) return;
+      
+      // If auth is complete but no user is logged in, set loading to false
+      if (!user) {
+        setIsLoading(false);
+        return;
+      }
       
       try {
         // Check if user has any existing projects
@@ -312,7 +319,7 @@ export const useStageManager = () => {
     };
     
     initializeProject();
-  }, [user, loadProject, createAndLoadNewProject]);
+  }, [user, authLoading, loadProject, createAndLoadNewProject]);
 
   return {
     stages,
