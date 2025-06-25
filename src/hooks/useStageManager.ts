@@ -268,16 +268,15 @@ export const useStageManager = () => {
           .select('id')
           .eq('user_id', user.id)
           .order('updated_at', { ascending: false })
-          .limit(1)
-          .single();
+          .limit(1);
         
-        if (error && error.code !== 'PGRST116') { // PGRST116 = no rows returned
+        if (error) {
           throw error;
         }
         
-        if (data?.id) {
+        if (data && data.length > 0 && data[0]?.id) {
           // User has an existing project, load it
-          await loadProject(data.id);
+          await loadProject(data[0].id);
         } else {
           // User has no projects, create a new one
           await createAndLoadNewProject();

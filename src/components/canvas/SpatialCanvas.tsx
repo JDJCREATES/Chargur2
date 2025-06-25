@@ -70,6 +70,7 @@ export const SpatialCanvas: React.FC<SpatialCanvasProps> = ({
     setScale,
     setOffset,
     toggleGrid,
+    updateNodes,
   } = useCanvasStateManager(
     canvasNodes,
     canvasConnections,
