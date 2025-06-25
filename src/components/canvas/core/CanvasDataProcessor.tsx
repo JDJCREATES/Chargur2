@@ -22,8 +22,7 @@ import { CanvasNodeData } from '../CanvasNode';
 import { STAGE1_NODE_TYPES, STAGE1_NODE_DEFAULTS } from '../customnodetypes/stage1nodes';
 
 export interface ProcessorState {
-  nodes: CanvasNodeData[];
-  lastProcessedData?: { [key: string]: any };
+  nodes: CanvasNodeData[]; 
 }
 
 export class CanvasDataProcessor {
@@ -35,17 +34,9 @@ export class CanvasDataProcessor {
    */
   static updateCanvasFromStageData(
     stageData: any,
-    currentState: ProcessorState,
+    currentState: ProcessorState, 
     onStateUpdate: (newState: ProcessorState) => void
   ): void {
-    // Check what data has changed and only add new nodes
-    const currentDataHash = JSON.stringify(stageData);
-    const lastDataHash = JSON.stringify(currentState.lastProcessedData || {});
-    
-    if (currentDataHash === lastDataHash) {
-      return; // No changes, don't update
-    }
-
     // Create a mutable copy of the current nodes
     let updatedNodes = [...currentState.nodes];
     
@@ -67,8 +58,7 @@ export class CanvasDataProcessor {
 
     // Update state with updated nodes
     onStateUpdate({
-      nodes: updatedNodes,
-      lastProcessedData: { ...stageData }
+      nodes: updatedNodes
     });
   }
 

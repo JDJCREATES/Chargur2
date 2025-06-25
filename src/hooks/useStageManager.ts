@@ -5,6 +5,12 @@ import { useAuth } from './useAuth';
 import { CanvasNodeData } from '../components/canvas/CanvasNode';
 import { debounce } from '../utils/debounce';
 
+// Helper function to create empty initial state
+const getEmptyCanvasState = () => ({
+  nodes: [],
+  connections: []
+});
+
 const initialStages: Stage[] = [
   {
     id: 'ideation-discovery',
@@ -78,8 +84,8 @@ export const useStageManager = () => {
   const [stageData, setStageData] = useState<StageData>({});
   const [projectId, setProjectId] = useState<string | null>(null);
   const [currentProject, setCurrentProject] = useState<Project | null>(null);
-  const [canvasNodes, setCanvasNodes] = useState<CanvasNodeData[]>([]);
-  const [canvasConnections, setCanvasConnections] = useState<Connection[]>([]);
+  const [canvasNodes, setCanvasNodes] = useState<CanvasNodeData[]>(getEmptyCanvasState().nodes);
+  const [canvasConnections, setCanvasConnections] = useState<Connection[]>(getEmptyCanvasState().connections);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
@@ -93,9 +99,10 @@ export const useStageManager = () => {
       setIsLoading(true);
       setError(null);
       
-      // Clear canvas data before loading new project
-      setCanvasNodes([]);
-      setCanvasConnections([]);
+      // Reset canvas state before loading new project
+      const emptyState = getEmptyCanvasState();
+      setCanvasNodes(emptyState.nodes);
+      setCanvasConnections(emptyState.connections);
       
       const { data, error } = await supabase
         .from('projects')
@@ -139,9 +146,10 @@ export const useStageManager = () => {
       setIsLoading(true);
       setError(null);
       
-      // Clear canvas data before creating new project
-      setCanvasNodes([]);
-      setCanvasConnections([]);
+      // Reset canvas state before creating new project
+      const emptyState = getEmptyCanvasState();
+      setCanvasNodes(emptyState.nodes);
+      setCanvasConnections(emptyState.connections);
       
       const { data, error } = await supabase
         .from('projects')
@@ -252,6 +260,13 @@ export const useStageManager = () => {
     }
   }, [projectId, saveProject]);
 
+  // Clear canvas data (used when switching projects)
+  const clearCanvasData = useCallback(() => {
+    const emptyState = getEmptyCanvasState();
+    setCanvasNodes(emptyState.nodes);
+    setCanvasConnections(emptyState.connections);
+  }, []);
+
   const getStageData = useCallback((stageId: string) => {
     return stageData[stageId] || {};
   }, [stageData]);
@@ -318,6 +333,7 @@ export const useStageManager = () => {
     loadProject,
     createAndLoadNewProject,
     updateCanvasNodes,
-    updateCanvasConnections,
+    updateCanvasConnections, 
+    clearCanvasData,
   };
 };

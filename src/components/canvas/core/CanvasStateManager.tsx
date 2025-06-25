@@ -52,7 +52,6 @@ export const useCanvasStateManager = (
   const [state, setState] = useState<CanvasState>(DEFAULT_STATE);
   const [nodes, setNodes] = useState<CanvasNodeData[]>(initialNodes);
   const [connections, setConnections] = useState<Connection[]>(initialConnections);
-  const [lastProcessedData, setLastProcessedData] = useState<{ [key: string]: any }>({});
   
   // Update local state when props change
   useEffect(() => {
@@ -179,19 +178,17 @@ export const useCanvasStateManager = (
 
   const processStageData = useCallback((stageData: any) => {
     const processorState: ProcessorState = {
-      nodes: nodes,
-      lastProcessedData
+      nodes: nodes
     };
 
     CanvasDataProcessor.updateCanvasFromStageData(
       stageData,
       processorState,
       (newState: ProcessorState) => {
-        updateNodes(newState.nodes);
-        setLastProcessedData(newState.lastProcessedData || {});
+        updateNodes(newState.nodes); 
       }
     );
-  }, [nodes, lastProcessedData, updateNodes, setLastProcessedData]);
+  }, [nodes, updateNodes]);
 
   return {
     state,
