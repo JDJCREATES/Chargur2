@@ -183,7 +183,7 @@ export const useCanvasStateManager = (
 
   const processStageData = useCallback((stageData: any) => {
     const processorState: ProcessorState = {
-      nodes: nodes
+      nodes: nodes,
       lastProcessedData: lastProcessedStageData
     }
 
