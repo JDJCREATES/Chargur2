@@ -59,7 +59,7 @@ export const StructureFlow: React.FC<StructureFlowProps> = ({
   onComplete,
   onUpdateData,
 }) => {
-  const [formData, setFormData] = useState({
+  const defaultFormData = {
     screens: [
       { id: '1', name: 'Login', type: 'core' as const },
       { id: '2', name: 'Dashboard', type: 'core' as const },
@@ -95,11 +95,13 @@ export const StructureFlow: React.FC<StructureFlowProps> = ({
     },
     stateManagement: 'context',
     dataFlow: 'User creates Project → POST /api/projects → ProjectList updates → UI refreshes'
-  });
+  };
+  
+  const [formData, setFormData] = useState(defaultFormData);
 
   // Sync formData with initialFormData when it changes
   useEffect(() => {
-    if (initialFormData && Object.keys(initialFormData).length > 0) {
+    if (initialFormData) {
       console.log('Updating StructureFlow formData from initialFormData');
       setFormData(prev => ({
         ...prev,

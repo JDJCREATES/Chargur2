@@ -81,7 +81,7 @@ export const FeaturePlanning: React.FC<FeaturePlanningProps> = ({
   onComplete,
   onUpdateData,
 }) => {
-  const [formData, setFormData] = useState({
+  const defaultFormData = {
     naturalLanguageFeatures: '',
     selectedFeaturePacks: [] as string[],
     customFeatures: [] as Feature[],
@@ -92,13 +92,15 @@ export const FeaturePlanning: React.FC<FeaturePlanningProps> = ({
       apiRoutes: [] as string[],
       components: [] as string[],
     },
-  });
+  };
+  
+  const [formData, setFormData] = useState(defaultFormData);
 
   const [draggedFeature, setDraggedFeature] = useState<string | null>(null);
 
   // Sync formData with initialFormData when it changes
   useEffect(() => {
-    if (initialFormData && Object.keys(initialFormData).length > 0) {
+    if (initialFormData) {
       console.log('Updating FeaturePlanning formData from initialFormData');
       setFormData(prev => ({
         ...prev,

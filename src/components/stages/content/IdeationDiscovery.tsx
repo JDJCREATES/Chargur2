@@ -30,7 +30,7 @@ export const IdeationDiscovery: React.FC<IdeationDiscoveryProps> = ({
   onComplete,
   onUpdateData,
 }) => {
-  const [formData, setFormData] = useState({
+  const defaultFormData = {
     appIdea: '',
     appName: '',
     tagline: '',
@@ -46,14 +46,16 @@ export const IdeationDiscovery: React.FC<IdeationDiscoveryProps> = ({
     platform: 'web',
     techStack: [] as string[],
     uiStyle: 'clean-minimal',
-  });
+  };
+  
+  const [formData, setFormData] = useState(defaultFormData);
 
   const [selectedTags, setSelectedTags] = useState<string[]>([]);
   const [selectedPersonas, setSelectedPersonas] = useState<string[]>([]);
 
   // Sync formData with initialFormData when it changes
   useEffect(() => {
-    if (initialFormData && Object.keys(initialFormData).length > 0) {
+    if (initialFormData) {
       console.log('Updating IdeationDiscovery formData from initialFormData');
       setFormData(prev => ({
         ...prev,
@@ -61,7 +63,7 @@ export const IdeationDiscovery: React.FC<IdeationDiscoveryProps> = ({
       }));
       
       // Update selected personas based on initialFormData
-      if (initialFormData.userPersonas && Array.isArray(initialFormData.userPersonas)) {
+      if (initialFormData.userPersonas?.length > 0) {
         const personaIds = initialFormData.userPersonas.map((p: any) => 
           personas.find(persona => persona.label === p.name)?.id
         ).filter(Boolean);

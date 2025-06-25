@@ -75,7 +75,7 @@ export const AutoPromptEngine: React.FC<AutoPromptEngineProps> = ({
   onComplete,
   onUpdateData,
 }) => {
-  const [formData, setFormData] = useState({
+  const defaultFormData = {
     promptMode: 'single-full',
     selectedModules: [] as string[],
     customInstructions: '',
@@ -86,7 +86,9 @@ export const AutoPromptEngine: React.FC<AutoPromptEngineProps> = ({
     optimizeForTokens: true,
     autoSend: false,
     lastGenerated: null as Date | null,
-  });
+  };
+  
+  const [formData, setFormData] = useState(defaultFormData);
 
   const [promptModules, setPromptModules] = useState<PromptModule[]>([]);
   const [promptHistory, setPromptHistory] = useState<PromptHistory[]>([]);
@@ -96,7 +98,7 @@ export const AutoPromptEngine: React.FC<AutoPromptEngineProps> = ({
 
   // Sync formData with initialFormData when it changes
   useEffect(() => {
-    if (initialFormData && Object.keys(initialFormData).length > 0) {
+    if (initialFormData) {
       console.log('Updating AutoPromptEngine formData from initialFormData');
       setFormData(prev => ({
         ...prev,

@@ -82,14 +82,16 @@ export const UXReviewUserCheck: React.FC<UXReviewUserCheckProps> = ({
   onUpdateData,
   onGoToStage,
 }) => {
-  const [formData, setFormData] = useState({
+  const defaultFormData = {
     reviewMode: 'overview',
     showIncompleteOnly: false,
     autoScanEnabled: true,
     lastScanTime: new Date(),
     reviewNotes: '',
     readyForExport: false,
-  });
+  };
+  
+  const [formData, setFormData] = useState(defaultFormData);
 
   const [completionItems, setCompletionItems] = useState<CompletionItem[]>([]);
   const [aiFeedback, setAiFeedback] = useState<AIFeedback[]>([]);
@@ -98,7 +100,7 @@ export const UXReviewUserCheck: React.FC<UXReviewUserCheckProps> = ({
 
   // Sync formData with initialFormData when it changes
   useEffect(() => {
-    if (initialFormData && Object.keys(initialFormData).length > 0) {
+    if (initialFormData) {
       console.log('Updating UXReviewUserCheck formData from initialFormData');
       setFormData(prev => ({
         ...prev,

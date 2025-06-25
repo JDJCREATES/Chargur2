@@ -9,6 +9,10 @@ const getConnectionPath = (connection: Connection) => {
     // Safety check for missing nodes or node properties
     if (!fromNode || !toNode || !fromNode.position || !toNode.position || 
         !fromNode.size || !toNode.size) {
+
+    // Safety check for missing nodes or node properties
+    if (!fromNode || !toNode || !fromNode.position || !toNode.position || 
+        !fromNode.size || !toNode.size) {
       return null;
     }
 
@@ -30,6 +34,7 @@ const getConnectionPath = (connection: Connection) => {
       {/* Grid Background - always visible when showGrid is true */}
       {showGrid && (
         <div
+          data-testid="canvas-grid"
           className="absolute inset-0 opacity-20"
           style={{
             backgroundImage: `url(${gridPattern})`,
@@ -40,6 +45,7 @@ const getConnectionPath = (connection: Connection) => {
 
       {/* Canvas Content Container - scales and positions all content */}
       <motion.div
+        data-testid="canvas-content"
         className="relative w-full h-full"
         animate={{
           scale,
@@ -53,6 +59,7 @@ const getConnectionPath = (connection: Connection) => {
         {/* Render Connections - only render valid connections */}
         {connections.map((connection) => {
           const path = getConnectionPath(connection);
+          // Skip invalid connections
           if (!path) return null;
 
           return (
@@ -66,6 +73,7 @@ const getConnectionPath = (connection: Connection) => {
 
         {/* Render Nodes - with safety checks */}
         {nodes.map((node) => {
+          if (!node) return null; // Skip invalid nodes
           const isCustomIdeationNode = node.metadata?.stage === 'ideation-discovery' && 
                                       Object.values(STAGE1_NODE_TYPES).includes(node.id as any);
           

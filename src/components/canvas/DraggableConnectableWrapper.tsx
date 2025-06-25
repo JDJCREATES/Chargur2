@@ -50,6 +50,10 @@ export const DraggableConnectableWrapper: React.FC<DraggableConnectableWrapperPr
   const initialNodeSizeRef = useRef({ width: 0, height: 0 });
 
   // Add safety checks for node properties
+  const nodeSize = node?.size || { width: 200, height: 100 };
+  const nodePosition = node?.position || { x: 0, y: 0 };
+
+  // Add safety checks for node properties
   const nodeSize = node.size || { width: 200, height: 100 };
   const nodePosition = node.position || { x: 0, y: 0 };
 
@@ -61,8 +65,8 @@ export const DraggableConnectableWrapper: React.FC<DraggableConnectableWrapperPr
   const handleDrag = (event: any, info: any) => {
     // Use the offset from drag start instead of delta
     const newPosition = {
-      x: Math.max(0, dragStart.x + info.offset.x ),
-      y: Math.max(0, dragStart.y + info.offset.y ),
+      x: Math.max(0, dragStart.x + info.offset.x),
+      y: Math.max(0, dragStart.y + info.offset.y),
     };
     onUpdate(node.id, { position: newPosition });
   };

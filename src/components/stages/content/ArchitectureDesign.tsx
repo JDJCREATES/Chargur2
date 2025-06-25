@@ -95,7 +95,7 @@ export const ArchitectureDesign: React.FC<ArchitectureDesignProps> = ({
   onComplete,
   onUpdateData,
 }) => {
-  const [formData, setFormData] = useState({
+  const defaultFormData = {
     sitemap: [
       { id: '1', path: '/', component: 'LandingPage', protected: false, description: 'Public landing page' },
       { id: '2', path: '/login', component: 'LoginPage', protected: false, description: 'User authentication' },
@@ -185,11 +185,13 @@ export const ArchitectureDesign: React.FC<ArchitectureDesignProps> = ({
       'Auto-generated API documentation',
       'Component prop suggestions',
     ],
-  });
+  };
+  
+  const [formData, setFormData] = useState(defaultFormData);
 
   // Sync formData with initialFormData when it changes
   useEffect(() => {
-    if (initialFormData && Object.keys(initialFormData).length > 0) {
+    if (initialFormData) {
       console.log('Updating ArchitectureDesign formData from initialFormData');
       setFormData(prev => ({
         ...prev,

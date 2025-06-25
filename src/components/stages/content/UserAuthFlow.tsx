@@ -82,7 +82,7 @@ export const UserAuthFlow: React.FC<UserAuthFlowProps> = ({
   onComplete,
   onUpdateData,
 }) => {
-  const [formData, setFormData] = useState({
+  const defaultFormData = {
     authMethods: [
       { id: '1', name: 'Email & Password', type: 'email' as const, enabled: true },
       { id: '2', name: 'Google OAuth', type: 'oauth' as const, enabled: true, provider: 'google' },
@@ -169,11 +169,13 @@ export const UserAuthFlow: React.FC<UserAuthFlowProps> = ({
       socialButtonStyle: 'branded',
       mobileOptimized: true,
     },
-  });
+  };
+  
+  const [formData, setFormData] = useState(defaultFormData);
 
   // Sync formData with initialFormData when it changes
   useEffect(() => {
-    if (initialFormData && Object.keys(initialFormData).length > 0) {
+    if (initialFormData) {
       console.log('Updating UserAuthFlow formData from initialFormData');
       setFormData(prev => ({
         ...prev,

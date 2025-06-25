@@ -65,7 +65,7 @@ export const InterfaceInteraction: React.FC<InterfaceInteractionProps> = ({
   onComplete,
   onUpdateData,
 }) => {
-  const [formData, setFormData] = useState({
+  const defaultFormData = {
     selectedDesignSystem: 'shadcn',
     customBranding: {
       primaryColor: '#3B82F6',
@@ -95,11 +95,13 @@ export const InterfaceInteraction: React.FC<InterfaceInteractionProps> = ({
       { id: '3', type: 'error' as const, context: 'Form Validation', text: 'Please check your input and try again', tone: 'professional' as const },
     ] as CopywritingItem[],
     previewMode: 'desktop',
-  });
+  };
+  
+  const [formData, setFormData] = useState(defaultFormData);
 
   // Sync formData with initialFormData when it changes
   useEffect(() => {
-    if (initialFormData && Object.keys(initialFormData).length > 0) {
+    if (initialFormData) {
       console.log('Updating InterfaceInteraction formData from initialFormData');
       setFormData(prev => ({
         ...prev,

@@ -50,66 +50,49 @@ export const useCanvasStateManager = (
   onUpdateConnections?: (connections: Connection[]) => void | undefined
 ) => {
   const [state, setState] = useState<CanvasState>(DEFAULT_STATE);
-  const [nodes, setNodes] = useState<CanvasNodeData[]>(initialNodes);
-  const [connections, setConnections] = useState<Connection[]>(initialConnections);
   const [lastProcessedStageData, setLastProcessedStageData] = useState<{ [key: string]: any }>({});
   
-  // Update local state when props change
-  useEffect(() => {
-    setNodes(initialNodes);
-  }, [initialNodes]);
-  
-  useEffect(() => {
-    setConnections(initialConnections);
-  }, [initialConnections]);
-
   const updateState = useCallback((updates: Partial<CanvasState>) => {
     setState(prev => ({ ...prev, ...updates }));
   }, []);
 
-  const updateNodes = useCallback((updatedNodes: CanvasNodeData[]) => {
-    setNodes(updatedNodes);
+  const updateNodes = useCallback((updatedNodes: CanvasNodeData[]) => {    
     if (onUpdateNodes) {
       onUpdateNodes(updatedNodes);
     }
   }, [onUpdateNodes]);
 
   const updateConnections = useCallback((updatedConnections: Connection[]) => {
-    setConnections(updatedConnections);
     if (onUpdateConnections) {
       onUpdateConnections(updatedConnections);
     }
   }, [onUpdateConnections]);
 
   const updateNode = useCallback((nodeId: string, updates: Partial<CanvasNodeData>) => {
-    const updatedNodes = nodes.map(node => 
+    const updatedNodes = initialNodes.map(node => 
       node.id === nodeId ? { ...node, ...updates } : node
     );
-    setNodes(updatedNodes);
     if (onUpdateNodes) {
       onUpdateNodes(updatedNodes);
     }
-  }, [nodes, onUpdateNodes]);
+  }, [initialNodes, onUpdateNodes]);
 
   const addNode = useCallback((node: CanvasNodeData) => {
-    const updatedNodes = [...nodes, node];
-    setNodes(updatedNodes);
+    const updatedNodes = [...initialNodes, node];
     if (onUpdateNodes) {
       onUpdateNodes(updatedNodes);
     }
-  }, [nodes, onUpdateNodes]);
+  }, [initialNodes, onUpdateNodes]);
 
   const removeNode = useCallback((nodeId: string) => {
-    const updatedNodes = nodes.filter(node => node.id !== nodeId);
-    setNodes(updatedNodes);
+    const updatedNodes = initialNodes.filter(node => node.id !== nodeId);
     if (onUpdateNodes) {
       onUpdateNodes(updatedNodes);
     }
     
-    const updatedConnections = connections.filter(conn => 
+    const updatedConnections = initialConnections.filter(conn => 
       conn.from !== nodeId && conn.to !== nodeId
     );
-    setConnections(updatedConnections);
     if (onUpdateConnections) {
       onUpdateConnections(updatedConnections);
     }
@@ -118,23 +101,21 @@ export const useCanvasStateManager = (
     if (state.selectedNodeId === nodeId) {
       setState(prev => ({ ...prev, selectedNodeId: null }));
     }
-  }, [nodes, connections, state.selectedNodeId, onUpdateNodes, onUpdateConnections]);
+  }, [initialNodes, initialConnections, state.selectedNodeId, onUpdateNodes, onUpdateConnections]);
 
   const addConnection = useCallback((connection: Connection) => {
-    const updatedConnections = [...connections, connection];
-    setConnections(updatedConnections);
+    const updatedConnections = [...initialConnections, connection];
     if (onUpdateConnections) {
       onUpdateConnections(updatedConnections);
     }
-  }, [connections, onUpdateConnections]);
+  }, [initialConnections, onUpdateConnections]);
 
   const removeConnection = useCallback((connectionId: string) => {
-    const updatedConnections = connections.filter(conn => conn.id !== connectionId);
-    setConnections(updatedConnections);
+    const updatedConnections = initialConnections.filter(conn => conn.id !== connectionId);
     if (onUpdateConnections) {
       onUpdateConnections(updatedConnections);
     }
-  }, [connections, onUpdateConnections]);
+  }, [initialConnections, onUpdateConnections]);
 
   const clearCanvas = useCallback(() => {
     console.log('Clearing canvas in CanvasStateManager');
@@ -145,7 +126,6 @@ export const useCanvasStateManager = (
     }
     
     const emptyConnections: Connection[] = [];
-    setConnections(emptyConnections);
     if (onUpdateConnections) {
       onUpdateConnections(emptyConnections);
     }
@@ -157,6 +137,7 @@ export const useCanvasStateManager = (
   }, [onUpdateNodes, onUpdateConnections]);
 
   const resetView = useCallback(() => {
+    console.log('Resetting canvas view');
     console.log('Resetting canvas view');
     setState(prev => ({
       ...prev,
@@ -183,7 +164,7 @@ export const useCanvasStateManager = (
 
   const processStageData = useCallback((stageData: any) => {
     const processorState: ProcessorState = {
-      nodes: nodes,
+      nodes: initialNodes,
       lastProcessedData: lastProcessedStageData || {}
     };
 
@@ -192,16 +173,17 @@ export const useCanvasStateManager = (
       processorState,
       (newState: ProcessorState) => {
         updateNodes(newState.nodes); 
-        setLastProcessedStageData(newState.lastProcessedData || {});
+        setLastProcessedData(newState.lastProcessedData || {});
+        console.log('Canvas nodes updated from stage data, node count:', newState.nodes.length);
         console.log('Canvas nodes updated from stage data, node count:', newState.nodes.length);
       }
     );
-  }, [nodes, updateNodes, lastProcessedStageData]);
+  }, [initialNodes, lastProcessedData, updateNodes]);
 
   return {
     state,
-    nodes,
-    connections,
+    nodes: initialNodes,
+    connections: initialConnections,
     updateState,
     updateNodes,
     updateConnections,

@@ -55,6 +55,9 @@ export const SpatialCanvas: React.FC<SpatialCanvasProps> = ({
   onUpdateCanvasConnections,
   onSendMessage
 }) => {
+  const [lastProjectId, setLastProjectId] = useState<string | null>(null);
+  const [isInitialRender, setIsInitialRender] = useState(true);
+
   const [lastProjectData, setLastProjectData] = useState<string>('');
   const [isInitialLoad, setIsInitialLoad] = useState(true);
 
@@ -147,6 +150,28 @@ export const SpatialCanvas: React.FC<SpatialCanvasProps> = ({
 
   // Initialize screenshot functionality
   const { takeScreenshot, canvasRef } = useCanvasScreenshot();
+
+  // Detect project changes by watching canvasNodes
+  useEffect(() => {
+    if (isInitialRender) {
+      setIsInitialRender(false);
+      return;
+    }
+    
+    // Check if this is a significant change in nodes (likely a project switch)
+    const currentProjectSignature = canvasNodes.length > 0 ? 
+      `${canvasNodes.length}-${canvasNodes[0]?.id || 'none'}` : 'empty';
+    const lastProjectSignature = nodes.length > 0 ? 
+      `${nodes.length}-${nodes[0]?.id || 'none'}` : 'empty';
+    
+    if (currentProjectSignature !== lastProjectSignature) {
+      console.log('Project data changed significantly, resetting view');
+      // Use setTimeout to avoid state updates during render
+      setTimeout(() => {
+        resetView();
+      }, 100);
+    }
+  }, [canvasNodes, resetView]);
 
   const [isToolbarCollapsed, setIsToolbarCollapsed] = useState(false);
 
@@ -356,6 +381,9 @@ export const SpatialCanvas: React.FC<SpatialCanvasProps> = ({
 
   const handleClearCanvas = useCallback(() => {
     if (window.confirm('Are you sure you want to clear the canvas? This action cannot be undone.')) {
+      console.log('Clearing canvas from user action');
+      clearCanvas();
+    }
       console.log('Clearing canvas from user action');
       clearCanvas();
     }

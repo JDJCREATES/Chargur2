@@ -199,11 +199,8 @@ export const useStageManager = () => {
     try {
       if (!projectId || !user) {
         console.log('Cannot save project: missing projectId or user');
+        console.log('Cannot save project: missing projectId or user');
         return;
-      }
-
-      if (canvasNodes.length === 0 && canvasConnections.length === 0) {
-        console.log('Skipping save - empty canvas state');
       }
       
       const { error } = await supabase
