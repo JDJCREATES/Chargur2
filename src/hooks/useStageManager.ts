@@ -93,6 +93,15 @@ export const useStageManager = () => {
     return stages.find(stage => stage.id === currentStageId);
   }, [stages, currentStageId]);
 
+  // Clear canvas data (used when switching projects)
+  const clearCanvasData = useCallback(() => {
+    const emptyState = getEmptyCanvasState();
+    console.log('Clearing canvas data');
+    setCanvasNodes(emptyState.nodes);
+    setCanvasConnections(emptyState.connections); 
+    console.log('Canvas data cleared');
+  }, []);
+
   // Load project from Supabase
   const loadProject = useCallback(async (id: string) => {
     try {
@@ -273,15 +282,6 @@ export const useStageManager = () => {
       saveProject();
     }
   }, [projectId, saveProject]);
-
-  // Clear canvas data (used when switching projects)
-  const clearCanvasData = useCallback(() => {
-    const emptyState = getEmptyCanvasState();
-    console.log('Clearing canvas data');
-    setCanvasNodes(emptyState.nodes);
-    setCanvasConnections(emptyState.connections); 
-    console.log('Canvas data cleared');
-  }, []);
 
   const getStageData = useCallback((stageId: string) => {
     return stageData[stageId] || {};
