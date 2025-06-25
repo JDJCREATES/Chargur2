@@ -21,6 +21,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import { CanvasNodeData } from '../CanvasNode';
 import { CanvasDataProcessor, ProcessorState } from './CanvasDataProcessor';
+import { useAppStore } from '../../../store/useAppStore';
 
 export interface CanvasState {
   selectedNodeId: string | null;
@@ -51,6 +52,9 @@ export const useCanvasStateManager = (
 ) => {
   const [state, setState] = useState<CanvasState>(DEFAULT_STATE);
   const [lastProcessedStageData, setLastProcessedStageData] = useState<{ [key: string]: any }>({});
+  
+  // Get resetView action from the store
+  const storeResetView = useAppStore(state => state.resetView);
   
   const updateState = useCallback((updates: Partial<CanvasState>) => {
     setState(prev => ({ ...prev, ...updates }));
@@ -140,12 +144,15 @@ export const useCanvasStateManager = (
   const resetView = useCallback(() => {
     console.log('Resetting canvas view');
     console.log('Resetting canvas view');
+    // Call the store's resetView action
+    storeResetView();
+    // Update local state
     setState(prev => ({
       ...prev,
       scale: 1,
       offset: { x: 0, y: 0 }
     }));
-  }, []);
+  }, [storeResetView]);
 
   const setSelectedNode = useCallback((nodeId: string | null) => {
     setState(prev => ({ ...prev, selectedNodeId: nodeId }));

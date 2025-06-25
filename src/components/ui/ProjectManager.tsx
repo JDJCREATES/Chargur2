@@ -1,21 +1,22 @@
 import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Plus, Folder, Edit, Trash2, Check, X } from 'lucide-react';
+import { useAppStore } from '../../store/useAppStore';
 import { ProjectCarousel } from './ProjectCarousel';
-import { useStageManager } from '../../hooks/useStageManager';
 
 interface ProjectManagerProps {
   onClose?: () => void;
 }
 
 export const ProjectManager: React.FC<ProjectManagerProps> = ({ onClose }) => {
-  const { 
-    loadProject, 
-    createAndLoadNewProject, 
+  // Get state and actions from the store
+  const {
     projectId: currentProjectId,
     currentProject,
-    clearCanvasData // This is now available from useStageManager
-  } = useStageManager();
+    loadProject,
+    createAndLoadNewProject,
+    clearCanvasData
+  } = useAppStore();
   
   const [isCreating, setIsCreating] = useState(false);
   const [isEditing, setIsEditing] = useState(false);

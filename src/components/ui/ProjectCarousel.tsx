@@ -2,20 +2,21 @@ import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { ChevronLeft, ChevronRight, Plus, Folder } from 'lucide-react';
 import { supabase } from '../../lib/auth/supabase';
+import { useAppStore } from '../../store/useAppStore';
 import { useAuth } from '../../hooks/useAuth';
 import { Project } from '../../types';
 
-interface ProjectCarouselProps {
-  onSelectProject: (projectId: string) => void;
-  onCreateProject: () => void;
-  currentProjectId: string | null;
-}
+interface ProjectCarouselProps {}
 
-export const ProjectCarousel: React.FC<ProjectCarouselProps> = ({
-  onSelectProject,
-  onCreateProject,
-  currentProjectId
-}) => {
+export const ProjectCarousel: React.FC<ProjectCarouselProps> = () => {
+  // Get state and actions from the store
+  const {
+    projectId: currentProjectId,
+    loadProject,
+    createAndLoadNewProject,
+    clearCanvasData
+  } = useAppStore();
+  
   const [projects, setProjects] = useState<Project[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -84,7 +85,8 @@ export const ProjectCarousel: React.FC<ProjectCarouselProps> = ({
 
   const handleProjectSelect = (projectId: string) => {
     // Clear canvas before switching projects
-    onSelectProject(projectId);
+    clearCanvasData();
+    loadProject(projectId);
   };
 
   if (isLoading) {
@@ -100,7 +102,7 @@ export const ProjectCarousel: React.FC<ProjectCarouselProps> = ({
       <div className="p-4 text-center">
         <div className="text-red-500 text-sm">{error}</div>
         <button 
-          onClick={onCreateProject}
+          onClick={() => createAndLoadNewProject()}
           className="mt-2 px-3 py-1.5 bg-blue-600 text-white text-sm rounded-md hover:bg-blue-700"
         >
           Create New Project
@@ -114,7 +116,7 @@ export const ProjectCarousel: React.FC<ProjectCarouselProps> = ({
       <div className="flex items-center justify-between mb-3">
         <h3 className="text-sm font-semibold text-gray-700">Your Projects</h3>
         <button
-          onClick={onCreateProject}
+          onClick={() => createAndLoadNewProject()}
           className="p-1.5 bg-blue-600 text-white rounded-full hover:bg-blue-700"
           title="Create New Project"
         >
@@ -127,7 +129,7 @@ export const ProjectCarousel: React.FC<ProjectCarouselProps> = ({
           <Folder className="w-10 h-10 text-gray-400 mx-auto mb-2" />
           <p className="text-sm text-gray-500 mb-3">No projects yet</p>
           <button
-            onClick={onCreateProject}
+            onClick={() => createAndLoadNewProject()}
             className="px-3 py-1.5 bg-blue-600 text-white text-sm rounded-md hover:bg-blue-700"
           >
             Create Your First Project

@@ -2,6 +2,7 @@ import React from 'react';
 import { motion } from 'framer-motion';
 import { ChevronLeft, ChevronRight, ChevronDown } from 'lucide-react';
 import { GiUnplugged } from 'react-icons/gi';
+import { useAppStore } from '../../store/useAppStore';
 import { Accordion, AccordionSummary, AccordionDetails, Typography } from '@mui/material';
 import { ChatHistory } from '../ui/ChatHistory';
 import { ChatInterface } from '../chat/ChatInterface';
@@ -35,29 +36,29 @@ interface AgentChatProps {
 }
 
 interface SidebarProps {
-  stages: Stage[];
-  currentStage?: Stage;
-  stageData: any;
-  onStageClick: (stageId: string) => void;
-  onCompleteStage: (stageId: string) => void;
-  onUpdateStageData: (stageId: string, data: any) => void;
   isOpen: boolean;
   onToggle: () => void;
   agentChat: AgentChatProps;
 }
 
 export const Sidebar: React.FC<SidebarProps> = ({
-  stages,
-  currentStage,
-  stageData,
-  onStageClick,
-  onCompleteStage,
-  onUpdateStageData,
   isOpen,
   onToggle,
   agentChat
 }) => {
-  const { agentState } = useAgent();
+  // Get state and actions from the store
+  const { 
+    stages, 
+    currentStageId, 
+    stageData, 
+    getCurrentStage,
+    goToStage, 
+    completeStage, 
+    updateStageData 
+  } = useAppStore();
+  
+  // Get the current stage object
+  const currentStage = getCurrentStage();
 
   const handleSendMessage = (content: string) => {
     agentChat.sendMessage(content);
@@ -80,8 +81,8 @@ export const Sidebar: React.FC<SidebarProps> = ({
           <IdeationDiscovery
             stage={currentStage}
             initialFormData={stageData[currentStage.id]}
-            onComplete={() => onCompleteStage(currentStage.id)}
-            onUpdateData={(data: any) => onUpdateStageData(currentStage.id, data)}
+            onComplete={() => completeStage(currentStage.id)}
+            onUpdateData={(data: any) => updateStageData(currentStage.id, data)}
           />
         );
       case 'feature-planning':
@@ -89,8 +90,8 @@ export const Sidebar: React.FC<SidebarProps> = ({
           <FeaturePlanning
             stage={currentStage}
             initialFormData={stageData[currentStage.id]}
-            onComplete={() => onCompleteStage(currentStage.id)}
-            onUpdateData={(data: any) => onUpdateStageData(currentStage.id, data)}
+            onComplete={() => completeStage(currentStage.id)}
+            onUpdateData={(data: any) => updateStageData(currentStage.id, data)}
           />
         );
       case 'structure-flow':
@@ -98,8 +99,8 @@ export const Sidebar: React.FC<SidebarProps> = ({
           <StructureFlow
             stage={currentStage}
             initialFormData={stageData[currentStage.id]}
-            onComplete={() => onCompleteStage(currentStage.id)}
-            onUpdateData={(data: any) => onUpdateStageData(currentStage.id, data)}
+            onComplete={() => completeStage(currentStage.id)}
+            onUpdateData={(data: any) => updateStageData(currentStage.id, data)}
           />
         );
       case 'interface-interaction':
@@ -107,8 +108,8 @@ export const Sidebar: React.FC<SidebarProps> = ({
           <InterfaceInteraction
             stage={currentStage}
             initialFormData={stageData[currentStage.id]}
-            onComplete={() => onCompleteStage(currentStage.id)}
-            onUpdateData={(data: any) => onUpdateStageData(currentStage.id, data)}
+            onComplete={() => completeStage(currentStage.id)}
+            onUpdateData={(data: any) => updateStageData(currentStage.id, data)}
           />
         );
       case 'architecture-design':
@@ -116,8 +117,8 @@ export const Sidebar: React.FC<SidebarProps> = ({
           <ArchitectureDesign
             stage={currentStage}
             initialFormData={stageData[currentStage.id]}
-            onComplete={() => onCompleteStage(currentStage.id)}
-            onUpdateData={(data: any) => onUpdateStageData(currentStage.id, data)}
+            onComplete={() => completeStage(currentStage.id)}
+            onUpdateData={(data: any) => updateStageData(currentStage.id, data)}
           />
         );
       case 'user-auth-flow':
@@ -125,8 +126,8 @@ export const Sidebar: React.FC<SidebarProps> = ({
           <UserAuthFlow
             stage={currentStage}
             initialFormData={stageData[currentStage.id]}
-            onComplete={() => onCompleteStage(currentStage.id)}
-            onUpdateData={(data: any) => onUpdateStageData(currentStage.id, data)}
+            onComplete={() => completeStage(currentStage.id)}
+            onUpdateData={(data: any) => updateStageData(currentStage.id, data)}
           />
         );
       case 'ux-review-check':
@@ -136,9 +137,9 @@ export const Sidebar: React.FC<SidebarProps> = ({
             stages={stages}
             stageData={stageData}
             initialFormData={stageData[currentStage.id]}
-            onComplete={() => onCompleteStage(currentStage.id)}
-            onUpdateData={(data: any) => onUpdateStageData(currentStage.id, data)}
-            onGoToStage={onStageClick}
+            onComplete={() => completeStage(currentStage.id)}
+            onUpdateData={(data: any) => updateStageData(currentStage.id, data)}
+            onGoToStage={goToStage}
           />
         );
       case 'auto-prompt-engine':
@@ -148,8 +149,8 @@ export const Sidebar: React.FC<SidebarProps> = ({
             stages={stages}
             stageData={stageData}
             initialFormData={stageData[currentStage.id]}
-            onComplete={() => onCompleteStage(currentStage.id)}
-            onUpdateData={(data: any) => onUpdateStageData(currentStage.id, data)}
+            onComplete={() => completeStage(currentStage.id)}
+            onUpdateData={(data: any) => updateStageData(currentStage.id, data)}
           />
         );
       case 'export-handoff':
@@ -194,7 +195,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
           <div className="p-4 border-b border-gray-200">
             <StageProgressBubbles 
               stages={stages} 
-              onStageClick={onStageClick}
+              onStageClick={goToStage}
               orientation="horizontal"
               size="md"
             />
@@ -281,7 +282,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
           <div className="bg-white bg-opacity-95 backdrop-blur-sm rounded-lg shadow-lg border border-gray-200 p-3">
             <StageProgressBubbles 
               stages={stages} 
-              onStageClick={onStageClick}
+              onStageClick={goToStage}
               orientation="vertical"
               size="sm"
               showLabels={false}
