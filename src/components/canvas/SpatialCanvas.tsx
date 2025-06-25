@@ -30,16 +30,22 @@ import React, { useEffect, useCallback, useState } from 'react';
 import { motion } from 'framer-motion';
 import { CanvasToolbar } from './CanvasToolbar';
 import { CanvasRenderer } from './core/CanvasRenderer';
+import { CanvasDataProcessor, ProcessorState } from './core/CanvasDataProcessor';
 import { useCanvasStateManager } from './core/CanvasStateManager';
 import { useCanvasScreenshot } from './core/CanvasScreenshot';
 import { useCanvasInteractionManager } from './core/CanvasInteractionManager';
 import { CanvasNodeData } from './CanvasNode';
 import { STAGE1_NODE_TYPES, STAGE1_NODE_DEFAULTS } from './customnodetypes/stage1nodes';
 import { Connection } from '../../types';
+import { Connection } from '../../types';
 
 interface SpatialCanvasProps {
   currentStage?: any;
   stageData: any;
+  canvasNodes?: CanvasNodeData[];
+  canvasConnections?: Connection[];
+  onUpdateCanvasNodes?: (nodes: CanvasNodeData[]) => void;
+  onUpdateCanvasConnections?: (connections: Connection[]) => void;
   canvasNodes?: CanvasNodeData[];
   canvasConnections?: Connection[];
   onUpdateCanvasNodes?: (nodes: CanvasNodeData[]) => void;
@@ -53,13 +59,17 @@ export const SpatialCanvas: React.FC<SpatialCanvasProps> = ({
   canvasConnections = [],
   onUpdateCanvasNodes,
   onUpdateCanvasConnections,
+  canvasNodes = [],
+  canvasConnections = [],
+  onUpdateCanvasNodes,
+  onUpdateCanvasConnections,
   onSendMessage
 }) => {
   const {
     state,
     nodes,
+    nodes,
     connections,
-    updateState,
     updateNode,
     addNode,
     removeNode,
@@ -73,6 +83,10 @@ export const SpatialCanvas: React.FC<SpatialCanvasProps> = ({
     processStageData,
   } = useCanvasStateManager(
     canvasNodes,
+    canvasConnections,
+    onUpdateCanvasNodes,
+    onUpdateCanvasConnections
+  );
     canvasConnections,
     onUpdateCanvasNodes,
     onUpdateCanvasConnections
@@ -110,20 +124,6 @@ export const SpatialCanvas: React.FC<SpatialCanvasProps> = ({
       processStageData(stageData);
     }
   }, [stageData, processStageData]);
-
-  // Initialize screenshot functionality
-  const { takeScreenshot, canvasRef } = useCanvasScreenshot();
-
-  const [isToolbarCollapsed, setIsToolbarCollapsed] = useState(false);
-
-  const handleAddNode = useCallback((type: CanvasNodeData['type']) => {
-    // Check if it's a custom ideation node type
-    if (Object.values(STAGE1_NODE_TYPES).includes(type as any)) {
-      const defaults = STAGE1_NODE_DEFAULTS[type as keyof typeof STAGE1_NODE_DEFAULTS];
-      
-      // For singleton nodes, check if they already exist
-      if (type === 'appName' || type === 'tagline' || type === 'coreProblem' || 
-          type === 'mission' || type === 'valueProp') {
         // Check if this singleton node already exists
         const existingNode = nodes.find(n => n.id === type);
         if (existingNode) {
@@ -368,6 +368,16 @@ export const SpatialCanvas: React.FC<SpatialCanvasProps> = ({
       }
     };
     
+      nodes,
+      connections,
+      metadata: { 
+        exportedAt: new Date().toISOString(),
+        version: '1.0',
+        nodeCount: nodes.length,
+        connectionCount: connections.length
+      }
+    };
+    
     const blob = new Blob([JSON.stringify(exportData, null, 2)], { type: 'application/json' });
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
@@ -376,21 +386,12 @@ export const SpatialCanvas: React.FC<SpatialCanvasProps> = ({
     a.click();
     URL.revokeObjectURL(url);
   }, [nodes, connections]);
-
-  return (
-    <div className="relative w-full h-full flex flex-col overflow-hidden bg-gray-50 rounded-lg border border-gray-200">
-      {/* Canvas Toolbar */}
-      <CanvasToolbar
-        onAddNode={handleAddNode}
-        onZoomIn={() => setScale(Math.min(3, state.scale * 1.2))}
-        onZoomOut={() => setScale(Math.max(0.1, state.scale * 0.8))}
-        onResetView={resetView}
-        onSave={handleSave}
-        onExport={handleExport}
         onToggleGrid={toggleGrid}
         onScreenshot={() => takeScreenshot(canvasRef)}
         onAutoLayout={handleAutoLayout}
         onClearCanvas={clearCanvas}
+        nodes={nodes}
+        connections={connections}
         showGrid={state.showGrid}
         scale={state.scale}
         isCollapsed={isToolbarCollapsed}
