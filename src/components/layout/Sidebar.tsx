@@ -46,18 +46,17 @@ export const Sidebar: React.FC<SidebarProps> = ({
   onToggle,
   agentChat
 }) => {
-  // Get state and actions from the store
+  // Get data from store instead of props:
   const { 
     stages, 
-    currentStageId, 
+    currentStageId,
     stageData, 
     getCurrentStage,
-    goToStage, 
-    completeStage, 
-    updateStageData 
+    goToStage,
+    completeStage,
+    updateStageData
   } = useAppStore();
-  
-  // Get the current stage object
+
   const currentStage = getCurrentStage();
 
   const handleSendMessage = (content: string) => {

@@ -1,25 +1,25 @@
-import React, { useState } from 'react';
-import { motion } from 'framer-motion';
-import { useEffect } from 'react';
-import { useAuth } from './hooks/useAuth'; 
-import { AgentContextProvider } from './components/agent/AgentContextProvider';
-import { Sidebar } from './components/layout/Sidebar';
-import { Canvas } from './components/layout/Canvas';
-import { useAppStore } from './store/useAppStore';
-import { useAgentChat } from './hooks/useAgentChat';
+import React, { useState } from "react";
+import { motion } from "framer-motion";
+import { useEffect } from "react";
+import { useAuth } from "./hooks/useAuth";
+import { AgentContextProvider } from "./components/agent/AgentContextProvider";
+import { Sidebar } from "./components/layout/Sidebar";
+import { Canvas } from "./components/layout/Canvas";
+import { useAppStore } from "./store/useAppStore";
+import { useAgentChat } from "./hooks/useAgentChat";
 
 function App() {
   const [isSidebarOpen, setIsSidebarOpen] = useState(true);
   const { loading: authLoading, user } = useAuth();
-  
+
   // Get state and actions from the store
-  const { 
-    stages, 
+  const {
+    stages,
     currentStageId,
-    stageData, 
-    canvasNodes, 
+    stageData,
+    canvasNodes,
     canvasConnections,
-    isLoading: projectLoading, 
+    isLoading: projectLoading,
     error: projectError,
     getCurrentStage,
     goToStage,
@@ -28,9 +28,9 @@ function App() {
     getNextStage,
     updateCanvasNodes,
     updateCanvasConnections,
-    initializeProject
+    initializeProject,
   } = useAppStore();
-  
+
   // Get the current stage object
   const currentStage = getCurrentStage();
 
@@ -50,12 +50,12 @@ function App() {
     autoFillData,
     isComplete,
     isLoading: agentLoading,
-    error: agentError, 
+    error: agentError,
     retry,
     isStreaming,
-    goToStageId
+    goToStageId,
   } = useAgentChat({
-    stageId: currentStage?.id || '',
+    stageId: currentStage?.id || "",
     currentStageData: currentStage ? stageData[currentStage.id] : {},
     allStageData: stageData,
     onAutoFill: (data) => {
@@ -75,7 +75,7 @@ function App() {
     },
     onGoToStage: (stageId) => {
       goToStage(stageId);
-    }
+    },
   });
 
   // Show loading screen while auth is initializing
@@ -84,7 +84,9 @@ function App() {
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
         <div className="text-center">
           <div className="w-8 h-8 border-2 border-blue-600 border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
-          <p className="text-gray-600">{authLoading ? 'Loading authentication...' : 'Loading project...'}</p>
+          <p className="text-gray-600">
+            {authLoading ? "Loading authentication..." : "Loading project..."}
+          </p>
         </div>
       </div>
     );
@@ -98,9 +100,11 @@ function App() {
           <div className="w-12 h-12 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-4">
             <span className="text-red-600 text-xl">!</span>
           </div>
-          <h2 className="text-xl font-semibold text-gray-800 mb-2">Error Loading Project</h2>
+          <h2 className="text-xl font-semibold text-gray-800 mb-2">
+            Error Loading Project
+          </h2>
           <p className="text-gray-600 mb-4">{projectError}</p>
-          <button 
+          <button
             onClick={() => window.location.reload()}
             className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors"
           >
@@ -123,10 +127,15 @@ function App() {
     <AgentContextProvider>
       <div className="min-h-screen bg-gray-50 flex">
         {/* Main Content */}
-        <div className={`flex-1 transition-all duration-300 ${isSidebarOpen ? 'mr-80' : 'mr-12'}`}>
+        <div
+          className={`flex-1 transition-all duration-300 ${
+            isSidebarOpen ? "mr-80" : "mr-12"
+          }`}
+        >
           <Canvas
             agentChat={{
               sendMessage,
+              retry,
               historyMessages,
               content,
               suggestions,
@@ -134,17 +143,22 @@ function App() {
               isComplete,
               isLoading: agentLoading,
               error: agentError,
-              retry,
-              isStreaming
+              isStreaming,
             }}
             currentStage={currentStage}
             stageData={stageData}
+            canvasNodes={canvasNodes}
+            canvasConnections={canvasConnections}
+            onUpdateCanvasNodes={updateCanvasNodes}
+            onUpdateCanvasConnections={updateCanvasConnections}
             onOpenSidebar={openSidebar}
           />
         </div>
 
         {/* Sidebar */}
         <Sidebar
+          isOpen={isSidebarOpen}
+          onToggle={toggleSidebar}
           agentChat={{
             sendMessage,
             historyMessages,
@@ -155,16 +169,8 @@ function App() {
             isLoading: agentLoading,
             error: agentError,
             retry,
-            isStreaming
+            isStreaming,
           }}
-          stages={stages}
-          currentStage={currentStage}
-          stageData={stageData}
-          onStageClick={goToStage}
-          onCompleteStage={completeStage}
-          onUpdateStageData={updateStageData}
-          isOpen={isSidebarOpen}
-          onToggle={toggleSidebar}
         />
       </div>
     </AgentContextProvider>

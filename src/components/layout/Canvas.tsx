@@ -11,6 +11,8 @@ import { Stage, StageData, Connection } from '../../types';
 import { SpatialCanvas } from '../canvas/SpatialCanvas';
 import { useAppStore } from '../../store/useAppStore';
 import { UserChatOverlay } from '../chat/UserChatOverlay';
+import { useAgent } from '../agent/AgentContextProvider';
+import { CanvasNodeData } from '../canvas/CanvasNode';
 
 interface AgentChatProps {
   sendMessage: (message: string) => void;
@@ -28,6 +30,10 @@ interface AgentChatProps {
 interface CanvasProps {
   currentStage?: Stage;
   stageData: StageData;
+  canvasNodes?: CanvasNodeData[];
+  canvasConnections?: Connection[];
+  onUpdateCanvasNodes?: (nodes: CanvasNodeData[]) => void;
+  onUpdateCanvasConnections?: (connections: Connection[]) => void;
   onOpenSidebar?: () => void;
   agentChat: AgentChatProps;
 }
@@ -35,13 +41,21 @@ interface CanvasProps {
 export const Canvas: React.FC<CanvasProps> = ({
   currentStage,
   stageData,
+  canvasNodes,
+  canvasConnections,
+  onUpdateCanvasNodes,
+  onUpdateCanvasConnections,
   onOpenSidebar,
   agentChat
 }) => {
   const [lastUserMessage, setLastUserMessage] = useState<string>('');
   
-  // Get canvas data from the store
-  const { canvasNodes, canvasConnections } = useAppStore();
+  // Remove this line that's causing the infinite loop:
+  // const { canvasNodes, canvasConnections } = useAppStore();
+  
+  // Use the props directly (they're already passed from App.tsx)
+  const effectiveCanvasNodes = canvasNodes || [];
+  const effectiveCanvasConnections = canvasConnections || [];
 
   const handleSendMessage = (message: string) => {
     setLastUserMessage(message);
@@ -132,10 +146,10 @@ export const Canvas: React.FC<CanvasProps> = ({
           <SpatialCanvas
             currentStage={currentStage}
             stageData={stageData}
-            canvasNodes={canvasNodes}
-            canvasConnections={canvasConnections}
-            onUpdateCanvasNodes={undefined}
-            onUpdateCanvasConnections={undefined}
+            canvasNodes={effectiveCanvasNodes}
+            canvasConnections={effectiveCanvasConnections}
+            onUpdateCanvasNodes={onUpdateCanvasNodes}
+            onUpdateCanvasConnections={onUpdateCanvasConnections}
             onSendMessage={agentChat.sendMessage}
           />
         </motion.div>
