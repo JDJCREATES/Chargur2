@@ -408,15 +408,12 @@ export const SpatialCanvas: React.FC<SpatialCanvasProps> = ({
         onMouseUp={handlers.onMouseUp}
         onMouseLeave={handlers.onMouseUp}
         onKeyDown={handlers.onKeyDown}
-        tabIndex={0}
-          onZoomOut={() => setScale(Math.max(0.1, state.scale * 0.8))} 
+        tabIndex={0}>
         <CanvasRenderer
           nodes={nodes}
           connections={connections}
           selectedNodeId={state.selectedNodeId}
           connectingFrom={interactionState.connectingFrom}
-          nodes={nodes}
-          connections={connections}
           scale={state.scale}
           offset={state.offset}
           showGrid={state.showGrid}
