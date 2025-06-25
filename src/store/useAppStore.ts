@@ -87,6 +87,8 @@ interface AppState {
   canvasConnections: Connection[];
   isLoading: boolean;
   error: string | null;
+  updateProject: (projectId: string, updates: { name?: string; description?: string }) => Promise<void>;
+
   
   // Computed values
   getCurrentStage: () => Stage | undefined;
@@ -148,6 +150,7 @@ export const useAppStore = create<AppState>((set, get) => {
     canvasConnections: [],
     isLoading: true,
     error: null,
+   
     
     // Computed values
     getCurrentStage: () => {
@@ -376,6 +379,43 @@ export const useAppStore = create<AppState>((set, get) => {
           error: err instanceof Error ? err.message : 'Failed to initialize project',
           isLoading: false
         });
+      }
+    },
+    
+    updateProject: async (projectId: string, updates: { name?: string; description?: string }) => {
+      try {
+        set({ error: null }); // Clear any existing errors
+        
+        const { error } = await supabase
+          .from('projects')
+          .update({
+            ...updates,
+            updated_at: new Date().toISOString()
+          })
+          .eq('id', projectId);
+
+        if (error) throw error;
+
+        // Update current project if it's the one being edited
+        const currentProject = get().currentProject;
+        if (currentProject && currentProject.id === projectId) {
+          set({
+            currentProject: {
+              ...currentProject,
+              ...updates,
+              updated_at: new Date().toISOString()
+            }
+          });
+        }
+
+        console.log('Project updated successfully:', projectId);
+      } catch (err) {
+        console.error('Failed to update project:', err);
+        const errorMessage = err instanceof Error ? err.message : 'Failed to update project';
+        set({ error: errorMessage });
+        
+        // Optionally throw the error so the UI can handle it
+        throw new Error(errorMessage);
       }
     }
   };

@@ -6,17 +6,25 @@ import { useAppStore } from '../../store/useAppStore';
 import { useAuth } from '../../hooks/useAuth';
 import { Project } from '../../types';
 
-interface ProjectCarouselProps {}
 
-export const ProjectCarousel: React.FC<ProjectCarouselProps> = () => {
-  // Get state and actions from the store
-  const {
-    projectId: currentProjectId,
-    loadProject,
-    createAndLoadNewProject,
-    clearCanvasData
-  } = useAppStore();
-  
+interface ProjectCarouselProps {
+  onSelectProject: (projectId: string) => void;
+  currentProjectId: string | null;
+}
+
+
+export const ProjectCarousel: React.FC<ProjectCarouselProps> = ({
+  onSelectProject,
+  currentProjectId
+}) => {
+  // Get the store method
+  const { createAndLoadNewProject } = useAppStore();
+
+  // Use the store method instead of the prop
+  const handleCreateProject = () => {
+    createAndLoadNewProject();
+  };
+
   const [projects, setProjects] = useState<Project[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -84,9 +92,7 @@ export const ProjectCarousel: React.FC<ProjectCarouselProps> = () => {
   };
 
   const handleProjectSelect = (projectId: string) => {
-    // Clear canvas before switching projects
-    clearCanvasData();
-    loadProject(projectId);
+    onSelectProject(projectId);
   };
 
   if (isLoading) {
@@ -102,7 +108,7 @@ export const ProjectCarousel: React.FC<ProjectCarouselProps> = () => {
       <div className="p-4 text-center">
         <div className="text-red-500 text-sm">{error}</div>
         <button 
-          onClick={() => createAndLoadNewProject()}
+          onClick={handleCreateProject}
           className="mt-2 px-3 py-1.5 bg-blue-600 text-white text-sm rounded-md hover:bg-blue-700"
         >
           Create New Project
@@ -180,7 +186,7 @@ export const ProjectCarousel: React.FC<ProjectCarouselProps> = () => {
                       ? 'bg-blue-50 border-blue-300'
                       : 'bg-white border-gray-200 hover:border-blue-200 hover:bg-blue-50'
                   }`}
-                  onClick={() => onSelectProject(project.id)}
+                  onClick={() => handleProjectSelect(project.id)}
                   whileHover={{ scale: 1.02 }}
                   whileTap={{ scale: 0.98 }}
                 >

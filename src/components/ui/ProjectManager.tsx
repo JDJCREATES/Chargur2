@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Plus, Folder, Edit, Trash2, Check, X } from 'lucide-react';
+import { Plus, Edit, Check, X } from 'lucide-react';
 import { useAppStore } from '../../store/useAppStore';
 import { ProjectCarousel } from './ProjectCarousel';
 
@@ -9,13 +9,13 @@ interface ProjectManagerProps {
 }
 
 export const ProjectManager: React.FC<ProjectManagerProps> = ({ onClose }) => {
-  // Get state and actions from the store
+  // Replace useStageManager with useAppStore
   const {
     projectId: currentProjectId,
     currentProject,
     loadProject,
     createAndLoadNewProject,
-    clearCanvasData
+    updateProject // Add this method to your store if it doesn't exist
   } = useAppStore();
   
   const [isCreating, setIsCreating] = useState(false);
@@ -23,11 +23,11 @@ export const ProjectManager: React.FC<ProjectManagerProps> = ({ onClose }) => {
   const [newProjectName, setNewProjectName] = useState('');
   const [newProjectDescription, setNewProjectDescription] = useState('');
 
-  const handleCreateProject = async () => {
+  const handleCreateProject = () => {
     if (isCreating) {
       // Submit new project
       if (newProjectName.trim()) {
-        await createAndLoadNewProject(newProjectName.trim(), newProjectDescription.trim()); // This now handles canvas clearing internally
+        createAndLoadNewProject(newProjectName.trim(), newProjectDescription.trim());
         setNewProjectName('');
         setNewProjectDescription('');
         setIsCreating(false);
@@ -42,11 +42,15 @@ export const ProjectManager: React.FC<ProjectManagerProps> = ({ onClose }) => {
     }
   };
 
-  const handleEditProject = async () => {
+  const handleEditProject = () => {
     if (isEditing && currentProject) {
-      // Submit edit
-      // This would need to be implemented in useStageManager
-      // For now, we'll just close the form
+      // Submit edit using store method
+      if (updateProject) {
+        updateProject(currentProject.id, {
+          name: newProjectName.trim(),
+          description: newProjectDescription.trim()
+        });
+      }
       setIsEditing(false);
     } else if (currentProject) {
       // Show edit form
@@ -57,12 +61,8 @@ export const ProjectManager: React.FC<ProjectManagerProps> = ({ onClose }) => {
     }
   };
 
-  const handleSelectProject = async (projectId: string) => {
-    console.log('Project selected in ProjectManager:', projectId);
-    // First clear the canvas to ensure a clean state
-    clearCanvasData();
-    // Then load the selected project
-    await loadProject(projectId); // loadProject now handles canvas clearing internally
+  const handleSelectProject = (projectId: string) => {
+    loadProject(projectId);
     if (onClose) onClose();
   };
 
@@ -71,7 +71,6 @@ export const ProjectManager: React.FC<ProjectManagerProps> = ({ onClose }) => {
       {/* Project Carousel */}
       <ProjectCarousel 
         onSelectProject={handleSelectProject}
-        onCreateProject={handleCreateProject}
         currentProjectId={currentProjectId}
       />
       

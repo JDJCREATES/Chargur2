@@ -132,6 +132,10 @@ export const Canvas: React.FC<CanvasProps> = ({
           <SpatialCanvas
             currentStage={currentStage}
             stageData={stageData}
+            canvasNodes={canvasNodes}
+            canvasConnections={canvasConnections}
+            onUpdateCanvasNodes={undefined}
+            onUpdateCanvasConnections={undefined}
             onSendMessage={agentChat.sendMessage}
           />
         </motion.div>

@@ -28,6 +28,7 @@
 
 import React, { useEffect, useCallback, useState } from 'react';
 import { motion } from 'framer-motion';
+import { Connection } from '../../types';
 import { CanvasToolbar } from './CanvasToolbar';
 import { CanvasRenderer } from './core/CanvasRenderer';
 import { useAppStore } from '../../store/useAppStore';
@@ -37,26 +38,45 @@ import { useCanvasInteractionManager } from './core/CanvasInteractionManager';
 import { CanvasNodeData } from './CanvasNode'; 
 import { STAGE1_NODE_TYPES, STAGE1_NODE_DEFAULTS } from './customnodetypes/stage1nodes'; 
 
+// Update the props interface to make callbacks optional
 interface SpatialCanvasProps {
   currentStage?: any;
   stageData: any;
+  canvasNodes?: CanvasNodeData[];
+  canvasConnections?: Connection[];
+  onUpdateCanvasNodes?: (nodes: CanvasNodeData[]) => void;
+  onUpdateCanvasConnections?: (connections: Connection[]) => void;
   onSendMessage: (message: string) => void;
 }
 
+// In the component, use store methods when callbacks aren't provided
 export const SpatialCanvas: React.FC<SpatialCanvasProps> = ({
   stageData,
+  canvasNodes,
+  canvasConnections,
+  onUpdateCanvasNodes,
+  onUpdateCanvasConnections,
   onSendMessage
 }) => {
   // Get canvas data and actions from the store
   const { 
-    canvasNodes, 
-    canvasConnections, 
+    canvasNodes: storeCanvasNodes, 
+    canvasConnections: storeCanvasConnections, 
     updateCanvasNodes, 
-    updateCanvasConnections,
-    projectId
+    updateCanvasConnections 
   } = useAppStore();
 
+  const { projectId } = useAppStore();
+
   const [isToolbarCollapsed, setIsToolbarCollapsed] = useState(false);
+
+  // Use store data as fallback when props aren't provided
+  const effectiveNodes = canvasNodes || storeCanvasNodes;
+  const effectiveConnections = canvasConnections || storeCanvasConnections;
+  
+  // Use store methods as fallback
+  const handleUpdateNodes = onUpdateCanvasNodes || updateCanvasNodes;
+  const handleUpdateConnections = onUpdateCanvasConnections || updateCanvasConnections;
 
   const {
     state,
@@ -75,10 +95,10 @@ export const SpatialCanvas: React.FC<SpatialCanvasProps> = ({
     toggleGrid,
     processStageData,
   } = useCanvasStateManager(
-    canvasNodes,
-    canvasConnections,
-    updateCanvasNodes,
-    updateCanvasConnections
+    effectiveNodes,
+    effectiveConnections,
+    handleUpdateNodes,
+    handleUpdateConnections
   );
 
   const {
@@ -107,9 +127,8 @@ export const SpatialCanvas: React.FC<SpatialCanvasProps> = ({
     }
   );
 
-  // Reset view when project changes
+  // Reset view when canvas nodes change significantly (indicating project change)
   useEffect(() => {
-    // Skip the initial mount
     if (!projectId) {
       return;
     }

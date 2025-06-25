@@ -1,3 +1,6 @@
+import { CanvasNodeData } from '../components/canvas/CanvasNode';
+
+
 export interface Stage {
   id: string;
   title: string;
@@ -47,3 +50,4 @@ export interface StreamingChatResponse {
   isStreaming: boolean;
   error?: string | null;
 }
+

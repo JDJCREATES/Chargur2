@@ -31,6 +31,7 @@ import {
 } from 'react-icons/gi';
 import { Accordion, AccordionSummary, AccordionDetails, Typography } from '@mui/material';
 import { CanvasNodeData } from './CanvasNode';
+import { Connection } from '../../types';
 
 interface CanvasToolbarProps {
   onAddNode: (type: CanvasNodeData['type']) => void;
