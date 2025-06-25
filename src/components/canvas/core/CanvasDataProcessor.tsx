@@ -766,7 +766,15 @@ export class CanvasDataProcessor {
       id: `auth-${this.nodeIdCounter++}`,
       type: 'system',
       title: 'User Roles',
-      content: `${userRoles.length} roles defined\n\n${userRoles.map((r: any) => `• ${r.name}: ${r.description.slice(0, 20)}...`).join('\n')}`,
+      content: `${userRoles.length} roles defined\n\n${userRoles.map((r: any) => {
+        const name = r?.name || 'Unnamed Role';
+        const description = r?.description || '';
+        // Add null check before using slice
+        const truncatedDesc = description && typeof description === 'string' 
+          ? description.slice(0, 20) + '...' 
+          : 'No description';
+        return `• ${name}: ${truncatedDesc}`;
+      }).join('\n')}`,
       position: { x: baseX + 200, y: baseY },
       size: { width: 180, height: 120 },
       color: 'red',
