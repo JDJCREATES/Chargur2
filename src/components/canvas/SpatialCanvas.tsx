@@ -40,16 +40,25 @@ import { STAGE1_NODE_TYPES, STAGE1_NODE_DEFAULTS } from './customnodetypes/stage
 interface SpatialCanvasProps {
   currentStage?: any;
   stageData: any;
+  canvasNodes?: CanvasNodeData[];
+  canvasConnections?: Connection[];
+  onUpdateCanvasNodes?: (nodes: CanvasNodeData[]) => void;
+  onUpdateCanvasConnections?: (connections: Connection[]) => void;
   onSendMessage: (message: string) => void;
 }
 
 export const SpatialCanvas: React.FC<SpatialCanvasProps> = ({
   stageData,
+  canvasNodes = [],
+  canvasConnections = [],
+  onUpdateCanvasNodes,
+  onUpdateCanvasConnections,
   onSendMessage
 }) => {
   const {
     state,
-    isLoaded,
+    nodes,
+    connections,
     updateState,
     updateNode,
     addNode,
@@ -61,9 +70,12 @@ export const SpatialCanvas: React.FC<SpatialCanvasProps> = ({
     setScale,
     setOffset,
     toggleGrid,
-    exportState,
-    importState
-  } = useCanvasStateManager();
+  } = useCanvasStateManager(
+    canvasNodes,
+    canvasConnections,
+    onUpdateCanvasNodes,
+    onUpdateCanvasConnections
+  );
 
   const {
     interactionState,
@@ -86,31 +98,26 @@ export const SpatialCanvas: React.FC<SpatialCanvasProps> = ({
       
       // Update node connections
       updateNode(from, {
-        connections: [...(state.nodes.find(n => n.id === from)?.connections || []), to]
+        connections: [...(nodes.find(n => n.id === from)?.connections || []), to]
       });
     }
   );
 
   // Handle stage data updates through CanvasDataProcessor
   useEffect(() => {
-    if (!isLoaded) return;
-
     const processorState: ProcessorState = {
-      nodes: state.nodes,
-      lastProcessedData: state.lastProcessedData
+      nodes: nodes,
+      lastProcessedData: {}
     };
 
     CanvasDataProcessor.updateCanvasFromStageData(
       stageData,
       processorState,
       (newState: ProcessorState) => {
-        updateState({
-          nodes: newState.nodes,
-          lastProcessedData: newState.lastProcessedData
-        });
+        updateNodes(newState.nodes);
       }
     );
-  }, [stageData, isLoaded, state.nodes, state.lastProcessedData, updateState]);
+  }, [stageData, nodes, updateNodes]);
 
   // Initialize screenshot functionality
   const { takeScreenshot, canvasRef } = useCanvasScreenshot();
@@ -126,7 +133,7 @@ export const SpatialCanvas: React.FC<SpatialCanvasProps> = ({
       if (type === 'appName' || type === 'tagline' || type === 'coreProblem' || 
           type === 'mission' || type === 'valueProp') {
         // Check if this singleton node already exists
-        const existingNode = state.nodes.find(n => n.id === type);
+        const existingNode = nodes.find(n => n.id === type);
         if (existingNode) {
           // Select the existing node instead of creating a new one
           setSelectedNode(existingNode.id);
@@ -319,11 +326,11 @@ export const SpatialCanvas: React.FC<SpatialCanvasProps> = ({
       addNode(newNode);
       setSelectedNode(newNode.id);
     }
-  }, [addNode, setSelectedNode, state.nodes]);
+  }, [addNode, setSelectedNode, nodes]);
 
   const handleAutoLayout = useCallback(() => {
     // Simple force-directed layout
-    const nodesByType = state.nodes.reduce((acc, node) => {
+    const nodesByType = nodes.reduce((acc, node) => {
       if (!acc[node.type]) acc[node.type] = [];
       acc[node.type].push(node);
       return acc;
@@ -341,12 +348,12 @@ export const SpatialCanvas: React.FC<SpatialCanvasProps> = ({
       });
       x += typeSpacing;
     });
-  }, [state.nodes, updateNode]);
+  }, [nodes, updateNode]);
 
-  // Save canvas state to localStorage
+  // Save canvas state
   const handleSave = useCallback(() => {
-    // Canvas is already auto-saved via useCanvasStateManager
-    // Just provide visual feedback
+    // Canvas is already auto-saved via onUpdateCanvasNodes/onUpdateCanvasConnections
+    // Just provide visual feedback to the user
     const savedNotification = document.createElement('div');
     savedNotification.className = 'fixed top-4 right-4 bg-green-100 text-green-800 px-4 py-2 rounded-lg shadow-md z-50';
     savedNotification.textContent = 'Canvas saved successfully';
@@ -358,7 +365,17 @@ export const SpatialCanvas: React.FC<SpatialCanvasProps> = ({
   }, []);
 
   const handleExport = useCallback(() => {
-    const exportData = exportState();
+    const exportData = {
+      nodes,
+      connections,
+      metadata: {
+        exportedAt: new Date().toISOString(),
+        version: '1.0',
+        nodeCount: nodes.length,
+        connectionCount: connections.length
+      }
+    };
+    
     const blob = new Blob([JSON.stringify(exportData, null, 2)], { type: 'application/json' });
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
@@ -366,18 +383,7 @@ export const SpatialCanvas: React.FC<SpatialCanvasProps> = ({
     a.download = 'canvas-export.json';
     a.click();
     URL.revokeObjectURL(url);
-  }, [exportState]);
-
-  if (!isLoaded) {
-    return (
-      <div className="w-full h-full flex items-center justify-center bg-gray-50">
-        <div className="text-center">
-          <div className="w-8 h-8 border-2 border-blue-600 border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
-          <p className="text-gray-600">Loading canvas...</p>
-        </div>
-      </div>
-    );
-  }
+  }, [nodes, connections]);
 
   return (
     <div className="relative w-full h-full flex flex-col overflow-hidden bg-gray-50 rounded-lg border border-gray-200">
@@ -390,8 +396,8 @@ export const SpatialCanvas: React.FC<SpatialCanvasProps> = ({
         onSave={handleSave}
         onExport={handleExport}
         onToggleGrid={toggleGrid}
-        onScreenshot={() => takeScreenshot(canvasRef)}
-        onAutoLayout={handleAutoLayout}
+        nodes={nodes}
+        connections={connections}
         onClearCanvas={clearCanvas}
         showGrid={state.showGrid}
         scale={state.scale}
@@ -431,8 +437,8 @@ export const SpatialCanvas: React.FC<SpatialCanvasProps> = ({
 
       {/* Canvas Info */}
       <div className="absolute bottom-4 right-4 bg-white bg-opacity-90 backdrop-blur-sm rounded-lg shadow-sm border border-gray-200 p-3 text-xs text-gray-600">
-        <div>Nodes: {state.nodes.length}</div>
-        <div>Connections: {state.connections.length}</div>
+        <div>Nodes: {nodes.length}</div>
+        <div>Connections: {connections.length}</div>
         <div>Zoom: {Math.round(state.scale * 100)}%</div>
       </div>
     </div>

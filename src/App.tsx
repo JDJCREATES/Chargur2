@@ -6,6 +6,8 @@ import { Sidebar } from './components/layout/Sidebar';
 import { Canvas } from './components/layout/Canvas';
 import { useStageManager } from './hooks/useStageManager';
 import { useAgentChat } from './hooks/useAgentChat';
+import { Connection } from './types';
+import { CanvasNodeData } from './components/canvas/CanvasNode';
 
 function App() {
   const [isSidebarOpen, setIsSidebarOpen] = useState(true);
@@ -14,10 +16,16 @@ function App() {
     stages,
     currentStage,
     stageData,
+    canvasNodes,
+    canvasConnections,
+    isLoading: projectLoading,
+    error: projectError,
     goToStage,
     completeStage,
     updateStageData,
     getNextStage,
+    updateCanvasNodes,
+    updateCanvasConnections
   } = useStageManager();
 
   // Initialize agent chat once at the App level
@@ -58,12 +66,33 @@ function App() {
   });
 
   // Show loading screen while auth is initializing
-  if (authLoading) {
+  if (authLoading || projectLoading) {
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
         <div className="text-center">
           <div className="w-8 h-8 border-2 border-blue-600 border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
-          <p className="text-gray-600">Loading...</p>
+          <p className="text-gray-600">{authLoading ? 'Loading authentication...' : 'Loading project...'}</p>
+        </div>
+      </div>
+    );
+  }
+
+  // Show error screen if project loading failed
+  if (projectError) {
+    return (
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+        <div className="text-center max-w-md p-6 bg-white rounded-lg shadow-md">
+          <div className="w-12 h-12 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-4">
+            <span className="text-red-600 text-xl">!</span>
+          </div>
+          <h2 className="text-xl font-semibold text-gray-800 mb-2">Error Loading Project</h2>
+          <p className="text-gray-600 mb-4">{projectError}</p>
+          <button 
+            onClick={() => window.location.reload()}
+            className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors"
+          >
+            Retry
+          </button>
         </div>
       </div>
     );
@@ -97,6 +126,10 @@ function App() {
             }}
             currentStage={currentStage}
             stageData={stageData}
+            canvasNodes={canvasNodes}
+            canvasConnections={canvasConnections}
+            onUpdateCanvasNodes={updateCanvasNodes}
+            onUpdateCanvasConnections={updateCanvasConnections}
             onOpenSidebar={openSidebar}
           />
         </div>

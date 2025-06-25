@@ -7,10 +7,11 @@
 
 import React, { useState } from 'react';
 import { motion } from 'framer-motion';
-import { Stage, StageData } from '../../types';
+import { Stage, StageData, Connection } from '../../types';
 import { SpatialCanvas } from '../canvas/SpatialCanvas';
 import { UserChatOverlay } from '../chat/UserChatOverlay';
 import { useAgent } from '../agent/AgentContextProvider';
+import { CanvasNodeData } from '../canvas/CanvasNode';
 
 interface AgentChatProps {
   sendMessage: (message: string) => void;
@@ -28,6 +29,10 @@ interface AgentChatProps {
 interface CanvasProps {
   currentStage?: Stage;
   stageData: StageData;
+  canvasNodes?: CanvasNodeData[];
+  canvasConnections?: Connection[];
+  onUpdateCanvasNodes?: (nodes: CanvasNodeData[]) => void;
+  onUpdateCanvasConnections?: (connections: Connection[]) => void;
   onOpenSidebar?: () => void;
   agentChat: AgentChatProps;
 }
@@ -35,6 +40,10 @@ interface CanvasProps {
 export const Canvas: React.FC<CanvasProps> = ({
   currentStage,
   stageData,
+  canvasNodes,
+  canvasConnections,
+  onUpdateCanvasNodes,
+  onUpdateCanvasConnections,
   onOpenSidebar,
   agentChat
 }) => {
@@ -130,6 +139,10 @@ export const Canvas: React.FC<CanvasProps> = ({
           <SpatialCanvas
             currentStage={currentStage}
             stageData={stageData}
+            canvasNodes={canvasNodes}
+            canvasConnections={canvasConnections}
+            onUpdateCanvasNodes={onUpdateCanvasNodes}
+            onUpdateCanvasConnections={onUpdateCanvasConnections}
             onSendMessage={agentChat.sendMessage}
           />
         </motion.div>

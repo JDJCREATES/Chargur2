@@ -23,7 +23,7 @@ import { STAGE1_NODE_TYPES, STAGE1_NODE_DEFAULTS } from '../customnodetypes/stag
 
 export interface ProcessorState {
   nodes: CanvasNodeData[];
-  lastProcessedData: { [key: string]: any };
+  lastProcessedData?: { [key: string]: any };
 }
 
 export class CanvasDataProcessor {
@@ -40,7 +40,7 @@ export class CanvasDataProcessor {
   ): void {
     // Check what data has changed and only add new nodes
     const currentDataHash = JSON.stringify(stageData);
-    const lastDataHash = JSON.stringify(currentState.lastProcessedData);
+    const lastDataHash = JSON.stringify(currentState.lastProcessedData || {});
     
     if (currentDataHash === lastDataHash) {
       return; // No changes, don't update
@@ -77,7 +77,7 @@ export class CanvasDataProcessor {
    */
   private static processIdeationData(stageData: any, currentState: ProcessorState, updatedNodes: CanvasNodeData[]): CanvasNodeData[] {
     const ideationData = stageData['ideation-discovery'];
-    const lastIdeationData = currentState.lastProcessedData['ideation-discovery'] || {};
+    const lastIdeationData = (currentState.lastProcessedData || {})['ideation-discovery'] || {};
     
     if (!ideationData || JSON.stringify(ideationData) === JSON.stringify(lastIdeationData)) {
       return updatedNodes;
@@ -219,7 +219,7 @@ export class CanvasDataProcessor {
    */
   private static processFeatureData(stageData: any, currentState: ProcessorState, updatedNodes: CanvasNodeData[]): CanvasNodeData[] {
     const featureData = stageData['feature-planning'];
-    const lastFeatureData = currentState.lastProcessedData['feature-planning'] || {};
+    const lastFeatureData = (currentState.lastProcessedData || {})['feature-planning'] || {};
     
     if (!featureData || JSON.stringify(featureData) === JSON.stringify(lastFeatureData)) {
       return updatedNodes;
@@ -260,7 +260,7 @@ export class CanvasDataProcessor {
    */
   private static processStructureData(stageData: any, currentState: ProcessorState, updatedNodes: CanvasNodeData[]): CanvasNodeData[] {
     const structureData = stageData['structure-flow'];
-    const lastStructureData = currentState.lastProcessedData['structure-flow'] || {};
+    const lastStructureData = (currentState.lastProcessedData || {})['structure-flow'] || {};
     
     if (!structureData || JSON.stringify(structureData) === JSON.stringify(lastStructureData)) {
       return updatedNodes;
@@ -295,7 +295,7 @@ export class CanvasDataProcessor {
    */
   private static processArchitectureData(stageData: any, currentState: ProcessorState, updatedNodes: CanvasNodeData[]): CanvasNodeData[] {
     const architectureData = stageData['architecture-design'];
-    const lastArchitectureData = currentState.lastProcessedData['architecture-design'] || {};
+    const lastArchitectureData = (currentState.lastProcessedData || {})['architecture-design'] || {};
     
     if (!architectureData || JSON.stringify(architectureData) === JSON.stringify(lastArchitectureData)) {
       return updatedNodes;
@@ -335,7 +335,7 @@ export class CanvasDataProcessor {
    */
   private static processInterfaceData(stageData: any, currentState: ProcessorState, updatedNodes: CanvasNodeData[]): CanvasNodeData[] {
     const interfaceData = stageData['interface-interaction'] || {};
-    const lastInterfaceData = currentState.lastProcessedData['interface-interaction'] || {};
+    const lastInterfaceData = (currentState.lastProcessedData || {})['interface-interaction'] || {};
     
     if (!interfaceData || JSON.stringify(interfaceData) === JSON.stringify(lastInterfaceData)) {
       return updatedNodes;
@@ -371,7 +371,7 @@ export class CanvasDataProcessor {
    */
   private static processAuthData(stageData: any, currentState: ProcessorState, updatedNodes: CanvasNodeData[]): CanvasNodeData[] {
     const authData = stageData['user-auth-flow'] || {};
-    const lastAuthData = currentState.lastProcessedData['user-auth-flow'] || {};
+    const lastAuthData = (currentState.lastProcessedData || {})['user-auth-flow'] || {};
     
     if (!authData || JSON.stringify(authData) === JSON.stringify(lastAuthData)) {
       return updatedNodes;

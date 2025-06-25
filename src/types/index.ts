@@ -24,12 +24,20 @@ export interface Project {
   id: string;
   name: string;
   description: string;
-  stages: Stage[];
-  currentStageId: string;
+  user_id: string;
+  current_stage_id: string;
   stageData: StageData;
-  chatHistory: ChatMessage[];
-  createdAt: Date;
-  updatedAt: Date;
+  canvas_nodes: CanvasNodeData[];
+  canvas_connections: Connection[];
+  created_at: string;
+  updated_at: string;
+}
+
+export interface Connection {
+  id: string;
+  from: string;
+  to: string;
+  type?: 'reference' | 'dependency' | 'flow';
 }
 
 export interface StreamingChatResponse {
