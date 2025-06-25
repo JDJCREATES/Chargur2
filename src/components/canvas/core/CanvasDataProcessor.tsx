@@ -115,22 +115,22 @@ export class CanvasDataProcessor {
   private static generateAIAnalysisNode(stageData: any, nodeCount: number): CanvasNodeData | null {
     // Generate AI analysis based on project completeness
     const completedStages = Object.keys(stageData).length;
-    
     if (completedStages === 0) return null;
 
     return {
       id: `ai-analysis-${this.nodeIdCounter++}`,
-      type: 'default',
+      type: 'agent-output',
+      title: 'AI Analysis',
+      content: `Project has ${completedStages} completed stages`,
       position: { x: 100 + (nodeCount * 50), y: 100 + (nodeCount * 50) },
-      data: {
-        title: 'AI Analysis',
-        content: `Project has ${completedStages} completed stages`,
-        type: 'ai-analysis'
-      },
+      size: { width: 200, height: 120 }, // Add proper size
+      color: 'gray',
+      connections: [],
       metadata: {
         generated: true,
         stageId: 'ai-analysis'
-      }
+      },
+      resizable: true
     };
   }
 }

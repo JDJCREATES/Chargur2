@@ -49,9 +49,13 @@ export const DraggableConnectableWrapper: React.FC<DraggableConnectableWrapperPr
   const initialMousePosRef = useRef({ x: 0, y: 0 });
   const initialNodeSizeRef = useRef({ width: 0, height: 0 });
 
+  // Add safety checks for node properties
+  const nodeSize = node.size || { width: 200, height: 100 };
+  const nodePosition = node.position || { x: 0, y: 0 };
+
   const handleDragStart = (event: any, info: any) => {
     setIsDragging(true);
-    setDragStart({ x: node.position.x, y: node.position.y });
+    setDragStart({ x: nodePosition.x, y: nodePosition.y });
   };
 
   const handleDrag = (event: any, info: any) => {
@@ -73,8 +77,8 @@ export const DraggableConnectableWrapper: React.FC<DraggableConnectableWrapperPr
     if (!isDragging) return;
     
     const newPosition = {
-      x: Math.max(0, node.position.x + info.delta.x / scale),
-      y: Math.max(0, node.position.y + info.delta.y / scale),
+      x: Math.max(0, nodePosition.x + info.delta.x / scale),
+      y: Math.max(0, nodePosition.y + info.delta.y / scale),
     };
     onUpdate(node.id, { position: newPosition });
   };
@@ -83,7 +87,7 @@ export const DraggableConnectableWrapper: React.FC<DraggableConnectableWrapperPr
     e.stopPropagation();
     setIsResizing(true);
     initialMousePosRef.current = { x: e.clientX, y: e.clientY };
-    initialNodeSizeRef.current = { width: node.size.width, height: node.size.height };
+    initialNodeSizeRef.current = { width: nodeSize.width, height: nodeSize.height };
   };
 
   const handleResize = (e: React.MouseEvent) => {
@@ -124,10 +128,10 @@ export const DraggableConnectableWrapper: React.FC<DraggableConnectableWrapperPr
         ${isDragging ? 'z-50' : isSelected ? 'z-30' : 'z-10'}
       `}
       style={{
-        left: `${node.position.x}px`,
-        top: `${node.position.y}px`,
-        width: node.size.width,
-        minHeight: node.size.height,
+        left: `${nodePosition.x}px`,
+        top: `${nodePosition.y}px`,
+        width: nodeSize.width,
+        minHeight: nodeSize.height,
       }}
       onClick={(e) => {
         e.stopPropagation();
