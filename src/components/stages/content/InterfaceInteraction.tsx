@@ -391,8 +391,8 @@ export const InterfaceInteraction: React.FC<InterfaceInteractionProps> = ({
                       <input
                         type="text"
                         value={rule.component}
+                        readOnly={true}
                         className="w-full px-2 py-1 border border-green-200 rounded focus:outline-none focus:ring-1 focus:ring-green-500"
-                        readOnly
                       />
                     </div>
                     <div>
@@ -409,8 +409,8 @@ export const InterfaceInteraction: React.FC<InterfaceInteractionProps> = ({
                       <input
                         type="text"
                         value={rule.action}
+                        readOnly={true}
                         className="w-full px-2 py-1 border border-green-200 rounded focus:outline-none focus:ring-1 focus:ring-green-500"
-                        readOnly
                       />
                     </div>
                     <div>
@@ -529,8 +529,8 @@ export const InterfaceInteraction: React.FC<InterfaceInteractionProps> = ({
                       <input
                         type="text"
                         value={item.context}
+                        readOnly={true}
                         className="w-full px-2 py-1 border border-teal-200 rounded focus:outline-none focus:ring-1 focus:ring-teal-500"
-                        readOnly
                       />
                     </div>
                     <div>

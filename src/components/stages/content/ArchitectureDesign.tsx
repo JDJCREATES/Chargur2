@@ -328,8 +328,8 @@ ${formData.aiAgentZones.map(zone => `- ${zone}`).join('\n')}
                       <input
                         type="text"
                         value={route.path}
+                        readOnly={true}
                         className="w-full px-2 py-1 border border-blue-200 rounded focus:outline-none focus:ring-1 focus:ring-blue-500 font-mono"
-                        readOnly
                       />
                     </div>
                     <div>
@@ -337,8 +337,8 @@ ${formData.aiAgentZones.map(zone => `- ${zone}`).join('\n')}
                       <input
                         type="text"
                         value={route.component}
+                        readOnly={true}
                         className="w-full px-2 py-1 border border-blue-200 rounded focus:outline-none focus:ring-1 focus:ring-blue-500"
-                        readOnly
                       />
                     </div>
                     <div>
@@ -358,8 +358,8 @@ ${formData.aiAgentZones.map(zone => `- ${zone}`).join('\n')}
                       <input
                         type="text"
                         value={route.description}
+                        readOnly={true}
                         className="w-full px-2 py-1 border border-blue-200 rounded focus:outline-none focus:ring-1 focus:ring-blue-500"
-                        readOnly
                       />
                     </div>
                   </div>

@@ -113,7 +113,7 @@ export const Settings: React.FC = () => {
                 <input
                   type="checkbox"
                   checked={true}
-                  onChange={() => {}}
+                  readOnly={true}
                   className="w-4 h-4 text-blue-600 rounded focus:ring-blue-500"
                 />
                 <span className="text-sm text-gray-600">Auto-save canvas</span>
@@ -123,7 +123,7 @@ export const Settings: React.FC = () => {
                 <input
                   type="checkbox"
                   checked={true}
-                  onChange={() => {}}
+                  readOnly={true}
                   className="w-4 h-4 text-blue-600 rounded focus:ring-blue-500"
                 />
                 <span className="text-sm text-gray-600">Show tooltips</span>
@@ -133,7 +133,7 @@ export const Settings: React.FC = () => {
                 <input
                   type="checkbox"
                   checked={false}
-                  onChange={() => {}}
+                  readOnly={true}
                   className="w-4 h-4 text-blue-600 rounded focus:ring-blue-500"
                 />
                 <span className="text-sm text-gray-600">Experimental features</span>
@@ -149,7 +149,7 @@ export const Settings: React.FC = () => {
                 <span className="text-sm text-gray-600">Response Length</span>
                 <select className="text-xs border border-gray-200 rounded px-2 py-1 bg-white">
                   <option>Concise</option>
-                  <option selected>Balanced</option>
+                  <option defaultValue>Balanced</option>
                   <option>Detailed</option>
                 </select>
               </div>
@@ -158,7 +158,7 @@ export const Settings: React.FC = () => {
                 <span className="text-sm text-gray-600">Creativity</span>
                 <select className="text-xs border border-gray-200 rounded px-2 py-1 bg-white">
                   <option>Precise</option>
-                  <option selected>Balanced</option>
+                  <option defaultValue>Balanced</option>
                   <option>Creative</option>
                 </select>
               </div>
@@ -167,7 +167,7 @@ export const Settings: React.FC = () => {
                 <input
                   type="checkbox"
                   checked={true}
-                  onChange={() => {}}
+                  readOnly={true}
                   className="w-4 h-4 text-blue-600 rounded focus:ring-blue-500"
                 />
                 <span className="text-sm text-gray-600">Show suggestions</span>
