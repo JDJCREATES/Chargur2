@@ -1,13 +1,13 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { Settings as SettingsIcon, Moon, Sun, HelpCircle, Wand2, LogIn, LogOut, User, Info } from 'lucide-react';
 import { useAuth } from '../../hooks/useAuth';
 import { LoginModal } from '../auth/LoginModal';
 import { AboutUsModal } from './AboutUsModal';
 
 export const Settings: React.FC = () => {
-  const [darkMode, setDarkMode] = React.useState(false);
-  const [showLoginModal, setShowLoginModal] = React.useState(false);
-  const [showAboutModal, setShowAboutModal] = React.useState(false);
+  const [darkMode, setDarkMode] = useState(false);
+  const [showLoginModal, setShowLoginModal] = useState(false);
+  const [showAboutModal, setShowAboutModal] = useState(false);
   const { user, signOut, loading } = useAuth();
 
   const handleAutoGenerate = () => {
@@ -103,6 +103,82 @@ export const Settings: React.FC = () => {
             <HelpCircle size={16} />
             Help & Support
           </button>
+          
+          {/* Additional Settings */}
+          <div className="pt-3 mt-3 border-t border-gray-200">
+            <h4 className="text-sm font-medium text-gray-700 mb-2">Preferences</h4>
+            
+            <div className="space-y-2">
+              <label className="flex items-center gap-2">
+                <input
+                  type="checkbox"
+                  checked={true}
+                  onChange={() => {}}
+                  className="w-4 h-4 text-blue-600 rounded focus:ring-blue-500"
+                />
+                <span className="text-sm text-gray-600">Auto-save canvas</span>
+              </label>
+              
+              <label className="flex items-center gap-2">
+                <input
+                  type="checkbox"
+                  checked={true}
+                  onChange={() => {}}
+                  className="w-4 h-4 text-blue-600 rounded focus:ring-blue-500"
+                />
+                <span className="text-sm text-gray-600">Show tooltips</span>
+              </label>
+              
+              <label className="flex items-center gap-2">
+                <input
+                  type="checkbox"
+                  checked={false}
+                  onChange={() => {}}
+                  className="w-4 h-4 text-blue-600 rounded focus:ring-blue-500"
+                />
+                <span className="text-sm text-gray-600">Experimental features</span>
+              </label>
+            </div>
+          </div>
+          
+          <div className="pt-3 mt-3 border-t border-gray-200">
+            <h4 className="text-sm font-medium text-gray-700 mb-2">AI Assistant</h4>
+            
+            <div className="space-y-2">
+              <div className="flex items-center justify-between">
+                <span className="text-sm text-gray-600">Response Length</span>
+                <select className="text-xs border border-gray-200 rounded px-2 py-1 bg-white">
+                  <option>Concise</option>
+                  <option selected>Balanced</option>
+                  <option>Detailed</option>
+                </select>
+              </div>
+              
+              <div className="flex items-center justify-between">
+                <span className="text-sm text-gray-600">Creativity</span>
+                <select className="text-xs border border-gray-200 rounded px-2 py-1 bg-white">
+                  <option>Precise</option>
+                  <option selected>Balanced</option>
+                  <option>Creative</option>
+                </select>
+              </div>
+              
+              <label className="flex items-center gap-2">
+                <input
+                  type="checkbox"
+                  checked={true}
+                  onChange={() => {}}
+                  className="w-4 h-4 text-blue-600 rounded focus:ring-blue-500"
+                />
+                <span className="text-sm text-gray-600">Show suggestions</span>
+              </label>
+            </div>
+          </div>
+          
+          <div className="pt-3 mt-3 border-t border-gray-200 text-center">
+            <p className="text-xs text-gray-500">Chargur v1.0.0</p>
+            <p className="text-xs text-gray-400 mt-1">© 2025 Chargur Team</p>
+          </div>
         </div>
       </div>
 

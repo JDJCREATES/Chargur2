@@ -46,8 +46,8 @@ const DEFAULT_STATE: CanvasState = {
 export const useCanvasStateManager = (
   initialNodes: CanvasNodeData[] = [],
   initialConnections: Connection[] = [],
-  onUpdateNodes?: (nodes: CanvasNodeData[]) => void,
-  onUpdateConnections?: (connections: Connection[]) => void
+  onUpdateNodes?: (nodes: CanvasNodeData[]) => void | undefined,
+  onUpdateConnections?: (connections: Connection[]) => void | undefined
 ) => {
   const [state, setState] = useState<CanvasState>(DEFAULT_STATE);
   const [nodes, setNodes] = useState<CanvasNodeData[]>(initialNodes);
@@ -180,10 +180,10 @@ export const useCanvasStateManager = (
   const processStageData = useCallback((stageData: any) => {
     const processorState: ProcessorState = {
       nodes: nodes,
-      lastProcessedData: lastProcessedData
+      lastProcessedData
     };
 
-    const result = CanvasDataProcessor.updateCanvasFromStageData(
+    CanvasDataProcessor.updateCanvasFromStageData(
       stageData,
       processorState,
       (newState: ProcessorState) => {
@@ -191,7 +191,7 @@ export const useCanvasStateManager = (
         setLastProcessedData(newState.lastProcessedData || {});
       }
     );
-  }, [nodes, lastProcessedData, updateNodes]);
+  }, [nodes, lastProcessedData, updateNodes, setLastProcessedData]);
 
   return {
     state,

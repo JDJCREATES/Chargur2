@@ -360,7 +360,7 @@ export const SpatialCanvas: React.FC<SpatialCanvasProps> = ({
     const exportData = {
       nodes,
       connections,
-      metadata: {
+      metadata: { 
         exportedAt: new Date().toISOString(),
         version: '1.0',
         nodeCount: nodes.length,
@@ -409,12 +409,14 @@ export const SpatialCanvas: React.FC<SpatialCanvasProps> = ({
         onMouseLeave={handlers.onMouseUp}
         onKeyDown={handlers.onKeyDown}
         tabIndex={0}
-      >
+          onZoomOut={() => setScale(Math.max(0.1, state.scale * 0.8))} 
         <CanvasRenderer
           nodes={nodes}
           connections={connections}
           selectedNodeId={state.selectedNodeId}
           connectingFrom={interactionState.connectingFrom}
+          nodes={nodes}
+          connections={connections}
           scale={state.scale}
           offset={state.offset}
           showGrid={state.showGrid}
