@@ -120,7 +120,8 @@ export const useCanvasStateManager = (
   const clearCanvas = useCallback(() => {
     console.log('Clearing canvas in CanvasStateManager');
     const emptyNodes: CanvasNodeData[] = [];
-    setNodes(emptyNodes);
+    
+    // Use the callback instead of setNodes
     if (onUpdateNodes) {
       onUpdateNodes(emptyNodes);
     }
