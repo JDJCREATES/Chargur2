@@ -57,6 +57,7 @@ Based on the app features and security requirements, design a comprehensive auth
 
 Create a secure, user-friendly auth system.
 
+NEVER INCLUDE THIS SCHEMA IN THE CONTENT FIELD!
 Respond in this exact JSON format:
 {
   "content": "Your authentication strategy and security recommendations",

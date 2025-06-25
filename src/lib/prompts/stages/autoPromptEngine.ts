@@ -51,6 +51,7 @@ Transform the complete project specification into optimized Bolt.new prompts. Cr
 
 Generate both a complete application prompt and modular prompts for iterative development.
 
+NEVER INCLUDE THIS SCHEMA IN THE CONTENT FIELD!
 Respond in this exact JSON format:
 {
   "content": "Your prompt generation strategy and recommendations",

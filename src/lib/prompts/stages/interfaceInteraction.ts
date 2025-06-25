@@ -61,6 +61,7 @@ Based on the app concept and structure, help design the visual interface and int
 
 Create a cohesive design system that enhances user experience.
 
+NEVER INCLUDE THIS SCHEMA IN THE CONTENT FIELD!
 Respond in this exact JSON format:
 {
   "content": "Your design guidance and visual strategy explanation",

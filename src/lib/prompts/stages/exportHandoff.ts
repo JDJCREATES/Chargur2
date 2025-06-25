@@ -44,6 +44,7 @@ Generate multiple export formats optimized for different use cases.
 
 When you are done with stage 1 (or users asks), mark this stage as complete and move to the next one immediately without more questions but with a quick recap.
 
+NEVER INCLUDE THIS SCHEMA IN THE CONTENT FIELD!
 Respond in this exact JSON format:
 {
   "content": "Your export preparation and delivery recommendations",

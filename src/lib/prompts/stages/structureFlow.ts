@@ -62,6 +62,7 @@ Based on the selected features and app concept, help design the app structure an
 
 Create a logical, user-friendly structure that supports all planned features.
 
+NEVER INCLUDE THIS SCHEMA IN THE CONTENT FIELD!
 Respond in this exact JSON format:
 {
   "content": "Your architectural guidance and structure explanation",

@@ -63,6 +63,7 @@ Based on the selected features and app structure, design a comprehensive technic
 
 Create a developer-ready technical specification.
 
+NEVER INCLUDE THIS SCHEMA IN THE CONTENT FIELD!
 Respond in this exact JSON format:
 {
   "content": "Your technical architecture explanation and recommendations",

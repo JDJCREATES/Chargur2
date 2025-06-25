@@ -49,6 +49,7 @@ Conduct a comprehensive UX review of the entire project. Analyze all stages for 
 
 Calculate an overall completion score (0-100) and identify specific areas needing attention.
 
+NEVER INCLUDE THIS SCHEMA IN THE CONTENT FIELD!
 Respond in this exact JSON format:
 {
   "content": "Your comprehensive UX review and assessment",

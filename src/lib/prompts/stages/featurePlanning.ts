@@ -57,6 +57,7 @@ Based on the app concept and user message, help plan features strategically. Con
 
 Provide intelligent feature recommendations and help prioritize for MVP success.
 
+NEVER INCLUDE THIS SCHEMA IN THE CONTENT FIELD!
 Respond in this exact JSON format with no comments or extra whitespace:
 {
   "content": "Your strategic response about feature planning",
