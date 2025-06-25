@@ -30,12 +30,12 @@ import React, { useEffect, useCallback, useState } from 'react';
 import { motion } from 'framer-motion';
 import { CanvasToolbar } from './CanvasToolbar';
 import { CanvasRenderer } from './core/CanvasRenderer';
-import { CanvasDataProcessor, ProcessorState } from './core/CanvasDataProcessor';
 import { useCanvasStateManager } from './core/CanvasStateManager';
 import { useCanvasScreenshot } from './core/CanvasScreenshot';
 import { useCanvasInteractionManager } from './core/CanvasInteractionManager';
 import { CanvasNodeData } from './CanvasNode';
 import { STAGE1_NODE_TYPES, STAGE1_NODE_DEFAULTS } from './customnodetypes/stage1nodes';
+import { Connection } from '../../types';
 
 interface SpatialCanvasProps {
   currentStage?: any;
@@ -70,7 +70,7 @@ export const SpatialCanvas: React.FC<SpatialCanvasProps> = ({
     setScale,
     setOffset,
     toggleGrid,
-    updateNodes,
+    processStageData,
   } = useCanvasStateManager(
     canvasNodes,
     canvasConnections,
@@ -104,21 +104,12 @@ export const SpatialCanvas: React.FC<SpatialCanvasProps> = ({
     }
   );
 
-  // Handle stage data updates through CanvasDataProcessor
+  // Process stage data when it changes
   useEffect(() => {
-    const processorState: ProcessorState = {
-      nodes: nodes,
-      lastProcessedData: {}
-    };
-
-    CanvasDataProcessor.updateCanvasFromStageData(
-      stageData,
-      processorState,
-      (newState: ProcessorState) => {
-        updateNodes(newState.nodes);
-      }
-    );
-  }, [stageData, nodes, updateNodes]);
+    if (stageData) {
+      processStageData(stageData);
+    }
+  }, [stageData, processStageData]);
 
   // Initialize screenshot functionality
   const { takeScreenshot, canvasRef } = useCanvasScreenshot();
@@ -397,8 +388,8 @@ export const SpatialCanvas: React.FC<SpatialCanvasProps> = ({
         onSave={handleSave}
         onExport={handleExport}
         onToggleGrid={toggleGrid}
-        nodes={nodes}
-        connections={connections}
+        onScreenshot={() => takeScreenshot(canvasRef)}
+        onAutoLayout={handleAutoLayout}
         onClearCanvas={clearCanvas}
         showGrid={state.showGrid}
         scale={state.scale}

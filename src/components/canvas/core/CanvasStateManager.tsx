@@ -20,6 +20,7 @@
 
 import { useState, useEffect, useCallback } from 'react';
 import { CanvasNodeData } from '../CanvasNode';
+import { CanvasDataProcessor, ProcessorState } from './CanvasDataProcessor';
 
 export interface CanvasState {
   selectedNodeId: string | null;
@@ -51,6 +52,7 @@ export const useCanvasStateManager = (
   const [state, setState] = useState<CanvasState>(DEFAULT_STATE);
   const [nodes, setNodes] = useState<CanvasNodeData[]>(initialNodes);
   const [connections, setConnections] = useState<Connection[]>(initialConnections);
+  const [lastProcessedData, setLastProcessedData] = useState<{ [key: string]: any }>({});
   
   // Update local state when props change
   useEffect(() => {
@@ -65,17 +67,17 @@ export const useCanvasStateManager = (
     setState(prev => ({ ...prev, ...updates }));
   }, []);
 
-  const updateNodes = useCallback((nodes: CanvasNodeData[]) => {
-    setNodes(nodes);
+  const updateNodes = useCallback((updatedNodes: CanvasNodeData[]) => {
+    setNodes(updatedNodes);
     if (onUpdateNodes) {
-      onUpdateNodes(nodes);
+      onUpdateNodes(updatedNodes);
     }
   }, [onUpdateNodes]);
 
-  const updateConnections = useCallback((connections: Connection[]) => {
-    setConnections(connections);
+  const updateConnections = useCallback((updatedConnections: Connection[]) => {
+    setConnections(updatedConnections);
     if (onUpdateConnections) {
-      onUpdateConnections(connections);
+      onUpdateConnections(updatedConnections);
     }
   }, [onUpdateConnections]);
 
@@ -175,6 +177,22 @@ export const useCanvasStateManager = (
     setState(prev => ({ ...prev, showGrid: !prev.showGrid }));
   }, []);
 
+  const processStageData = useCallback((stageData: any) => {
+    const processorState: ProcessorState = {
+      nodes: nodes,
+      lastProcessedData: lastProcessedData
+    };
+
+    const result = CanvasDataProcessor.updateCanvasFromStageData(
+      stageData,
+      processorState,
+      (newState: ProcessorState) => {
+        updateNodes(newState.nodes);
+        setLastProcessedData(newState.lastProcessedData || {});
+      }
+    );
+  }, [nodes, lastProcessedData, updateNodes]);
+
   return {
     state,
     nodes,
@@ -192,6 +210,7 @@ export const useCanvasStateManager = (
     setSelectedNode,
     setScale,
     setOffset,
-    toggleGrid
+    toggleGrid,
+    processStageData
   };
 };

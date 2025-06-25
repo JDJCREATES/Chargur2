@@ -42,6 +42,8 @@ interface CanvasToolbarProps {
   onToggleGrid: () => void;
   onScreenshot: () => void;
   onAutoLayout: () => void;
+  nodes?: CanvasNodeData[];
+  connections?: Connection[];
   onClearCanvas?: () => void;
   showGrid: boolean;
   scale: number;
@@ -58,6 +60,8 @@ export const CanvasToolbar: React.FC<CanvasToolbarProps> = ({
   onExport,
   onToggleGrid,
   onScreenshot,
+  nodes = [],
+  connections = [],
   onAutoLayout,
   onClearCanvas,
   showGrid,
