@@ -384,9 +384,6 @@ export const SpatialCanvas: React.FC<SpatialCanvasProps> = ({
       console.log('Clearing canvas from user action');
       clearCanvas();
     }
-      console.log('Clearing canvas from user action');
-      clearCanvas();
-    }
   }, [clearCanvas]);
 
   const handleAutoLayout = useCallback(() => {
