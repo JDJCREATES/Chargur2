@@ -22,15 +22,15 @@ import { CanvasNodeData } from '../CanvasNode';
 import { STAGE1_NODE_TYPES, STAGE1_NODE_DEFAULTS } from '../customnodetypes/stage1nodes';
 
 export interface ProcessorState {
-}
-
+  nodes: CanvasNodeData[];
+  lastProcessedData?: { [key: string]: any };
 export class CanvasDataProcessor {
   private static nodeIdCounter = 1;
 
   /**
     // Create a mutable copy of the current nodes
     let updatedNodes = [...currentState.nodes];
-    
+
     // Process each stage's data and update the nodes array
     updatedNodes = this.processIdeationData(stageData, currentState, updatedNodes);
     updatedNodes = this.processFeatureData(stageData, currentState, updatedNodes);
@@ -38,7 +38,7 @@ export class CanvasDataProcessor {
     updatedNodes = this.processArchitectureData(stageData, currentState, updatedNodes);
     updatedNodes = this.processInterfaceData(stageData, currentState, updatedNodes);
     updatedNodes = this.processAuthData(stageData, currentState, updatedNodes);
-
+    
     // Generate AI analysis node
     const aiAnalysisNode = this.generateAIAnalysisNode(stageData, updatedNodes.length);
     if (aiAnalysisNode) {
@@ -46,11 +46,10 @@ export class CanvasDataProcessor {
       updatedNodes = updatedNodes.filter(node => !node.metadata?.generated);
       updatedNodes.push(aiAnalysisNode);
     }
-
+    
     // Update state with updated nodes
     onStateUpdate({
       nodes: updatedNodes
-  }
 
   /**
    * Process ideation discovery data into custom stage 1 nodes
@@ -779,3 +778,11 @@ export class CanvasDataProcessor {
     };
   }
 }
+   * Main processing function - transforms stage data into canvas nodes
+   * This is the heart of the spatial canvas system
+   */
+  static updateCanvasFromStageData(
+    stageData: any,
+    currentState: ProcessorState,
+    onStateUpdate: (newState: ProcessorState) => void
+  ): void {
