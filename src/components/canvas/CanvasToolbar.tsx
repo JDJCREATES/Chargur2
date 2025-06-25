@@ -103,8 +103,9 @@ export const CanvasToolbar: React.FC<CanvasToolbarProps> = ({
   const handleToolAction = (action: () => void, label: string) => {
     try {
       action();
-    } catch (error) {
+    } catch (error: any) {
       // Silent error handling - could add toast notification here if needed
+      console.error(`Error in tool action ${label}:`, error.message);
     }
   };
 
