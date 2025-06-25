@@ -178,49 +178,19 @@ export const useCanvasStateManager = (
   }, []);
 
   const processStageData = useCallback((stageData: any) => {
-    console.log('Processing stage data for canvas update');
-    
-    // Generate new nodes from stage data
-    const generatedNodes = CanvasDataProcessor.generateNodesFromStageData(stageData);
-    console.log(`Generated ${generatedNodes.length} nodes from stage data`);
-    
-    // Filter out existing nodes that are dynamically generated
-    // Keep only user-created or manually edited nodes
-    const persistentNodes = nodes.filter(node => {
-      // Keep nodes that don't have metadata.stage (user-created)
-      // or don't have metadata.generated (not AI-generated)
-      return !node.metadata?.stage && !node.metadata?.generated;
-    });
-    
-    console.log(`Kept ${persistentNodes.length} persistent nodes`);
-    
-    // Start with persistent nodes
-    let finalNodes = [...persistentNodes];
-    
-    // Add or update generated nodes
-    generatedNodes.forEach(newNode => {
-      const existingIndex = finalNodes.findIndex(node => node.id === newNode.id);
-      
-      if (existingIndex !== -1) {
-        // Update existing node
-        finalNodes[existingIndex] = {
-          ...finalNodes[existingIndex],
-          ...newNode
-        };
-      } else {
-        // Add new node
-        finalNodes.push(newNode);
-      }
-    });
-    
-    console.log(`Final node count: ${finalNodes.length}`);
-    
-    // Update nodes state
-    updateNodes(finalNodes);
-    
-    // Update last processed data
-    setLastProcessedData(stageData);
+    const processorState: ProcessorState = {
+      nodes: nodes,
+      lastProcessedData
+    };
 
+    CanvasDataProcessor.updateCanvasFromStageData(
+      stageData,
+      processorState,
+      (newState: ProcessorState) => {
+        updateNodes(newState.nodes);
+        setLastProcessedData(newState.lastProcessedData || {});
+      }
+    );
   }, [nodes, lastProcessedData, updateNodes, setLastProcessedData]);
 
   return {
