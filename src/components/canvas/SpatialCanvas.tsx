@@ -122,12 +122,13 @@ export const SpatialCanvas: React.FC<SpatialCanvasProps> = ({
   useEffect(() => {
     if (stageData && Object.keys(stageData).length > 0) {
       try {
+        console.log('Processing stage data in SpatialCanvas');
         processStageData(stageData);
       } catch (error) {
         console.error('Error processing stage data:', error);
       }
     }
-  }, [stageData, processStageData]);
+  }, [stageData]);
 
   // Initialize screenshot functionality
   const { takeScreenshot, canvasRef } = useCanvasScreenshot();

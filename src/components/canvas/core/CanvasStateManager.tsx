@@ -20,6 +20,7 @@
 
 import { useState, useEffect, useCallback } from 'react';
 import { useRef } from 'react';
+import { isEqual } from 'lodash';
 import { CanvasNodeData } from '../CanvasNode';
 import { CanvasDataProcessor, ProcessorState } from './CanvasDataProcessor';
 import { useAppStore } from '../../../store/useAppStore';
@@ -65,21 +66,36 @@ export const useCanvasStateManager = (
     nodesRef.current = initialNodes;
   }, [initialNodes]);
   
+  // Deep comparison helper to prevent unnecessary updates
+  const areNodesEqual = useCallback((nodesA: CanvasNodeData[], nodesB: CanvasNodeData[]) => {
+    if (nodesA.length !== nodesB.length) return false;
+    return isEqual(nodesA, nodesB);
+  }, []);
+  
+  const areConnectionsEqual = useCallback((connsA: Connection[], connsB: Connection[]) => {
+    if (connsA.length !== connsB.length) return false;
+    return isEqual(connsA, connsB);
+  }, []);
+  
   const updateState = useCallback((updates: Partial<CanvasState>) => {
     setState(prev => ({ ...prev, ...updates }));
   }, []);
 
-  const updateNodes = useCallback((updatedNodes: CanvasNodeData[]) => {    
-    if (onUpdateNodes) {
+  const updateNodes = useCallback((updatedNodes: CanvasNodeData[]) => {
+    // Only update if the nodes have actually changed (deep comparison)
+    if (onUpdateNodes && !areNodesEqual(updatedNodes, initialNodes)) {
+      console.log('Nodes changed, updating...');
       onUpdateNodes(updatedNodes);
     }
-  }, [onUpdateNodes]);
+  }, [onUpdateNodes, initialNodes, areNodesEqual]);
 
   const updateConnections = useCallback((updatedConnections: Connection[]) => {
-    if (onUpdateConnections) {
+    // Only update if the connections have actually changed (deep comparison)
+    if (onUpdateConnections && !areConnectionsEqual(updatedConnections, initialConnections)) {
+      console.log('Connections changed, updating...');
       onUpdateConnections(updatedConnections);
     }
-  }, [onUpdateConnections]);
+  }, [onUpdateConnections, initialConnections, areConnectionsEqual]);
 
   const updateNode = useCallback((nodeId: string, updates: Partial<CanvasNodeData>) => {
     const updatedNodes = initialNodes.map(node => 
@@ -190,11 +206,10 @@ export const useCanvasStateManager = (
       (newState: ProcessorState) => {
         updateNodes(newState.nodes); 
         setLastProcessedStageData(newState.lastProcessedData || {});
-        console.log('Canvas nodes updated from stage data, node count:', newState.nodes.length);
-        console.log('Canvas nodes updated from stage data, node count:', newState.nodes.length);
+        console.log('Canvas data processed, node count:', newState.nodes.length);
       }
     );
-  }, [lastProcessedStageData, updateNodes]);
+  }, [lastProcessedStageData, updateNodes, nodesRef]);
 
   return {
     state,
