@@ -1,32 +1,45 @@
 import React, { useState } from 'react';
 import { motion } from 'framer-motion';
-import { useAuth } from './hooks/useAuth';
+import { useEffect } from 'react';
+import { useAuth } from './hooks/useAuth'; 
 import { AgentContextProvider } from './components/agent/AgentContextProvider';
 import { Sidebar } from './components/layout/Sidebar';
 import { Canvas } from './components/layout/Canvas';
-import { useStageManager } from './hooks/useStageManager';
+import { useAppStore } from './store/useAppStore';
 import { useAgentChat } from './hooks/useAgentChat';
-import { Connection } from './types';
-import { CanvasNodeData } from './components/canvas/CanvasNode';
 
 function App() {
   const [isSidebarOpen, setIsSidebarOpen] = useState(true);
-  const { loading: authLoading } = useAuth();
-  const {
-    stages,
-    currentStage,
-    stageData,
-    canvasNodes,
+  const { loading: authLoading, user } = useAuth();
+  
+  // Get state and actions from the store
+  const { 
+    stages, 
+    currentStageId,
+    stageData, 
+    canvasNodes, 
     canvasConnections,
-    isLoading: projectLoading,
+    isLoading: projectLoading, 
     error: projectError,
+    getCurrentStage,
     goToStage,
     completeStage,
     updateStageData,
     getNextStage,
     updateCanvasNodes,
-    updateCanvasConnections
-  } = useStageManager();
+    updateCanvasConnections,
+    initializeProject
+  } = useAppStore();
+  
+  // Get the current stage object
+  const currentStage = getCurrentStage();
+
+  // Initialize project when user is authenticated
+  useEffect(() => {
+    if (!authLoading && user) {
+      initializeProject(user.id);
+    }
+  }, [authLoading, user, initializeProject]);
 
   // Initialize agent chat once at the App level
   const {
@@ -47,12 +60,12 @@ function App() {
     allStageData: stageData,
     onAutoFill: (data) => {
       if (currentStage) {
-        updateStageData(currentStage.id, data);
+        updateStageData(currentStageId, data);
       }
     },
     onStageComplete: () => {
       if (currentStage) {
-        completeStage(currentStage.id);
+        completeStage(currentStageId);
         // After completing the current stage, check if we should go to the next stage
         const nextStage = getNextStage();
         if (nextStage) {
@@ -126,10 +139,6 @@ function App() {
             }}
             currentStage={currentStage}
             stageData={stageData}
-            canvasNodes={canvasNodes}
-            canvasConnections={canvasConnections}
-            onUpdateCanvasNodes={updateCanvasNodes}
-            onUpdateCanvasConnections={updateCanvasConnections}
             onOpenSidebar={openSidebar}
           />
         </div>

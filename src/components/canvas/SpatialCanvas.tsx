@@ -30,31 +30,31 @@ import React, { useEffect, useCallback, useState } from 'react';
 import { motion } from 'framer-motion';
 import { CanvasToolbar } from './CanvasToolbar';
 import { CanvasRenderer } from './core/CanvasRenderer';
+import { useAppStore } from '../../store/useAppStore';
 import { useCanvasStateManager } from './core/CanvasStateManager';
 import { useCanvasScreenshot } from './core/CanvasScreenshot';
 import { useCanvasInteractionManager } from './core/CanvasInteractionManager';
-import { CanvasNodeData } from './CanvasNode';
-import { STAGE1_NODE_TYPES, STAGE1_NODE_DEFAULTS } from './customnodetypes/stage1nodes';
-import { Connection } from '../../types';
+import { CanvasNodeData } from './CanvasNode'; 
+import { STAGE1_NODE_TYPES, STAGE1_NODE_DEFAULTS } from './customnodetypes/stage1nodes'; 
 
 interface SpatialCanvasProps {
   currentStage?: any;
   stageData: any;
-  canvasNodes?: CanvasNodeData[];
-  canvasConnections?: Connection[];
-  onUpdateCanvasNodes?: (nodes: CanvasNodeData[]) => void;
-  onUpdateCanvasConnections?: (connections: Connection[]) => void;
   onSendMessage: (message: string) => void;
 }
 
 export const SpatialCanvas: React.FC<SpatialCanvasProps> = ({
   stageData,
-  canvasNodes = [],
-  canvasConnections = [],
-  onUpdateCanvasNodes,
-  onUpdateCanvasConnections,
   onSendMessage
 }) => {
+  // Get canvas data and actions from the store
+  const { 
+    canvasNodes, 
+    canvasConnections, 
+    updateCanvasNodes, 
+    updateCanvasConnections 
+  } = useAppStore();
+
   const [lastProjectId, setLastProjectId] = useState<string | null>(null);
   const [isInitialRender, setIsInitialRender] = useState(true);
 
@@ -64,7 +64,7 @@ export const SpatialCanvas: React.FC<SpatialCanvasProps> = ({
   const {
     state,
     nodes,
-    connections,
+    connections, 
     updateState,
     updateNode,
     addNode,
@@ -80,8 +80,8 @@ export const SpatialCanvas: React.FC<SpatialCanvasProps> = ({
   } = useCanvasStateManager(
     canvasNodes,
     canvasConnections,
-    onUpdateCanvasNodes,
-    onUpdateCanvasConnections
+    updateCanvasNodes,
+    updateCanvasConnections
   );
 
   const {
@@ -178,7 +178,7 @@ export const SpatialCanvas: React.FC<SpatialCanvasProps> = ({
   const handleAddNode = useCallback((type: CanvasNodeData['type']) => {
     // Check if it's a custom ideation node type
     if (Object.values(STAGE1_NODE_TYPES).includes(type as any)) {
-      const defaults = STAGE1_NODE_DEFAULTS[type as keyof typeof STAGE1_NODE_DEFAULTS];
+      const defaults = STAGE1_NODE_DEFAULTS[type as keyof typeof STAGE1_NODE_DEFAULTS] || { position: { x: 100, y: 100 }, size: { width: 200, height: 100 } };
       
       // For singleton nodes, check if they already exist
       if (type === 'appName' || type === 'tagline' || type === 'coreProblem' || 
@@ -468,6 +468,7 @@ export const SpatialCanvas: React.FC<SpatialCanvasProps> = ({
       <div 
         ref={canvasRef}
         className={`w-full h-full ${interactionState.isPanning ? 'cursor-grabbing' : 'cursor-grab'}`}
+        data-testid="canvas-container"
         onClick={handlers.onCanvasClick}
         onWheel={handlers.onWheel}
         onMouseDown={handlers.onMouseDown}
