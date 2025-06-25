@@ -40,6 +40,7 @@ interface AutoPromptEngineProps {
   stage: Stage;
   stages: Stage[];
   stageData: StageData;
+  initialFormData?: any;
   onComplete: () => void;
   onUpdateData: (data: any) => void;
 }
@@ -70,6 +71,7 @@ export const AutoPromptEngine: React.FC<AutoPromptEngineProps> = ({
   stage,
   stages,
   stageData,
+  initialFormData,
   onComplete,
   onUpdateData,
 }) => {
@@ -91,6 +93,17 @@ export const AutoPromptEngine: React.FC<AutoPromptEngineProps> = ({
   const [generatedPrompt, setGeneratedPrompt] = useState('');
   const [isGenerating, setIsGenerating] = useState(false);
   const [previewMode, setPreviewMode] = useState(false);
+
+  // Sync formData with initialFormData when it changes
+  useEffect(() => {
+    if (initialFormData && Object.keys(initialFormData).length > 0) {
+      console.log('Updating AutoPromptEngine formData from initialFormData');
+      setFormData(prev => ({
+        ...prev,
+        ...initialFormData
+      }));
+    }
+  }, [initialFormData]);
 
   useEffect(() => {
     generatePromptModules();

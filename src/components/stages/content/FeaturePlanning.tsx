@@ -48,6 +48,7 @@ import { Stage } from '../../../types';
 
 interface FeaturePlanningProps {
   stage: Stage;
+  initialFormData?: any;
   onComplete: () => void;
   onUpdateData: (data: any) => void;
 }
@@ -76,6 +77,7 @@ interface FeaturePack {
 
 export const FeaturePlanning: React.FC<FeaturePlanningProps> = ({
   stage,
+  initialFormData,
   onComplete,
   onUpdateData,
 }) => {
@@ -93,6 +95,17 @@ export const FeaturePlanning: React.FC<FeaturePlanningProps> = ({
   });
 
   const [draggedFeature, setDraggedFeature] = useState<string | null>(null);
+
+  // Sync formData with initialFormData when it changes
+  useEffect(() => {
+    if (initialFormData && Object.keys(initialFormData).length > 0) {
+      console.log('Updating FeaturePlanning formData from initialFormData');
+      setFormData(prev => ({
+        ...prev,
+        ...initialFormData
+      }));
+    }
+  }, [initialFormData]);
 
   const updateFormData = (key: string, value: any) => {
     const updated = { ...formData, [key]: value };

@@ -34,6 +34,7 @@ import { Stage } from '../../../types';
 
 interface UserAuthFlowProps {
   stage: Stage;
+  initialFormData?: any;
   onComplete: () => void;
   onUpdateData: (data: any) => void;
 }
@@ -77,6 +78,7 @@ interface SecurityFeature {
 
 export const UserAuthFlow: React.FC<UserAuthFlowProps> = ({
   stage,
+  initialFormData,
   onComplete,
   onUpdateData,
 }) => {
@@ -168,6 +170,17 @@ export const UserAuthFlow: React.FC<UserAuthFlowProps> = ({
       mobileOptimized: true,
     },
   });
+
+  // Sync formData with initialFormData when it changes
+  useEffect(() => {
+    if (initialFormData && Object.keys(initialFormData).length > 0) {
+      console.log('Updating UserAuthFlow formData from initialFormData');
+      setFormData(prev => ({
+        ...prev,
+        ...initialFormData
+      }));
+    }
+  }, [initialFormData]);
 
   const updateFormData = (key: string, value: any) => {
     const updated = { ...formData, [key]: value };

@@ -30,6 +30,7 @@ import { Stage } from '../../../types';
 
 interface InterfaceInteractionProps {
   stage: Stage;
+  initialFormData?: any;
   onComplete: () => void;
   onUpdateData: (data: any) => void;
 }
@@ -60,6 +61,7 @@ interface CopywritingItem {
 
 export const InterfaceInteraction: React.FC<InterfaceInteractionProps> = ({
   stage,
+  initialFormData,
   onComplete,
   onUpdateData,
 }) => {
@@ -94,6 +96,17 @@ export const InterfaceInteraction: React.FC<InterfaceInteractionProps> = ({
     ] as CopywritingItem[],
     previewMode: 'desktop',
   });
+
+  // Sync formData with initialFormData when it changes
+  useEffect(() => {
+    if (initialFormData && Object.keys(initialFormData).length > 0) {
+      console.log('Updating InterfaceInteraction formData from initialFormData');
+      setFormData(prev => ({
+        ...prev,
+        ...initialFormData
+      }));
+    }
+  }, [initialFormData]);
 
   const updateFormData = (key: string, value: any) => {
     const updated = { ...formData, [key]: value };

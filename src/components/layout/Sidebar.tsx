@@ -19,7 +19,6 @@ import { ExportPanel } from '../export/ExportPanel';
 import { Stage, ChatMessage } from '../../types';
 import { useAgent } from '../agent/AgentContextProvider';
 
-// Import the enhanced StageProgressBubbles component
 import { StageProgressBubbles } from '../ui/StageProgressBubbles';
 
 interface AgentChatProps {
@@ -80,6 +79,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
         return (
           <IdeationDiscovery
             stage={currentStage}
+            initialFormData={stageData[currentStage.id]}
             onComplete={() => onCompleteStage(currentStage.id)}
             onUpdateData={(data: any) => onUpdateStageData(currentStage.id, data)}
           />
@@ -88,6 +88,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
         return (
           <FeaturePlanning
             stage={currentStage}
+            initialFormData={stageData[currentStage.id]}
             onComplete={() => onCompleteStage(currentStage.id)}
             onUpdateData={(data: any) => onUpdateStageData(currentStage.id, data)}
           />
@@ -96,6 +97,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
         return (
           <StructureFlow
             stage={currentStage}
+            initialFormData={stageData[currentStage.id]}
             onComplete={() => onCompleteStage(currentStage.id)}
             onUpdateData={(data: any) => onUpdateStageData(currentStage.id, data)}
           />
@@ -104,6 +106,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
         return (
           <InterfaceInteraction
             stage={currentStage}
+            initialFormData={stageData[currentStage.id]}
             onComplete={() => onCompleteStage(currentStage.id)}
             onUpdateData={(data: any) => onUpdateStageData(currentStage.id, data)}
           />
@@ -112,6 +115,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
         return (
           <ArchitectureDesign
             stage={currentStage}
+            initialFormData={stageData[currentStage.id]}
             onComplete={() => onCompleteStage(currentStage.id)}
             onUpdateData={(data: any) => onUpdateStageData(currentStage.id, data)}
           />
@@ -120,6 +124,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
         return (
           <UserAuthFlow
             stage={currentStage}
+            initialFormData={stageData[currentStage.id]}
             onComplete={() => onCompleteStage(currentStage.id)}
             onUpdateData={(data: any) => onUpdateStageData(currentStage.id, data)}
           />
@@ -130,6 +135,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
             stage={currentStage}
             stages={stages}
             stageData={stageData}
+            initialFormData={stageData[currentStage.id]}
             onComplete={() => onCompleteStage(currentStage.id)}
             onUpdateData={(data: any) => onUpdateStageData(currentStage.id, data)}
             onGoToStage={onStageClick}
@@ -141,6 +147,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
             stage={currentStage}
             stages={stages}
             stageData={stageData}
+            initialFormData={stageData[currentStage.id]}
             onComplete={() => onCompleteStage(currentStage.id)}
             onUpdateData={(data: any) => onUpdateStageData(currentStage.id, data)}
           />

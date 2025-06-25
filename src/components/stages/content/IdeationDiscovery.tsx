@@ -19,12 +19,14 @@ import { Stage } from '../../../types';
 
 interface IdeationDiscoveryProps {
   stage: Stage;
+  initialFormData?: any;
   onComplete: () => void;
   onUpdateData: (data: any) => void;
 }
 
 export const IdeationDiscovery: React.FC<IdeationDiscoveryProps> = ({
   stage,
+  initialFormData,
   onComplete,
   onUpdateData,
 }) => {
@@ -48,6 +50,25 @@ export const IdeationDiscovery: React.FC<IdeationDiscoveryProps> = ({
 
   const [selectedTags, setSelectedTags] = useState<string[]>([]);
   const [selectedPersonas, setSelectedPersonas] = useState<string[]>([]);
+
+  // Sync formData with initialFormData when it changes
+  useEffect(() => {
+    if (initialFormData && Object.keys(initialFormData).length > 0) {
+      console.log('Updating IdeationDiscovery formData from initialFormData');
+      setFormData(prev => ({
+        ...prev,
+        ...initialFormData
+      }));
+      
+      // Update selected personas based on initialFormData
+      if (initialFormData.userPersonas && Array.isArray(initialFormData.userPersonas)) {
+        const personaIds = initialFormData.userPersonas.map((p: any) => 
+          personas.find(persona => persona.label === p.name)?.id
+        ).filter(Boolean);
+        setSelectedPersonas(personaIds);
+      }
+    }
+  }, [initialFormData]);
 
   const updateFormData = (key: string, value: any) => {
     const updated = { ...formData, [key]: value };

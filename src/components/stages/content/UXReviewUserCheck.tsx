@@ -36,6 +36,7 @@ interface UXReviewUserCheckProps {
   stage: Stage;
   stages: Stage[];
   stageData: StageData;
+  initialFormData?: any;
   onComplete: () => void;
   onUpdateData: (data: any) => void;
   onGoToStage: (stageId: string) => void;
@@ -76,6 +77,7 @@ export const UXReviewUserCheck: React.FC<UXReviewUserCheckProps> = ({
   stage,
   stages,
   stageData,
+  initialFormData,
   onComplete,
   onUpdateData,
   onGoToStage,
@@ -93,6 +95,17 @@ export const UXReviewUserCheck: React.FC<UXReviewUserCheckProps> = ({
   const [aiFeedback, setAiFeedback] = useState<AIFeedback[]>([]);
   const [userTestScenarios, setUserTestScenarios] = useState<UserTestScenario[]>([]);
   const [overallProgress, setOverallProgress] = useState(0);
+
+  // Sync formData with initialFormData when it changes
+  useEffect(() => {
+    if (initialFormData && Object.keys(initialFormData).length > 0) {
+      console.log('Updating UXReviewUserCheck formData from initialFormData');
+      setFormData(prev => ({
+        ...prev,
+        ...initialFormData
+      }));
+    }
+  }, [initialFormData]);
 
   useEffect(() => {
     performCompletionScan();

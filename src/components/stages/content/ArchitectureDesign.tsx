@@ -36,6 +36,7 @@ import { Stage } from '../../../types';
 
 interface ArchitectureDesignProps {
   stage: Stage;
+  initialFormData?: any;
   onComplete: () => void;
   onUpdateData: (data: any) => void;
 }
@@ -90,6 +91,7 @@ interface EnvVariable {
 
 export const ArchitectureDesign: React.FC<ArchitectureDesignProps> = ({
   stage,
+  initialFormData,
   onComplete,
   onUpdateData,
 }) => {
@@ -184,6 +186,17 @@ export const ArchitectureDesign: React.FC<ArchitectureDesignProps> = ({
       'Component prop suggestions',
     ],
   });
+
+  // Sync formData with initialFormData when it changes
+  useEffect(() => {
+    if (initialFormData && Object.keys(initialFormData).length > 0) {
+      console.log('Updating ArchitectureDesign formData from initialFormData');
+      setFormData(prev => ({
+        ...prev,
+        ...initialFormData
+      }));
+    }
+  }, [initialFormData]);
 
   const updateFormData = (key: string, value: any) => {
     const updated = { ...formData, [key]: value };

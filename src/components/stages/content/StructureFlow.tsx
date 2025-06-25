@@ -23,6 +23,7 @@ import { Stage } from '../../../types';
 
 interface StructureFlowProps {
   stage: Stage;
+  initialFormData?: any;
   onComplete: () => void;
   onUpdateData: (data: any) => void;
 }
@@ -54,6 +55,7 @@ interface Component {
 
 export const StructureFlow: React.FC<StructureFlowProps> = ({
   stage,
+  initialFormData,
   onComplete,
   onUpdateData,
 }) => {
@@ -94,6 +96,17 @@ export const StructureFlow: React.FC<StructureFlowProps> = ({
     stateManagement: 'context',
     dataFlow: 'User creates Project → POST /api/projects → ProjectList updates → UI refreshes'
   });
+
+  // Sync formData with initialFormData when it changes
+  useEffect(() => {
+    if (initialFormData && Object.keys(initialFormData).length > 0) {
+      console.log('Updating StructureFlow formData from initialFormData');
+      setFormData(prev => ({
+        ...prev,
+        ...initialFormData
+      }));
+    }
+  }, [initialFormData]);
 
   const updateFormData = (key: string, value: any) => {
     const updated = { ...formData, [key]: value };
