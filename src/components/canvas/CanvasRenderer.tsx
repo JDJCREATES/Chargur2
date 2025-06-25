@@ -28,6 +28,7 @@ const getConnectionPath = (connection: Connection) => {
     }
   }
 }
+}
 
   return (
     <div className="relative w-full h-full">
@@ -85,4 +86,4 @@ const getConnectionPath = (connection: Connection) => {
         })}
       </motion.div>
     </div>
-  )
+  );
