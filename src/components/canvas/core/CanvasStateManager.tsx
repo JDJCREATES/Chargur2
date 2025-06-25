@@ -178,14 +178,6 @@ export const useCanvasStateManager = (
   }, []);
 
   const processStageData = useCallback((stageData: any) => {
-    // Skip processing if the stageData hasn't changed
-    const currentDataHash = JSON.stringify(stageData);
-    const lastDataHash = JSON.stringify(lastProcessedStageData);
-    
-    if (currentDataHash === lastDataHash) {
-      return; // No changes, don't update
-    }
-    
     const processorState: ProcessorState = {
       nodes: nodes
     }
@@ -195,7 +187,7 @@ export const useCanvasStateManager = (
       processorState,
       (newState: ProcessorState) => {
         updateNodes(newState.nodes); 
-        setLastProcessedStageData(stageData);
+        setLastProcessedStageData(newState.lastProcessedData || {});
       }
     );
   }, [nodes, updateNodes, lastProcessedStageData]);

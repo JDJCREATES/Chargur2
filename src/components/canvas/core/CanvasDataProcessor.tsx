@@ -38,14 +38,6 @@ export class CanvasDataProcessor {
     currentState: ProcessorState,
     onStateUpdate: (newState: ProcessorState) => void
   ): void {
-    // Check what data has changed and only add new nodes
-    const currentDataHash = JSON.stringify(stageData);
-    const lastDataHash = JSON.stringify(currentState.lastProcessedData || {});
-    
-    if (currentDataHash === lastDataHash) {
-      return; // No changes, don't update
-    }
-
     // Create a mutable copy of the current nodes
     let updatedNodes = [...currentState.nodes];
 
@@ -68,7 +60,7 @@ export class CanvasDataProcessor {
     // Update state with updated nodes
     onStateUpdate({
       nodes: updatedNodes,
-      lastProcessedData: stageData
+      lastProcessedData: { ...stageData }
     });
   }
 
