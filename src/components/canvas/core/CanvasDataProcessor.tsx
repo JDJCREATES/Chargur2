@@ -22,21 +22,12 @@ import { CanvasNodeData } from '../CanvasNode';
 import { STAGE1_NODE_TYPES, STAGE1_NODE_DEFAULTS } from '../customnodetypes/stage1nodes';
 
 export interface ProcessorState {
-  nodes: CanvasNodeData[]; 
 }
 
 export class CanvasDataProcessor {
   private static nodeIdCounter = 1;
 
   /**
-   * Main processing function - transforms stage data into canvas nodes
-   * This is the heart of the spatial canvas system
-   */
-  static updateCanvasFromStageData(
-    stageData: any,
-    currentState: ProcessorState, 
-    onStateUpdate: (newState: ProcessorState) => void
-  ): void {
     // Create a mutable copy of the current nodes
     let updatedNodes = [...currentState.nodes];
     
@@ -59,7 +50,6 @@ export class CanvasDataProcessor {
     // Update state with updated nodes
     onStateUpdate({
       nodes: updatedNodes
-    });
   }
 
   /**
