@@ -19,6 +19,7 @@
  */
 
 import { useState, useEffect, useCallback } from 'react';
+import { useRef } from 'react';
 import { CanvasNodeData } from '../CanvasNode';
 import { CanvasDataProcessor, ProcessorState } from './CanvasDataProcessor';
 import { useAppStore } from '../../../store/useAppStore';
@@ -53,8 +54,16 @@ export const useCanvasStateManager = (
   const [state, setState] = useState<CanvasState>(DEFAULT_STATE);
   const [lastProcessedStageData, setLastProcessedStageData] = useState<{ [key: string]: any }>({});
   
+  // Use ref to hold latest nodes to prevent infinite loops
+  const nodesRef = useRef<CanvasNodeData[]>(initialNodes);
+  
   // Get resetView action from the store
   const storeResetView = useAppStore(state => state.resetView);
+  
+  // Update the ref whenever initialNodes change
+  useEffect(() => {
+    nodesRef.current = initialNodes;
+  }, [initialNodes]);
   
   const updateState = useCallback((updates: Partial<CanvasState>) => {
     setState(prev => ({ ...prev, ...updates }));
@@ -171,7 +180,7 @@ export const useCanvasStateManager = (
 
   const processStageData = useCallback((stageData: any) => {
     const processorState: ProcessorState = {
-      nodes: initialNodes,
+      nodes: nodesRef.current,
       lastProcessedData: lastProcessedStageData || {}
     };
 
@@ -185,7 +194,7 @@ export const useCanvasStateManager = (
         console.log('Canvas nodes updated from stage data, node count:', newState.nodes.length);
       }
     );
-  }, [initialNodes, lastProcessedStageData, updateNodes]);
+  }, [lastProcessedStageData, updateNodes]);
 
   return {
     state,
