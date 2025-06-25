@@ -188,6 +188,7 @@ export const useCanvasStateManager = (
     
     const processorState: ProcessorState = {
       nodes: nodes
+    }
 
     CanvasDataProcessor.updateCanvasFromStageData(
       stageData,
