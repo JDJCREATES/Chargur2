@@ -57,6 +57,10 @@ export const ProjectManager: React.FC<ProjectManagerProps> = ({ onClose }) => {
   };
 
   const handleSelectProject = async (projectId: string) => {
+    console.log('Project selected in ProjectManager:', projectId);
+    // First clear the canvas to ensure a clean state
+    clearCanvasData();
+    // Then load the selected project
     await loadProject(projectId); // loadProject now handles canvas clearing internally
     if (onClose) onClose();
   };

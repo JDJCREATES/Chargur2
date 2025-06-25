@@ -56,7 +56,6 @@ export const SpatialCanvas: React.FC<SpatialCanvasProps> = ({
   onSendMessage
 }) => {
   const [lastProjectData, setLastProjectData] = useState<string>('');
-  const [projectId, setProjectId] = useState<string | null>(null);
 
   const {
     state,
@@ -110,20 +109,24 @@ export const SpatialCanvas: React.FC<SpatialCanvasProps> = ({
   // Detect when canvas data changes (indicating project switch)
   // This effect monitors for project changes by watching canvasNodes and canvasConnections
   useEffect(() => {
-    // Create a unique identifier for the current canvas state
-    const currentProjectData = JSON.stringify({
-      nodeCount: canvasNodes.length,
-      connectionCount: canvasConnections.length
-    });
-    
-    // If the canvas state changed significantly, it's likely a project switch
-    if (lastProjectData && currentProjectData !== lastProjectData && 
-        (canvasNodes.length === 0 || lastProjectData.includes('"nodeCount":0'))) {
-      console.log('Canvas state changed significantly, resetting view');
-      resetView();
+    try {
+      // Create a unique identifier for the current canvas state
+      const currentProjectData = JSON.stringify({
+        nodeCount: canvasNodes.length,
+        connectionCount: canvasConnections.length,
+        firstNodeId: canvasNodes.length > 0 ? canvasNodes[0].id : null
+      });
+      
+      // If the canvas state changed significantly, it's likely a project switch
+      if (lastProjectData && currentProjectData !== lastProjectData) {
+        console.log('Canvas state changed, resetting view');
+        resetView();
+      }
+      
+      setLastProjectData(currentProjectData);
+    } catch (error) {
+      console.error('Error in canvas state change detection:', error);
     }
-    
-    setLastProjectData(currentProjectData);
   }, [canvasNodes, canvasConnections, lastProjectData, resetView]);
 
   // Process stage data when it changes
@@ -342,11 +345,19 @@ export const SpatialCanvas: React.FC<SpatialCanvasProps> = ({
     }
   }, [addNode, setSelectedNode, nodes]);
 
+  const handleClearCanvas = useCallback(() => {
+    if (window.confirm('Are you sure you want to clear the canvas? This action cannot be undone.')) {
+      clearCanvas();
+      console.log('Canvas cleared by user action');
+    }
+  }, [clearCanvas]);
+
   const handleAutoLayout = useCallback(() => {
     // Simple force-directed layout
     const nodesByType = nodes.reduce((acc, node) => {
-      if (!acc[node.type]) acc[node.type] = [];
-      acc[node.type].push(node);
+      const type = node.type || 'unknown';
+      if (!acc[type]) acc[type] = [];
+      acc[type].push(node);
       return acc;
     }, {} as Record<string, CanvasNodeData[]>);
 
@@ -367,10 +378,21 @@ export const SpatialCanvas: React.FC<SpatialCanvasProps> = ({
   // Save canvas state
   const handleSave = useCallback(() => {
     // Canvas is already auto-saved via onUpdateCanvasNodes/onUpdateCanvasConnections
-    // Just provide visual feedback to the user
+    console.log('Canvas saved manually');
     const savedNotification = document.createElement('div');
-    savedNotification.className = 'fixed top-4 right-4 bg-green-100 text-green-800 px-4 py-2 rounded-lg shadow-md z-50';
-    savedNotification.textContent = 'Canvas saved successfully';
+    savedNotification.className = 'fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50';
+    savedNotification.innerHTML = `
+      <div class="bg-white rounded-lg p-6 shadow-xl">
+        <div class="flex items-center space-x-3">
+          <div class="w-6 h-6 bg-green-500 rounded-full flex items-center justify-center">
+            <svg class="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+            </svg>
+          </div>
+          <span class="text-gray-800 font-medium">Canvas saved successfully</span>
+        </div>
+      </div>
+    `;
     document.body.appendChild(savedNotification);
     
     setTimeout(() => {
@@ -381,7 +403,7 @@ export const SpatialCanvas: React.FC<SpatialCanvasProps> = ({
   const handleExport = useCallback(() => {
     const exportData = {
       nodes,
-      connections,
+      connections: connections || [],
       metadata: { 
         exportedAt: new Date().toISOString(),
         version: '1.0',
@@ -389,7 +411,7 @@ export const SpatialCanvas: React.FC<SpatialCanvasProps> = ({
         connectionCount: connections.length
       }
     };
-    
+    console.log('Exporting canvas data');
     const blob = new Blob([JSON.stringify(exportData, null, 2)], { type: 'application/json' });
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
@@ -412,7 +434,7 @@ export const SpatialCanvas: React.FC<SpatialCanvasProps> = ({
         onToggleGrid={toggleGrid}
         onScreenshot={() => takeScreenshot(canvasRef)}
         onAutoLayout={handleAutoLayout}
-        onClearCanvas={clearCanvas}
+        onClearCanvas={handleClearCanvas}
         showGrid={state.showGrid}
         scale={state.scale}
         isCollapsed={isToolbarCollapsed}

@@ -20,6 +20,7 @@ export const useCanvasScreenshot = () => {
   const takeScreenshot = useCallback(async (elementRef: React.RefObject<HTMLDivElement>) => {
     if (!elementRef.current) {
       console.error('Canvas element not found');
+      alert('Canvas element not found. Please try again.');
       return;
     }
 
@@ -38,6 +39,7 @@ export const useCanvasScreenshot = () => {
       document.body.appendChild(loadingIndicator);
 
       // Use html2canvas to capture the canvas
+      console.log('Taking screenshot of canvas...');
       const canvas = await html2canvas(elementRef.current, {
         backgroundColor: '#f9fafb', // Match the bg-gray-50 color
         scale: window.devicePixelRatio, // Use device pixel ratio for better quality
@@ -49,6 +51,7 @@ export const useCanvasScreenshot = () => {
       // Remove loading indicator
       loadingIndicator.remove();
 
+      console.log('Screenshot captured, preparing download...');
       // Convert canvas to image and download
       const image = canvas.toDataURL('image/png');
       const link = document.createElement('a');
@@ -56,6 +59,7 @@ export const useCanvasScreenshot = () => {
       link.download = `canvas-screenshot-${new Date().toISOString().slice(0, 10)}.png`;
       link.click();
     } catch (error) {
+      console.log('Screenshot downloaded successfully');
       console.error('Error taking screenshot:', error);
       
       // Show error notification

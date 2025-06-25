@@ -137,14 +137,17 @@ export const useCanvasStateManager = (
   }, [connections, onUpdateConnections]);
 
   const clearCanvas = useCallback(() => {
-    setNodes([]);
+    console.log('Clearing canvas in CanvasStateManager');
+    const emptyNodes: CanvasNodeData[] = [];
+    setNodes(emptyNodes);
     if (onUpdateNodes) {
-      onUpdateNodes([]);
+      onUpdateNodes(emptyNodes);
     }
     
-    setConnections([]);
+    const emptyConnections: Connection[] = [];
+    setConnections(emptyConnections);
     if (onUpdateConnections) {
-      onUpdateConnections([]);
+      onUpdateConnections(emptyConnections);
     }
     
     setState(prev => ({
@@ -154,6 +157,7 @@ export const useCanvasStateManager = (
   }, [onUpdateNodes, onUpdateConnections]);
 
   const resetView = useCallback(() => {
+    console.log('Resetting canvas view');
     setState(prev => ({
       ...prev,
       scale: 1,
@@ -180,6 +184,7 @@ export const useCanvasStateManager = (
   const processStageData = useCallback((stageData: any) => {
     const processorState: ProcessorState = {
       nodes: nodes
+      lastProcessedData: lastProcessedStageData
     }
 
     CanvasDataProcessor.updateCanvasFromStageData(
@@ -188,6 +193,7 @@ export const useCanvasStateManager = (
       (newState: ProcessorState) => {
         updateNodes(newState.nodes); 
         setLastProcessedStageData(newState.lastProcessedData || {});
+        console.log('Canvas nodes updated from stage data');
       }
     );
   }, [nodes, updateNodes, lastProcessedStageData]);
