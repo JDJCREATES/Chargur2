@@ -6,7 +6,7 @@ import { Accordion, AccordionSummary, AccordionDetails, Typography } from '@mui/
 import { ChatHistory } from '../ui/ChatHistory';
 import { ChatInterface } from '../chat/ChatInterface';
 import { Settings } from '../ui/Settings';
-import { Avatar } from '../ui/Avatar';
+import { ProjectManager } from '../ui/ProjectManager';
 import { IdeationDiscovery } from '../stages/content/IdeationDiscovery';
 import { FeaturePlanning } from '../stages/content/FeaturePlanning';
 import { StructureFlow } from '../stages/content/StructureFlow';
@@ -176,15 +176,9 @@ export const Sidebar: React.FC<SidebarProps> = ({
         {/* Header */}
         <div className="p-4 border-b border-gray-200">
           <div className="flex items-center gap-3">
-            <Avatar size="lg" />
-            <div className={`transition-opacity duration-200 ${isOpen ? 'opacity-100' : 'opacity-0'}`}>
-              <h2 className="font-semibold text-gray-800">
-                {currentStage ? currentStage.title : 'UX + IA Agent'}
-              </h2>
-              <p className="text-sm text-gray-500">
-                {currentStage ? `Stage ${stages.findIndex(s => s.id === currentStage.id) + 1} of ${stages.length}` : 'Let\'s get started!'}
-              </p>
-            </div>
+            <div className={`w-full transition-opacity duration-200 ${isOpen ? 'opacity-100' : 'opacity-0'}`}>
+              <ProjectManager />
+            </div>  
           </div>
         </div>
 

@@ -26,7 +26,7 @@ export interface Project {
   description: string;
   user_id: string;
   current_stage_id: string;
-  stageData: StageData;
+  stage_data: StageData;
   canvas_nodes: CanvasNodeData[];
   canvas_connections: Connection[];
   created_at: string;

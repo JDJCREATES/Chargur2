@@ -104,8 +104,8 @@ export const useStageManager = () => {
       if (data) {
         setProjectId(data.id);
         setCurrentProject(data);
-        setCurrentStageId(data.current_stage_id);
-        setStageData(data.stage_data || {});
+        setCurrentStageId(data.current_stage_id || 'ideation-discovery');
+        setStageData(data.stage_data || {});  
         setCanvasNodes(data.canvas_nodes || []);
         setCanvasConnections(data.canvas_connections || []);
         
