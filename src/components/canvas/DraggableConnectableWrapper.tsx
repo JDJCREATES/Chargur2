@@ -53,10 +53,6 @@ export const DraggableConnectableWrapper: React.FC<DraggableConnectableWrapperPr
   const nodeSize = node?.size || { width: 200, height: 100 };
   const nodePosition = node?.position || { x: 0, y: 0 };
 
-  // Add safety checks for node properties
-  const nodeSize = node.size || { width: 200, height: 100 };
-  const nodePosition = node.position || { x: 0, y: 0 };
-
   const handleDragStart = (event: any, info: any) => {
     setIsDragging(true);
     setDragStart({ x: nodePosition.x, y: nodePosition.y });
