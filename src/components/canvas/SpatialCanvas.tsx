@@ -420,8 +420,8 @@ export const SpatialCanvas: React.FC<SpatialCanvasProps> = ({
         tabIndex={0}
       >
         <CanvasRenderer
-          nodes={state.nodes}
-          connections={state.connections}
+          nodes={nodes}
+          connections={connections}
           selectedNodeId={state.selectedNodeId}
           connectingFrom={interactionState.connectingFrom}
           scale={state.scale}
