@@ -38,8 +38,18 @@ export class CanvasDataProcessor {
     currentState: ProcessorState,
     onStateUpdate: (newState: ProcessorState) => void
   ): void {
+    // Check what data has changed and only add new nodes
+    const currentDataHash = JSON.stringify(stageData);
+    const lastDataHash = JSON.stringify(currentState.lastProcessedData || {});
+    
+    if (currentDataHash === lastDataHash) {
+      console.log('No stage data changes detected, skipping update');
+      return; // No changes, don't update
+    }
+
     // Create a mutable copy of the current nodes
     let updatedNodes = [...currentState.nodes];
+    console.log('Processing stage data, starting with', updatedNodes.length, 'nodes');
 
     // Process each stage's data and update the nodes array
     updatedNodes = this.processIdeationData(stageData, currentState, updatedNodes);
@@ -54,6 +64,7 @@ export class CanvasDataProcessor {
     if (aiAnalysisNode) {
       // Remove any existing AI analysis nodes
       updatedNodes = updatedNodes.filter(node => !node.metadata?.generated);
+      console.log('Adding AI analysis node');
       updatedNodes.push(aiAnalysisNode);
     }
     
@@ -62,11 +73,13 @@ export class CanvasDataProcessor {
       nodes: updatedNodes,
       lastProcessedData: { ...stageData }
     });
+    console.log('Canvas data processor completed, returning', updatedNodes.length, 'nodes');
   }
 
   private static processIdeationData(stageData: any, currentState: ProcessorState, nodes: CanvasNodeData[]): CanvasNodeData[] {
     const ideationData = stageData['ideation-discovery'];
     const lastIdeationData = (currentState.lastProcessedData || {})['ideation-discovery'] || {};
+    const originalNodeCount = nodes.length;
     
     if (!ideationData || JSON.stringify(ideationData) === JSON.stringify(lastIdeationData)) {
       return nodes;
@@ -200,12 +213,15 @@ export class CanvasDataProcessor {
       }
     }
 
+    console.log('Processed ideation data:', nodes.length - originalNodeCount, 'nodes added/updated');
+
     return nodes;
   }
 
   private static processFeatureData(stageData: any, currentState: ProcessorState, nodes: CanvasNodeData[]): CanvasNodeData[] {
     const featureData = stageData['feature-planning'];
     const lastFeatureData = (currentState.lastProcessedData || {})['feature-planning'] || {};
+    const originalNodeCount = nodes.length;
     
     if (!featureData || JSON.stringify(featureData) === JSON.stringify(lastFeatureData)) {
       return nodes;
@@ -238,12 +254,15 @@ export class CanvasDataProcessor {
       nodes.push(this.createNaturalLanguageFeatureNode(featureData.naturalLanguageFeatures));
     }
 
+    console.log('Processed feature data:', nodes.length - originalNodeCount, 'nodes added/updated');
+
     return nodes;
   }
 
   private static processStructureData(stageData: any, currentState: ProcessorState, nodes: CanvasNodeData[]): CanvasNodeData[] {
     const structureData = stageData['structure-flow'];
     const lastStructureData = (currentState.lastProcessedData || {})['structure-flow'] || {};
+    const originalNodeCount = nodes.length;
     
     if (!structureData || JSON.stringify(structureData) === JSON.stringify(lastStructureData)) {
       return nodes;
@@ -270,12 +289,15 @@ export class CanvasDataProcessor {
       });
     }
 
+    console.log('Processed structure data:', nodes.length - originalNodeCount, 'nodes added/updated');
+
     return nodes;
   }
 
   private static processArchitectureData(stageData: any, currentState: ProcessorState, nodes: CanvasNodeData[]): CanvasNodeData[] {
     const architectureData = stageData['architecture-design'];
     const lastArchitectureData = (currentState.lastProcessedData || {})['architecture-design'] || {};
+    const originalNodeCount = nodes.length;
     
     if (!architectureData || JSON.stringify(architectureData) === JSON.stringify(lastArchitectureData)) {
       return nodes;
@@ -307,12 +329,15 @@ export class CanvasDataProcessor {
       });
     }
 
+    console.log('Processed architecture data:', nodes.length - originalNodeCount, 'nodes added/updated');
+
     return nodes;
   }
 
   private static processInterfaceData(stageData: any, currentState: ProcessorState, nodes: CanvasNodeData[]): CanvasNodeData[] {
     const interfaceData = stageData['interface-interaction'] || {};
     const lastInterfaceData = (currentState.lastProcessedData || {})['interface-interaction'] || {};
+    const originalNodeCount = nodes.length;
     
     if (!interfaceData || JSON.stringify(interfaceData) === JSON.stringify(lastInterfaceData)) {
       return nodes;
@@ -340,12 +365,15 @@ export class CanvasDataProcessor {
       nodes.push(this.createLayoutNode(interfaceData.layoutBlocks, uiX, uiY));
     }
 
+    console.log('Processed interface data:', nodes.length - originalNodeCount, 'nodes added/updated');
+
     return nodes;
   }
 
   private static processAuthData(stageData: any, currentState: ProcessorState, nodes: CanvasNodeData[]): CanvasNodeData[] {
     const authData = stageData['user-auth-flow'] || {};
     const lastAuthData = (currentState.lastProcessedData || {})['user-auth-flow'] || {};
+    const originalNodeCount = nodes.length;
     
     if (!authData || JSON.stringify(authData) === JSON.stringify(lastAuthData)) {
       return nodes;
@@ -379,10 +407,16 @@ export class CanvasDataProcessor {
       }
     }
 
+    console.log('Processed auth data:', nodes.length - originalNodeCount, 'nodes added/updated');
+
     return nodes;
   }
 
   private static generateAIAnalysisNode(stageData: any, nodeCount: number): CanvasNodeData | null {
+    if (nodeCount === 0) {
+      return null; // Don't create analysis node for empty canvas
+    }
+    
     // Generate AI analysis based on project completeness
     const completedStages = Object.keys(stageData).length;
     if (completedStages === 0) return null;

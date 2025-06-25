@@ -97,13 +97,11 @@ export const useStageManager = () => {
   const loadProject = useCallback(async (id: string) => {
     try {
       setIsLoading(true);
-      setError(null); 
+      setError(null);
       
       // Reset canvas state before loading new project
-      const emptyState = getEmptyCanvasState();
-      setCanvasNodes(emptyState.nodes);
-      setCanvasConnections(emptyState.connections);
-      console.log('Canvas state reset before loading project:', id);
+      clearCanvasData();
+      console.log('Canvas state cleared before loading project:', id);
       
       const { data, error } = await supabase
         .from('projects')
@@ -117,7 +115,7 @@ export const useStageManager = () => {
         setProjectId(data.id);
         setCurrentProject(data);
         
-        // Update stage data first
+        // Update stage data and current stage ID first
         const newStageData = data.stage_data || {};
         setStageData(newStageData);
         
@@ -132,13 +130,10 @@ export const useStageManager = () => {
           completed: s.id in newStageData && Object.keys(newStageData[s.id] || {}).length > 0
         })));
         
-        // Finally update canvas data
-        setTimeout(() => {
-          setCanvasNodes(data.canvas_nodes || []);
-          setCanvasConnections(data.canvas_connections || []);
-          console.log('Canvas data updated from project:', data.id);
-        }, 50);
-        
+        // Update canvas data
+        setCanvasNodes(data.canvas_nodes || []);
+        setCanvasConnections(data.canvas_connections || []);
+        console.log('Canvas data updated from project:', data.id, 'with', data.canvas_nodes?.length || 0, 'nodes');
         console.log('Project loaded successfully:', data.id, 'with', data.canvas_nodes?.length || 0, 'nodes');
       }
     } catch (err) {
@@ -147,7 +142,7 @@ export const useStageManager = () => {
     } finally {
       setIsLoading(false);
     }
-  }, []);
+  }, [clearCanvasData]);
 
   // Create a new project
   const createAndLoadNewProject = useCallback(async (name = 'New Project', description = '') => {
@@ -160,9 +155,7 @@ export const useStageManager = () => {
       setError(null);
       
       // Reset canvas state before creating new project
-      const emptyState = getEmptyCanvasState();
-      setCanvasNodes(emptyState.nodes);
-      setCanvasConnections(emptyState.connections);
+      clearCanvasData();
       
       const { data, error } = await supabase
         .from('projects')
@@ -190,7 +183,7 @@ export const useStageManager = () => {
     } finally {
       setIsLoading(false);
     }
-  }, [user, loadProject]);
+  }, [user, loadProject, clearCanvasData]);
 
   // Save project to Supabase (debounced)
   const saveProject = useCallback(debounce(async () => {
@@ -198,6 +191,10 @@ export const useStageManager = () => {
       if (!projectId || !user) {
         console.log('Cannot save project: missing projectId or user');
         return;
+      }
+
+      if (canvasNodes.length === 0 && canvasConnections.length === 0) {
+        console.log('Skipping save - empty canvas state');
       }
       
       const { error } = await supabase
@@ -213,6 +210,7 @@ export const useStageManager = () => {
       
       if (error) throw error;
       
+      console.log('Project saved with stage data:', Object.keys(stageData));
       console.log('Project saved successfully:', projectId, 'with', canvasNodes.length, 'nodes');
     } catch (err) {
       console.error('Failed to save project:', err);
@@ -279,6 +277,7 @@ export const useStageManager = () => {
   // Clear canvas data (used when switching projects)
   const clearCanvasData = useCallback(() => {
     const emptyState = getEmptyCanvasState();
+    console.log('Clearing canvas data');
     setCanvasNodes(emptyState.nodes);
     setCanvasConnections(emptyState.connections); 
     console.log('Canvas data cleared');

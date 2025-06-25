@@ -5,9 +5,13 @@ const getConnectionPath = (connection: Connection) => {
     // Safety check for missing nodes or node properties
     if (!fromNode || !toNode || !fromNode.position || !toNode.position || 
         !fromNode.size || !toNode.size) {
+
+    // Safety check for missing nodes or node properties
+    if (!fromNode || !toNode || !fromNode.position || !toNode.position || 
+        !fromNode.size || !toNode.size) {
       return null;
     }
-    
+
     return {
       from: {
         x: fromNode.position.x + fromNode.size.width,
@@ -25,7 +29,7 @@ const getConnectionPath = (connection: Connection) => {
       {/* Grid Background - always visible when showGrid is true */}
       {showGrid && (
         <div
-          className="absolute inset-0 opacity-30"
+          className="absolute inset-0 opacity-20"
           style={{
             backgroundImage: `url(${gridPattern})`,
             backgroundSize: `${GRID_SIZE * scale}px ${GRID_SIZE * scale}px`
@@ -49,7 +53,7 @@ const getConnectionPath = (connection: Connection) => {
         {connections.map((connection) => {
           const path = getConnectionPath(connection);
           if (!path) return null;
-          
+
           return (
             <Connection
               key={connection.id}
@@ -62,7 +66,7 @@ const getConnectionPath = (connection: Connection) => {
         {/* Render Nodes - with safety checks */}
         {nodes.map((node) => {
           const isCustomIdeationNode = node.metadata?.stage === 'ideation-discovery' && 
-                                      Object.values(STAGE1_NODE_TYPES).includes(node.type as any);
+                                      Object.values(STAGE1_NODE_TYPES).includes(node.id as any);
           
           return isCustomIdeationNode ? (
             <IdeationNode key={node.id} node={node} />
