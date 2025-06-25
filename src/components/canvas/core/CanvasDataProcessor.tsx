@@ -1,6 +1,3 @@
-Here's the fixed version with all missing closing brackets and proper whitespace:
-
-```typescript
 /**
  * CanvasDataProcessor.tsx
  * 
@@ -67,6 +64,73 @@ export class CanvasDataProcessor {
     });
   }
 
-  // ... rest of the class implementation ...
+  private static processIdeationData(stageData: any, currentState: ProcessorState, nodes: CanvasNodeData[]): CanvasNodeData[] {
+    const ideationData = stageData['ideation-discovery'];
+    if (!ideationData) return nodes;
+
+    // Add ideation-specific nodes
+    return nodes;
+  }
+
+  private static processFeatureData(stageData: any, currentState: ProcessorState, nodes: CanvasNodeData[]): CanvasNodeData[] {
+    const featureData = stageData['feature-planning'];
+    if (!featureData) return nodes;
+
+    // Add feature-specific nodes
+    return nodes;
+  }
+
+  private static processStructureData(stageData: any, currentState: ProcessorState, nodes: CanvasNodeData[]): CanvasNodeData[] {
+    const structureData = stageData['structure-flow'];
+    if (!structureData) return nodes;
+
+    // Add structure-specific nodes
+    return nodes;
+  }
+
+  private static processArchitectureData(stageData: any, currentState: ProcessorState, nodes: CanvasNodeData[]): CanvasNodeData[] {
+    const architectureData = stageData['architecture-design'];
+    if (!architectureData) return nodes;
+
+    // Add architecture-specific nodes
+    return nodes;
+  }
+
+  private static processInterfaceData(stageData: any, currentState: ProcessorState, nodes: CanvasNodeData[]): CanvasNodeData[] {
+    const interfaceData = stageData['interface-interaction'];
+    if (!interfaceData) return nodes;
+
+    // Add interface-specific nodes
+    return nodes;
+  }
+
+  private static processAuthData(stageData: any, currentState: ProcessorState, nodes: CanvasNodeData[]): CanvasNodeData[] {
+    const authData = stageData['user-auth-flow'];
+    if (!authData) return nodes;
+
+    // Add auth-specific nodes
+    return nodes;
+  }
+
+  private static generateAIAnalysisNode(stageData: any, nodeCount: number): CanvasNodeData | null {
+    // Generate AI analysis based on project completeness
+    const completedStages = Object.keys(stageData).length;
+    
+    if (completedStages === 0) return null;
+
+    return {
+      id: `ai-analysis-${this.nodeIdCounter++}`,
+      type: 'default',
+      position: { x: 100 + (nodeCount * 50), y: 100 + (nodeCount * 50) },
+      data: {
+        title: 'AI Analysis',
+        content: `Project has ${completedStages} completed stages`,
+        type: 'ai-analysis'
+      },
+      metadata: {
+        generated: true,
+        stageId: 'ai-analysis'
+      }
+    };
+  }
 }
-```
