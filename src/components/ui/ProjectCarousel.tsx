@@ -82,6 +82,11 @@ export const ProjectCarousel: React.FC<ProjectCarouselProps> = ({
     }).format(date);
   };
 
+  const handleProjectSelect = (projectId: string) => {
+    // Clear canvas before switching projects
+    onSelectProject(projectId);
+  };
+
   if (isLoading) {
     return (
       <div className="p-4 flex items-center justify-center">

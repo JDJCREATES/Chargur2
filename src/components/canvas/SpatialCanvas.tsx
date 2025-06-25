@@ -55,6 +55,8 @@ export const SpatialCanvas: React.FC<SpatialCanvasProps> = ({
   onUpdateCanvasConnections,
   onSendMessage
 }) => {
+  const [lastProjectData, setLastProjectData] = useState<string>('');
+
   const {
     state,
     nodes,
@@ -103,6 +105,22 @@ export const SpatialCanvas: React.FC<SpatialCanvasProps> = ({
       });
     }
   );
+
+  // Detect when canvas data changes (indicating project switch)
+  useEffect(() => {
+    const currentProjectData = JSON.stringify({ canvasNodes, canvasConnections });
+    
+    // If canvas data changed dramatically (like going from populated to empty), it's likely a project switch
+    if (lastProjectData && 
+        lastProjectData !== '{"canvasNodes":[],"canvasConnections":[]}' && 
+        currentProjectData === '{"canvasNodes":[],"canvasConnections":[]}') {
+      // Project was switched - clear canvas and reset view
+      clearCanvas();
+      resetView();
+    }
+    
+    setLastProjectData(currentProjectData);
+  }, [canvasNodes, canvasConnections, lastProjectData, clearCanvas, resetView]);
 
   // Process stage data when it changes
   useEffect(() => {

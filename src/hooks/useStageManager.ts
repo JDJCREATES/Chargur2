@@ -93,6 +93,10 @@ export const useStageManager = () => {
       setIsLoading(true);
       setError(null);
       
+      // Clear canvas data before loading new project
+      setCanvasNodes([]);
+      setCanvasConnections([]);
+      
       const { data, error } = await supabase
         .from('projects')
         .select('*')
@@ -134,6 +138,10 @@ export const useStageManager = () => {
       
       setIsLoading(true);
       setError(null);
+      
+      // Clear canvas data before creating new project
+      setCanvasNodes([]);
+      setCanvasConnections([]);
       
       const { data, error } = await supabase
         .from('projects')

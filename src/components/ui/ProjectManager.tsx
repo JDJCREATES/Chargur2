@@ -13,7 +13,8 @@ export const ProjectManager: React.FC<ProjectManagerProps> = ({ onClose }) => {
     loadProject, 
     createAndLoadNewProject, 
     projectId: currentProjectId,
-    currentProject
+    currentProject,
+    clearCanvasData // This is now available from useStageManager
   } = useStageManager();
   
   const [isCreating, setIsCreating] = useState(false);
@@ -25,7 +26,7 @@ export const ProjectManager: React.FC<ProjectManagerProps> = ({ onClose }) => {
     if (isCreating) {
       // Submit new project
       if (newProjectName.trim()) {
-        await createAndLoadNewProject(newProjectName.trim(), newProjectDescription.trim());
+        await createAndLoadNewProject(newProjectName.trim(), newProjectDescription.trim()); // This now handles canvas clearing internally
         setNewProjectName('');
         setNewProjectDescription('');
         setIsCreating(false);
@@ -56,7 +57,7 @@ export const ProjectManager: React.FC<ProjectManagerProps> = ({ onClose }) => {
   };
 
   const handleSelectProject = async (projectId: string) => {
-    await loadProject(projectId);
+    await loadProject(projectId); // loadProject now handles canvas clearing internally
     if (onClose) onClose();
   };
 
