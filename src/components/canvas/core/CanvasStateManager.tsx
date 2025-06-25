@@ -173,12 +173,12 @@ export const useCanvasStateManager = (
       processorState,
       (newState: ProcessorState) => {
         updateNodes(newState.nodes); 
-        setLastProcessedData(newState.lastProcessedData || {});
+        setLastProcessedStageData(newState.lastProcessedData || {});
         console.log('Canvas nodes updated from stage data, node count:', newState.nodes.length);
         console.log('Canvas nodes updated from stage data, node count:', newState.nodes.length);
       }
     );
-  }, [initialNodes, lastProcessedData, updateNodes]);
+  }, [initialNodes, lastProcessedStageData, updateNodes]);
 
   return {
     state,
