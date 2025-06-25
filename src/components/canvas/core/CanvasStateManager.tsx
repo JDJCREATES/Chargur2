@@ -184,8 +184,8 @@ export const useCanvasStateManager = (
   const processStageData = useCallback((stageData: any) => {
     const processorState: ProcessorState = {
       nodes: nodes,
-      lastProcessedData: lastProcessedStageData
-    }
+      lastProcessedData: lastProcessedStageData || {}
+    };
 
     CanvasDataProcessor.updateCanvasFromStageData(
       stageData,
@@ -193,7 +193,7 @@ export const useCanvasStateManager = (
       (newState: ProcessorState) => {
         updateNodes(newState.nodes); 
         setLastProcessedStageData(newState.lastProcessedData || {});
-        console.log('Canvas nodes updated from stage data');
+        console.log('Canvas nodes updated from stage data, node count:', newState.nodes.length);
       }
     );
   }, [nodes, updateNodes, lastProcessedStageData]);

@@ -56,6 +56,7 @@ export const SpatialCanvas: React.FC<SpatialCanvasProps> = ({
   onSendMessage
 }) => {
   const [lastProjectData, setLastProjectData] = useState<string>('');
+  const [isInitialLoad, setIsInitialLoad] = useState(true);
 
   const {
     state,
@@ -107,32 +108,40 @@ export const SpatialCanvas: React.FC<SpatialCanvasProps> = ({
   );
 
   // Detect when canvas data changes (indicating project switch)
-  // This effect monitors for project changes by watching canvasNodes and canvasConnections
+  // This effect monitors for project changes by watching canvasNodes
   useEffect(() => {
-    try {
-      // Create a unique identifier for the current canvas state
-      const currentProjectData = JSON.stringify({
-        nodeCount: canvasNodes.length,
-        connectionCount: canvasConnections.length,
-        firstNodeId: canvasNodes.length > 0 ? canvasNodes[0].id : null
-      });
-      
-      // If the canvas state changed significantly, it's likely a project switch
-      if (lastProjectData && currentProjectData !== lastProjectData) {
-        console.log('Canvas state changed, resetting view');
-        resetView();
-      }
-      
-      setLastProjectData(currentProjectData);
-    } catch (error) {
-      console.error('Error in canvas state change detection:', error);
+    if (isInitialLoad) {
+      // Skip the first render to avoid unnecessary resets
+      setIsInitialLoad(false);
+      return;
     }
-  }, [canvasNodes, canvasConnections, lastProjectData, resetView]);
+    
+    // Create a unique identifier for the current canvas state
+    const currentProjectData = JSON.stringify({
+      nodeCount: canvasNodes.length,
+      firstNodeId: canvasNodes.length > 0 ? canvasNodes[0].id : null
+    });
+    
+    // If the canvas state changed significantly, it's likely a project switch
+    if (lastProjectData && currentProjectData !== lastProjectData) {
+      console.log('Canvas state changed significantly, resetting view');
+      // Use setTimeout to avoid state updates during render cycle
+      setTimeout(() => {
+        resetView();
+      }, 100);
+    }
+    
+    setLastProjectData(currentProjectData);
+  }, [canvasNodes, resetView]);
 
-  // Process stage data when it changes
+  // Process stage data when it changes - with proper dependency array
   useEffect(() => {
-    if (stageData) {
-      processStageData(stageData);
+    if (stageData && Object.keys(stageData).length > 0) {
+      try {
+        processStageData(stageData);
+      } catch (error) {
+        console.error('Error processing stage data:', error);
+      }
     }
   }, [stageData, processStageData]);
 
@@ -347,15 +356,16 @@ export const SpatialCanvas: React.FC<SpatialCanvasProps> = ({
 
   const handleClearCanvas = useCallback(() => {
     if (window.confirm('Are you sure you want to clear the canvas? This action cannot be undone.')) {
+      console.log('Clearing canvas from user action');
       clearCanvas();
-      console.log('Canvas cleared by user action');
     }
   }, [clearCanvas]);
 
   const handleAutoLayout = useCallback(() => {
     // Simple force-directed layout
     const nodesByType = nodes.reduce((acc, node) => {
-      const type = node.type || 'unknown';
+      if (!node) return acc;
+      const type = node.type || 'unknown'; 
       if (!acc[type]) acc[type] = [];
       acc[type].push(node);
       return acc;
@@ -379,32 +389,20 @@ export const SpatialCanvas: React.FC<SpatialCanvasProps> = ({
   const handleSave = useCallback(() => {
     // Canvas is already auto-saved via onUpdateCanvasNodes/onUpdateCanvasConnections
     console.log('Canvas saved manually');
-    const savedNotification = document.createElement('div');
-    savedNotification.className = 'fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50';
-    savedNotification.innerHTML = `
-      <div class="bg-white rounded-lg p-6 shadow-xl">
-        <div class="flex items-center space-x-3">
-          <div class="w-6 h-6 bg-green-500 rounded-full flex items-center justify-center">
-            <svg class="w-4 h-4 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
-            </svg>
-          </div>
-          <span class="text-gray-800 font-medium">Canvas saved successfully</span>
-        </div>
-      </div>
-    `;
-    document.body.appendChild(savedNotification);
     
-    setTimeout(() => {
-      savedNotification.remove();
-    }, 2000);
+    // Use a simpler notification approach to avoid DOM manipulation
+    const notification = document.createElement('div');
+    notification.className = 'fixed top-4 right-4 bg-green-100 text-green-800 px-4 py-2 rounded-lg shadow-md z-50';
+    notification.textContent = 'Canvas saved successfully';
+    document.body.appendChild(notification);
+    setTimeout(() => notification.remove(), 2000);
   }, []);
 
   const handleExport = useCallback(() => {
     const exportData = {
       nodes,
       connections: connections || [],
-      metadata: { 
+      metadata: {
         exportedAt: new Date().toISOString(),
         version: '1.0',
         nodeCount: nodes.length,
