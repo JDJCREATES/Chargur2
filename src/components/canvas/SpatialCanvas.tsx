@@ -52,14 +52,11 @@ export const SpatialCanvas: React.FC<SpatialCanvasProps> = ({
     canvasNodes, 
     canvasConnections, 
     updateCanvasNodes, 
-    updateCanvasConnections 
+    updateCanvasConnections,
+    projectId
   } = useAppStore();
 
-  const [lastProjectId, setLastProjectId] = useState<string | null>(null);
-  const [isInitialRender, setIsInitialRender] = useState(true);
-
-  const [lastProjectData, setLastProjectData] = useState<string>('');
-  const [isInitialLoad, setIsInitialLoad] = useState(true);
+  const [isToolbarCollapsed, setIsToolbarCollapsed] = useState(false);
 
   const {
     state,
@@ -110,32 +107,16 @@ export const SpatialCanvas: React.FC<SpatialCanvasProps> = ({
     }
   );
 
-  // Detect when canvas data changes (indicating project switch)
-  // This effect monitors for project changes by watching canvasNodes
+  // Reset view when project changes
   useEffect(() => {
-    if (isInitialLoad) {
-      // Skip the first render to avoid unnecessary resets
-      setIsInitialLoad(false);
+    // Skip the initial mount
+    if (!projectId) {
       return;
     }
     
-    // Create a unique identifier for the current canvas state
-    const currentProjectData = JSON.stringify({
-      nodeCount: canvasNodes.length,
-      firstNodeId: canvasNodes.length > 0 ? canvasNodes[0].id : null
-    });
-    
-    // If the canvas state changed significantly, it's likely a project switch
-    if (lastProjectData && currentProjectData !== lastProjectData) {
-      console.log('Canvas state changed significantly, resetting view');
-      // Use setTimeout to avoid state updates during render cycle
-      setTimeout(() => {
-        resetView();
-      }, 100);
-    }
-    
-    setLastProjectData(currentProjectData);
-  }, [canvasNodes, resetView]);
+    console.log('Project changed, resetting canvas view');
+    resetView();
+  }, [projectId, resetView]);
 
   // Process stage data when it changes - with proper dependency array
   useEffect(() => {
@@ -150,30 +131,6 @@ export const SpatialCanvas: React.FC<SpatialCanvasProps> = ({
 
   // Initialize screenshot functionality
   const { takeScreenshot, canvasRef } = useCanvasScreenshot();
-
-  // Detect project changes by watching canvasNodes
-  useEffect(() => {
-    if (isInitialRender) {
-      setIsInitialRender(false);
-      return;
-    }
-    
-    // Check if this is a significant change in nodes (likely a project switch)
-    const currentProjectSignature = canvasNodes.length > 0 ? 
-      `${canvasNodes.length}-${canvasNodes[0]?.id || 'none'}` : 'empty';
-    const lastProjectSignature = nodes.length > 0 ? 
-      `${nodes.length}-${nodes[0]?.id || 'none'}` : 'empty';
-    
-    if (currentProjectSignature !== lastProjectSignature) {
-      console.log('Project data changed significantly, resetting view');
-      // Use setTimeout to avoid state updates during render
-      setTimeout(() => {
-        resetView();
-      }, 100);
-    }
-  }, [canvasNodes, resetView]);
-
-  const [isToolbarCollapsed, setIsToolbarCollapsed] = useState(false);
 
   const handleAddNode = useCallback((type: CanvasNodeData['type']) => {
     // Check if it's a custom ideation node type

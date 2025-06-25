@@ -143,7 +143,6 @@ export const useCanvasStateManager = (
 
   const resetView = useCallback(() => {
     console.log('Resetting canvas view');
-    console.log('Resetting canvas view');
     // Call the store's resetView action
     storeResetView();
     // Update local state
