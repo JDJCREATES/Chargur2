@@ -118,7 +118,10 @@ export const SpatialCanvas: React.FC<SpatialCanvasProps> = ({
 
   const {
     interactionState,
-    handlers
+    handlers,
+    startNodeDrag,
+    updateNodePosition,
+    endNodeDrag
   } = useCanvasInteractionManager(
     state.scale,
     setScale,
@@ -139,7 +142,8 @@ export const SpatialCanvas: React.FC<SpatialCanvasProps> = ({
       updateNode(from, {
         connections: [...(nodes.find(n => n.id === from)?.connections || []), to]
       });
-    }
+    },
+    state.selectedNodeId // Pass selectedNodeId to the interaction manager
   );
 
   // Reset view when canvas nodes change significantly (indicating project change)
@@ -158,7 +162,8 @@ export const SpatialCanvas: React.FC<SpatialCanvasProps> = ({
   const handleAddNode = useCallback((type: CanvasNodeData['type']) => {
     // Check if it's a custom ideation node type
     if (Object.values(STAGE1_NODE_TYPES).includes(type as any)) {
-      const defaults = STAGE1_NODE_DEFAULTS[type as keyof typeof STAGE1_NODE_DEFAULTS] || { position: { x: 100, y: 100 }, size: { width: 200, height: 100 } };
+      const defaults = STAGE1_NODE_DEFAULTS[type as keyof typeof STAGE1_NODE_DEFAULTS] || 
+        { position: { x: 100, y: 100 }, size: { width: 200, height: 100 } };
       
       // For singleton nodes, check if they already exist
       if (type === 'appName' || type === 'tagline' || type === 'coreProblem' || 
@@ -362,32 +367,40 @@ export const SpatialCanvas: React.FC<SpatialCanvasProps> = ({
   const handleClearCanvas = useCallback(() => {
     if (window.confirm('Are you sure you want to clear the canvas? This action cannot be undone.')) {
       console.log('Clearing canvas from user action');
-      clearCanvas();
+      try {
+        clearCanvas();
+      } catch (error) {
+        console.error('Error clearing canvas:', error);
+      }
     }
   }, [clearCanvas]);
 
   const handleAutoLayout = useCallback(() => {
     // Simple force-directed layout
-    const nodesByType = nodes.reduce((acc, node) => {
-      if (!node) return acc;
-      const type = node.type || 'unknown'; 
-      if (!acc[type]) acc[type] = [];
-      acc[type].push(node);
-      return acc;
-    }, {} as Record<string, CanvasNodeData[]>);
-
-    let x = 100;
-    const typeSpacing = 300;
-    const nodeSpacing = 120;
-
-    Object.entries(nodesByType).forEach(([type, typeNodes]) => {
-      let y = 100;
-      typeNodes.forEach((node) => {
-        updateNode(node.id, { position: { x, y } });
-        y += nodeSpacing;
+    try {
+      const nodesByType = nodes.reduce((acc, node) => {
+        if (!node) return acc;
+        const type = node.type || 'unknown'; 
+        if (!acc[type]) acc[type] = [];
+        acc[type].push(node);
+        return acc;
+      }, {} as Record<string, CanvasNodeData[]>);
+  
+      let x = 100;
+      const typeSpacing = 300;
+      const nodeSpacing = 120;
+  
+      Object.entries(nodesByType).forEach(([type, typeNodes]) => {
+        let y = 100;
+        typeNodes.forEach((node) => {
+          updateNode(node.id, { position: { x, y } });
+          y += nodeSpacing;
+        });
+        x += typeSpacing;
       });
-      x += typeSpacing;
-    });
+    } catch (error) {
+      console.error('Error in auto layout:', error);
+    }
   }, [nodes, updateNode]);
 
   // Save canvas state
@@ -404,25 +417,34 @@ export const SpatialCanvas: React.FC<SpatialCanvasProps> = ({
   }, []);
 
   const handleExport = useCallback(() => {
-    const exportData = {
-      nodes,
-      connections: connections || [],
-      metadata: {
-        exportedAt: new Date().toISOString(),
-        version: '1.0',
-        nodeCount: nodes.length,
-        connectionCount: connections.length
-      }
-    };
-    console.log('Exporting canvas data');
-    const blob = new Blob([JSON.stringify(exportData, null, 2)], { type: 'application/json' });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = 'canvas-export.json';
-    a.click();
-    URL.revokeObjectURL(url);
+    try {
+      const exportData = {
+        nodes,
+        connections: connections || [],
+        metadata: {
+          exportedAt: new Date().toISOString(),
+          version: '1.0',
+          nodeCount: nodes.length,
+          connectionCount: connections.length
+        }
+      };
+      console.log('Exporting canvas data');
+      const blob = new Blob([JSON.stringify(exportData, null, 2)], { type: 'application/json' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = 'canvas-export.json';
+      a.click();
+      URL.revokeObjectURL(url);
+    } catch (error) {
+      console.error('Error exporting canvas data:', error);
+    }
   }, [nodes, connections]);
+
+  // Define toggleGrid function
+  const toggleGrid = useCallback(() => {
+    setState(prev => ({ ...prev, showGrid: !prev.showGrid }));
+  }, [setState]);
 
   return (
     <div className="relative w-full h-full flex flex-col overflow-hidden bg-gray-50 rounded-lg border border-gray-200">
@@ -432,9 +454,9 @@ export const SpatialCanvas: React.FC<SpatialCanvasProps> = ({
         onZoomIn={() => setScale(Math.min(3, state.scale * 1.2))}
         onZoomOut={() => setScale(Math.max(0.1, state.scale * 0.8))}
         onResetView={resetView}
-        onSave={handleSave}
+        onSave={handleSave} 
         onExport={handleExport}
-        onToggleGrid={toggleGrid}
+        onToggleGrid={toggleGrid} // Now properly defined
         onScreenshot={() => takeScreenshot(canvasRef)}
         onAutoLayout={handleAutoLayout}
         onClearCanvas={handleClearCanvas}
@@ -454,8 +476,9 @@ export const SpatialCanvas: React.FC<SpatialCanvasProps> = ({
         onMouseDown={handlers.onMouseDown}
         onMouseMove={handlers.onMouseMove}
         onMouseUp={handlers.onMouseUp}
-        onMouseLeave={handlers.onMouseUp}
-        onKeyDown={handlers.onKeyDown}
+        onMouseLeave={handlers.onMouseUp} 
+        onKeyDown={handlers.onKeyDown} 
+        onKeyUp={handlers.onKeyUp} // Add keyup handler for space bar panning
         tabIndex={0}>
         <CanvasRenderer
           nodes={nodes}

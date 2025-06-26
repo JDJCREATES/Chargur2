@@ -22,6 +22,7 @@
 import { useCallback, useRef, useState } from 'react';
 import { CanvasNodeData } from '../CanvasNode';
 
+// Define the interface for interaction state
 export interface InteractionState {
   isDragging: boolean;
   isPanning: boolean;
@@ -35,6 +36,7 @@ export interface InteractionState {
   initialNodeSize: { width: number; height: number };
 }
 
+// Define the interface for interaction handlers
 export interface InteractionHandlers {
   onNodeSelect: (nodeId: string) => void;
   onNodeUpdate: (nodeId: string, updates: Partial<CanvasNodeData>) => void;
@@ -68,11 +70,12 @@ const DEFAULT_INTERACTION_STATE: InteractionState = {
 export const useCanvasInteractionManager = (
   scale: number,
   onScaleChange: (scale: number) => void,
-  onOffsetChange: (offset: { x: number; y: number }) => void,
+  onOffsetChange: (offset: { x: number; y: number }) => void, 
   onNodeSelect: (nodeId: string | null) => void,
   onNodeUpdate: (nodeId: string, updates: Partial<CanvasNodeData>) => void,
   onNodeDelete: (nodeId: string) => void,
-  onConnectionCreate: (from: string, to: string) => void
+  onConnectionCreate: (from: string, to: string) => void,
+  selectedNodeId: string | null = null // Add selectedNodeId parameter with default value
 ) => {
   const [interactionState, setInteractionState] = useState<InteractionState>(DEFAULT_INTERACTION_STATE);
   const offsetRef = useRef({ x: 0, y: 0 });
@@ -88,6 +91,7 @@ export const useCanvasInteractionManager = (
     }
   }, [onNodeSelect]);
 
+  // Handle wheel events for zooming
   const handleWheel = useCallback((e: React.WheelEvent) => {
     e.preventDefault();
     const delta = e.deltaY > 0 ? 0.9 : 1.1;
@@ -95,7 +99,7 @@ export const useCanvasInteractionManager = (
     onScaleChange(newScale);
   }, [scale, onScaleChange]);
 
-  const handleMouseDown = useCallback((e: React.MouseEvent) => {
+  const handleMouseDown = useCallback((e: React.MouseEvent) => { 
     if (e.button === 1 || (e.button === 0 && (e.metaKey || e.ctrlKey))) {
       // Middle mouse or Cmd/Ctrl+click for panning
       e.preventDefault();
@@ -103,7 +107,7 @@ export const useCanvasInteractionManager = (
         ...prev,
         isPanning: true,
         lastPanPoint: { x: e.clientX, y: e.clientY }
-      }));
+      })); // Note: We're not setting isDragging here, which is correct
     }
   }, []);
 
@@ -141,6 +145,7 @@ export const useCanvasInteractionManager = (
     }
   }, [interactionState, scale, onOffsetChange, onNodeUpdate]);
 
+  // Handle keyboard shortcuts
   const handleMouseUp = useCallback(() => {
     setInteractionState(prev => ({
       ...prev,
@@ -157,6 +162,138 @@ export const useCanvasInteractionManager = (
     if (e.key === 'Escape') {
       setInteractionState(prev => ({
         ...prev,
+        isDragging: false,
+        draggedNode: null,
+        isResizing: false,
+        resizingNode: null,
+        isPanning: false,
+        isConnecting: false,
+        connectingFrom: null
+      }));
+      onNodeSelect(null);
+    }
+    
+    if (e.key === 'Delete' || e.key === 'Backspace') {
+      // Delete selected node if there is one
+      if (selectedNodeId) {
+        e.preventDefault(); // Prevent browser back navigation on backspace
+        onNodeDelete(selectedNodeId);
+      }
+    }
+    
+    if (e.key === ' ') {
+      e.preventDefault();
+      // Space bar for panning mode
+      setInteractionState(prev => ({
+        ...prev,
+        isPanning: true
+      }));
+    }
+  }, [onNodeSelect, onNodeDelete, selectedNodeId]);
+
+  // Handle key up for space bar panning
+  const handleKeyUp = useCallback((e: React.KeyboardEvent) => {
+    if (e.key === ' ') {
+      setInteractionState(prev => ({
+        ...prev,
+        isPanning: false
+      }));
+    }
+  }, []);
+
+  const startConnection = useCallback((nodeId: string) => {
+    setInteractionState(prev => ({
+      ...prev,
+      connectingFrom: nodeId,
+      isConnecting: true
+    }));
+  }, []);
+
+  const endConnection = useCallback((nodeId: string) => {
+    if (interactionState.connectingFrom && interactionState.connectingFrom !== nodeId) {
+      onConnectionCreate(interactionState.connectingFrom, nodeId);
+    }
+    setInteractionState(prev => ({
+      ...prev,
+      connectingFrom: null,
+      isConnecting: false
+    }));
+  }, [interactionState.connectingFrom, onConnectionCreate]);
+
+  const startNodeDrag = useCallback((nodeId: string) => {
+    setInteractionState(prev => ({
+      ...prev,
+      isDragging: true,
+      draggedNode: nodeId
+    }));
+  }, []);
+
+  const updateNodePosition = useCallback((nodeId: string, position: { x: number; y: number }) => {
+    // Ensure position is within bounds
+    const boundedPosition = {
+      x: Math.max(0, position.x),
+      y: Math.max(0, position.y)
+    };
+    
+    onNodeUpdate(nodeId, { position: boundedPosition });
+  }, [onNodeUpdate]);
+
+  const endNodeDrag = useCallback(() => {
+    setInteractionState(prev => ({
+      ...prev,
+      isDragging: false,
+      draggedNode: null
+    }));
+  }, []);
+
+  const startResizing = useCallback((
+    nodeId: string, 
+    initialMousePos: { x: number; y: number }, 
+    initialSize: { width: number; height: number }
+  ) => {
+    setInteractionState(prev => ({
+      ...prev,
+      isResizing: true,
+      resizingNode: nodeId,
+      initialMousePos,
+      initialNodeSize: initialSize
+    }));
+  }, []);
+
+  const endResizing = useCallback(() => {
+    setInteractionState(prev => ({
+      ...prev,
+      isResizing: false,
+      resizingNode: null
+    }));
+  }, []);
+
+  const handlers: InteractionHandlers = {
+    onNodeSelect,
+    onNodeUpdate,
+    onNodeDelete,
+    onConnectionStart: startConnection,
+    onConnectionEnd: endConnection,
+    onCanvasClick: handleCanvasClick,
+    onWheel: handleWheel,
+    onMouseDown: handleMouseDown,
+    onMouseMove: handleMouseMove,
+    onMouseUp: handleMouseUp,
+    onKeyDown: handleKeyDown,
+    onResizeStart: startResizing,
+    onResize: handleMouseMove,
+    onResizeEnd: endResizing
+  };
+
+  return {
+    interactionState,
+    handlers,
+    startNodeDrag,
+    updateNodePosition,
+    endNodeDrag,
+    setInteractionState
+  };
+};
         connectingFrom: null,
         isConnecting: false
       }));
