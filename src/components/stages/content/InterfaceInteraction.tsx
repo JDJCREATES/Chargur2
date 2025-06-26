@@ -404,7 +404,15 @@ export const InterfaceInteraction: React.FC<InterfaceInteractionProps> = ({
                     </div>
                     <div>
                       <label className="block font-medium text-green-700 mb-1">Trigger</label>
-                      <select className="w-full px-2 py-1 border border-green-200 rounded focus:outline-none focus:ring-1 focus:ring-green-500">
+                      <select 
+                        value={rule.trigger}
+                        onChange={(e) => {
+                          const updatedRules = formData.interactionRules.map(r => 
+                            r.id === rule.id ? { ...r, trigger: e.target.value } : r
+                          );
+                          updateFormData('interactionRules', updatedRules);
+                        }}
+                        className="w-full px-2 py-1 border border-green-200 rounded focus:outline-none focus:ring-1 focus:ring-green-500">
                         <option value="click">Click</option>
                         <option value="hover">Hover</option>
                         <option value="focus">Focus</option>
@@ -422,7 +430,15 @@ export const InterfaceInteraction: React.FC<InterfaceInteractionProps> = ({
                     </div>
                     <div>
                       <label className="block font-medium text-green-700 mb-1">Animation</label>
-                      <select className="w-full px-2 py-1 border border-green-200 rounded focus:outline-none focus:ring-1 focus:ring-green-500">
+                      <select 
+                        value={rule.animation}
+                        onChange={(e) => {
+                          const updatedRules = formData.interactionRules.map(r => 
+                            r.id === rule.id ? { ...r, animation: e.target.value } : r
+                          );
+                          updateFormData('interactionRules', updatedRules);
+                        }}
+                        className="w-full px-2 py-1 border border-green-200 rounded focus:outline-none focus:ring-1 focus:ring-green-500">
                         {animationPresets.map(preset => (
                           <option key={preset} value={preset}>{preset}</option>
                         ))}
@@ -523,7 +539,15 @@ export const InterfaceInteraction: React.FC<InterfaceInteractionProps> = ({
                   <div className="grid grid-cols-4 gap-2 text-xs">
                     <div>
                       <label className="block font-medium text-teal-700 mb-1">Type</label>
-                      <select className="w-full px-2 py-1 border border-teal-200 rounded focus:outline-none focus:ring-1 focus:ring-teal-500">
+                      <select 
+                        value={item.type}
+                        onChange={(e) => {
+                          const updatedItems = formData.copywriting.map(i => 
+                            i.id === item.id ? { ...i, type: e.target.value as 'button' | 'label' | 'placeholder' | 'error' | 'heading' } : i
+                          );
+                          updateFormData('copywriting', updatedItems);
+                        }}
+                        className="w-full px-2 py-1 border border-teal-200 rounded focus:outline-none focus:ring-1 focus:ring-teal-500">
                         <option value="button">Button</option>
                         <option value="label">Label</option>
                         <option value="placeholder">Placeholder</option>
@@ -550,7 +574,15 @@ export const InterfaceInteraction: React.FC<InterfaceInteractionProps> = ({
                     </div>
                     <div>
                       <label className="block font-medium text-teal-700 mb-1">Tone</label>
-                      <select className="w-full px-2 py-1 border border-teal-200 rounded focus:outline-none focus:ring-1 focus:ring-teal-500">
+                      <select 
+                        value={item.tone}
+                        onChange={(e) => {
+                          const updatedItems = formData.copywriting.map(i => 
+                            i.id === item.id ? { ...i, tone: e.target.value as 'professional' | 'playful' | 'casual' } : i
+                          );
+                          updateFormData('copywriting', updatedItems);
+                        }}
+                        className="w-full px-2 py-1 border border-teal-200 rounded focus:outline-none focus:ring-1 focus:ring-teal-500">
                         <option value="professional">Professional</option>
                         <option value="playful">Playful</option>
                         <option value="casual">Casual</option>
