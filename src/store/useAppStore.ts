@@ -89,6 +89,7 @@ interface AppState {
   isLoading: boolean;
   error: string | null;
   updateProject: (projectId: string, updates: { name?: string; description?: string }) => Promise<void>;
+  deleteProject: (projectId: string) => Promise<void>;
 
   
   // Computed values
@@ -182,6 +183,51 @@ export const useAppStore = create<AppState>((set, get) => {
     agentRecommendations: [],
     isAgentThinking: false,
    
+    deleteProject: async (projectId: string) => {
+      try {
+        set({ error: null }); // Clear any existing errors
+        
+        // Get current user from Supabase
+        const { data: { user } } = await supabase.auth.getUser();
+        
+        if (!user) {
+          throw new Error('User must be logged in to delete a project');
+        }
+        
+        // Delete the project
+        const { error } = await supabase
+          .from('projects')
+          .delete()
+          .eq('id', projectId)
+          .eq('user_id', user.id); // Ensure user can only delete their own projects
+
+        if (error) throw error;
+
+        // If the deleted project was the current project, clear current project state
+        if (get().projectId === projectId) {
+          set({
+            projectId: null,
+            currentProject: null,
+            stageData: {},
+            canvasNodes: [],
+            canvasConnections: []
+          });
+        }
+
+        // Refresh the projects list
+        await get().fetchProjects();
+        
+        console.log('Project deleted successfully:', projectId);
+      } catch (err) {
+        console.error('Failed to delete project:', err);
+        const errorMessage = err instanceof Error ? err.message : 'Failed to delete project';
+        set({ error: errorMessage });
+        
+        // Optionally throw the error so the UI can handle it
+        throw new Error(errorMessage);
+      }
+    },
+    
     
     // Computed values
     getCurrentStage: () => {

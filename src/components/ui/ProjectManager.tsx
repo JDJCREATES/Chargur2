@@ -1,8 +1,9 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Plus, Edit2, Check, X } from 'lucide-react';
+import { Plus, Edit2, Check, X, Trash2 } from 'lucide-react';
 import { useAppStore } from '../../store/useAppStore';
 import { ProjectCarousel } from './ProjectCarousel';
+import { DeleteProjectModal } from './DeleteProjectModal';
 
 interface ProjectManagerProps {
   onClose?: () => void;
@@ -19,13 +20,15 @@ export const ProjectManager: React.FC<ProjectManagerProps> = ({ onClose }) => {
     loadProject,
     createAndLoadNewProject,
     updateProject,
-    fetchProjects
+    fetchProjects,
+    deleteProject
   } = useAppStore();
   
   const [isCreating, setIsCreating] = useState(false);
   const [isEditing, setIsEditing] = useState(false);
   const [newProjectName, setNewProjectName] = useState('');
   const [newProjectDescription, setNewProjectDescription] = useState('');
+  const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
 
   // Fetch projects when component mounts
   useEffect(() => {
@@ -70,6 +73,18 @@ export const ProjectManager: React.FC<ProjectManagerProps> = ({ onClose }) => {
     }
   };
 
+  const handleDeleteProject = useCallback(async () => {
+    if (!currentProject) return;
+    
+    try {
+      await deleteProject(currentProject.id);
+      setIsDeleteModalOpen(false);
+    } catch (error) {
+      console.error('Failed to delete project:', error);
+      // Error is already set in the store
+    }
+  }, [currentProject, deleteProject]);
+
   const handleSelectProject = (projectId: string) => {
     loadProject(projectId);
     if (onClose) onClose();
@@ -84,11 +99,19 @@ export const ProjectManager: React.FC<ProjectManagerProps> = ({ onClose }) => {
           <div className="flex items-center gap-2">
             <button
               onClick={handleEditProject}
-              className="p-1.5 bg-gray-100 text-gray-600 rounded-full hover:bg-gray-200 transition-colors"
+              className="p-1.5 bg-gray-100 text-gray-600 rounded-full hover:bg-gray-200 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
               title="Edit Project"
               disabled={!currentProject}
             >
               <Edit2 className="w-3.5 h-3.5" />
+            </button>
+            <button
+              onClick={() => currentProject && setIsDeleteModalOpen(true)}
+              className="p-1.5 bg-red-100 text-red-600 rounded-full hover:bg-red-200 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+              title="Delete Project"
+              disabled={!currentProject}
+            >
+              <Trash2 className="w-3.5 h-3.5" />
             </button>
             <button
               onClick={handleCreateProject}
@@ -108,6 +131,14 @@ export const ProjectManager: React.FC<ProjectManagerProps> = ({ onClose }) => {
           error={error}
         />
       </div>
+      
+      {/* Delete Project Modal */}
+      <DeleteProjectModal
+        isOpen={isDeleteModalOpen}
+        onClose={() => setIsDeleteModalOpen(false)}
+        onConfirm={handleDeleteProject}
+        projectName={currentProject?.name || 'this project'}
+      />
       
       {/* Create/Edit Form */}
       <AnimatePresence>
