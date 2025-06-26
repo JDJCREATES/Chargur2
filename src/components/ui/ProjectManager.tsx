@@ -13,15 +13,24 @@ export const ProjectManager: React.FC<ProjectManagerProps> = ({ onClose }) => {
   const {
     projectId: currentProjectId,
     currentProject,
+    projects,
+    isLoading,
+    error,
     loadProject,
     createAndLoadNewProject,
-    updateProject // Add this method to your store if it doesn't exist
+    updateProject,
+    fetchProjects
   } = useAppStore();
   
   const [isCreating, setIsCreating] = useState(false);
   const [isEditing, setIsEditing] = useState(false);
   const [newProjectName, setNewProjectName] = useState('');
   const [newProjectDescription, setNewProjectDescription] = useState('');
+
+  // Fetch projects when component mounts
+  useEffect(() => {
+    fetchProjects();
+  }, [fetchProjects]);
 
   const handleCreateProject = () => {
     if (isCreating) {
@@ -94,6 +103,9 @@ export const ProjectManager: React.FC<ProjectManagerProps> = ({ onClose }) => {
         <ProjectCarousel 
           onSelectProject={handleSelectProject}
           currentProjectId={currentProjectId}
+          projects={projects}
+          isLoading={isLoading}
+          error={error}
         />
       </div>
       

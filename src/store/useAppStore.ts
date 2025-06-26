@@ -83,6 +83,7 @@ interface AppState {
   stageData: StageData;
   projectId: string | null;
   currentProject: Project | null;
+  projects: Project[];
   canvasNodes: CanvasNodeData[];
   canvasConnections: Connection[];
   isLoading: boolean;
@@ -97,6 +98,7 @@ interface AppState {
   // Actions
   loadProject: (id: string) => Promise<void>;
   createAndLoadNewProject: (name?: string, description?: string) => Promise<void>;
+  fetchProjects: () => Promise<void>;
   goToStage: (stageId: string) => void;
   completeStage: (stageId: string) => void;
   updateStageData: (stageId: string, data: any) => void;
@@ -169,6 +171,7 @@ export const useAppStore = create<AppState>((set, get) => {
     stageData: {},
     projectId: null,
     currentProject: null,
+    projects: [],
     canvasNodes: [],
     canvasConnections: [],
     isLoading: true,
@@ -250,6 +253,33 @@ export const useAppStore = create<AppState>((set, get) => {
       }
     },
     
+    fetchProjects: async () => {
+      try {
+        // Get current user from Supabase
+        const { data: { user } } = await supabase.auth.getUser();
+        
+        if (!user) {
+          console.log('No authenticated user found for fetching projects');
+          set({ projects: [] });
+          return;
+        }
+        
+        const { data, error } = await supabase
+          .from('projects')
+          .select('*')
+          .eq('user_id', user.id)
+          .order('updated_at', { ascending: false });
+        
+        if (error) throw error;
+        
+        console.log(`Fetched ${data?.length || 0} projects for user ${user.id}`);
+        set({ projects: data || [] });
+      } catch (err) {
+        console.error('Failed to fetch projects:', err);
+        // Don't set error state here to avoid disrupting the UI
+      }
+    },
+    
     createAndLoadNewProject: async (name = 'New Project', description = '') => {
       try {
         set({ isLoading: true, error: null });
@@ -259,26 +289,6 @@ export const useAppStore = create<AppState>((set, get) => {
         
         if (!user) {
           throw new Error('User must be logged in to create a project');
-        }
-        
-        // Check if this is an automatic creation (default name/description)
-        const isAutomaticCreation = name === 'New Project' && description === '';
-        
-        // If automatic creation, check if user already has projects
-        if (isAutomaticCreation) {
-          const { data: existingProjects } = await supabase
-            .from('projects')
-            .select('id')
-            .eq('user_id', user.id)
-            .order('updated_at', { ascending: false })
-            .limit(1);
-          
-          // If user already has projects, load the most recent one instead of creating a new one
-          if (existingProjects && existingProjects.length > 0) {
-            console.log('Found existing project, loading instead of creating new one:', existingProjects[0].id);
-            await get().loadProject(existingProjects[0].id);
-            return;
-          }
         }
         
         // Clear canvas data first
@@ -307,6 +317,9 @@ export const useAppStore = create<AppState>((set, get) => {
           // Load the newly created project
           await get().loadProject(data.id);
           console.log('New project created and loaded:', data.id);
+          
+          // Refresh the projects list
+          await get().fetchProjects();
         }
       } catch (err) {
         console.error('Failed to create project:', err);
@@ -404,21 +417,13 @@ export const useAppStore = create<AppState>((set, get) => {
       try {
         set({ isLoading: true, error: null });
         
-        // Check if user has any existing projects
-        const { data, error } = await supabase
-          .from('projects')
-          .select('id')
-          .eq('user_id', userId)
-          .order('updated_at', { ascending: false })
-          .limit(1);
+        // Fetch all user projects
+        await get().fetchProjects();
+        const projects = get().projects;
         
-        if (error) {
-          throw error;
-        }
-        
-        if (data && data.length > 0 && data[0]?.id) {
+        if (projects.length > 0) {
           // User has an existing project, load it
-          await get().loadProject(data[0].id);
+          await get().loadProject(projects[0].id);
         } else {
           // User has no projects, but don't automatically create one
           // Just set loading to false and let the UI handle the empty state
@@ -462,6 +467,9 @@ export const useAppStore = create<AppState>((set, get) => {
             }
           });
         }
+        
+        // Refresh the projects list
+        await get().fetchProjects();
 
         console.log('Project updated successfully:', projectId);
       } catch (err) {

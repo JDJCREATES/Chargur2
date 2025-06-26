@@ -1,74 +1,28 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { motion } from 'framer-motion';
 import { ChevronLeft, ChevronRight, Folder } from 'lucide-react';
-import { supabase } from '../../lib/auth/supabase';
-import { useAppStore } from '../../store/useAppStore';
-import { useAuth } from '../../hooks/useAuth';
 import { Project } from '../../types';
 
 
 interface ProjectCarouselProps {
   onSelectProject: (projectId: string) => void;
   currentProjectId: string | null;
-  // Remove onCreateProject since we're using the store method
+  projects: Project[];
+  isLoading: boolean;
+  error: string | null;
 }
 export const ProjectCarousel: React.FC<ProjectCarouselProps> = ({
   onSelectProject,
-  // Remove onCreateProject from destructuring
-  currentProjectId
+  currentProjectId,
+  projects,
+  isLoading,
+  error
 }) => {
-  const [projects, setProjects] = useState<Project[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
   const [currentIndex, setCurrentIndex] = useState(0);
-  const { user } = useAuth();
-
-  // Add ref to prevent infinite loops
-  const lastUserIdRef = useRef<string | null>(null);
-  const lastProjectIdRef = useRef<string | null>(null);
-
-  // Fetch user's projects - fix the infinite loop
+  
+  // Update current index when projects or currentProjectId changes
   useEffect(() => {
-    const fetchProjects = async () => {
-      // Prevent refetching if user hasn't changed
-      if (!user || user.id === lastUserIdRef.current) {
-        if (!user) {
-          setProjects([]);
-          setIsLoading(false);
-        }
-        return;
-      }
-
-      lastUserIdRef.current = user.id;
-
-      try {
-        setIsLoading(true);
-        setError(null);
-        
-        const { data, error } = await supabase
-          .from('projects')
-          .select('*')
-          .eq('user_id', user.id)
-          .order('updated_at', { ascending: false });
-        
-        if (error) throw error;
-        
-        setProjects(data || []);
-      } catch (err) {
-        console.error('Failed to fetch projects:', err);
-        setError(err instanceof Error ? err.message : 'Failed to load projects');
-      } finally {
-        setIsLoading(false);
-      }
-    };
-    
-    fetchProjects();
-  }, [user?.id]); // Only depend on user.id
-
-  // Handle current project index - separate effect
-  useEffect(() => {
-    if (currentProjectId !== lastProjectIdRef.current && projects.length > 0) {
-      lastProjectIdRef.current = currentProjectId;
+    if (projects.length > 0 && currentProjectId) {
       const index = projects.findIndex(p => p.id === currentProjectId);
       if (index !== -1) {
         setCurrentIndex(index);
