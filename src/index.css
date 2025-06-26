@@ -38,7 +38,7 @@
 .dark-mode .text-gray-800 { @apply text-gray-200; }
 .dark-mode .text-gray-700 { @apply text-gray-300; }
 .dark-mode .text-gray-600 { @apply text-gray-400; }
-.dark-mode .text-gray-500 { @apply text-gray-500; }
+.dark-mode .text-gray-500 { @apply text-gray-600; }
 
 .dark-mode .border-gray-200 { @apply border-gray-600; }
 .dark-mode .border-gray-300 { @apply border-gray-500; }
