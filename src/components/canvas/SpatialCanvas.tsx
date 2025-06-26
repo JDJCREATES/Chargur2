@@ -74,11 +74,6 @@ export const SpatialCanvas: React.FC<SpatialCanvasProps> = ({
 
   const [isToolbarCollapsed, setIsToolbarCollapsed] = useState(false);
 
-  // Define toggleGrid function
-  const toggleGrid = useCallback(() => {
-    setState(prev => ({ ...prev, showGrid: !prev.showGrid }));
-  }, [setState]);
-
   // Use store data as fallback when props aren't provided
   const effectiveNodes = canvasNodes || storeCanvasNodes;
   const effectiveConnections = canvasConnections || storeCanvasConnections;
