@@ -97,18 +97,10 @@ export const StructureFlow: React.FC<StructureFlowProps> = ({
     dataFlow: 'User creates Project → POST /api/projects → ProjectList updates → UI refreshes'
   };
   
-  const [formData, setFormData] = useState(defaultFormData);
-
-  // Sync formData with initialFormData when it changes
-  useEffect(() => {
-    if (initialFormData) {
-      console.log('Updating StructureFlow formData from initialFormData');
-      setFormData(prev => ({
-        ...prev,
-        ...initialFormData
-      }));
-    }
-  }, [initialFormData]);
+  const [formData, setFormData] = useState(() => ({
+    ...defaultFormData,
+    ...(initialFormData || {})
+  }));
 
   const updateFormData = (key: string, value: any) => {
     const updated = { ...formData, [key]: value };

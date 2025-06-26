@@ -91,23 +91,15 @@ export const UXReviewUserCheck: React.FC<UXReviewUserCheckProps> = ({
     readyForExport: false,
   };
   
-  const [formData, setFormData] = useState(defaultFormData);
+  const [formData, setFormData] = useState(() => ({
+    ...defaultFormData,
+    ...(initialFormData || {})
+  }));
 
   const [completionItems, setCompletionItems] = useState<CompletionItem[]>([]);
   const [aiFeedback, setAiFeedback] = useState<AIFeedback[]>([]);
   const [userTestScenarios, setUserTestScenarios] = useState<UserTestScenario[]>([]);
   const [overallProgress, setOverallProgress] = useState(0);
-
-  // Sync formData with initialFormData when it changes
-  useEffect(() => {
-    if (initialFormData) {
-      console.log('Updating UXReviewUserCheck formData from initialFormData');
-      setFormData(prev => ({
-        ...prev,
-        ...initialFormData
-      }));
-    }
-  }, [initialFormData]);
 
   useEffect(() => {
     performCompletionScan();

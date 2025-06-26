@@ -171,18 +171,10 @@ export const UserAuthFlow: React.FC<UserAuthFlowProps> = ({
     },
   };
   
-  const [formData, setFormData] = useState(defaultFormData);
-
-  // Sync formData with initialFormData when it changes
-  useEffect(() => {
-    if (initialFormData) {
-      console.log('Updating UserAuthFlow formData from initialFormData');
-      setFormData(prev => ({
-        ...prev,
-        ...initialFormData
-      }));
-    }
-  }, [initialFormData]);
+  const [formData, setFormData] = useState(() => ({
+    ...defaultFormData,
+    ...(initialFormData || {})
+  }));
 
   const updateFormData = (key: string, value: any) => {
     const updated = { ...formData, [key]: value };

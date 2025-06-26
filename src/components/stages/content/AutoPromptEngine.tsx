@@ -79,14 +79,16 @@ export const AutoPromptEngine: React.FC<AutoPromptEngineProps> = ({
     lastGenerated: null as Date | null,
   };
   
-  const [formData, setFormData] = useState(defaultFormData);
+  const [formData, setFormData] = useState(() => ({
+    ...defaultFormData,
+    ...(initialFormData || {})
+  }));
+  
   const initializedRef = useRef(false);
 
   // Initialize from props only once
   useEffect(() => {
-    if (!initializedRef.current && initialFormData && Object.keys(initialFormData).length > 0) {
-      console.log('Initializing AutoPromptEngine formData from initialFormData');
-      setFormData(prev => ({ ...prev, ...initialFormData }));
+    if (!initializedRef.current) {
       initializedRef.current = true;
     }
   }, []); // Empty dependency - only run once
@@ -101,7 +103,7 @@ export const AutoPromptEngine: React.FC<AutoPromptEngineProps> = ({
     [onUpdateData] // Change from [onFormDataChange] to [onUpdateData]
   );
 
-  // Handle form data changes
+  // Only update when formData changes and after initialization
   useEffect(() => {
     if (initializedRef.current) {
       debouncedOnFormDataChange(formData);
@@ -114,16 +116,6 @@ export const AutoPromptEngine: React.FC<AutoPromptEngineProps> = ({
   const [isGenerating, setIsGenerating] = useState(false);
   const [previewMode, setPreviewMode] = useState(false);
 
-  // Sync formData with initialFormData when it changes
-  useEffect(() => {
-    if (initialFormData && initializedRef.current) { // Add initializedRef check
-      console.log('Updating AutoPromptEngine formData from initialFormData');
-      setFormData(prev => ({
-        ...prev,
-        ...initialFormData
-      }));
-    }
-  }, [initialFormData]); // This dependency is correct
 
   useEffect(() => {
     generatePromptModules();

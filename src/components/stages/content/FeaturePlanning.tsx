@@ -78,20 +78,12 @@ export const FeaturePlanning: React.FC<FeaturePlanningProps> = ({
     },
   };
   
-  const [formData, setFormData] = useState(defaultFormData);
+  const [formData, setFormData] = useState(() => ({
+    ...defaultFormData,
+    ...(initialFormData || {})
+  }));
 
   const [draggedFeature, setDraggedFeature] = useState<string | null>(null);
-
-  // Sync formData with initialFormData when it changes
-  useEffect(() => {
-    if (initialFormData) {
-      console.log('Updating FeaturePlanning formData from initialFormData');
-      setFormData(prev => ({
-        ...prev,
-        ...initialFormData
-      }));
-    }
-  }, [initialFormData]);
 
   const updateFormData = (key: string, value: any) => {
     const updated = { ...formData, [key]: value };
