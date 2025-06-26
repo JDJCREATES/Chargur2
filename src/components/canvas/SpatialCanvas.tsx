@@ -62,14 +62,6 @@ export const SpatialCanvas: React.FC<SpatialCanvasProps> = ({
   const lastProcessedStageDataRef = useRef<string>('');
   const processingRef = useRef(false);
   
-  // Add useEffect to process stageData changes
-  useEffect(() => {
-    if (!processingRef.current) {
-      console.log('stageData changed, processing...');
-      processStageData(stageData);
-    }
-  }, [stageData, processStageData]);
-
   // Get canvas data and actions from the store
   const { 
     canvasNodes: storeCanvasNodes, 
@@ -112,6 +104,14 @@ export const SpatialCanvas: React.FC<SpatialCanvasProps> = ({
     handleUpdateNodes,
     handleUpdateConnections
   );
+
+  // Add useEffect to process stageData changes - moved after processStageData is defined
+  useEffect(() => {
+    if (!processingRef.current) {
+      console.log('stageData changed, processing...');
+      processStageData(stageData);
+    }
+  }, [stageData, processStageData]);
 
   const {
     interactionState,
