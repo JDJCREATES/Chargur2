@@ -237,7 +237,9 @@ export const useCanvasStateManager = (
         
         // Reset processing flag
         processingRef.current = false;
-  }, [lastProcessedStageData, updateNodes, nodesRef]);
+        }, [lastProcessedStageData, updateNodes, nodesRef]    );
+  }
+  )
 
   return {
     state,
