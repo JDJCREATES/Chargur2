@@ -187,6 +187,9 @@ export const useAppStore = create<AppState>((set, get) => {
       try {
         set({ error: null }); // Clear any existing errors
         
+        // Store current state
+        const state = get();
+        
         // Get current user from Supabase
         const { data: { user } } = await supabase.auth.getUser();
         
@@ -204,7 +207,7 @@ export const useAppStore = create<AppState>((set, get) => {
         if (error) throw error;
 
         // If the deleted project was the current project, clear current project state
-        if (get().projectId === projectId) {
+        if (state.projectId === projectId) {
           set({
             projectId: null,
             currentProject: null,
@@ -215,7 +218,21 @@ export const useAppStore = create<AppState>((set, get) => {
         }
 
         // Refresh the projects list
-        await get().fetchProjects();
+        const { data: updatedProjects } = await supabase
+          .from('projects')
+          .select('*')
+          .eq('user_id', user.id)
+          .order('updated_at', { ascending: false });
+        
+        // Update projects in state
+        set({ projects: updatedProjects || [] });
+        
+        // If we deleted the current project and there are other projects available,
+        // automatically load the first available project
+        if (state.projectId === projectId && updatedProjects && updatedProjects.length > 0) {
+          console.log('Loading next available project after deletion:', updatedProjects[0].id);
+          await get().loadProject(updatedProjects[0].id);
+        }
         
         console.log('Project deleted successfully:', projectId);
       } catch (err) {
