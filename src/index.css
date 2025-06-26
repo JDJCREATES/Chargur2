@@ -2,6 +2,81 @@
 @tailwind components;
 @tailwind utilities;
 
+/* Add this at the top of your CSS file */
+@font-face {
+     font-family: 'Nova Round';
+     src: url('/fonts/NovaRound-Regular.ttf') format('truetype');
+     font-weight: normal;
+     font-style: normal;
+     font-display: swap;
+}
+
+
+/* Create a utility class for the Chargur brand */
+.font-nova-round {
+     font-family: 'Nova Round', cursive;
+}
+
+/* Dark mode implementation with toggle support */
+:root {
+  color-scheme: light;
+}
+
+.dark-mode {
+  color-scheme: dark;
+}
+
+/* Global dark mode overrides - only applied when .dark-mode class is present */
+.dark-mode .bg-white { @apply bg-gray-900; }
+.dark-mode .bg-gray-50 { @apply bg-gray-800; }
+.dark-mode .bg-gray-100 { @apply bg-gray-700; }
+.dark-mode .bg-gray-200 { @apply bg-gray-600; }
+.dark-mode .bg-gray-300 { @apply bg-gray-500; }
+
+.dark-mode .text-black { @apply text-white; }
+.dark-mode .text-gray-900 { @apply text-gray-100; }
+.dark-mode .text-gray-800 { @apply text-gray-200; }
+.dark-mode .text-gray-700 { @apply text-gray-300; }
+.dark-mode .text-gray-600 { @apply text-gray-400; }
+.dark-mode .text-gray-500 { @apply text-gray-500; }
+
+.dark-mode .border-gray-200 { @apply border-gray-600; }
+.dark-mode .border-gray-300 { @apply border-gray-500; }
+
+/* Component-specific overrides */
+.dark-mode .bg-blue-50 { @apply bg-blue-900/20; }
+.dark-mode .bg-green-50 { @apply bg-green-900/20; }
+.dark-mode .bg-purple-50 { @apply bg-purple-900/20; }
+.dark-mode .bg-orange-50 { @apply bg-orange-900/20; }
+.dark-mode .bg-red-50 { @apply bg-red-900/20; }
+.dark-mode .bg-teal-50 { @apply bg-teal-900/20; }
+.dark-mode .bg-indigo-50 { @apply bg-indigo-900/20; }
+.dark-mode .bg-yellow-50 { @apply bg-yellow-900/20; }
+.dark-mode .bg-pink-50 { @apply bg-pink-900/20; }
+
+/* Gradient backgrounds */
+.dark-mode .bg-gradient-to-r,
+.dark-mode .bg-gradient-to-br,
+.dark-mode .bg-gradient-to-b {
+  @apply bg-opacity-20;
+}
+
+/* Preserve accent colors in dark mode */
+.dark-mode .text-blue-600 { @apply text-blue-400; }
+.dark-mode .text-green-600 { @apply text-green-400; }
+.dark-mode .text-purple-600 { @apply text-purple-400; }
+.dark-mode .text-orange-600 { @apply text-orange-400; }
+.dark-mode .text-red-600 { @apply text-red-400; }
+.dark-mode .text-teal-600 { @apply text-teal-400; }
+.dark-mode .text-indigo-600 { @apply text-indigo-400; }
+
+/* Preserve shadows and transitions */
+.dark-mode .shadow-md,
+.dark-mode .shadow-lg,
+.dark-mode .shadow-xl {
+  @apply shadow-black/20;
+}
+
 
 /* Add this at the top of your CSS file */
 @font-face {

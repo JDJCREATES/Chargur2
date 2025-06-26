@@ -3,6 +3,19 @@ import { createRoot } from 'react-dom/client';
 import App from './App.tsx';
 import './index.css';
 
+// Initialize dark mode from localStorage
+const initDarkMode = () => {
+  if (typeof window !== 'undefined') {
+    const isDarkMode = localStorage.getItem('darkMode') === 'true';
+    if (isDarkMode) {
+      document.documentElement.classList.add('dark-mode');
+    }
+  }
+};
+
+// Run initialization
+initDarkMode();
+
 createRoot(document.getElementById('root')!).render(
   <StrictMode>
     <App />

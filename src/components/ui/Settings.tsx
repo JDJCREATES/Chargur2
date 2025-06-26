@@ -1,4 +1,5 @@
 import React, { useState } from "react";
+import { useEffect } from "react";
 import {
   Settings as SettingsIcon,
   Moon,
@@ -15,10 +16,27 @@ import { LoginModal } from "../auth/LoginModal";
 import { AboutUsModal } from "./AboutUsModal";
 
 export const Settings: React.FC = () => {
-  const [darkMode, setDarkMode] = useState(false);
+  const [darkMode, setDarkMode] = useState(() => {
+    // Initialize from localStorage if available
+    if (typeof window !== 'undefined') {
+      return localStorage.getItem('darkMode') === 'true';
+    }
+    return false;
+  });
   const [showLoginModal, setShowLoginModal] = useState(false);
   const [showAboutModal, setShowAboutModal] = useState(false);
   const { user, signOut, loading } = useAuth();
+
+  // Apply dark mode class to document when darkMode state changes
+  useEffect(() => {
+    if (darkMode) {
+      document.documentElement.classList.add('dark-mode');
+      localStorage.setItem('darkMode', 'true');
+    } else {
+      document.documentElement.classList.remove('dark-mode');
+      localStorage.setItem('darkMode', 'false');
+    }
+  }, [darkMode]);
 
   const handleAutoGenerate = () => {
     // This would trigger AI auto-generation for the entire process!
@@ -84,7 +102,9 @@ export const Settings: React.FC = () => {
               <span className="text-sm text-gray-700">Dark Mode</span>
             </div>
             <button
-              onClick={() => setDarkMode(!darkMode)}
+              onClick={() => {
+                setDarkMode(!darkMode);
+              }}
               className={`
     relative w-10 h-6 rounded-full transition-colors
     ${darkMode ? "bg-blue-600" : "bg-gray-200"}
