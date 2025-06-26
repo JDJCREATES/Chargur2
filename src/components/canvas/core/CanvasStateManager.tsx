@@ -2,7 +2,7 @@
  * CanvasStateManager.tsx
  * 
  * Manages the persistent state of the SpatialCanvas system.
- * Handles localStorage operations, state synchronization, and recovery.
+ * Handles saving, loading, and updating canvas state.
  * 
  * ROLE IN SPATIAL CANVAS SYSTEM:
  * - Persists canvas state across browser sessions
@@ -55,6 +55,9 @@ export const useCanvasStateManager = (
   const [state, setState] = useState<CanvasState>(DEFAULT_STATE);
   const [lastProcessedStageData, setLastProcessedStageData] = useState<{ [key: string]: any }>({});
   
+  // Add processing flag to prevent loops
+  const processingRef = useRef(false);
+  
   // Use ref to hold latest nodes to prevent infinite loops
   const nodesRef = useRef<CanvasNodeData[]>(initialNodes);
   
@@ -82,6 +85,12 @@ export const useCanvasStateManager = (
   }, []);
 
   const updateNodes = useCallback((updatedNodes: CanvasNodeData[]) => {
+    // Prevent updates during processing
+    if (processingRef.current) {
+      console.log('Processing in progress, skipping node update');
+      return;
+    }
+
     // Only update if the nodes have actually changed (deep comparison)
     if (onUpdateNodes && !areNodesEqual(updatedNodes, initialNodes)) {
       console.log('Nodes changed, updating...');
@@ -195,6 +204,22 @@ export const useCanvasStateManager = (
   }, []);
 
   const processStageData = useCallback((stageData: any) => {
+    // Prevent concurrent processing
+    if (processingRef.current) {
+      console.log('Already processing stage data, skipping...');
+      return;
+    }
+
+    const stageDataString = JSON.stringify(stageData);
+    const lastDataString = JSON.stringify(lastProcessedStageData);
+    
+    if (stageDataString === lastDataString) {
+      console.log('Stage data unchanged, skipping processing');
+      return;
+    }
+
+    processingRef.current = true;
+    
     const processorState: ProcessorState = {
       nodes: nodesRef.current,
       lastProcessedData: lastProcessedStageData || {}
@@ -207,6 +232,11 @@ export const useCanvasStateManager = (
         updateNodes(newState.nodes); 
         setLastProcessedStageData(newState.lastProcessedData || {});
         console.log('Canvas data processed, node count:', newState.nodes.length);
+        
+        // Reset processing flag
+        setTimeout(() => {
+          processingRef.current = false;
+        }, 100);
       }
     );
   }, [lastProcessedStageData, updateNodes, nodesRef]);

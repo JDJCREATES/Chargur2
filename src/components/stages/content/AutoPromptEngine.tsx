@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef, useMemo } from 'react';
 import { motion } from 'framer-motion';
 import { 
   Zap, 
@@ -89,6 +89,33 @@ export const AutoPromptEngine: React.FC<AutoPromptEngineProps> = ({
   };
   
   const [formData, setFormData] = useState(defaultFormData);
+  const initializedRef = useRef(false);
+
+  // Initialize from props only once
+  useEffect(() => {
+    if (!initializedRef.current && initialFormData && Object.keys(initialFormData).length > 0) {
+      console.log('Initializing AutoPromptEngine formData from initialFormData');
+      setFormData(prev => ({ ...prev, ...initialFormData }));
+      initializedRef.current = true;
+    }
+  }, []); // Empty dependency - only run once
+
+  // Create debounced callback
+  const debouncedOnFormDataChange = useMemo(
+    () => debounce((data: any) => {
+      if (initializedRef.current) { // Only call after initialization
+        onFormDataChange(data);
+      }
+    }, 300),
+    [onFormDataChange]
+  );
+
+  // Handle form data changes
+  useEffect(() => {
+    if (initializedRef.current) {
+      debouncedOnFormDataChange(formData);
+    }
+  }, [formData, debouncedOnFormDataChange]);
 
   const [promptModules, setPromptModules] = useState<PromptModule[]>([]);
   const [promptHistory, setPromptHistory] = useState<PromptHistory[]>([]);

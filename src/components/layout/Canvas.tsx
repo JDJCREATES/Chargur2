@@ -50,9 +50,6 @@ export const Canvas: React.FC<CanvasProps> = ({
 }) => {
   const [lastUserMessage, setLastUserMessage] = useState<string>('');
   
-  // Remove this line that's causing the infinite loop:
-  // const { canvasNodes, canvasConnections } = useAppStore();
-  
   // Use the props directly (they're already passed from App.tsx)
   const effectiveCanvasNodes = canvasNodes || [];
   const effectiveCanvasConnections = canvasConnections || [];

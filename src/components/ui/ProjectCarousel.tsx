@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { motion } from 'framer-motion';
 import { ChevronLeft, ChevronRight, Plus, Folder } from 'lucide-react';
 import { supabase } from '../../lib/auth/supabase';
@@ -10,11 +10,13 @@ import { Project } from '../../types';
 interface ProjectCarouselProps {
   onSelectProject: (projectId: string) => void;
   currentProjectId: string | null;
+  // Remove onCreateProject since we're using the store method
 }
 
 
 export const ProjectCarousel: React.FC<ProjectCarouselProps> = ({
   onSelectProject,
+  // Remove onCreateProject from destructuring
   currentProjectId
 }) => {
   // Get the store method
@@ -31,14 +33,23 @@ export const ProjectCarousel: React.FC<ProjectCarouselProps> = ({
   const [currentIndex, setCurrentIndex] = useState(0);
   const { user } = useAuth();
 
-  // Fetch user's projects
+  // Add ref to prevent infinite loops
+  const lastUserIdRef = useRef<string | null>(null);
+  const lastProjectIdRef = useRef<string | null>(null);
+
+  // Fetch user's projects - fix the infinite loop
   useEffect(() => {
     const fetchProjects = async () => {
-      if (!user) {
-        setProjects([]);
-        setIsLoading(false);
+      // Prevent refetching if user hasn't changed
+      if (!user || user.id === lastUserIdRef.current) {
+        if (!user) {
+          setProjects([]);
+          setIsLoading(false);
+        }
         return;
       }
+
+      lastUserIdRef.current = user.id;
 
       try {
         setIsLoading(true);
@@ -53,14 +64,6 @@ export const ProjectCarousel: React.FC<ProjectCarouselProps> = ({
         if (error) throw error;
         
         setProjects(data || []);
-        
-        // Find index of current project
-        if (currentProjectId && data) {
-          const index = data.findIndex(p => p.id === currentProjectId);
-          if (index !== -1) {
-            setCurrentIndex(index);
-          }
-        }
       } catch (err) {
         console.error('Failed to fetch projects:', err);
         setError(err instanceof Error ? err.message : 'Failed to load projects');
@@ -70,7 +73,18 @@ export const ProjectCarousel: React.FC<ProjectCarouselProps> = ({
     };
     
     fetchProjects();
-  }, [user, currentProjectId]);
+  }, [user?.id]); // Only depend on user.id
+
+  // Handle current project index - separate effect
+  useEffect(() => {
+    if (currentProjectId !== lastProjectIdRef.current && projects.length > 0) {
+      lastProjectIdRef.current = currentProjectId;
+      const index = projects.findIndex(p => p.id === currentProjectId);
+      if (index !== -1) {
+        setCurrentIndex(index);
+      }
+    }
+  }, [currentProjectId, projects]);
 
   const goToPrevious = () => {
     setCurrentIndex(prev => (prev > 0 ? prev - 1 : prev));

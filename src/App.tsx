@@ -2,11 +2,11 @@ import React, { useState } from "react";
 import { motion } from "framer-motion";
 import { useEffect } from "react";
 import { useAuth } from "./hooks/useAuth";
-import { AgentContextProvider } from "./components/agent/AgentContextProvider";
 import { Sidebar } from "./components/layout/Sidebar";
 import { Canvas } from "./components/layout/Canvas";
 import { useAppStore } from "./store/useAppStore";
 import { useAgentChat } from "./hooks/useAgentChat";
+import { LoginModal } from './components/auth/LoginModal';
 
 function App() {
   const [isSidebarOpen, setIsSidebarOpen] = useState(true);
@@ -37,11 +37,12 @@ function App() {
   // Initialize project when user is authenticated
   useEffect(() => {
     if (!authLoading && user) {
+      console.log('Initializing project for user:', user.id);
       initializeProject(user.id);
     }
   }, [authLoading, user, initializeProject]);
 
-  // Initialize agent chat once at the App level
+  // Initialize agent chat
   const {
     sendMessage,
     historyMessages,
@@ -53,7 +54,6 @@ function App() {
     error: agentError,
     retry,
     isStreaming,
-    goToStageId,
   } = useAgentChat({
     stageId: currentStage?.id || "",
     currentStageData: currentStage ? stageData[currentStage.id] : {},
@@ -66,7 +66,6 @@ function App() {
     onStageComplete: () => {
       if (currentStage) {
         completeStage(currentStageId);
-        // After completing the current stage, check if we should go to the next stage
         const nextStage = getNextStage();
         if (nextStage) {
           goToStage(nextStage.id);
@@ -79,14 +78,29 @@ function App() {
   });
 
   // Show loading screen while auth is initializing
-  if (authLoading || projectLoading) {
+  if (authLoading) {
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
         <div className="text-center">
           <div className="w-8 h-8 border-2 border-blue-600 border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
-          <p className="text-gray-600">
-            {authLoading ? "Loading authentication..." : "Loading project..."}
-          </p>
+          <p className="text-gray-600">Loading authentication...</p>
+        </div>
+      </div>
+    );
+  }
+
+  // Show LoginModal if not authenticated
+  if (!user) {
+    return <LoginModal isOpen={true} onClose={() => {}} />;
+  }
+
+  // Show project loading
+  if (projectLoading) {
+    return (
+      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+        <div className="text-center">
+          <div className="w-8 h-8 border-2 border-blue-600 border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
+          <p className="text-gray-600">Loading project...</p>
         </div>
       </div>
     );
@@ -100,9 +114,7 @@ function App() {
           <div className="w-12 h-12 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-4">
             <span className="text-red-600 text-xl">!</span>
           </div>
-          <h2 className="text-xl font-semibold text-gray-800 mb-2">
-            Error Loading Project
-          </h2>
+          <h2 className="text-xl font-semibold text-gray-800 mb-2">Error Loading Project</h2>
           <p className="text-gray-600 mb-4">{projectError}</p>
           <button
             onClick={() => window.location.reload()}
@@ -124,43 +136,17 @@ function App() {
   };
 
   return (
-    <AgentContextProvider>
-      <div className="min-h-screen bg-gray-50 flex">
-        {/* Main Content */}
-        <div
-          className={`flex-1 transition-all duration-300 ${
-            isSidebarOpen ? "mr-80" : "mr-12"
-          }`}
-        >
-          <Canvas
-            agentChat={{
-              sendMessage,
-              retry,
-              historyMessages,
-              content,
-              suggestions,
-              autoFillData,
-              isComplete,
-              isLoading: agentLoading,
-              error: agentError,
-              isStreaming,
-            }}
-            currentStage={currentStage}
-            stageData={stageData}
-            canvasNodes={canvasNodes}
-            canvasConnections={canvasConnections}
-            onUpdateCanvasNodes={updateCanvasNodes}
-            onUpdateCanvasConnections={updateCanvasConnections}
-            onOpenSidebar={openSidebar}
-          />
-        </div>
-
-        {/* Sidebar */}
-        <Sidebar
-          isOpen={isSidebarOpen}
-          onToggle={toggleSidebar}
+    <div className="min-h-screen bg-gray-50 flex">
+      {/* Main Content */}
+      <div
+        className={`flex-1 transition-all duration-300 ${
+          isSidebarOpen ? "mr-80" : "mr-12"
+        }`}
+      >
+        <Canvas
           agentChat={{
             sendMessage,
+            retry,
             historyMessages,
             content,
             suggestions,
@@ -168,12 +154,36 @@ function App() {
             isComplete,
             isLoading: agentLoading,
             error: agentError,
-            retry,
             isStreaming,
           }}
+          currentStage={currentStage}
+          stageData={stageData}
+          canvasNodes={canvasNodes}
+          canvasConnections={canvasConnections}
+          onUpdateCanvasNodes={updateCanvasNodes}
+          onUpdateCanvasConnections={updateCanvasConnections}
+          onOpenSidebar={openSidebar}
         />
       </div>
-    </AgentContextProvider>
+
+      {/* Sidebar */}
+      <Sidebar
+        isOpen={isSidebarOpen}
+        onToggle={toggleSidebar}
+        agentChat={{
+          sendMessage,
+          historyMessages,
+          content,
+          suggestions,
+          autoFillData,
+          isComplete,
+          isLoading: agentLoading,
+          error: agentError,
+          retry,
+          isStreaming,
+        }}
+      />
+    </div>
   );
 }
 

@@ -30,16 +30,19 @@ export const useAuth = (): AuthState & AuthActions => {
     // Get initial session
     const getInitialSession = async () => {
       try {
+        console.log('Getting initial session...');
         const { data: { session }, error } = await supabase.auth.getSession();
         if (error) {
           console.error('Error getting session:', error);
         } else {
+          console.log('Initial session:', session?.user?.email || 'No user');
           setSession(session);
           setUser(session?.user ?? null);
         }
       } catch (error) {
         console.error('Error in getInitialSession:', error);
       } finally {
+        console.log('Auth loading complete');
         setLoading(false);
       }
     };

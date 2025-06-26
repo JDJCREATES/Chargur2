@@ -18,7 +18,6 @@ import { UXReviewUserCheck } from '../stages/content/UXReviewUserCheck';
 import { AutoPromptEngine } from '../stages/content/AutoPromptEngine';
 import { ExportPanel } from '../export/ExportPanel';
 import { Stage, ChatMessage } from '../../types';
-import { useAgent } from '../agent/AgentContextProvider';
 
 import { StageProgressBubbles } from '../ui/StageProgressBubbles';
 

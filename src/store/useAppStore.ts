@@ -106,39 +106,62 @@ interface AppState {
   resetView: () => void;
   setError: (error: string | null) => void;
   initializeProject: (userId: string) => Promise<void>;
+
+  // Agent state (add if missing)
+  agentMemory: Record<string, any>;
+  agentRecommendations: any[];
+  isAgentThinking: boolean;
+  
+  // Agent actions (add if missing)
+  updateAgentMemory: (stageId: string, data: any) => void;
+  addCrossStageInsight: (insight: any) => void;
+  getStageRecommendations: (stageId: string) => any[];
+  resetAgent: () => void;
+  setIsAgentThinking: (thinking: boolean) => void;
 }
 
 export const useAppStore = create<AppState>((set, get) => {
-  // Create a debounced save function
+  // Create debounced version of updateStageData
+  const debouncedUpdateStageData = debounce((stageId: string, data: any) => {
+    set(state => ({
+      stageData: {
+        ...state.stageData,
+        [stageId]: { ...state.stageData[stageId], ...data }
+      }
+    }));
+  }, 300);
+
+  // Create debounced version of canvas updates
+  const debouncedUpdateCanvasNodes = debounce((nodes: CanvasNodeData[]) => {
+    set({ canvasNodes: nodes });
+  }, 200);
+
+  // Create debounced save function for project updates
   const debouncedSave = debounce(async () => {
-    const { projectId, currentStageId, stageData, canvasNodes, canvasConnections } = get();
-    
-    if (!projectId) {
-      console.log('Cannot save project: missing projectId');
-      return;
+    const state = get();
+    if (state.projectId && state.currentProject) {
+      try {
+        const { error } = await supabase
+          .from('projects')
+          .update({
+            current_stage_id: state.currentStageId,
+            stage_data: state.stageData,
+            canvas_nodes: state.canvasNodes,
+            canvas_connections: state.canvasConnections,
+            updated_at: new Date().toISOString()
+          })
+          .eq('id', state.projectId);
+
+        if (error) {
+          console.error('Failed to save project:', error);
+          set({ error: error.message });
+        }
+      } catch (err) {
+        console.error('Error saving project:', err);
+      }
     }
-    
-    try {
-      const { error } = await supabase
-        .from('projects')
-        .update({
-          current_stage_id: currentStageId,
-          stage_data: stageData,
-          canvas_nodes: canvasNodes,
-          canvas_connections: canvasConnections,
-          updated_at: new Date().toISOString()
-        })
-        .eq('id', projectId);
-      
-      if (error) throw error;
-      
-      console.log('Project saved successfully:', projectId, 'with', canvasNodes.length, 'nodes');
-    } catch (err) {
-      console.error('Failed to save project:', err);
-      set({ error: err instanceof Error ? err.message : 'Failed to save project' });
-    }
-  }, 1000);
-  
+  }, 1000); // Save after 1 second of inactivity
+
   return {
     // Initial state
     stages: initialStages,
@@ -150,6 +173,11 @@ export const useAppStore = create<AppState>((set, get) => {
     canvasConnections: [],
     isLoading: true,
     error: null,
+
+    // Add missing agent state
+    agentMemory: {},
+    agentRecommendations: [],
+    isAgentThinking: false,
    
     
     // Computed values
@@ -305,25 +333,27 @@ export const useAppStore = create<AppState>((set, get) => {
     },
     
     updateStageData: (stageId: string, data: any) => {
-      const { stageData } = get();
-      
-      // Update stage data
-      const updatedStageData = {
-        ...stageData,
-        [stageId]: { ...stageData[stageId], ...data }
-      };
-      
-      set({ stageData: updatedStageData });
-      
-      // Save the updated stage data to the project
+      // Use the debounced function
+      debouncedUpdateStageData(stageId, data);
+      // Trigger save after stage data update
       debouncedSave();
     },
     
     updateCanvasNodes: (nodes: CanvasNodeData[]) => {
-      set({ canvasNodes: nodes });
-      
-      // Save the updated canvas nodes to the project
+      // Use the debounced function
+      debouncedUpdateCanvasNodes(nodes);
+      // Trigger save after canvas update
       debouncedSave();
+    },
+    
+    // Keep the original immediate version for when we need it
+    updateStageDataImmediate: (stageId: string, data: any) => {
+      set(state => ({
+        stageData: {
+          ...state.stageData,
+          [stageId]: { ...state.stageData[stageId], ...data }
+        }
+      }));
     },
     
     updateCanvasConnections: (connections: Connection[]) => {
@@ -417,6 +447,53 @@ export const useAppStore = create<AppState>((set, get) => {
         // Optionally throw the error so the UI can handle it
         throw new Error(errorMessage);
       }
-    }
+    },
+
+    // Add missing agent actions
+    updateAgentMemory: (stageId: string, data: any) => {
+      set(state => ({
+        agentMemory: {
+          ...state.agentMemory,
+          [stageId]: { ...state.agentMemory[stageId], ...data }
+        }
+      }));
+    },
+    
+    addCrossStageInsight: (insight: any) => {
+      set(state => ({
+        agentRecommendations: [...state.agentRecommendations, insight]
+      }));
+    },
+    
+    getStageRecommendations: (stageId: string) => {
+      const state = get();
+      const recommendations = [];
+      
+      // Cross-stage intelligence
+      if (stageId === 'feature-planning') {
+        const ideationMemory = state.agentMemory['ideation-discovery'];
+        if (ideationMemory?.targetUsers?.includes('mobile')) {
+          recommendations.push({
+            type: 'suggestion',
+            content: 'Consider mobile-first features like push notifications',
+            priority: 'high'
+          });
+        }
+      }
+      
+      return recommendations;
+    },
+    
+    resetAgent: () => {
+      set({
+        agentMemory: {},
+        agentRecommendations: [],
+        isAgentThinking: false
+      });
+    },
+    
+    setIsAgentThinking: (thinking: boolean) => {
+      set({ isAgentThinking: thinking });
+    },
   };
 });

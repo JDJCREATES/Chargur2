@@ -26,7 +26,7 @@
  * comprehensive visual representation of their entire project.
  */
 
-import React, { useEffect, useCallback, useState } from 'react';
+import React, { useEffect, useCallback, useState, useRef } from 'react';
 import { motion } from 'framer-motion';
 import { Connection } from '../../types';
 import { CanvasToolbar } from './CanvasToolbar';
@@ -52,12 +52,16 @@ interface SpatialCanvasProps {
 // In the component, use store methods when callbacks aren't provided
 export const SpatialCanvas: React.FC<SpatialCanvasProps> = ({
   stageData,
-  canvasNodes,
-  canvasConnections,
+  canvasNodes = [],
+  canvasConnections = [],
   onUpdateCanvasNodes,
   onUpdateCanvasConnections,
   onSendMessage
 }) => {
+  // Add the missing refs
+  const lastProcessedStageDataRef = useRef<string>('');
+  const processingRef = useRef(false);
+
   // Get canvas data and actions from the store
   const { 
     canvasNodes: storeCanvasNodes, 
@@ -136,18 +140,6 @@ export const SpatialCanvas: React.FC<SpatialCanvasProps> = ({
     console.log('Project changed, resetting canvas view');
     resetView();
   }, [projectId, resetView]);
-
-  // Process stage data when it changes - with proper dependency array
-  useEffect(() => {
-    if (stageData && Object.keys(stageData).length > 0) {
-      try {
-        console.log('Processing stage data in SpatialCanvas');
-        processStageData(stageData);
-      } catch (error) {
-        console.error('Error processing stage data:', error);
-      }
-    }
-  }, [stageData]);
 
   // Initialize screenshot functionality
   const { takeScreenshot, canvasRef } = useCanvasScreenshot();

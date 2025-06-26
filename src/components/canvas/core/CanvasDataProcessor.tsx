@@ -28,6 +28,7 @@ export interface ProcessorState {
 
 export class CanvasDataProcessor {
   private static nodeIdCounter = 1;
+  private static lastProcessedHash = '';
 
   /**
    * Main processing function - transforms stage data into canvas nodes
@@ -38,14 +39,16 @@ export class CanvasDataProcessor {
     currentState: ProcessorState,
     onStateUpdate: (newState: ProcessorState) => void
   ): void {
-    // Check what data has changed and only add new nodes
-    const currentDataHash = JSON.stringify(stageData);
-    const lastDataHash = JSON.stringify(currentState.lastProcessedData || {});
+    // Create a more stable hash that ignores order and minor changes
+    const currentDataHash = this.createStableHash(stageData);
     
-    if (currentDataHash === lastDataHash) {
-      console.log('No stage data changes detected, skipping update');
-      return; // No changes, don't update
+    if (currentDataHash === this.lastProcessedHash) {
+      console.log('No meaningful stage data changes detected, skipping update');
+      return;
     }
+
+    // Store the hash to prevent reprocessing
+    this.lastProcessedHash = currentDataHash;
 
     // Create a mutable copy of the current nodes
     let updatedNodes = [...currentState.nodes];
@@ -802,5 +805,28 @@ export class CanvasDataProcessor {
       metadata: { stage: 'user-auth-flow', authType: 'security' },
       resizable: true
     };
+  }
+
+  /**
+   * Create stable hash function that ignores object key ordering
+   */
+  private static createStableHash(data: any): string {
+    // Create a hash that's stable across object key reordering
+    const sortedData = this.sortObjectKeys(data);
+    return JSON.stringify(sortedData);
+  }
+
+  /**
+   * Recursively sort object keys to ensure consistent hashing
+   */
+  private static sortObjectKeys(obj: any): any {
+    if (obj === null || typeof obj !== 'object') return obj;
+    if (Array.isArray(obj)) return obj.map(item => this.sortObjectKeys(item));
+    
+    const sorted: any = {};
+    Object.keys(obj).sort().forEach(key => {
+      sorted[key] = this.sortObjectKeys(obj[key]);
+    });
+    return sorted;
   }
 }
