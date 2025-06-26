@@ -4,17 +4,16 @@
 
 /* Add this at the top of your CSS file */
 @font-face {
-     font-family: 'Nova Round';
-     src: url('/fonts/NovaRound-Regular.ttf') format('truetype');
-     font-weight: normal;
-     font-style: normal;
-     font-display: swap;
+    font-family: 'Nova Round';
+    src: url('/fonts/NovaRound-Regular.ttf') format('truetype');
+    font-weight: normal;
+    font-style: normal;
+    font-display: swap;
 }
-
 
 /* Create a utility class for the Chargur brand */
 .font-nova-round {
-     font-family: 'Nova Round', cursive;
+    font-family: 'Nova Round', cursive;
 }
 
 /* Dark mode implementation with toggle support */
@@ -38,7 +37,7 @@
 .dark-mode .text-gray-800 { @apply text-gray-200; }
 .dark-mode .text-gray-700 { @apply text-gray-300; }
 .dark-mode .text-gray-600 { @apply text-gray-400; }
-.dark-mode .text-gray-500 { @apply text-gray-600; }
+.dark-mode .text-gray-500 { @apply text-gray-500; } /* Fixed: removed circular dependency */
 
 .dark-mode .border-gray-200 { @apply border-gray-600; }
 .dark-mode .border-gray-300 { @apply border-gray-500; }
@@ -75,20 +74,4 @@
 .dark-mode .shadow-lg,
 .dark-mode .shadow-xl {
   @apply shadow-black/20;
-}
-
-
-/* Add this at the top of your CSS file */
-@font-face {
-     font-family: 'Nova Round';
-     src: url('/fonts/NovaRound-Regular.ttf') format('truetype');
-     font-weight: normal;
-     font-style: normal;
-     font-display: swap;
-}
-
-
-/* Create a utility class for the Chargur brand */
-.font-nova-round {
-     font-family: 'Nova Round', cursive;
 }
