@@ -61,17 +61,33 @@ export class CanvasDataProcessor {
     // Store the hash to prevent reprocessing
     this.lastProcessedHash = currentDataHash;
 
-    // Create a mutable copy of the current nodes
-    let updatedNodes = [...currentState.nodes];
-    console.log('Processing stage data, starting with', updatedNodes.length, 'nodes');
-
-    // Process each stage's data and update the nodes array
-    updatedNodes = this.processIdeationData(stageData, currentState, updatedNodes, true);
-    updatedNodes = this.processFeatureData(stageData, currentState, updatedNodes, true);
-    updatedNodes = this.processStructureData(stageData, currentState, updatedNodes, true);
-    updatedNodes = this.processArchitectureData(stageData, currentState, updatedNodes, true);
-    updatedNodes = this.processInterfaceData(stageData, currentState, updatedNodes, true);
-    updatedNodes = this.processAuthData(stageData, currentState, updatedNodes, true);
+    // First, collect all nodes that should be generated from the current stage data
+    let generatedNodes: CanvasNodeData[] = [];
+    console.log('Generating nodes from stage data...');
+    
+    // Generate nodes for each stage
+    const ideationNodes = this._generateIdeationNodes(stageData);
+    const featureNodes = this._generateFeatureNodes(stageData);
+    const structureNodes = this._generateStructureNodes(stageData);
+    const architectureNodes = this._generateArchitectureNodes(stageData);
+    const interfaceNodes = this._generateInterfaceNodes(stageData);
+    const authNodes = this._generateAuthNodes(stageData);
+    
+    // Combine all generated nodes
+    generatedNodes = [
+      ...ideationNodes,
+      ...featureNodes,
+      ...structureNodes,
+      ...architectureNodes,
+      ...interfaceNodes,
+      ...authNodes
+    ];
+    
+    console.log('Generated nodes from stage data:', generatedNodes.length);
+    
+    // Now reconcile with existing nodes to preserve positions and other properties
+    const updatedNodes = this._reconcileNodes(currentState.nodes, generatedNodes);
+    console.log('After reconciliation:', updatedNodes.length, 'nodes');
     
     // Generate AI analysis node
     const aiAnalysisNode = this.generateAIAnalysisNode(stageData, updatedNodes.length);
@@ -90,6 +106,291 @@ export class CanvasDataProcessor {
     console.log('Canvas data processor completed, returning', updatedNodes.length, 'nodes');
   }
 
+  /**
+   * Reconcile generated nodes with existing nodes to preserve positions and other properties
+   */
+  private static _reconcileNodes(existingNodes: CanvasNodeData[], generatedNodes: CanvasNodeData[]): CanvasNodeData[] {
+    console.log('_reconcileNodes called with:', {
+      existingCount: existingNodes.length,
+      generatedCount: generatedNodes.length
+    });
+    
+    // Create a map of existing nodes by ID for quick lookup
+    const existingNodesMap = new Map<string, CanvasNodeData>();
+    existingNodes.forEach(node => {
+      existingNodesMap.set(node.id, node);
+    });
+    
+    // Process each generated node
+    const reconciled = generatedNodes.map(newNode => {
+      const existingNode = existingNodesMap.get(newNode.id);
+      
+      if (existingNode) {
+        // Node exists - preserve position, size, and connections
+        console.log(`Preserving properties for node: ${newNode.id}`);
+        return {
+          ...newNode,
+          position: existingNode.position,
+          size: existingNode.size,
+          connections: existingNode.connections,
+          // Preserve other user-customizable properties
+          collapsed: existingNode.collapsed,
+          // For custom node types, preserve their specific properties
+          ...(newNode.type === 'userPersona' && {
+            emoji: existingNode.emoji || newNode.emoji
+          }),
+          ...(newNode.type === 'coreProblem' && {
+            keywords: existingNode.keywords || newNode.keywords
+          }),
+          ...(newNode.type === 'valueProp' && {
+            bulletPoints: existingNode.bulletPoints || newNode.bulletPoints
+          }),
+          ...(newNode.type === 'appName' && {
+            nameHistory: existingNode.nameHistory || newNode.nameHistory
+          })
+        };
+      }
+      
+      // New node - use as is
+      return newNode;
+    });
+    
+    // Add any existing nodes that aren't stage-specific (user-created generic nodes)
+    existingNodes.forEach(node => {
+      // If the node doesn't have a stage metadata or isn't in the generated nodes,
+      // and it's not an AI-generated node, keep it
+      if (
+        (!node.metadata?.stage || !generatedNodes.some(n => n.id === node.id)) &&
+        !node.metadata?.generated
+      ) {
+        console.log(`Preserving user-created node: ${node.id}`);
+        reconciled.push(node);
+      }
+    });
+    
+    return reconciled;
+  }
+
+  /**
+   * Generate nodes for Ideation & Discovery stage
+   */
+  private static _generateIdeationNodes(stageData: any): CanvasNodeData[] {
+    const ideationData = stageData['ideation-discovery'];
+    if (!ideationData) return [];
+    
+    const nodes: CanvasNodeData[] = [];
+    
+    // App Name
+    if (ideationData.appName) {
+      nodes.push(this.createAppNameNode(ideationData.appName));
+    }
+    
+    // Tagline
+    if (ideationData.tagline) {
+      nodes.push(this.createTaglineNode(ideationData.tagline));
+    }
+    
+    // Core Problem
+    if (ideationData.problemStatement) {
+      nodes.push(this.createCoreProblemNode(ideationData.problemStatement));
+    }
+    
+    // Mission
+    if (ideationData.appIdea) {
+      nodes.push(this.createMissionNode(ideationData.appIdea, ideationData.missionStatement));
+    }
+    
+    // Value Proposition
+    if (ideationData.valueProposition) {
+      nodes.push(this.createValuePropNode(ideationData.valueProposition));
+    }
+    
+    // User Personas
+    if (ideationData.userPersonas && Array.isArray(ideationData.userPersonas)) {
+      ideationData.userPersonas.forEach((persona: any, index: number) => {
+        nodes.push(this.createUserPersonaNode(persona, index));
+      });
+    } else if (ideationData.targetUsers) {
+      nodes.push(this.createLegacyUserPersonaNode(ideationData.targetUsers));
+    }
+    
+    return nodes;
+  }
+
+  /**
+   * Generate nodes for Feature Planning stage
+   */
+  private static _generateFeatureNodes(stageData: any): CanvasNodeData[] {
+    const featureData = stageData['feature-planning'];
+    if (!featureData) return [];
+    
+    const nodes: CanvasNodeData[] = [];
+    const baseX = 100;
+    const baseY = 350;
+    
+    // Feature Packs
+    if (featureData.selectedFeaturePacks) {
+      featureData.selectedFeaturePacks.forEach((pack: string, index: number) => {
+        const stableId = `feature-pack-${pack}`;
+        nodes.push(this.createFeaturePackNode(pack, index, baseX, baseY, null, stableId));
+      });
+    }
+    
+    // Custom Features
+    if (featureData.customFeatures) {
+      const startIndex = featureData.selectedFeaturePacks?.length || 0;
+      featureData.customFeatures.forEach((feature: any, index: number) => {
+        const stableId = feature.id ? 
+          `feature-custom-${feature.id}` : 
+          `feature-custom-${feature.name.replace(/\s+/g, '-').toLowerCase()}`;
+        nodes.push(this.createCustomFeatureNode(feature, startIndex + index, baseX, baseY, null, stableId));
+      });
+    }
+    
+    // Natural Language Features
+    if (featureData.naturalLanguageFeatures) {
+      nodes.push(this.createNaturalLanguageFeatureNode(featureData.naturalLanguageFeatures, null, 'feature-natural-language'));
+    }
+    
+    return nodes;
+  }
+
+  /**
+   * Generate nodes for Structure & Flow stage
+   */
+  private static _generateStructureNodes(stageData: any): CanvasNodeData[] {
+    const structureData = stageData['structure-flow'];
+    if (!structureData) return [];
+    
+    const nodes: CanvasNodeData[] = [];
+    const baseX = 100;
+    const baseY = 600;
+    
+    // Screens
+    if (structureData.screens) {
+      structureData.screens.forEach((screen: any, index: number) => {
+        const stableId = screen.id ? 
+          `screen-${screen.id}` : 
+          `screen-${screen.name.replace(/\s+/g, '-').toLowerCase()}`;
+        nodes.push(this.createScreenNode(screen, index, baseX, baseY, null, stableId));
+      });
+    }
+    
+    // User Flows
+    if (structureData.userFlows) {
+      structureData.userFlows.forEach((flow: any, index: number) => {
+        const stableId = flow.id ? 
+          `flow-${flow.id}` : 
+          `flow-${flow.name.replace(/\s+/g, '-').toLowerCase()}`;
+        nodes.push(this.createUserFlowNode(flow, index, baseX, baseY, null, stableId));
+      });
+    }
+    
+    return nodes;
+  }
+
+  /**
+   * Generate nodes for Architecture Design stage
+   */
+  private static _generateArchitectureNodes(stageData: any): CanvasNodeData[] {
+    const architectureData = stageData['architecture-design'];
+    if (!architectureData) return [];
+    
+    const nodes: CanvasNodeData[] = [];
+    const baseX = 100;
+    const baseY = 800;
+    
+    // Database Schema
+    if (architectureData.databaseSchema) {
+      architectureData.databaseSchema.forEach((table: any, index: number) => {
+        const stableId = table.id ? 
+          `db-table-${table.id}` : 
+          `db-table-${table.name.replace(/\s+/g, '-').toLowerCase()}`;
+        nodes.push(this.createDatabaseTableNode(table, index, baseX, baseY, null, stableId));
+      });
+    }
+    
+    // API Endpoints
+    if (architectureData.apiEndpoints) {
+      nodes.push(this.createAPIEndpointsNode(architectureData.apiEndpoints, baseX, baseY, null, 'api-endpoints'));
+    }
+    
+    // Routes
+    if (architectureData.sitemap) {
+      architectureData.sitemap.forEach((route: any, index: number) => {
+        const stableId = route.id ? 
+          `route-${route.id}` : 
+          `route-${route.path.replace(/\//g, '-').replace(/:/g, '')}`;
+        nodes.push(this.createRouteNode(route, index, baseX, baseY, null, stableId));
+      });
+    }
+    
+    return nodes;
+  }
+
+  /**
+   * Generate nodes for Interface & Interaction stage
+   */
+  private static _generateInterfaceNodes(stageData: any): CanvasNodeData[] {
+    const interfaceData = stageData['interface-interaction'];
+    if (!interfaceData) return [];
+    
+    const nodes: CanvasNodeData[] = [];
+    const baseX = 100;
+    const baseY = 1000;
+    
+    // Design System
+    if (interfaceData.selectedDesignSystem) {
+      nodes.push(this.createDesignSystemNode(interfaceData.selectedDesignSystem, baseX, baseY, null, 'design-system'));
+    }
+    
+    // Custom Branding
+    if (interfaceData.customBranding) {
+      nodes.push(this.createBrandingNode(interfaceData.customBranding, baseX, baseY, null, 'brand-colors'));
+    }
+    
+    // Layout Blocks
+    if (interfaceData.layoutBlocks && interfaceData.layoutBlocks.length > 0) {
+      nodes.push(this.createLayoutNode(interfaceData.layoutBlocks, baseX, baseY, null, 'layout-structure'));
+    }
+    
+    return nodes;
+  }
+
+  /**
+   * Generate nodes for User & Auth Flow stage
+   */
+  private static _generateAuthNodes(stageData: any): CanvasNodeData[] {
+    const authData = stageData['user-auth-flow'];
+    if (!authData) return [];
+    
+    const nodes: CanvasNodeData[] = [];
+    const baseX = 100;
+    const baseY = 1200;
+    
+    // Auth Methods
+    if (authData.authMethods) {
+      const enabledMethods = authData.authMethods.filter((m: any) => m.enabled);
+      if (enabledMethods.length > 0) {
+        nodes.push(this.createAuthMethodsNode(enabledMethods, baseX, baseY, null, 'auth-methods'));
+      }
+    }
+    
+    // User Roles
+    if (authData.userRoles && authData.userRoles.length > 0) {
+      nodes.push(this.createUserRolesNode(authData.userRoles, baseX, baseY, null, 'user-roles'));
+    }
+    
+    // Security Features
+    if (authData.securityFeatures) {
+      const enabledSecurity = authData.securityFeatures.filter((f: any) => f.enabled);
+      if (enabledSecurity.length > 0) {
+        nodes.push(this.createSecurityFeaturesNode(enabledSecurity, baseX, baseY, null, 'security-features'));
+      }
+    }
+    
+    return nodes;
+  }
   private static processIdeationData(stageData: any, currentState: ProcessorState, nodes: CanvasNodeData[], preservePositions: boolean = false): CanvasNodeData[] {
     const ideationData = stageData['ideation-discovery'];
     const lastIdeationData = (currentState.lastProcessedData || {})['ideation-discovery'] || {};
