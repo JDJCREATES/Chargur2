@@ -66,21 +66,15 @@ export const DraggableConnectableWrapper: React.FC<DraggableConnectableWrapperPr
     }
   };
 
-  const handleDrag = (event: any, info: any) => {
+  const handleDragEnd = (event: any, info: any) => {
     try {
-      // Use the offset from drag start instead of delta
+      // Calculate final position based on dragStart and offset
       const newPosition = {
         x: Math.max(0, dragStart.x + info.offset.x),
         y: Math.max(0, dragStart.y + info.offset.y),
       };
+      // Update the node position in the store
       onUpdate(node.id, { position: newPosition });
-    } catch (error) {
-      console.error('Error in handleDrag:', error);
-    }
-  };
-
-  const handleDragEnd = () => {
-    try {
       setIsDragging(false);
     } catch (error) {
       console.error('Error in handleDragEnd:', error);
@@ -147,7 +141,6 @@ export const DraggableConnectableWrapper: React.FC<DraggableConnectableWrapperPr
       dragConstraints={false}
       dragTransition={{ bounceStiffness: 600, bounceDamping: 20 }}
       onDragStart={handleDragStart}
-      onDrag={handleDrag}
       onDragEnd={handleDragEnd}
       whileHover={{ scale: 1.02 }}
       whileDrag={{ scale: 1.05, zIndex: 1000 }}
@@ -155,9 +148,9 @@ export const DraggableConnectableWrapper: React.FC<DraggableConnectableWrapperPr
         absolute cursor-move select-none transition-shadow
         ${isDragging ? 'z-50' : isSelected ? 'z-30' : 'z-10'}
       `}
+      x={nodePosition.x}
+      y={nodePosition.y}
       style={{
-        left: `${nodePosition.x}px`,
-        top: `${nodePosition.y}px`,
         width: nodeSize.width,
         minHeight: nodeSize.height,
       }}

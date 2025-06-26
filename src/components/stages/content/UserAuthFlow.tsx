@@ -649,6 +649,12 @@ ${formData.authMethods.some(m => m.type === 'oauth') ? '- GOOGLE_CLIENT_ID\n- GO
                       <label className="block font-medium text-orange-700 mb-1">Priority</label>
                       <select
                         value={edgeCase.priority}
+                       onChange={(e) => {
+                         const updatedEdgeCases = formData.edgeCases.map(ec => 
+                           ec.id === edgeCase.id ? { ...ec, priority: e.target.value as 'high' | 'medium' | 'low' } : ec
+                         );
+                         updateFormData('edgeCases', updatedEdgeCases);
+                       }}
                         className="w-full px-2 py-1 border border-orange-200 rounded focus:outline-none focus:ring-1 focus:ring-orange-500"
                       >
                         <option value="high">High</option>
