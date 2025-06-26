@@ -134,11 +134,6 @@ export const useAppStore = create<AppState>((set, get) => {
     }));
   }, 300);
 
-  // Create debounced version of canvas updates
-  const debouncedUpdateCanvasNodes = debounce((nodes: CanvasNodeData[]) => {
-    set({ canvasNodes: nodes });
-  }, 200);
-
   // Create debounced save function for project updates
   const debouncedSave = debounce(async () => {
     const state = get();
@@ -436,8 +431,8 @@ export const useAppStore = create<AppState>((set, get) => {
     },
     
     updateCanvasNodes: (nodes: CanvasNodeData[]) => {
-      // Use the debounced function
-      debouncedUpdateCanvasNodes(nodes);
+      // Directly update the nodes for immediate visual feedback
+      set({ canvasNodes: nodes });
       // Trigger save after canvas update
       debouncedSave();
     },

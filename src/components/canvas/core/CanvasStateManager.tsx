@@ -203,6 +203,8 @@ export const useCanvasStateManager = (
       console.log('Already processing stage data, skipping...');
       return;
     }
+    
+    console.log('Processing stage data in CanvasStateManager:', Object.keys(stageData));
 
     // Prevent concurrent processing
     if (processingRef.current) {
@@ -216,19 +218,25 @@ export const useCanvasStateManager = (
       nodes: nodesRef.current,
       lastProcessedData: lastProcessedStageData || {}
     };
+    
+    console.log('Calling CanvasDataProcessor with:', {
+      stageDataKeys: Object.keys(stageData),
+      nodeCount: nodesRef.current.length
+    });
 
     CanvasDataProcessor.updateCanvasFromStageData(
       stageData,
       processorState,
       (newState: ProcessorState) => {
+        console.log('CanvasDataProcessor callback with:', {
+          newNodeCount: newState.nodes.length
+        });
         updateNodes(newState.nodes); 
         setLastProcessedStageData(newState.lastProcessedData || {});
         console.log('Canvas data processed, node count:', newState.nodes.length);
         
         // Reset processing flag
         processingRef.current = false;
-      }
-    );
   }, [lastProcessedStageData, updateNodes, nodesRef]);
 
   return {

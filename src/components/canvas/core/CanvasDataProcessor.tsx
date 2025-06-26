@@ -41,6 +41,11 @@ export class CanvasDataProcessor {
   ): void {
     console.log('CanvasDataProcessor.updateCanvasFromStageData called with:', {
       stageDataKeys: Object.keys(stageData),
+      currentNodeCount: currentState.nodes.length
+    });
+    
+    console.log('CanvasDataProcessor.updateCanvasFromStageData called with:', {
+      stageDataKeys: Object.keys(stageData),
       currentNodeCount: currentState.nodes.length,
       stageData: stageData
     });
@@ -57,7 +62,7 @@ export class CanvasDataProcessor {
     this.lastProcessedHash = currentDataHash;
 
     // Create a mutable copy of the current nodes
-    let updatedNodes = [...currentState.nodes];
+    const updatedNodes = [...currentState.nodes];
     console.log('Processing stage data, starting with', updatedNodes.length, 'nodes');
 
     // Process each stage's data and update the nodes array
