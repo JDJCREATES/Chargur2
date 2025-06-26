@@ -66,12 +66,12 @@ export class CanvasDataProcessor {
     console.log('Processing stage data, starting with', updatedNodes.length, 'nodes');
 
     // Process each stage's data and update the nodes array
-    updatedNodes = this.processIdeationData(stageData, currentState, updatedNodes);
-    updatedNodes = this.processFeatureData(stageData, currentState, updatedNodes);
-    updatedNodes = this.processStructureData(stageData, currentState, updatedNodes);
-    updatedNodes = this.processArchitectureData(stageData, currentState, updatedNodes);
-    updatedNodes = this.processInterfaceData(stageData, currentState, updatedNodes);
-    updatedNodes = this.processAuthData(stageData, currentState, updatedNodes);
+    updatedNodes = this.processIdeationData(stageData, currentState, updatedNodes, true);
+    updatedNodes = this.processFeatureData(stageData, currentState, updatedNodes, true);
+    updatedNodes = this.processStructureData(stageData, currentState, updatedNodes, true);
+    updatedNodes = this.processArchitectureData(stageData, currentState, updatedNodes, true);
+    updatedNodes = this.processInterfaceData(stageData, currentState, updatedNodes, true);
+    updatedNodes = this.processAuthData(stageData, currentState, updatedNodes, true);
     
     // Generate AI analysis node
     const aiAnalysisNode = this.generateAIAnalysisNode(stageData, updatedNodes.length);
@@ -90,7 +90,7 @@ export class CanvasDataProcessor {
     console.log('Canvas data processor completed, returning', updatedNodes.length, 'nodes');
   }
 
-  private static processIdeationData(stageData: any, currentState: ProcessorState, nodes: CanvasNodeData[]): CanvasNodeData[] {
+  private static processIdeationData(stageData: any, currentState: ProcessorState, nodes: CanvasNodeData[], preservePositions: boolean = false): CanvasNodeData[] {
     const ideationData = stageData['ideation-discovery'];
     const lastIdeationData = (currentState.lastProcessedData || {})['ideation-discovery'] || {};
     const originalNodeCount = nodes.length;
@@ -121,7 +121,7 @@ export class CanvasDataProcessor {
         }
       } else {
         // Create new node
-        nodes.push(this.createAppNameNode(ideationData.appName));
+        nodes.push(this.createAppNameNode(ideationData.appName, existingAppNameNode));
       }
     }
 
@@ -137,7 +137,7 @@ export class CanvasDataProcessor {
         }
       } else {
         // Create new node
-        nodes.push(this.createTaglineNode(ideationData.tagline));
+        nodes.push(this.createTaglineNode(ideationData.tagline, existingTaglineNode));
       }
     }
 
@@ -153,7 +153,7 @@ export class CanvasDataProcessor {
         }
       } else {
         // Create new node
-        nodes.push(this.createCoreProblemNode(ideationData.problemStatement));
+        nodes.push(this.createCoreProblemNode(ideationData.problemStatement, existingCoreProblemNode));
       }
     }
 
@@ -178,7 +178,7 @@ export class CanvasDataProcessor {
         }
       } else {
         // Create new node
-        nodes.push(this.createMissionNode(ideationData.appIdea, ideationData.missionStatement));
+        nodes.push(this.createMissionNode(ideationData.appIdea, ideationData.missionStatement, existingMissionNode));
       }
     }
 
@@ -194,26 +194,62 @@ export class CanvasDataProcessor {
         }
       } else {
         // Create new node
-        nodes.push(this.createValuePropNode(ideationData.valueProposition));
+        nodes.push(this.createValuePropNode(ideationData.valueProposition, existingValuePropNode));
       }
     }
 
     // For multi-instance nodes like user personas, only add new ones
     if (ideationData.userPersonas && Array.isArray(ideationData.userPersonas)) {
-      const existingPersonas = nodes.filter(node => 
+      // Create a map of existing personas by their unique properties
+      const existingPersonasMap = new Map();
+      nodes.filter(node => 
         node.metadata?.stage === 'ideation-discovery' && node.metadata?.nodeType === 'userPersona'
-      );
-    
-      // Only add personas that don't already exist
-      ideationData.userPersonas.forEach((persona: any, index: number) => {
-        const personaExists = existingPersonas.some(existing => 
-          existing.name === persona.name && existing.role === persona.role
-        );
+      ).forEach(node => {
+        // Create a unique key based on persona properties
+        const key = `${node.name}-${node.role}`;
+        existingPersonasMap.set(key, node);
+      });
       
-        if (!personaExists) {
+      // Process each persona in the data
+      ideationData.userPersonas.forEach((persona: any, index: number) => {
+        const personaKey = `${persona.name}-${persona.role}`;
+        const existingPersona = existingPersonasMap.get(personaKey);
+        
+        if (existingPersona) {
+          // Update existing persona with new data but preserve position
+          const personaIndex = nodes.findIndex(n => n.id === existingPersona.id);
+          if (personaIndex !== -1) {
+            nodes[personaIndex] = {
+              ...nodes[personaIndex],
+              name: persona.name || existingPersona.name,
+              role: persona.role || existingPersona.role,
+              painPoint: persona.painPoint || existingPersona.painPoint,
+              emoji: persona.emoji || existingPersona.emoji
+            };
+          }
+          // Remove from map to track which ones we've processed
+          existingPersonasMap.delete(personaKey);
+        } else {
+          // Create new persona node
           nodes.push(this.createUserPersonaNode(persona, index));
         }
       });
+      
+      // Optional: Remove personas that no longer exist in the data
+      // Uncomment if you want to remove personas that aren't in the current data
+      /*
+      if (preservePositions) {
+        // Keep all nodes even if they're not in the current data
+      } else {
+        // Remove personas that aren't in the current data
+        existingPersonasMap.forEach((node) => {
+          const index = nodes.findIndex(n => n.id === node.id);
+          if (index !== -1) {
+            nodes.splice(index, 1);
+          }
+        });
+      }
+      */
     } else if (ideationData.targetUsers && !ideationData.userPersonas) {
       // Check if legacy persona already exists
       const legacyPersonaExists = nodes.some(node => 
@@ -232,7 +268,7 @@ export class CanvasDataProcessor {
     return nodes;
   }
 
-  private static processFeatureData(stageData: any, currentState: ProcessorState, nodes: CanvasNodeData[]): CanvasNodeData[] {
+  private static processFeatureData(stageData: any, currentState: ProcessorState, nodes: CanvasNodeData[], preservePositions: boolean = false): CanvasNodeData[] {
     const featureData = stageData['feature-planning'];
     const lastFeatureData = (currentState.lastProcessedData || {})['feature-planning'] || {};
     const originalNodeCount = nodes.length;
@@ -244,14 +280,39 @@ export class CanvasDataProcessor {
     let featureX = 100;
     let featureY = 350;
 
-    // Remove old feature nodes
-    nodes = nodes.filter(node => 
-      !node.metadata?.stage || node.metadata.stage !== 'feature-planning');
+    // Create a map of existing feature nodes
+    const existingFeatureNodes = new Map();
+    nodes.filter(node => 
+      node.metadata?.stage === 'feature-planning'
+    ).forEach(node => {
+      existingFeatureNodes.set(node.id, node);
+    });
+    
+    // Track nodes to keep
+    const nodesToKeep = nodes.filter(node => 
+      !node.metadata?.stage || node.metadata.stage !== 'feature-planning'
+    );
 
     // Process selected feature packs
     if (featureData.selectedFeaturePacks) {
       featureData.selectedFeaturePacks.forEach((pack: string, index: number) => {
-        nodes.push(this.createFeaturePackNode(pack, index, featureX, featureY));
+        // Generate a stable ID for this feature pack
+        const stableId = `feature-pack-${pack}`;
+        const existingNode = nodes.find(node => 
+          node.id === stableId || 
+          (node.metadata?.stage === 'feature-planning' && 
+           node.metadata?.pack === pack && 
+           !node.metadata?.custom)
+        );
+        
+        nodesToKeep.push(this.createFeaturePackNode(
+          pack, 
+          index, 
+          featureX, 
+          featureY, 
+          existingNode,
+          stableId
+        ));
       });
     }
 
@@ -259,21 +320,48 @@ export class CanvasDataProcessor {
     if (featureData.customFeatures) {
       const startIndex = featureData.selectedFeaturePacks?.length || 0;
       featureData.customFeatures.forEach((feature: any, index: number) => {
-        nodes.push(this.createCustomFeatureNode(feature, startIndex + index, featureX, featureY));
+        // Generate a stable ID for this custom feature
+        const stableId = feature.id ? `feature-custom-${feature.id}` : `feature-custom-${feature.name.replace(/\s+/g, '-').toLowerCase()}`;
+        const existingNode = nodes.find(node => 
+          node.id === stableId || 
+          (node.metadata?.stage === 'feature-planning' && 
+           node.metadata?.custom === true &&
+           node.title === feature.name)
+        );
+        
+        nodesToKeep.push(this.createCustomFeatureNode(
+          feature, 
+          startIndex + index, 
+          featureX, 
+          featureY, 
+          existingNode,
+          stableId
+        ));
       });
     }
 
     // Add natural language features if provided
     if (featureData.naturalLanguageFeatures) {
-      nodes.push(this.createNaturalLanguageFeatureNode(featureData.naturalLanguageFeatures));
+      const stableId = 'feature-natural-language';
+      const existingNode = nodes.find(node => 
+        node.id === stableId || 
+        (node.metadata?.stage === 'feature-planning' && 
+         node.metadata?.type === 'description')
+      );
+      
+      nodesToKeep.push(this.createNaturalLanguageFeatureNode(
+        featureData.naturalLanguageFeatures,
+        existingNode,
+        stableId
+      ));
     }
 
     console.log('Processed feature data:', nodes.length - originalNodeCount, 'nodes added/updated');
 
-    return nodes;
+    return nodesToKeep;
   }
 
-  private static processStructureData(stageData: any, currentState: ProcessorState, nodes: CanvasNodeData[]): CanvasNodeData[] {
+  private static processStructureData(stageData: any, currentState: ProcessorState, nodes: CanvasNodeData[], preservePositions: boolean = false): CanvasNodeData[] {
     const structureData = stageData['structure-flow'];
     const lastStructureData = (currentState.lastProcessedData || {})['structure-flow'] || {};
     const originalNodeCount = nodes.length;
@@ -285,30 +373,71 @@ export class CanvasDataProcessor {
     let flowX = 100;
     let flowY = 600;
 
-    // Remove old structure nodes
-    nodes = nodes.filter(node => 
-      !node.metadata?.stage || node.metadata.stage !== 'structure-flow');
+    // Create a map of existing structure nodes
+    const existingStructureNodes = new Map();
+    nodes.filter(node => 
+      node.metadata?.stage === 'structure-flow'
+    ).forEach(node => {
+      existingStructureNodes.set(node.id, node);
+    });
+    
+    // Track nodes to keep
+    const nodesToKeep = nodes.filter(node => 
+      !node.metadata?.stage || node.metadata.stage !== 'structure-flow'
+    );
 
     // Process screens
     if (structureData.screens) {
       structureData.screens.forEach((screen: any, index: number) => {
-        nodes.push(this.createScreenNode(screen, index, flowX, flowY));
+        // Generate a stable ID for this screen
+        const stableId = screen.id ? `screen-${screen.id}` : `screen-${screen.name.replace(/\s+/g, '-').toLowerCase()}`;
+        const existingNode = nodes.find(node => 
+          node.id === stableId || 
+          (node.metadata?.stage === 'structure-flow' && 
+           node.metadata?.screenType === screen.type &&
+           node.title === screen.name)
+        );
+        
+        nodesToKeep.push(this.createScreenNode(
+          screen, 
+          index, 
+          flowX, 
+          flowY, 
+          existingNode,
+          stableId
+        ));
       });
     }
 
     // Process user flows
     if (structureData.userFlows) {
       structureData.userFlows.forEach((flow: any, index: number) => {
-        nodes.push(this.createUserFlowNode(flow, index, flowX, flowY));
+        // Generate a stable ID for this flow
+        const stableId = flow.id ? `flow-${flow.id}` : `flow-${flow.name.replace(/\s+/g, '-').toLowerCase()}`;
+        const existingNode = nodes.find(node => 
+          node.id === stableId || 
+          (node.metadata?.stage === 'structure-flow' && 
+           node.metadata?.flowType === 'user-journey' &&
+           node.title === flow.name)
+        );
+        
+        nodesToKeep.push(this.createUserFlowNode(
+          flow, 
+          index, 
+          flowX, 
+          flowY, 
+          existingNode,
+          stableId
+        ));
       });
     }
 
     console.log('Processed structure data:', nodes.length - originalNodeCount, 'nodes added/updated');
 
-    return nodes;
+    return nodesToKeep;
   }
 
-  private static processArchitectureData(stageData: any, currentState: ProcessorState, nodes: CanvasNodeData[]): CanvasNodeData[] {
+  private static processArchitectureData(stageData: any, currentState: ProcessorState, nodes: CanvasNodeData[], preservePositions: boolean = false): CanvasNodeData[] {
     const architectureData = stageData['architecture-design'];
     const lastArchitectureData = (currentState.lastProcessedData || {})['architecture-design'] || {};
     const originalNodeCount = nodes.length;
@@ -320,35 +449,89 @@ export class CanvasDataProcessor {
     let systemX = 100;
     let systemY = 800;
 
-    // Remove old architecture nodes
-    nodes = nodes.filter(node => 
-      !node.metadata?.stage || node.metadata.stage !== 'architecture-design');
+    // Create a map of existing architecture nodes
+    const existingArchitectureNodes = new Map();
+    nodes.filter(node => 
+      node.metadata?.stage === 'architecture-design'
+    ).forEach(node => {
+      existingArchitectureNodes.set(node.id, node);
+    });
+    
+    // Track nodes to keep
+    const nodesToKeep = nodes.filter(node => 
+      !node.metadata?.stage || node.metadata.stage !== 'architecture-design'
+    );
 
     // Process database schema
     if (architectureData.databaseSchema) {
       architectureData.databaseSchema.forEach((table: any, index: number) => {
-        nodes.push(this.createDatabaseTableNode(table, index, systemX, systemY));
+        // Generate a stable ID for this table
+        const stableId = table.id ? `db-table-${table.id}` : `db-table-${table.name.replace(/\s+/g, '-').toLowerCase()}`;
+        const existingNode = nodes.find(node => 
+          node.id === stableId || 
+          (node.metadata?.stage === 'architecture-design' && 
+           node.metadata?.tableType === 'database' &&
+           node.title === `${table.name} Table`)
+        );
+        
+        nodesToKeep.push(this.createDatabaseTableNode(
+          table, 
+          index, 
+          systemX, 
+          systemY, 
+          existingNode,
+          stableId
+        ));
       });
     }
 
     // Process API endpoints
     if (architectureData.apiEndpoints) {
-      nodes.push(this.createAPIEndpointsNode(architectureData.apiEndpoints, systemX, systemY));
+      const stableId = 'api-endpoints';
+      const existingNode = nodes.find(node => 
+        node.id === stableId || 
+        (node.metadata?.stage === 'architecture-design' && 
+         node.metadata?.systemType === 'api')
+      );
+      
+      nodesToKeep.push(this.createAPIEndpointsNode(
+        architectureData.apiEndpoints, 
+        systemX, 
+        systemY, 
+        existingNode,
+        stableId
+      ));
     }
 
     // Process other architecture components
     if (architectureData.sitemap) {
       architectureData.sitemap.forEach((route: any, index: number) => {
-        nodes.push(this.createRouteNode(route, index, systemX, systemY));
+        // Generate a stable ID for this route
+        const stableId = route.id ? `route-${route.id}` : `route-${route.path.replace(/\//g, '-').replace(/:/g, '')}`;
+        const existingNode = nodes.find(node => 
+          node.id === stableId || 
+          (node.metadata?.stage === 'architecture-design' && 
+           node.metadata?.routeType === 'page' &&
+           node.title === `${route.path} Route`)
+        );
+        
+        nodesToKeep.push(this.createRouteNode(
+          route, 
+          index, 
+          systemX, 
+          systemY, 
+          existingNode,
+          stableId
+        ));
       });
     }
 
     console.log('Processed architecture data:', nodes.length - originalNodeCount, 'nodes added/updated');
 
-    return nodes;
+    return nodesToKeep;
   }
 
-  private static processInterfaceData(stageData: any, currentState: ProcessorState, nodes: CanvasNodeData[]): CanvasNodeData[] {
+  private static processInterfaceData(stageData: any, currentState: ProcessorState, nodes: CanvasNodeData[], preservePositions: boolean = false): CanvasNodeData[] {
     const interfaceData = stageData['interface-interaction'] || {};
     const lastInterfaceData = (currentState.lastProcessedData || {})['interface-interaction'] || {};
     const originalNodeCount = nodes.length;
@@ -360,31 +543,79 @@ export class CanvasDataProcessor {
     let uiX = 100;
     let uiY = 1000;
 
-    // Remove old interface nodes
-    nodes = nodes.filter(node => 
-      !node.metadata?.stage || node.metadata.stage !== 'interface-interaction');
+    // Create a map of existing interface nodes
+    const existingInterfaceNodes = new Map();
+    nodes.filter(node => 
+      node.metadata?.stage === 'interface-interaction'
+    ).forEach(node => {
+      existingInterfaceNodes.set(node.id, node);
+    });
+    
+    // Track nodes to keep
+    const nodesToKeep = nodes.filter(node => 
+      !node.metadata?.stage || node.metadata.stage !== 'interface-interaction'
+    );
 
     // Process design system
     if (interfaceData.selectedDesignSystem) {
-      nodes.push(this.createDesignSystemNode(interfaceData.selectedDesignSystem, uiX, uiY));
+      const stableId = 'design-system';
+      const existingNode = nodes.find(node => 
+        node.id === stableId || 
+        (node.metadata?.stage === 'interface-interaction' && 
+         node.metadata?.uiType === 'design-system')
+      );
+      
+      nodesToKeep.push(this.createDesignSystemNode(
+        interfaceData.selectedDesignSystem, 
+        uiX, 
+        uiY, 
+        existingNode,
+        stableId
+      ));
     }
 
     // Process custom branding
     if (interfaceData.customBranding) {
-      nodes.push(this.createBrandingNode(interfaceData.customBranding, uiX, uiY));
+      const stableId = 'brand-colors';
+      const existingNode = nodes.find(node => 
+        node.id === stableId || 
+        (node.metadata?.stage === 'interface-interaction' && 
+         node.metadata?.uiType === 'branding')
+      );
+      
+      nodesToKeep.push(this.createBrandingNode(
+        interfaceData.customBranding, 
+        uiX, 
+        uiY, 
+        existingNode,
+        stableId
+      ));
     }
 
     // Process layout blocks
     if (interfaceData.layoutBlocks && interfaceData.layoutBlocks.length > 0) {
-      nodes.push(this.createLayoutNode(interfaceData.layoutBlocks, uiX, uiY));
+      const stableId = 'layout-structure';
+      const existingNode = nodes.find(node => 
+        node.id === stableId || 
+        (node.metadata?.stage === 'interface-interaction' && 
+         node.metadata?.uiType === 'layout')
+      );
+      
+      nodesToKeep.push(this.createLayoutNode(
+        interfaceData.layoutBlocks, 
+        uiX, 
+        uiY, 
+        existingNode,
+        stableId
+      ));
     }
 
     console.log('Processed interface data:', nodes.length - originalNodeCount, 'nodes added/updated');
 
-    return nodes;
+    return nodesToKeep;
   }
 
-  private static processAuthData(stageData: any, currentState: ProcessorState, nodes: CanvasNodeData[]): CanvasNodeData[] {
+  private static processAuthData(stageData: any, currentState: ProcessorState, nodes: CanvasNodeData[], preservePositions: boolean = false): CanvasNodeData[] {
     const authData = stageData['user-auth-flow'] || {};
     const lastAuthData = (currentState.lastProcessedData || {})['user-auth-flow'] || {};
     const originalNodeCount = nodes.length;
@@ -396,34 +627,82 @@ export class CanvasDataProcessor {
     let authX = 100;
     let authY = 1200;
 
-    // Remove old auth nodes
-    nodes = nodes.filter(node => 
-      !node.metadata?.stage || node.metadata.stage !== 'user-auth-flow');
+    // Create a map of existing auth nodes
+    const existingAuthNodes = new Map();
+    nodes.filter(node => 
+      node.metadata?.stage === 'user-auth-flow'
+    ).forEach(node => {
+      existingAuthNodes.set(node.id, node);
+    });
+    
+    // Track nodes to keep
+    const nodesToKeep = nodes.filter(node => 
+      !node.metadata?.stage || node.metadata.stage !== 'user-auth-flow'
+    );
 
     // Process authentication methods
     if (authData.authMethods) {
       const enabledMethods = authData.authMethods.filter((m: any) => m.enabled);
       if (enabledMethods.length > 0) {
-        nodes.push(this.createAuthMethodsNode(enabledMethods, authX, authY));
+        const stableId = 'auth-methods';
+        const existingNode = nodes.find(node => 
+          node.id === stableId || 
+          (node.metadata?.stage === 'user-auth-flow' && 
+           node.metadata?.authType === 'methods')
+        );
+        
+        nodesToKeep.push(this.createAuthMethodsNode(
+          enabledMethods, 
+          authX, 
+          authY, 
+          existingNode,
+          stableId
+        ));
       }
     }
 
     // Process user roles
     if (authData.userRoles && authData.userRoles.length > 0) {
-      nodes.push(this.createUserRolesNode(authData.userRoles, authX, authY));
+      const stableId = 'user-roles';
+      const existingNode = nodes.find(node => 
+        node.id === stableId || 
+        (node.metadata?.stage === 'user-auth-flow' && 
+         node.metadata?.authType === 'roles')
+      );
+      
+      nodesToKeep.push(this.createUserRolesNode(
+        authData.userRoles, 
+        authX, 
+        authY, 
+        existingNode,
+        stableId
+      ));
     }
 
     // Process security features
     if (authData.securityFeatures) {
       const enabledSecurity = authData.securityFeatures.filter((f: any) => f.enabled);
       if (enabledSecurity.length > 0) {
-        nodes.push(this.createSecurityFeaturesNode(enabledSecurity, authX, authY));
+        const stableId = 'security-features';
+        const existingNode = nodes.find(node => 
+          node.id === stableId || 
+          (node.metadata?.stage === 'user-auth-flow' && 
+           node.metadata?.authType === 'security')
+        );
+        
+        nodesToKeep.push(this.createSecurityFeaturesNode(
+          enabledSecurity, 
+          authX, 
+          authY, 
+          existingNode,
+          stableId
+        ));
       }
     }
 
     console.log('Processed auth data:', nodes.length - originalNodeCount, 'nodes added/updated');
 
-    return nodes;
+    return nodesToKeep;
   }
 
   private static generateAIAnalysisNode(stageData: any, nodeCount: number): CanvasNodeData | null {
@@ -454,16 +733,20 @@ export class CanvasDataProcessor {
   }
 
   // Node creation helper methods
-  private static createAppNameNode(appName: string): CanvasNodeData {
+  private static createAppNameNode(appName: string, existingNode?: CanvasNodeData | null): CanvasNodeData {
+    const position = existingNode?.position || STAGE1_NODE_DEFAULTS.appName.position;
+    const size = existingNode?.size || STAGE1_NODE_DEFAULTS.appName.size;
+    const connections = existingNode?.connections || [];
+    
     return {
       id: STAGE1_NODE_TYPES.APP_NAME,
       type: 'appName',
       title: 'App Name',
       content: '',
-      position: STAGE1_NODE_DEFAULTS.appName.position,
-      size: STAGE1_NODE_DEFAULTS.appName.size,
+      position: position,
+      size: size,
       color: 'appName',
-      connections: [],
+      connections: connections,
       metadata: { stage: 'ideation-discovery', nodeType: 'appName' },
       value: appName,
       editable: true,
@@ -472,16 +755,20 @@ export class CanvasDataProcessor {
     };
   }
 
-  private static createTaglineNode(tagline: string): CanvasNodeData {
+  private static createTaglineNode(tagline: string, existingNode?: CanvasNodeData | null): CanvasNodeData {
+    const position = existingNode?.position || STAGE1_NODE_DEFAULTS.tagline.position;
+    const size = existingNode?.size || STAGE1_NODE_DEFAULTS.tagline.size;
+    const connections = existingNode?.connections || [];
+    
     return {
       id: STAGE1_NODE_TYPES.TAGLINE,
       type: 'tagline',
       title: 'Tagline',
       content: '',
-      position: STAGE1_NODE_DEFAULTS.tagline.position,
-      size: STAGE1_NODE_DEFAULTS.tagline.size,
+      position: position,
+      size: size,
       color: 'tagline',
-      connections: [],
+      connections: connections,
       metadata: { stage: 'ideation-discovery', nodeType: 'tagline' },
       value: tagline,
       editable: true,
@@ -489,34 +776,43 @@ export class CanvasDataProcessor {
     };
   }
 
-  private static createCoreProblemNode(problemStatement: string): CanvasNodeData {
+  private static createCoreProblemNode(problemStatement: string, existingNode?: CanvasNodeData | null): CanvasNodeData {
+    const position = existingNode?.position || STAGE1_NODE_DEFAULTS.coreProblem.position;
+    const size = existingNode?.size || STAGE1_NODE_DEFAULTS.coreProblem.size;
+    const connections = existingNode?.connections || [];
+    const keywords = existingNode?.keywords || [];
+    
     return {
       id: STAGE1_NODE_TYPES.CORE_PROBLEM,
       type: 'coreProblem',
       title: 'Core Problem',
       content: '',
-      position: STAGE1_NODE_DEFAULTS.coreProblem.position,
-      size: STAGE1_NODE_DEFAULTS.coreProblem.size,
+      position: position,
+      size: size,
       color: 'coreProblem',
-      connections: [],
+      connections: connections,
       metadata: { stage: 'ideation-discovery', nodeType: 'coreProblem' },
       value: problemStatement,
       editable: true,
-      keywords: [],
+      keywords: keywords,
       resizable: true
     };
   }
 
-  private static createMissionNode(appIdea: string, missionStatement?: string): CanvasNodeData {
+  private static createMissionNode(appIdea: string, missionStatement?: string, existingNode?: CanvasNodeData | null): CanvasNodeData {
+    const position = existingNode?.position || STAGE1_NODE_DEFAULTS.mission.position;
+    const size = existingNode?.size || STAGE1_NODE_DEFAULTS.mission.size;
+    const connections = existingNode?.connections || [];
+    
     return {
       id: STAGE1_NODE_TYPES.MISSION,
       type: 'mission',
       title: 'Mission',
       content: '',
-      position: STAGE1_NODE_DEFAULTS.mission.position,
-      size: STAGE1_NODE_DEFAULTS.mission.size,
+      position: position,
+      size: size,
       color: 'mission',
-      connections: [],
+      connections: connections,
       metadata: { stage: 'ideation-discovery', nodeType: 'mission' },
       value: appIdea,
       missionStatement: missionStatement || '',
@@ -525,27 +821,37 @@ export class CanvasDataProcessor {
     };
   }
 
-  private static createValuePropNode(valueProposition: string): CanvasNodeData {
+  private static createValuePropNode(valueProposition: string, existingNode?: CanvasNodeData | null): CanvasNodeData {
+    const position = existingNode?.position || STAGE1_NODE_DEFAULTS.valueProp.position;
+    const size = existingNode?.size || STAGE1_NODE_DEFAULTS.valueProp.size;
+    const connections = existingNode?.connections || [];
+    const bulletPoints = existingNode?.bulletPoints || [];
+    
     return {
       id: STAGE1_NODE_TYPES.VALUE_PROPOSITION,
       type: 'valueProp',
       title: 'Value Proposition',
       content: '',
-      position: STAGE1_NODE_DEFAULTS.valueProp.position,
-      size: STAGE1_NODE_DEFAULTS.valueProp.size,
+      position: position,
+      size: size,
       color: 'valueProp',
-      connections: [],
+      connections: connections,
       metadata: { stage: 'ideation-discovery', nodeType: 'valueProp' },
       value: valueProposition,
       editable: true,
-      bulletPoints: [],
+      bulletPoints: bulletPoints,
       resizable: true
     };
   }
 
   private static createUserPersonaNode(persona: any, index: number): CanvasNodeData {
+    // Generate a stable ID based on persona properties
+    const stableId = persona.id ? 
+      `userPersona-${persona.id}` : 
+      `userPersona-${persona.name.replace(/\s+/g, '-').toLowerCase()}-${persona.role.replace(/\s+/g, '-').toLowerCase()}`;
+    
     return {
-      id: `userPersona-${Date.now()}-${index}`,
+      id: stableId,
       type: 'userPersona',
       title: 'User Persona',
       content: '',
@@ -568,7 +874,7 @@ export class CanvasDataProcessor {
 
   private static createLegacyUserPersonaNode(targetUsers: string): CanvasNodeData {
     return {
-      id: `userPersona-${Date.now()}`,
+      id: `userPersona-legacy-${targetUsers.substring(0, 20).replace(/\s+/g, '-').toLowerCase()}`,
       type: 'userPersona',
       title: 'User Persona',
       content: '',
@@ -586,7 +892,14 @@ export class CanvasDataProcessor {
     };
   }
 
-  private static createFeaturePackNode(pack: string, index: number, baseX: number, baseY: number): CanvasNodeData {
+  private static createFeaturePackNode(
+    pack: string, 
+    index: number, 
+    baseX: number, 
+    baseY: number, 
+    existingNode?: CanvasNodeData | null,
+    stableId?: string
+  ): CanvasNodeData {
     const packNames: { [key: string]: string } = {
       'auth': 'Authentication & Users',
       'crud': 'Data Management',
@@ -598,191 +911,346 @@ export class CanvasDataProcessor {
       'ai': 'AI & Automation'
     };
     
+    // Use existing position and size if available
+    const position = existingNode?.position || { 
+      x: baseX + (index % 3) * 200, 
+      y: baseY + Math.floor(index / 3) * 120 
+    };
+    const size = existingNode?.size || { width: 180, height: 100 };
+    const connections = existingNode?.connections || [];
+    
     return {
-      id: `feature-${this.nodeIdCounter++}`,
+      id: stableId || `feature-pack-${pack}`,
       type: 'feature',
       title: packNames[pack] || pack.charAt(0).toUpperCase() + pack.slice(1),
       content: `Feature pack selected\nIncludes core ${pack} functionality`,
-      position: { x: baseX + (index % 3) * 200, y: baseY + Math.floor(index / 3) * 120 },
-      size: { width: 180, height: 100 },
+      position: position,
+      size: size,
       color: 'blue',
-      connections: [],
-      metadata: { stage: 'feature-planning', pack },
+      connections: connections,
+      metadata: { stage: 'feature-planning', pack, custom: false },
       resizable: true
     };
   }
 
-  private static createCustomFeatureNode(feature: any, index: number, baseX: number, baseY: number): CanvasNodeData {
+  private static createCustomFeatureNode(
+    feature: any, 
+    index: number, 
+    baseX: number, 
+    baseY: number, 
+    existingNode?: CanvasNodeData | null,
+    stableId?: string
+  ): CanvasNodeData {
+    // Use existing position and size if available
+    const position = existingNode?.position || { 
+      x: baseX + (index % 3) * 200, 
+      y: baseY + Math.floor(index / 3) * 120 
+    };
+    const size = existingNode?.size || { width: 180, height: 120 };
+    const connections = existingNode?.connections || [];
+    
     return {
-      id: `feature-${this.nodeIdCounter++}`,
+      id: stableId || `feature-custom-${feature.id || this.nodeIdCounter++}`,
       type: 'feature',
       title: feature.name,
       content: `${feature.description || 'Custom feature'}\n\nPriority: ${feature.priority || 'medium'}\nComplexity: ${feature.complexity || 'medium'}`,
-      position: { 
-        x: baseX + (index % 3) * 200, 
-        y: baseY + Math.floor(index / 3) * 120 
-      },
-      size: { width: 180, height: 120 },
+      position: position,
+      size: size,
       color: 'blue',
-      connections: [],
-      metadata: { stage: 'feature-planning', custom: true },
+      connections: connections,
+      metadata: { stage: 'feature-planning', custom: true, featureId: feature.id },
       resizable: true
     };
   }
 
-  private static createNaturalLanguageFeatureNode(naturalLanguageFeatures: string): CanvasNodeData {
+  private static createNaturalLanguageFeatureNode(
+    naturalLanguageFeatures: string,
+    existingNode?: CanvasNodeData | null,
+    stableId?: string
+  ): CanvasNodeData {
+    // Use existing position and size if available
+    const position = existingNode?.position || { x: 700, y: 350 };
+    const size = existingNode?.size || { width: 220, height: 140 };
+    const connections = existingNode?.connections || [];
+    
     return {
-      id: `feature-${this.nodeIdCounter++}`,
+      id: stableId || 'feature-natural-language',
       type: 'feature',
       title: 'Feature Description',
       content: naturalLanguageFeatures,
-      position: { x: 700, y: 350 },
-      size: { width: 220, height: 140 },
+      position: position,
+      size: size,
       color: 'blue',
-      connections: [],
+      connections: connections,
       metadata: { stage: 'feature-planning', type: 'description' },
       resizable: true
     };
   }
 
-  private static createScreenNode(screen: any, index: number, baseX: number, baseY: number): CanvasNodeData {
+  private static createScreenNode(
+    screen: any, 
+    index: number, 
+    baseX: number, 
+    baseY: number, 
+    existingNode?: CanvasNodeData | null,
+    stableId?: string
+  ): CanvasNodeData {
+    // Use existing position and size if available
+    const position = existingNode?.position || { 
+      x: baseX + (index % 4) * 160, 
+      y: baseY 
+    };
+    const size = existingNode?.size || { width: 150, height: 100 };
+    const connections = existingNode?.connections || [];
+    
     return {
-      id: `ux-flow-${this.nodeIdCounter++}`,
+      id: stableId || `screen-${screen.id || this.nodeIdCounter++}`,
       type: 'ux-flow',
       title: screen.name,
       content: `Screen type: ${screen.type}\n\n${screen.description || 'Core app screen'}`,
-      position: { x: baseX + (index % 4) * 160, y: baseY },
-      size: { width: 150, height: 100 },
+      position: position,
+      size: size,
       color: 'green',
-      connections: [],
+      connections: connections,
       metadata: { stage: 'structure-flow', screenType: screen.type },
       resizable: true
     };
   }
 
-  private static createUserFlowNode(flow: any, index: number, baseX: number, baseY: number): CanvasNodeData {
+  private static createUserFlowNode(
+    flow: any, 
+    index: number, 
+    baseX: number, 
+    baseY: number, 
+    existingNode?: CanvasNodeData | null,
+    stableId?: string
+  ): CanvasNodeData {
+    // Use existing position and size if available
+    const position = existingNode?.position || { 
+      x: baseX + (index % 3) * 220, 
+      y: baseY + 120 
+    };
+    const size = existingNode?.size || { width: 200, height: 120 };
+    const connections = existingNode?.connections || [];
+    
     return {
-      id: `ux-flow-${this.nodeIdCounter++}`,
+      id: stableId || `flow-${flow.id || this.nodeIdCounter++}`,
       type: 'ux-flow',
       title: flow.name,
       content: `User journey:\n${flow.steps?.slice(0, 3).join(' → ') || 'Flow steps'}${flow.steps?.length > 3 ? '...' : ''}`,
-      position: { x: baseX + (index % 3) * 220, y: baseY + 120 },
-      size: { width: 200, height: 120 },
+      position: position,
+      size: size,
       color: 'green',
-      connections: [],
+      connections: connections,
       metadata: { stage: 'structure-flow', flowType: 'user-journey' },
       resizable: true
     };
   }
 
-  private static createDatabaseTableNode(table: any, index: number, baseX: number, baseY: number): CanvasNodeData {
+  private static createDatabaseTableNode(
+    table: any, 
+    index: number, 
+    baseX: number, 
+    baseY: number, 
+    existingNode?: CanvasNodeData | null,
+    stableId?: string
+  ): CanvasNodeData {
+    // Use existing position and size if available
+    const position = existingNode?.position || { 
+      x: baseX + (index % 3) * 200, 
+      y: baseY 
+    };
+    const size = existingNode?.size || { width: 180, height: 100 };
+    const connections = existingNode?.connections || [];
+    
     return {
-      id: `system-${this.nodeIdCounter++}`,
+      id: stableId || `db-table-${table.id || this.nodeIdCounter++}`,
       type: 'system',
       title: `${table.name} Table`,
       content: `Database table\n\nFields:\n${table.fields?.slice(0, 4).map((f: any) => `• ${f.name}`).join('\n') || 'No fields defined'}${table.fields?.length > 4 ? '\n...' : ''}`,
-      position: { x: baseX + (index % 3) * 200, y: baseY },
-      size: { width: 180, height: 100 },
+      position: position,
+      size: size,
       color: 'red',
-      connections: [],
+      connections: connections,
       metadata: { stage: 'architecture-design', tableType: 'database' },
       resizable: true
     };
   }
 
-  private static createAPIEndpointsNode(apiEndpoints: any[], baseX: number, baseY: number): CanvasNodeData {
+  private static createAPIEndpointsNode(
+    apiEndpoints: any[], 
+    baseX: number, 
+    baseY: number, 
+    existingNode?: CanvasNodeData | null,
+    stableId?: string
+  ): CanvasNodeData {
+    // Use existing position and size if available
+    const position = existingNode?.position || { x: baseX + 400, y: baseY };
+    const size = existingNode?.size || { width: 160, height: 80 };
+    const connections = existingNode?.connections || [];
+    
     return {
-      id: `system-${this.nodeIdCounter++}`,
+      id: stableId || 'api-endpoints',
       type: 'system',
       title: 'API Endpoints',
       content: `${apiEndpoints.length} endpoints defined\n\nIncludes REST API routes for data operations`,
-      position: { x: baseX + 400, y: baseY },
-      size: { width: 160, height: 80 },
+      position: position,
+      size: size,
       color: 'red',
-      connections: [],
+      connections: connections,
       metadata: { stage: 'architecture-design', systemType: 'api' },
       resizable: true
     };
   }
 
-  private static createRouteNode(route: any, index: number, baseX: number, baseY: number): CanvasNodeData {
+  private static createRouteNode(
+    route: any, 
+    index: number, 
+    baseX: number, 
+    baseY: number, 
+    existingNode?: CanvasNodeData | null,
+    stableId?: string
+  ): CanvasNodeData {
+    // Use existing position and size if available
+    const position = existingNode?.position || { 
+      x: baseX + (index % 4) * 150, 
+      y: baseY + 120 
+    };
+    const size = existingNode?.size || { width: 140, height: 90 };
+    const connections = existingNode?.connections || [];
+    
     return {
-      id: `system-${this.nodeIdCounter++}`,
+      id: stableId || `route-${route.id || this.nodeIdCounter++}`,
       type: 'system',
       title: `${route.path} Route`,
       content: `Component: ${route.component}\nProtected: ${route.protected ? 'Yes' : 'No'}\n\n${route.description}`,
-      position: { x: baseX + (index % 4) * 150, y: baseY + 120 },
-      size: { width: 140, height: 90 },
+      position: position,
+      size: size,
       color: 'red',
-      connections: [],
+      connections: connections,
       metadata: { stage: 'architecture-design', routeType: 'page' },
       resizable: true
     };
   }
 
-  private static createDesignSystemNode(designSystem: string, baseX: number, baseY: number): CanvasNodeData {
+  private static createDesignSystemNode(
+    designSystem: string, 
+    baseX: number, 
+    baseY: number, 
+    existingNode?: CanvasNodeData | null,
+    stableId?: string
+  ): CanvasNodeData {
+    // Use existing position and size if available
+    const position = existingNode?.position || { x: baseX, y: baseY };
+    const size = existingNode?.size || { width: 160, height: 80 };
+    const connections = existingNode?.connections || [];
+    
     return {
-      id: `ui-${this.nodeIdCounter++}`,
+      id: stableId || 'design-system',
       type: 'wireframe',
       title: 'Design System',
       content: `${designSystem}\n\nComponent library and styling approach`,
-      position: { x: baseX, y: baseY },
-      size: { width: 160, height: 80 },
+      position: position,
+      size: size,
       color: 'purple',
-      connections: [],
+      connections: connections,
       metadata: { stage: 'interface-interaction', uiType: 'design-system' },
       resizable: true
     };
   }
 
-  private static createBrandingNode(branding: any, baseX: number, baseY: number): CanvasNodeData {
+  private static createBrandingNode(
+    branding: any, 
+    baseX: number, 
+    baseY: number, 
+    existingNode?: CanvasNodeData | null,
+    stableId?: string
+  ): CanvasNodeData {
+    // Use existing position and size if available
+    const position = existingNode?.position || { x: baseX + 180, y: baseY };
+    const size = existingNode?.size || { width: 140, height: 80 };
+    const connections = existingNode?.connections || [];
+    
     return {
-      id: `ui-${this.nodeIdCounter++}`,
+      id: stableId || 'brand-colors',
       type: 'wireframe',
       title: 'Brand Colors',
       content: `Primary: ${branding.primaryColor}\nSecondary: ${branding.secondaryColor}\nFont: ${branding.fontFamily}`,
-      position: { x: baseX + 180, y: baseY },
-      size: { width: 140, height: 80 },
+      position: position,
+      size: size,
       color: 'purple',
-      connections: [],
+      connections: connections,
       metadata: { stage: 'interface-interaction', uiType: 'branding' },
       resizable: true
     };
   }
 
-  private static createLayoutNode(layoutBlocks: any[], baseX: number, baseY: number): CanvasNodeData {
+  private static createLayoutNode(
+    layoutBlocks: any[], 
+    baseX: number, 
+    baseY: number, 
+    existingNode?: CanvasNodeData | null,
+    stableId?: string
+  ): CanvasNodeData {
+    // Use existing position and size if available
+    const position = existingNode?.position || { x: baseX + 340, y: baseY };
+    const size = existingNode?.size || { width: 160, height: 80 };
+    const connections = existingNode?.connections || [];
+    
     return {
-      id: `ui-${this.nodeIdCounter++}`,
+      id: stableId || 'layout-structure',
       type: 'wireframe',
       title: 'Layout Structure',
       content: `${layoutBlocks.length} layout blocks\n\n${layoutBlocks.map((block: any) => block.type).join(', ')}`,
-      position: { x: baseX + 340, y: baseY },
-      size: { width: 160, height: 80 },
+      position: position,
+      size: size,
       color: 'purple',
-      connections: [],
+      connections: connections,
       metadata: { stage: 'interface-interaction', uiType: 'layout' },
       resizable: true
     };
   }
 
-  private static createAuthMethodsNode(authMethods: any[], baseX: number, baseY: number): CanvasNodeData {
+  private static createAuthMethodsNode(
+    authMethods: any[], 
+    baseX: number, 
+    baseY: number, 
+    existingNode?: CanvasNodeData | null,
+    stableId?: string
+  ): CanvasNodeData {
+    // Use existing position and size if available
+    const position = existingNode?.position || { x: baseX, y: baseY };
+    const size = existingNode?.size || { width: 180, height: 100 };
+    const connections = existingNode?.connections || [];
+    
     return {
-      id: `auth-${this.nodeIdCounter++}`,
+      id: stableId || 'auth-methods',
       type: 'system',
       title: 'Auth Methods',
       content: `${authMethods.length} methods enabled\n\n${authMethods.map((m: any) => `• ${m.name}`).join('\n')}`,
-      position: { x: baseX, y: baseY },
-      size: { width: 180, height: 100 },
+      position: position,
+      size: size,
       color: 'red',
-      connections: [],
+      connections: connections,
       metadata: { stage: 'user-auth-flow', authType: 'methods' },
       resizable: true
     };
   }
 
-  private static createUserRolesNode(userRoles: any[], baseX: number, baseY: number): CanvasNodeData {
+  private static createUserRolesNode(
+    userRoles: any[], 
+    baseX: number, 
+    baseY: number, 
+    existingNode?: CanvasNodeData | null,
+    stableId?: string
+  ): CanvasNodeData {
+    // Use existing position and size if available
+    const position = existingNode?.position || { x: baseX + 200, y: baseY };
+    const size = existingNode?.size || { width: 180, height: 120 };
+    const connections = existingNode?.connections || [];
+    
     return {
-      id: `auth-${this.nodeIdCounter++}`,
+      id: stableId || 'user-roles',
       type: 'system',
       title: 'User Roles',
       content: `${userRoles.length} roles defined\n\n${userRoles.map((r: any) => {
@@ -794,25 +1262,36 @@ export class CanvasDataProcessor {
           : 'No description';
         return `• ${name}: ${truncatedDesc}`;
       }).join('\n')}`,
-      position: { x: baseX + 200, y: baseY },
-      size: { width: 180, height: 120 },
+      position: position,
+      size: size,
       color: 'red',
-      connections: [],
+      connections: connections,
       metadata: { stage: 'user-auth-flow', authType: 'roles' },
       resizable: true
     };
   }
 
-  private static createSecurityFeaturesNode(securityFeatures: any[], baseX: number, baseY: number): CanvasNodeData {
+  private static createSecurityFeaturesNode(
+    securityFeatures: any[], 
+    baseX: number, 
+    baseY: number, 
+    existingNode?: CanvasNodeData | null,
+    stableId?: string
+  ): CanvasNodeData {
+    // Use existing position and size if available
+    const position = existingNode?.position || { x: baseX, y: baseY + 120 };
+    const size = existingNode?.size || { width: 200, height: 100 };
+    const connections = existingNode?.connections || [];
+    
     return {
-      id: `auth-${this.nodeIdCounter++}`,
+      id: stableId || 'security-features',
       type: 'system',
       title: 'Security Features',
       content: `${securityFeatures.length} features enabled\n\n${securityFeatures.slice(0, 4).map((f: any) => `• ${f.name}`).join('\n')}${securityFeatures.length > 4 ? '\n...' : ''}`,
-      position: { x: baseX, y: baseY + 120 },
-      size: { width: 200, height: 100 },
+      position: position,
+      size: size,
       color: 'red',
-      connections: [],
+      connections: connections,
       metadata: { stage: 'user-auth-flow', authType: 'security' },
       resizable: true
     };

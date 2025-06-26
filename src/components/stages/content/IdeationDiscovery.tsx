@@ -29,6 +29,7 @@ interface UserPersona {
   role: string;
   painPoint: string;
   emoji: string;
+  id?: string;
 }
 
 
@@ -136,6 +137,7 @@ userPersonas: [] as UserPersona[],
         role: personaData.role,
         painPoint: `Needs solutions for ${personaData.label.toLowerCase()}-specific challenges`,
         emoji: personaData.emoji,
+        id: `persona-${personaData.id}`
       };
       updateFormData('userPersonas', [...formData.userPersonas, newPersona]);
     }
