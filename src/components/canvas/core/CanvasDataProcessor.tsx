@@ -39,6 +39,12 @@ export class CanvasDataProcessor {
     currentState: ProcessorState,
     onStateUpdate: (newState: ProcessorState) => void
   ): void {
+    console.log('CanvasDataProcessor.updateCanvasFromStageData called with:', {
+      stageDataKeys: Object.keys(stageData),
+      currentNodeCount: currentState.nodes.length,
+      stageData: stageData
+    });
+    
     // Create a more stable hash that ignores order and minor changes
     const currentDataHash = this.createStableHash(stageData);
     
