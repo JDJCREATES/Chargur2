@@ -190,8 +190,12 @@ export const useCanvasStateManager = (
   }, []);
 
   const setOffset = useCallback((offset: { x: number; y: number }) => {
-  }
-  )
+    setState(prev => ({ ...prev, offset }));
+  }, []);
+
+  const toggleGrid = useCallback(() => {
+    setState(prev => ({ ...prev, showGrid: !prev.showGrid }));
+  }, []);
 
   const processStageData = useCallback((stageData: any) => {
     // Prevent concurrent processing
