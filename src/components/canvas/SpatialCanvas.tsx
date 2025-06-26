@@ -110,11 +110,11 @@ export const SpatialCanvas: React.FC<SpatialCanvasProps> = ({
     console.log('stageData changed, processing...', Object.keys(stageData));
     console.log('Current stage data:', stageData);
     console.log('Current nodes before processing:', nodes.length);
-    processStageData(stageData);
+    processStageData(stageData, nodes);
     setTimeout(() => {
       console.log('Current nodes after processing:', nodes.length);
     }, 100);
-  }, [stageData, processStageData]);
+  }, [stageData, processStageData, nodes]);
 
   const {
     interactionState,

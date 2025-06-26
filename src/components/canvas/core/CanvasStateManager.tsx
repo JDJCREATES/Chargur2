@@ -58,47 +58,28 @@ export const useCanvasStateManager = (
   // Add processing flag to prevent loops
   const processingRef = useRef(false);
   
-  // Use ref to hold latest nodes to prevent infinite loops
-  const nodesRef = useRef<CanvasNodeData[]>(initialNodes);
-  
   // Get resetView action from the store
   const storeResetView = useAppStore(state => state.resetView);
-  
-  // Update the ref whenever initialNodes change
-  useEffect(() => {
-    nodesRef.current = initialNodes;
-  }, [initialNodes]);
-  
-  // Deep comparison helper to prevent unnecessary updates
-  const areNodesEqual = useCallback((nodesA: CanvasNodeData[], nodesB: CanvasNodeData[]) => {
-    if (nodesA.length !== nodesB.length) return false;
-    return isEqual(nodesA, nodesB);
-  }, []);
-  
-  const areConnectionsEqual = useCallback((connsA: Connection[], connsB: Connection[]) => {
-    if (connsA.length !== connsB.length) return false;
-    return isEqual(connsA, connsB);
-  }, []);
   
   const updateState = useCallback((updates: Partial<CanvasState>) => {
     setState(prev => ({ ...prev, ...updates }));
   }, []);
 
   const updateNodes = useCallback((updatedNodes: CanvasNodeData[]) => {
-    // Only update if the nodes have actually changed (deep comparison)
-    if (onUpdateNodes && !areNodesEqual(updatedNodes, initialNodes)) {
+    // Update nodes through the callback
+    if (onUpdateNodes) {
       console.log('Nodes changed, updating...');
       onUpdateNodes(updatedNodes);
     }
-  }, [onUpdateNodes, initialNodes, areNodesEqual]);
+  }, [onUpdateNodes]);
 
   const updateConnections = useCallback((updatedConnections: Connection[]) => {
-    // Only update if the connections have actually changed (deep comparison)
-    if (onUpdateConnections && !areConnectionsEqual(updatedConnections, initialConnections)) {
+    // Update connections through the callback
+    if (onUpdateConnections) {
       console.log('Connections changed, updating...');
       onUpdateConnections(updatedConnections);
     }
-  }, [onUpdateConnections, initialConnections, areConnectionsEqual]);
+  }, [onUpdateConnections]);
 
   const updateNode = useCallback((nodeId: string, updates: Partial<CanvasNodeData>) => {
     const updatedNodes = initialNodes.map(node => 
@@ -209,13 +190,13 @@ export const useCanvasStateManager = (
     processingRef.current = true;
     
     const processorState: ProcessorState = {
-      nodes: nodesRef.current,
+      nodes: initialNodes,
       lastProcessedData: lastProcessedStageData || {}
     };
     
     console.log('Calling CanvasDataProcessor with:', {
       stageDataKeys: Object.keys(stageData),
-      nodeCount: nodesRef.current.length
+      nodeCount: initialNodes.length
     });
 
     CanvasDataProcessor.updateCanvasFromStageData(
@@ -233,7 +214,7 @@ export const useCanvasStateManager = (
         processingRef.current = false;
       }
     );
-  }, [lastProcessedStageData, updateNodes]);
+  }, [lastProcessedStageData, updateNodes, initialNodes]);
 
   return {
     state,
