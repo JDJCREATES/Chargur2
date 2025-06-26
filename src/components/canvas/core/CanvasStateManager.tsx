@@ -210,14 +210,6 @@ export const useCanvasStateManager = (
       return;
     }
 
-    const stageDataString = JSON.stringify(stageData);
-    const lastDataString = JSON.stringify(lastProcessedStageData);
-    
-    if (stageDataString === lastDataString) {
-      console.log('Stage data unchanged, skipping processing');
-      return;
-    }
-
     processingRef.current = true;
     
     const processorState: ProcessorState = {
