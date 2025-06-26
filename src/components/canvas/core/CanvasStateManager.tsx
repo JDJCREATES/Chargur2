@@ -190,14 +190,14 @@ export const useCanvasStateManager = (
   }, []);
 
   const setOffset = useCallback((offset: { x: number; y: number }) => {
-    setState(prev => ({ ...prev, offset }));
-  }, []);
-
-  const toggleGrid = useCallback(() => {
-    setState(prev => ({ ...prev, showGrid: !prev.showGrid }));
-  }, []);
 
   const processStageData = useCallback((stageData: any) => {
+    // Prevent concurrent processing
+    if (processingRef.current) {
+      console.log('Already processing stage data, skipping...');
+      return;
+    }
+
     // Prevent concurrent processing
     if (processingRef.current) {
       console.log('Already processing stage data, skipping...');
@@ -220,9 +220,7 @@ export const useCanvasStateManager = (
         console.log('Canvas data processed, node count:', newState.nodes.length);
         
         // Reset processing flag
-        setTimeout(() => {
-          processingRef.current = false;
-        }, 100);
+        processingRef.current = false;
       }
     );
   }, [lastProcessedStageData, updateNodes, nodesRef]);

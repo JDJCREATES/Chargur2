@@ -107,15 +107,13 @@ export const SpatialCanvas: React.FC<SpatialCanvasProps> = ({
 
   // Add useEffect to process stageData changes - moved after processStageData is defined
   useEffect(() => {
-    if (!processingRef.current) {
-      console.log('stageData changed, processing...', Object.keys(stageData));
-      console.log('Current stage data:', stageData);
-      console.log('Current nodes before processing:', nodes.length);
-      processStageData(stageData);
-      setTimeout(() => {
-        console.log('Current nodes after processing:', nodes.length);
-      }, 100);
-    }
+    console.log('stageData changed, processing...', Object.keys(stageData));
+    console.log('Current stage data:', stageData);
+    console.log('Current nodes before processing:', nodes.length);
+    processStageData(stageData);
+    setTimeout(() => {
+      console.log('Current nodes after processing:', nodes.length);
+    }, 100);
   }, [stageData, processStageData]);
 
   const {
