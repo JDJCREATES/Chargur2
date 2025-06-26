@@ -85,12 +85,6 @@ export const useCanvasStateManager = (
   }, []);
 
   const updateNodes = useCallback((updatedNodes: CanvasNodeData[]) => {
-    // Prevent updates during processing
-    if (processingRef.current) {
-      console.log('Processing in progress, skipping node update');
-      return;
-    }
-
     // Only update if the nodes have actually changed (deep comparison)
     if (onUpdateNodes && !areNodesEqual(updatedNodes, initialNodes)) {
       console.log('Nodes changed, updating...');
