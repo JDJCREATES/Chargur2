@@ -47,28 +47,44 @@ export const DraggableConnectableWrapper: React.FC<DraggableConnectableWrapperPr
   const [isResizing, setIsResizing] = useState(false);
   const [dragStart, setDragStart] = useState({ x: 0, y: 0 });
   const initialMousePosRef = useRef({ x: 0, y: 0 });
-  const initialNodeSizeRef = useRef({ width: 0, height: 0 });
+  const initialNodeSizeRef = useRef({ width: 0, height: 0 }); 
 
   // Add safety checks for node properties
   const nodeSize = node?.size || { width: 200, height: 100 };
   const nodePosition = node?.position || { x: 0, y: 0 };
 
   const handleDragStart = (event: any, info: any) => {
-    setIsDragging(true);
-    setDragStart({ x: nodePosition.x, y: nodePosition.y });
+    try {
+      setIsDragging(true);
+      setDragStart({ x: nodePosition.x, y: nodePosition.y });
+      // Call the parent's startNodeDrag function if provided
+      if (onSelect) {
+        onSelect(node.id);
+      }
+    } catch (error) {
+      console.error('Error in handleDragStart:', error);
+    }
   };
 
   const handleDrag = (event: any, info: any) => {
-    // Use the offset from drag start instead of delta
-    const newPosition = {
-      x: Math.max(0, dragStart.x + info.offset.x),
-      y: Math.max(0, dragStart.y + info.offset.y),
-    };
-    onUpdate(node.id, { position: newPosition });
+    try {
+      // Use the offset from drag start instead of delta
+      const newPosition = {
+        x: Math.max(0, dragStart.x + info.offset.x),
+        y: Math.max(0, dragStart.y + info.offset.y),
+      };
+      onUpdate(node.id, { position: newPosition });
+    } catch (error) {
+      console.error('Error in handleDrag:', error);
+    }
   };
 
   const handleDragEnd = () => {
-    setIsDragging(false);
+    try {
+      setIsDragging(false);
+    } catch (error) {
+      console.error('Error in handleDragEnd:', error);
+    }
   };
 
   // Alternative approach - use transform instead of position updates during drag
@@ -85,30 +101,42 @@ export const DraggableConnectableWrapper: React.FC<DraggableConnectableWrapperPr
 
   const handleResizeStart = (e: React.MouseEvent) => {
     e.stopPropagation();
-    setIsResizing(true);
-    initialMousePosRef.current = { x: e.clientX, y: e.clientY };
-    initialNodeSizeRef.current = { width: nodeSize.width, height: nodeSize.height };
+    try {
+      setIsResizing(true);
+      initialMousePosRef.current = { x: e.clientX, y: e.clientY };
+      initialNodeSizeRef.current = { width: nodeSize.width, height: nodeSize.height };
+    } catch (error) {
+      console.error('Error in handleResizeStart:', error);
+    }
   };
 
   const handleResize = (e: React.MouseEvent) => {
-    if (!isResizing) return;
-    
-    e.stopPropagation();
-    e.preventDefault();
-    
-    const deltaX = (e.clientX - initialMousePosRef.current.x) / scale;
-    const deltaY = (e.clientY - initialMousePosRef.current.y) / scale;
-    
-    const newWidth = Math.max(100, initialNodeSizeRef.current.width + deltaX);
-    const newHeight = Math.max(50, initialNodeSizeRef.current.height + deltaY);
-    
-    onUpdate(node.id, {
-      size: { width: newWidth, height: newHeight }
-    });
+    try {
+      if (!isResizing) return;
+      
+      e.stopPropagation();
+      e.preventDefault();
+      
+      const deltaX = (e.clientX - initialMousePosRef.current.x) / scale;
+      const deltaY = (e.clientY - initialMousePosRef.current.y) / scale;
+      
+      const newWidth = Math.max(100, initialNodeSizeRef.current.width + deltaX);
+      const newHeight = Math.max(50, initialNodeSizeRef.current.height + deltaY);
+      
+      onUpdate(node.id, {
+        size: { width: newWidth, height: newHeight }
+      });
+    } catch (error) {
+      console.error('Error in handleResize:', error);
+    }
   };
 
   const handleResizeEnd = () => {
-    setIsResizing(false);
+    try {
+      setIsResizing(false);
+    } catch (error) {
+      console.error('Error in handleResizeEnd:', error);
+    }
   };
 
   return (

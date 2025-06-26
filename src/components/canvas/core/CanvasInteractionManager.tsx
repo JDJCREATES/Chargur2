@@ -49,6 +49,7 @@ export interface InteractionHandlers {
   onMouseMove: (event: React.MouseEvent) => void;
   onMouseUp: (event: React.MouseEvent) => void;
   onKeyDown: (event: React.KeyboardEvent) => void;
+  onKeyUp: (event: React.KeyboardEvent) => void;
   onResizeStart: (nodeId: string, initialMousePos: { x: number; y: number }, initialSize: { width: number; height: number }) => void;
   onResize: (event: React.MouseEvent) => void;
   onResizeEnd: () => void;
@@ -280,116 +281,7 @@ export const useCanvasInteractionManager = (
     onMouseMove: handleMouseMove,
     onMouseUp: handleMouseUp,
     onKeyDown: handleKeyDown,
-    onResizeStart: startResizing,
-    onResize: handleMouseMove,
-    onResizeEnd: endResizing
-  };
-
-  return {
-    interactionState,
-    handlers,
-    startNodeDrag,
-    updateNodePosition,
-    endNodeDrag,
-    setInteractionState
-  };
-};
-        connectingFrom: null,
-        isConnecting: false
-      }));
-      onNodeSelect(null);
-    }
-    
-    if (e.key === 'Delete' || e.key === 'Backspace') {
-      // Delete selected node (would need selectedNodeId from parent)
-      // This would be handled by the parent component
-    }
-    
-    if (e.key === ' ') {
-      e.preventDefault();
-      // Space bar for panning mode
-    }
-  }, [onNodeSelect]);
-
-  const startConnection = useCallback((nodeId: string) => {
-    setInteractionState(prev => ({
-      ...prev,
-      connectingFrom: nodeId,
-      isConnecting: true
-    }));
-  }, []);
-
-  const endConnection = useCallback((nodeId: string) => {
-    if (interactionState.connectingFrom && interactionState.connectingFrom !== nodeId) {
-      onConnectionCreate(interactionState.connectingFrom, nodeId);
-    }
-    setInteractionState(prev => ({
-      ...prev,
-      connectingFrom: null,
-      isConnecting: false
-    }));
-  }, [interactionState.connectingFrom, onConnectionCreate]);
-
-  const startNodeDrag = useCallback((nodeId: string) => {
-    setInteractionState(prev => ({
-      ...prev,
-      isDragging: true,
-      draggedNode: nodeId
-    }));
-  }, []);
-
-  const updateNodePosition = useCallback((nodeId: string, position: { x: number; y: number }) => {
-    // Ensure position is within bounds
-    const boundedPosition = {
-      x: Math.max(0, position.x),
-      y: Math.max(0, position.y)
-    };
-    
-    onNodeUpdate(nodeId, { position: boundedPosition });
-  }, [onNodeUpdate]);
-
-  const endNodeDrag = useCallback(() => {
-    setInteractionState(prev => ({
-      ...prev,
-      isDragging: false,
-      draggedNode: null
-    }));
-  }, []);
-
-  const startResizing = useCallback((
-    nodeId: string, 
-    initialMousePos: { x: number; y: number }, 
-    initialSize: { width: number; height: number }
-  ) => {
-    setInteractionState(prev => ({
-      ...prev,
-      isResizing: true,
-      resizingNode: nodeId,
-      initialMousePos,
-      initialNodeSize: initialSize
-    }));
-  }, []);
-
-  const endResizing = useCallback(() => {
-    setInteractionState(prev => ({
-      ...prev,
-      isResizing: false,
-      resizingNode: null
-    }));
-  }, []);
-
-  const handlers: InteractionHandlers = {
-    onNodeSelect,
-    onNodeUpdate,
-    onNodeDelete,
-    onConnectionStart: startConnection,
-    onConnectionEnd: endConnection,
-    onCanvasClick: handleCanvasClick,
-    onWheel: handleWheel,
-    onMouseDown: handleMouseDown,
-    onMouseMove: handleMouseMove,
-    onMouseUp: handleMouseUp,
-    onKeyDown: handleKeyDown,
+    onKeyUp: handleKeyUp,
     onResizeStart: startResizing,
     onResize: handleMouseMove,
     onResizeEnd: endResizing
