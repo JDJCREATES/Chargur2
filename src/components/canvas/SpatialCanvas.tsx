@@ -474,7 +474,6 @@ export const SpatialCanvas: React.FC<SpatialCanvasProps> = ({
         onMouseLeave={handlers.onMouseUp} 
         onKeyDown={handlers.onKeyDown} 
         onKeyUp={handlers.onKeyUp}
-        onKeyUp={handlers.onKeyUp} // Add keyup handler for space bar panning
         tabIndex={0}>
         <CanvasRenderer
           nodes={nodes}

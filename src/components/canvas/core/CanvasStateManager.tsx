@@ -203,14 +203,8 @@ export const useCanvasStateManager = (
       console.log('Already processing stage data, skipping...');
       return;
     }
-    
-    console.log('Processing stage data in CanvasStateManager:', Object.keys(stageData));
 
-    // Prevent concurrent processing
-    if (processingRef.current) {
-      console.log('Already processing stage data, skipping...');
-      return;
-    }
+    console.log('Processing stage data in CanvasStateManager:', Object.keys(stageData));
 
     processingRef.current = true;
     
@@ -237,9 +231,9 @@ export const useCanvasStateManager = (
         
         // Reset processing flag
         processingRef.current = false;
-        }, [lastProcessedStageData, updateNodes, nodesRef]    );
-  }
-  )
+      }
+    );
+  }, [lastProcessedStageData, updateNodes]);
 
   return {
     state,

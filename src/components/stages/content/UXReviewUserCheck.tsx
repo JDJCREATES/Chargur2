@@ -622,7 +622,7 @@ ${overallProgress >= 80
         <AccordionDetails>
           <div className="space-y-3">
             <div className="grid grid-cols-1 gap-2">
-              {stages.filter(s => !s.comingSoon).map((stage, index) => {
+              {stages.map((stage, index) => {
                 const stageItems = completionItems.filter(item => item.stageId === stage.id);
                 const completeItems = stageItems.filter(item => item.status === 'complete').length;
                 const stageProgress = stageItems.length > 0 ? Math.round((completeItems / stageItems.length) * 100) : 0;

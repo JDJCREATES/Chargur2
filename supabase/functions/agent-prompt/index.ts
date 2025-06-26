@@ -641,8 +641,7 @@ function parseAndValidateResponse(llmResponse: string, stageId: string): AgentRe
       parsed.autoFillData = {}
     } else {
       // Process multi-stage autoFillData if present
-      // This allows the LLM to return data for multiple stages
-      const processedAutoFillData = {}
+      const processedAutoFillData: Record<string, any> = {}
       
       // Check if autoFillData contains stage IDs as keys
       const hasStageKeys = Object.keys(parsed.autoFillData).some(key => 
@@ -653,7 +652,7 @@ function parseAndValidateResponse(llmResponse: string, stageId: string): AgentRe
       
       if (hasStageKeys) {
         // Multi-stage format - keep as is
-        Object.assign(processedAutoFillData, parsed.autoFillData)
+        Object.assign(processedAutoFillData, parsed.autoFillData as Record<string, any>)
       } else {
         // Single stage format - wrap in current stageId
         processedAutoFillData[stageId] = parsed.autoFillData

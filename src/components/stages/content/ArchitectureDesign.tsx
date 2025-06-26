@@ -1,34 +1,20 @@
-import React, { useState } from 'react';
-import { motion } from 'framer-motion';
+import React, { useState, useEffect } from 'react';
+
 import { 
   Building2, 
   FolderTree, 
   Database, 
-  Globe, 
-  Settings, 
+  Globe,  
   Brain, 
   FileText, 
   CheckCircle,
   Plus,
-  Trash2,
-  Edit3,
   Copy,
   Download,
-  Code,
-  Server,
-  Layers,
   GitBranch,
   Key,
-  Shield,
   Zap,
-  Package,
-  Monitor,
-  Smartphone,
-  Cloud,
   Link,
-  Archive,
-  Terminal,
-  Workflow
 } from 'lucide-react';
 import { Accordion, AccordionSummary, AccordionDetails, Typography } from '@mui/material';
 import { ChevronDown } from 'lucide-react';

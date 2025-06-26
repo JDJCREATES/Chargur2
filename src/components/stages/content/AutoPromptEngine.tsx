@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef, useMemo } from 'react';
-import { motion } from 'framer-motion';
+
 import { 
   Zap, 
   Code, 
@@ -8,25 +8,15 @@ import {
   FileText, 
   Download, 
   RefreshCw,
-  Play,
-  Pause,
-  SkipForward,
-  Edit3,
   Eye,
-  Settings,
   CheckCircle,
-  AlertTriangle,
-  Clock,
   Layers,
   GitBranch,
   Database,
   Shield,
   Palette,
-  Users,
-  Workflow,
   Brain,
   Target,
-  Sparkles,
   Archive,
   History,
   Send,

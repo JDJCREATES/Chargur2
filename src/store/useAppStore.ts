@@ -4,12 +4,6 @@ import { supabase } from '../lib/auth/supabase';
 import { CanvasNodeData } from '../components/canvas/CanvasNode';
 import { debounce } from '../utils/debounce';
 
-// Helper function to create empty initial state
-const getEmptyCanvasState = () => ({
-  nodes: [],
-  connections: []
-});
-
 const initialStages: Stage[] = [
   {
     id: 'ideation-discovery',

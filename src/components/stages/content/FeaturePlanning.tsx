@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { motion } from 'framer-motion';
+
 import { 
   Lightbulb, 
   Package, 
@@ -10,36 +10,20 @@ import {
   CheckCircle,
   Plus,
   Trash2,
-  Edit3,
-  Move,
   Target,
   Zap,
   Database,
-  Globe,
   Users,
   Shield,
-  Bell,
   MessageSquare,
-  Search,
   BarChart,
-  Settings,
   Upload,
   Download,
   CreditCard,
-  Map,
-  Camera,
-  Calendar,
-  Clock,
-  Star,
-  Heart,
-  Share2,
-  Lock,
-  Smartphone,
   Monitor,
   Brain,
   Code,
   Server,
-  Palette,
   Workflow
 } from 'lucide-react';
 import { Accordion, AccordionSummary, AccordionDetails, Typography } from '@mui/material';
