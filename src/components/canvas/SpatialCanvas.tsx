@@ -36,7 +36,7 @@ import { useCanvasStateManager } from './core/CanvasStateManager';
 import { useCanvasScreenshot } from './core/CanvasScreenshot';
 import { useCanvasInteractionManager } from './core/CanvasInteractionManager';
 import { CanvasNodeData } from './CanvasNode'; 
-import { STAGE1_NODE_TYPES, STAGE1_NODE_DEFAULTS } from './customnodetypes/stage1nodes'; 
+import { STAGE1_NODE_TYPES, STAGE1_NODE_DEFAULTS } from './customnodetypes/stage1nodes';
 
 // Update the props interface to make callbacks optional
 interface SpatialCanvasProps {
@@ -61,6 +61,14 @@ export const SpatialCanvas: React.FC<SpatialCanvasProps> = ({
   // Add the missing refs
   const lastProcessedStageDataRef = useRef<string>('');
   const processingRef = useRef(false);
+  
+  // Add useEffect to process stageData changes
+  useEffect(() => {
+    if (!processingRef.current) {
+      console.log('stageData changed, processing...');
+      processStageData(stageData);
+    }
+  }, [stageData, processStageData]);
 
   // Get canvas data and actions from the store
   const { 
