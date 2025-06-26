@@ -75,13 +75,25 @@ export const Canvas: React.FC<CanvasProps> = ({
           initial={{ scale: 0.9, y: 20 }}
           animate={{ scale: 1, y: 0 }}
           transition={{ delay: 0.1 }}
-          className="text-center"
+          className="text-center max-w-md p-6 bg-white rounded-lg shadow-md"
         >
           <div className="w-16 h-16 bg-gray-200 rounded-full flex items-center justify-center mx-auto mb-4">
             <span className="text-2xl">🎨</span>
           </div>
           <h3 className="text-lg font-semibold text-gray-700 mb-2">Welcome To Chargur UX-IA Agent</h3>
-          <p className="text-gray-600">Choose a stage from the sidebar to get started designing your app!</p>
+          {useAppStore.getState().projectId ? (
+            <p className="text-gray-600">Choose a stage from the sidebar to get started designing your app!</p>
+          ) : (
+            <div className="space-y-4">
+              <p className="text-gray-600">No project is currently loaded. Create a new project to get started!</p>
+              <button
+                onClick={() => useAppStore.getState().createAndLoadNewProject()}
+                className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition-colors"
+              >
+                Create New Project
+              </button>
+            </div>
+          )}
         </motion.div>
       </motion.div>
     );

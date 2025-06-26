@@ -261,6 +261,26 @@ export const useAppStore = create<AppState>((set, get) => {
           throw new Error('User must be logged in to create a project');
         }
         
+        // Check if this is an automatic creation (default name/description)
+        const isAutomaticCreation = name === 'New Project' && description === '';
+        
+        // If automatic creation, check if user already has projects
+        if (isAutomaticCreation) {
+          const { data: existingProjects } = await supabase
+            .from('projects')
+            .select('id')
+            .eq('user_id', user.id)
+            .order('updated_at', { ascending: false })
+            .limit(1);
+          
+          // If user already has projects, load the most recent one instead of creating a new one
+          if (existingProjects && existingProjects.length > 0) {
+            console.log('Found existing project, loading instead of creating new one:', existingProjects[0].id);
+            await get().loadProject(existingProjects[0].id);
+            return;
+          }
+        }
+        
         // Clear canvas data first
         set({ 
           canvasNodes: [],
@@ -400,8 +420,13 @@ export const useAppStore = create<AppState>((set, get) => {
           // User has an existing project, load it
           await get().loadProject(data[0].id);
         } else {
-          // User has no projects, create a new one
-          await get().createAndLoadNewProject();
+          // User has no projects, but don't automatically create one
+          // Just set loading to false and let the UI handle the empty state
+          set({ 
+            isLoading: false,
+            projectId: null,
+            currentProject: null
+          });
         }
       } catch (err) {
         console.error('Failed to initialize project:', err);
