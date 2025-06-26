@@ -49,7 +49,6 @@ export interface InteractionHandlers {
   onMouseMove: (event: React.MouseEvent) => void;
   onMouseUp: (event: React.MouseEvent) => void;
   onKeyDown: (event: React.KeyboardEvent) => void;
-  onKeyUp: (event: React.KeyboardEvent) => void;
   onResizeStart: (nodeId: string, initialMousePos: { x: number; y: number }, initialSize: { width: number; height: number }) => void;
   onResize: (event: React.MouseEvent) => void;
   onResizeEnd: () => void;
@@ -281,7 +280,6 @@ export const useCanvasInteractionManager = (
     onMouseMove: handleMouseMove,
     onMouseUp: handleMouseUp,
     onKeyDown: handleKeyDown,
-    onKeyUp: handleKeyUp,
     onResizeStart: startResizing,
     onResize: handleMouseMove,
     onResizeEnd: endResizing
