@@ -11,7 +11,6 @@ import { Stage, StageData, Connection } from '../../types';
 import { SpatialCanvas } from '../canvas/SpatialCanvas';
 import { useAppStore } from '../../store/useAppStore';
 import { UserChatOverlay } from '../chat/UserChatOverlay';
-import { useAgent } from '../agent/AgentContextProvider';
 import { CanvasNodeData } from '../canvas/CanvasNode';
 
 interface AgentChatProps {

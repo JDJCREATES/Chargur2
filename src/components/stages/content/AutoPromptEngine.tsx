@@ -35,6 +35,7 @@ import {
 import { Accordion, AccordionSummary, AccordionDetails, Typography } from '@mui/material';
 import { ChevronDown } from 'lucide-react';
 import { Stage, StageData } from '../../../types';
+import { debounce } from '../../../utils/debounce';
 
 interface AutoPromptEngineProps {
   stage: Stage;
@@ -104,10 +105,10 @@ export const AutoPromptEngine: React.FC<AutoPromptEngineProps> = ({
   const debouncedOnFormDataChange = useMemo(
     () => debounce((data: any) => {
       if (initializedRef.current) { // Only call after initialization
-        onFormDataChange(data);
+        onUpdateData(data); // Call onUpdateData directly instead of onFormDataChange
       }
     }, 300),
-    [onFormDataChange]
+    [onUpdateData] // Change from [onFormDataChange] to [onUpdateData]
   );
 
   // Handle form data changes
@@ -125,14 +126,14 @@ export const AutoPromptEngine: React.FC<AutoPromptEngineProps> = ({
 
   // Sync formData with initialFormData when it changes
   useEffect(() => {
-    if (initialFormData) {
+    if (initialFormData && initializedRef.current) { // Add initializedRef check
       console.log('Updating AutoPromptEngine formData from initialFormData');
       setFormData(prev => ({
         ...prev,
         ...initialFormData
       }));
     }
-  }, [initialFormData]);
+  }, [initialFormData]); // This dependency is correct
 
   useEffect(() => {
     generatePromptModules();
@@ -609,6 +610,8 @@ Please create a fully functional, production-ready application with clean archit
   const totalEstimatedTokens = promptModules
     .filter(m => formData.selectedModules.includes(m.id))
     .reduce((sum, m) => sum + m.estimatedTokens, 0);
+
+  
 
   return (
     <div className="p-4 space-y-2">
