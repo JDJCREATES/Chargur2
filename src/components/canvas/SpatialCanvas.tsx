@@ -58,7 +58,7 @@ export const SpatialCanvas: React.FC<SpatialCanvasProps> = ({
   onUpdateCanvasConnections,
   onSendMessage
 }) => {
-  // Add the missing refs
+  // Make sure these refs are properly initialized
   const lastProcessedStageDataRef = useRef<string>('');
   const processingRef = useRef(false);
   
@@ -107,14 +107,56 @@ export const SpatialCanvas: React.FC<SpatialCanvasProps> = ({
 
   // Add useEffect to process stageData changes - moved after processStageData is defined
   useEffect(() => {
+    // Create a stable string representation for comparison
+    const stageDataString = JSON.stringify(stageData);
+    
+    // Only process if the data has actually changed
+    if (lastProcessedStageDataRef.current === stageDataString) {
+      return;
+    }
+
+    // Prevent concurrent processing
+    if (processingRef.current) {
+      console.log('Processing already in progress, skipping...');
+      return;
+    }
+
     console.log('stageData changed, processing...', Object.keys(stageData));
     console.log('Current stage data:', stageData);
     console.log('Current nodes before processing:', nodes.length);
-    processStageData(stageData, nodes);
-    setTimeout(() => {
-      console.log('Current nodes after processing:', nodes.length);
-    }, 100);
-  }, [stageData, processStageData, nodes]);
+    
+    // Set processing flag and update reference immediately
+    processingRef.current = true;
+    lastProcessedStageDataRef.current = stageDataString;
+    
+    // Debounce the processing to prevent rapid fire updates
+    const timeoutId = setTimeout(() => {
+      try {
+        processStageData(stageData);
+        setTimeout(() => {
+          console.log('Current nodes after processing:', nodes.length);
+          // Reset processing flag after completion
+          processingRef.current = false;
+        }, 100);
+      } catch (error) {
+        console.error('Error processing stage data:', error);
+        processingRef.current = false;
+      }
+    }, 50);
+    
+    return () => {
+      clearTimeout(timeoutId);
+      // Don't reset processingRef here as it might interrupt valid processing
+    };
+  }, [stageData, processStageData, nodes.length]); // Add nodes.length to dependencies
+
+  useEffect(() => {
+    // Cleanup function to reset processing state
+    return () => {
+      processingRef.current = false;
+      lastProcessedStageDataRef.current = '';
+    };
+  }, []); // Empty dependency array - runs only on mount/unmount
 
   const {
     interactionState,
@@ -153,6 +195,9 @@ export const SpatialCanvas: React.FC<SpatialCanvasProps> = ({
     }
     
     console.log('Project changed, resetting canvas view');
+    // Reset processing state when project changes
+    processingRef.current = false;
+    lastProcessedStageDataRef.current = '';
     resetView();
   }, [projectId, resetView]);
 

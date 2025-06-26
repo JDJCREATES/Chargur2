@@ -23,6 +23,14 @@ interface IdeationDiscoveryProps {
   onComplete: () => void;
   onUpdateData: (data: any) => void;
 }
+// Add this interface after the imports (around line 15):
+interface UserPersona {
+  name: string;
+  role: string;
+  painPoint: string;
+  emoji: string;
+}
+
 
 export const IdeationDiscovery: React.FC<IdeationDiscoveryProps> = ({
   stage,
@@ -35,12 +43,8 @@ export const IdeationDiscovery: React.FC<IdeationDiscoveryProps> = ({
     appName: '',
     tagline: '',
     problemStatement: '',
-    userPersonas: [] as Array<{
-      name: string;
-      role: string;
-      painPoint: string;
-      emoji: string;
-    }>,
+    // To this:
+userPersonas: [] as UserPersona[],
     valueProposition: '',
     competitors: '',
     platform: 'web',
@@ -59,7 +63,9 @@ export const IdeationDiscovery: React.FC<IdeationDiscoveryProps> = ({
   const [selectedPersonas, setSelectedPersonas] = useState<string[]>(() => {
     if (initialFormData?.userPersonas?.length > 0) {
       return initialFormData.userPersonas
-        .map((p: any) => personas.find(persona => persona.label === p.name)?.id)
+        .map((p: UserPersona) => 
+          personas.find(persona => persona.label === p.name)?.id
+        )
         .filter(Boolean);
     }
     return [];
@@ -109,7 +115,7 @@ export const IdeationDiscovery: React.FC<IdeationDiscoveryProps> = ({
 
   const toggleTag = (tag: string) => {
     const updated = selectedTags.includes(tag)
-      ? selectedTags.filter(t => t !== tag)
+      ? selectedTags.filter((t: string) => t !== tag)
       : [...selectedTags, tag];
     setSelectedTags(updated);
   };
@@ -137,7 +143,7 @@ export const IdeationDiscovery: React.FC<IdeationDiscoveryProps> = ({
 
   const toggleTechStack = (tech: string) => {
     const updated = formData.techStack.includes(tech)
-      ? formData.techStack.filter(t => t !== tech)
+      ? formData.techStack.filter((t: string) => t !== tech)
       : [...formData.techStack, tech];
     updateFormData('techStack', updated);
   };
@@ -150,7 +156,7 @@ export const IdeationDiscovery: React.FC<IdeationDiscoveryProps> = ({
 
 **Problem:** ${formData.problemStatement || 'Solving user pain points'}
 
-**Target Users:** ${formData.userPersonas.map(p => p.name).join(', ') || 'Various user types'}
+**Target Users:** ${formData.userPersonas.map((p: UserPersona) => p.name).join(', ') || 'Various user types'}
 
 **Value Proposition:** ${formData.valueProposition || 'Unique value for users'}
 
@@ -299,7 +305,7 @@ export const IdeationDiscovery: React.FC<IdeationDiscoveryProps> = ({
                   <div className="mt-3 p-3 bg-green-50 rounded-lg">
                     <h4 className="text-sm font-medium text-green-800 mb-2">Selected User Personas:</h4>
                     <div className="space-y-2">
-                      {formData.userPersonas.map((persona, index) => (
+                      {formData.userPersonas.map((persona: { name: string; role: string; painPoint: string; emoji: string }, index: number) => (
                         <div key={index} className="flex items-center gap-2 text-sm">
                           <span>{persona.emoji}</span>
                           <span className="font-medium">{persona.name}</span>

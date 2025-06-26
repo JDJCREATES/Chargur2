@@ -58,6 +58,51 @@ interface PromptHistory {
   changes: string[];
 }
 
+interface AuthMethod {
+  enabled: boolean;
+  name: string;
+  provider?: string;
+}
+
+interface UserRole {
+  name: string;
+  description: string;
+}
+
+interface DatabaseField {
+  name: string;
+  type: string;
+  required?: boolean;
+  unique?: boolean;
+}
+
+interface DatabaseTable {
+  name: string;
+  fields?: DatabaseField[];
+}
+
+interface ApiEndpoint {
+  method: string;
+  path: string;
+  description: string;
+}
+
+interface Screen {
+  name: string;
+  type: string;
+}
+
+interface CustomFeature {
+  name: string;
+  description: string;
+  priority?: string;
+}
+
+interface EnvVariable {
+  name: string;
+  description: string;
+}
+
 export const AutoPromptEngine: React.FC<AutoPromptEngineProps> = ({
   stage,
   stages,
@@ -757,10 +802,10 @@ Please create a fully functional, production-ready application with clean archit
                               <input
                                 type="checkbox"
                                 checked={formData.selectedModules.includes(module.id)}
-                                onChange={(e) => {
+                                onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
                                   const updated = e.target.checked
                                     ? [...formData.selectedModules, module.id]
-                                    : formData.selectedModules.filter(id => id !== module.id);
+                                    : formData.selectedModules.filter((id: string) => id !== module.id);
                                   updateFormData('selectedModules', updated);
                                 }}
                                 className={`w-4 h-4 text-${color}-600 rounded focus:ring-${color}-500`}
