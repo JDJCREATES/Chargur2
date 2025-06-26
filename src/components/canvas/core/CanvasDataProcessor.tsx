@@ -62,7 +62,7 @@ export class CanvasDataProcessor {
     this.lastProcessedHash = currentDataHash;
 
     // Create a mutable copy of the current nodes
-    const updatedNodes = [...currentState.nodes];
+    let updatedNodes = [...currentState.nodes];
     console.log('Processing stage data, starting with', updatedNodes.length, 'nodes');
 
     // Process each stage's data and update the nodes array
