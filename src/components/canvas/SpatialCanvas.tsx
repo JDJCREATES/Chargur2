@@ -441,11 +441,6 @@ export const SpatialCanvas: React.FC<SpatialCanvasProps> = ({
     }
   }, [nodes, connections]);
 
-  // Define toggleGrid function
-  const toggleGrid = useCallback(() => {
-    setState(prev => ({ ...prev, showGrid: !prev.showGrid }));
-  }, [setState]);
-
   return (
     <div className="relative w-full h-full flex flex-col overflow-hidden bg-gray-50 rounded-lg border border-gray-200">
       {/* Canvas Toolbar */}
