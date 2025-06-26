@@ -190,6 +190,8 @@ export const useCanvasStateManager = (
   }, []);
 
   const setOffset = useCallback((offset: { x: number; y: number }) => {
+  }
+  )
 
   const processStageData = useCallback((stageData: any) => {
     // Prevent concurrent processing
