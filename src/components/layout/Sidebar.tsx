@@ -182,7 +182,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
         {/* Header */}
         <div className="p-4 border-b border-gray-200">
           <div className="flex items-center gap-3">
-            <div className={`w-full transition-opacity duration-200 ${isOpen ? 'opacity-100' : 'opacity-0'}`}>
+            <div className={`w-full transition-opacity duration-200 ${isOpen ? 'opacity-100' : 'opacity-0'} overflow-hidden`}>
               <ProjectManager />
             </div>  
           </div>

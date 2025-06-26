@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { motion } from 'framer-motion';
-import { ChevronLeft, ChevronRight, Plus, Folder } from 'lucide-react';
+import { ChevronLeft, ChevronRight, Folder } from 'lucide-react';
 import { supabase } from '../../lib/auth/supabase';
 import { useAppStore } from '../../store/useAppStore';
 import { useAuth } from '../../hooks/useAuth';
@@ -12,21 +12,11 @@ interface ProjectCarouselProps {
   currentProjectId: string | null;
   // Remove onCreateProject since we're using the store method
 }
-
-
 export const ProjectCarousel: React.FC<ProjectCarouselProps> = ({
   onSelectProject,
   // Remove onCreateProject from destructuring
   currentProjectId
 }) => {
-  // Get the store method
-  const { createAndLoadNewProject } = useAppStore();
-
-  // Use the store method instead of the prop
-  const handleCreateProject = () => {
-    createAndLoadNewProject();
-  };
-
   const [projects, setProjects] = useState<Project[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -120,40 +110,17 @@ export const ProjectCarousel: React.FC<ProjectCarouselProps> = ({
   if (error) {
     return (
       <div className="p-4 text-center">
-        <div className="text-red-500 text-sm">{error}</div>
-        <button 
-          onClick={handleCreateProject}
-          className="mt-2 px-3 py-1.5 bg-blue-600 text-white text-sm rounded-md hover:bg-blue-700"
-        >
-          Create New Project
-        </button>
+        <div className="text-red-500 text-sm mb-2">{error}</div>
       </div>
     );
   }
 
   return (
-    <div className="p-4 border-b border-gray-200">
-      <div className="flex items-center justify-between mb-3">
-        <h3 className="text-sm font-semibold text-gray-700">Your Projects</h3>
-        <button
-          onClick={() => createAndLoadNewProject()}
-          className="p-1.5 bg-blue-600 text-white rounded-full hover:bg-blue-700"
-          title="Create New Project"
-        >
-          <Plus className="w-3.5 h-3.5" />
-        </button>
-      </div>
-
+    <div>
       {projects.length === 0 ? (
-        <div className="text-center py-6 bg-gray-50 rounded-lg">
+        <div className="text-center py-4 bg-gray-50 rounded-lg">
           <Folder className="w-10 h-10 text-gray-400 mx-auto mb-2" />
-          <p className="text-sm text-gray-500 mb-3">No projects yet</p>
-          <button
-            onClick={() => createAndLoadNewProject()}
-            className="px-3 py-1.5 bg-blue-600 text-white text-sm rounded-md hover:bg-blue-700"
-          >
-            Create Your First Project
-          </button>
+          <p className="text-sm text-gray-500">No projects yet</p>
         </div>
       ) : (
         <div className="relative">
@@ -197,8 +164,8 @@ export const ProjectCarousel: React.FC<ProjectCarouselProps> = ({
                   key={project.id}
                   className={`min-w-full p-3 rounded-lg border-2 transition-colors cursor-pointer ${
                     project.id === currentProjectId
-                      ? 'bg-blue-50 border-blue-300'
-                      : 'bg-white border-gray-200 hover:border-blue-200 hover:bg-blue-50'
+                      ? 'bg-blue-50 border-blue-300' 
+                      : 'bg-white border-gray-200 hover:border-blue-200 hover:bg-blue-50' 
                   }`}
                   onClick={() => handleProjectSelect(project.id)}
                   whileHover={{ scale: 1.02 }}
@@ -207,11 +174,11 @@ export const ProjectCarousel: React.FC<ProjectCarouselProps> = ({
                   <h4 className="font-medium text-gray-800 mb-1 truncate">{project.name}</h4>
                   <p className="text-xs text-gray-500 mb-2 truncate">{project.description || 'No description'}</p>
                   
-                  <div className="flex items-center justify-between text-xs">
+                  <div className="flex items-center justify-between text-xs text-gray-400">
                     <span className="text-blue-600 font-medium">
                       {getStageLabel(project.current_stage_id)}
                     </span>
-                    <span className="text-gray-400">
+                    <span>
                       {formatDate(project.updated_at)}
                     </span>
                   </div>
@@ -222,7 +189,7 @@ export const ProjectCarousel: React.FC<ProjectCarouselProps> = ({
 
           {/* Pagination Dots */}
           {projects.length > 1 && (
-            <div className="flex justify-center mt-3 gap-1.5">
+            <div className="flex justify-center mt-2 gap-1">
               {projects.map((_, index) => (
                 <button
                   key={index}

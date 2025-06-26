@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Plus, Edit, Check, X } from 'lucide-react';
+import { Plus, Edit2, Check, X } from 'lucide-react';
 import { useAppStore } from '../../store/useAppStore';
 import { ProjectCarousel } from './ProjectCarousel';
 
@@ -69,10 +69,33 @@ export const ProjectManager: React.FC<ProjectManagerProps> = ({ onClose }) => {
   return (
     <div className="bg-white rounded-lg shadow-lg border border-gray-200 overflow-hidden">
       {/* Project Carousel */}
-      <ProjectCarousel 
-        onSelectProject={handleSelectProject}
-        currentProjectId={currentProjectId}
-      />
+      <div className="p-3 border-b border-gray-200">
+        <div className="flex items-center justify-between mb-2">
+          <h3 className="text-sm font-semibold text-gray-700">Your Projects</h3>
+          <div className="flex items-center gap-2">
+            <button
+              onClick={handleEditProject}
+              className="p-1.5 bg-gray-100 text-gray-600 rounded-full hover:bg-gray-200 transition-colors"
+              title="Edit Project"
+              disabled={!currentProject}
+            >
+              <Edit2 className="w-3.5 h-3.5" />
+            </button>
+            <button
+              onClick={handleCreateProject}
+              className="p-1.5 bg-blue-600 text-white rounded-full hover:bg-blue-700 transition-colors"
+              title="Create New Project"
+            >
+              <Plus className="w-3.5 h-3.5" />
+            </button>
+          </div>
+        </div>
+        
+        <ProjectCarousel 
+          onSelectProject={handleSelectProject}
+          currentProjectId={currentProjectId}
+        />
+      </div>
       
       {/* Create/Edit Form */}
       <AnimatePresence>
@@ -140,28 +163,6 @@ export const ProjectManager: React.FC<ProjectManagerProps> = ({ onClose }) => {
           </motion.div>
         )}
       </AnimatePresence>
-      
-      {/* Current Project Actions */}
-      {currentProject && !isCreating && !isEditing && (
-        <div className="p-4 border-t border-gray-200">
-          <div className="flex justify-between">
-            <button
-              onClick={handleEditProject}
-              className="px-3 py-1.5 border border-gray-200 text-gray-600 text-sm rounded-md hover:bg-gray-50 flex items-center gap-1"
-            >
-              <Edit className="w-3.5 h-3.5" />
-              Edit Project
-            </button>
-            <button
-              onClick={handleCreateProject}
-              className="px-3 py-1.5 bg-blue-600 text-white text-sm rounded-md hover:bg-blue-700 flex items-center gap-1"
-            >
-              <Plus className="w-3.5 h-3.5" />
-              New Project
-            </button>
-          </div>
-        </div>
-      )}
     </div>
   );
 };
