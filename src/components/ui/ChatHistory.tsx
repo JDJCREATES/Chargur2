@@ -2,7 +2,7 @@ import React, { useEffect, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { ChatMessage } from '../../types';
 
-import { Bot, User, Sparkles, Clock, CheckCircle, AlertTriangle, MessageSquare } from 'lucide-react';
+import { Bot, User, Sparkles, Clock, CheckCircle, AlertTriangle } from 'lucide-react';
 import { ConversationStarters } from './ConversationStarters';
 
 // Ensure we have a proper type for ChatMessage

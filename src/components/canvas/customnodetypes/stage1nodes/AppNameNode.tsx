@@ -1,5 +1,6 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { Edit3, History, Sparkles } from 'lucide-react';
+import { motion } from 'framer-motion';
 
 interface AppNameNodeData {
   id: 'appName';

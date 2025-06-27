@@ -1,5 +1,6 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { ExternalLink, Edit3, FileText, Trash2 } from 'lucide-react';
+import { motion } from 'framer-motion';
 
 interface CompetitorNodeData {
   id: string;
