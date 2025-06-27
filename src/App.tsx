@@ -2,11 +2,12 @@ import React, { useState } from "react";
 import { motion } from "framer-motion";
 import { useEffect } from "react";
 import { useAuth } from "./hooks/useAuth";
-import { Sidebar } from "./components/layout/Sidebar";
 import { Canvas } from "./components/layout/Canvas";
+import { Sidebar } from "./components/layout/Sidebar";
 import { useAppStore } from "./store/useAppStore";
 import { useAgentChat } from "./hooks/useAgentChat";
 import { LoginModal } from './components/auth/LoginModal';
+import { StageProgressBubbles } from './components/ui/StageProgressBubbles';
 
 function App() {
   const [isSidebarOpen, setIsSidebarOpen] = useState(true);
@@ -141,10 +142,20 @@ function App() {
     <div className="min-h-screen bg-gray-50 flex">
       {/* Main Content */}
       <div
-        className={`flex-1 transition-all duration-300 ${
+        className={`flex-1 flex flex-col transition-all duration-300 ${
           isSidebarOpen ? "mr-80" : "mr-12"
         }`}
       >
+        {/* Progress Bubbles - Positioned below chat bar */}
+        <div className="fixed bottom-20 left-1/2 transform -translate-x-1/2 z-40 bg-white bg-opacity-90 backdrop-blur-sm rounded-lg shadow-md border border-gray-200 p-3">
+          <StageProgressBubbles 
+            stages={stages} 
+            onStageClick={goToStage}
+            orientation="horizontal"
+            size="md"
+          />
+        </div>
+
         <Canvas
           agentChat={{
             sendMessage,
