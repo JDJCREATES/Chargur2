@@ -426,7 +426,7 @@ export const SpatialCanvas: React.FC<SpatialCanvasProps> = ({
       <div className="absolute bottom-4 right-4 bg-white bg-opacity-90 backdrop-blur-sm rounded-lg shadow-sm border border-gray-200 p-3 text-xs text-gray-600">
         <div>Nodes: {nodes.length}</div>
         <div>Connections: {connections.length}</div>
-        <div>Zoom: {Math.round(state.scale * 100)}%</div>
+        <div>Zoom: {Math.round(state.scale / 0.55 * 100)}%</div>
       </div>
     </div>
   );
