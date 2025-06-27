@@ -355,6 +355,11 @@ async function processAgentRequest(controller: ReadableStreamDefaultController, 
     llmProvider = 'openai'
   } = request
 
+  // Track if competitor search was performed
+  let competitorSearchPerformed = false
+  let competitorSearchResults = null
+  let competitorSearchError = null
+
   // Initialize Supabase client for database operations
   const supabaseUrl = Deno.env.get('SUPABASE_URL')
   const supabaseServiceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')
@@ -487,7 +492,17 @@ async function processAgentRequest(controller: ReadableStreamDefaultController, 
 
     // Generate stage-specific prompt using modular system
     console.log('📋 Generating stage-specific prompt...')
-    const promptData = await EdgeStagePromptEngine.generatePrompt(request, llmClient)
+    
+    // Add competitor search context to the request
+    const requestWithCompetitorContext = {
+      ...request,
+      allStageData,
+      competitorSearchPerformed,
+      competitorSearchResults,
+      competitorSearchError
+    }
+    
+    const promptData = await EdgeStagePromptEngine.generatePrompt(requestWithCompetitorContext, llmClient)
     console.log('✅ Prompt generated successfully with temperature:', promptData.temperature)
     
     // Capture the suggestedPrimaryStage from the prompt generation

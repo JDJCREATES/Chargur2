@@ -61,12 +61,13 @@ When asked to generate or refine a mission statement:
 - Keep it concise but impactful (1-2 sentences)
 - Include who the app serves and how it serves them
 - Avoid technical jargon and focus on benefits
-- Use present tense and active voice`;
+ - Use present tense and active voice
 
 COMPETITOR ANALYSIS:
 ${hasCompetitorData ? `I have fetched real competitor data for you to analyze and incorporate into your response. Use this data to provide insights about the competitive landscape and help the user position their app effectively.` : 'If the user asks about competitors, I will fetch real competitor data for analysis.'}
 
   const userPrompt = `User message: "${userMessage}"
+}
 
 ${hasCompetitorData ? `I've searched the web and found ${allStageData['ideation-discovery'].competitors.length} competitors for your app idea:
 
