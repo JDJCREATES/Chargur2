@@ -36,6 +36,7 @@ import { useCanvasStateManager } from './core/CanvasStateManager';
 import { useCanvasScreenshot } from './core/CanvasScreenshot';
 import { useCanvasInteractionManager } from './core/CanvasInteractionManager';
 import { CanvasNodeData } from './CanvasNode'; 
+import { getSmartNodePosition } from '../../lib/canvas/nodePlacementUtils';
 import { STAGE1_NODE_TYPES, STAGE1_NODE_DEFAULTS } from './customnodetypes/stage1nodes';
 
 // Update the props interface to make callbacks optional
@@ -213,7 +214,7 @@ export const SpatialCanvas: React.FC<SpatialCanvasProps> = ({
       // For singleton nodes, check if they already exist
       if (type === 'appName' || type === 'tagline' || type === 'coreProblem' || 
           type === 'mission' || type === 'valueProp') {
-        // Check if this singleton node already exists
+        // Check if this singleton node already exists          
         const existingNode = nodes.find(n => n.id === type);
         if (existingNode) {
           // Select the existing node instead of creating a new one
@@ -224,6 +225,8 @@ export const SpatialCanvas: React.FC<SpatialCanvasProps> = ({
       
       // Create the appropriate custom node
       let newNode: CanvasNodeData;
+      const defaults = STAGE1_NODE_DEFAULTS[type as keyof typeof STAGE1_NODE_DEFAULTS] || 
+        { position: { x: 100, y: 100 }, size: { width: 200, height: 100 } };
       
       switch (type) {
         case 'appName':
@@ -232,10 +235,7 @@ export const SpatialCanvas: React.FC<SpatialCanvasProps> = ({
             type,
             title: 'App Name',
             content: '',
-            position: { 
-              x: defaults.position.x + Math.random() * 50 - 25, 
-              y: defaults.position.y + Math.random() * 50 - 25 
-            },
+            position: defaults.position,
             size: defaults.size,
             color: type,
             connections: [],
@@ -252,10 +252,7 @@ export const SpatialCanvas: React.FC<SpatialCanvasProps> = ({
             type,
             title: 'Tagline',
             content: '',
-            position: { 
-              x: defaults.position.x + Math.random() * 50 - 25, 
-              y: defaults.position.y + Math.random() * 50 - 25 
-            },
+            position: defaults.position,
             size: defaults.size,
             color: type,
             connections: [],
@@ -271,10 +268,7 @@ export const SpatialCanvas: React.FC<SpatialCanvasProps> = ({
             type,
             title: 'Core Problem',
             content: '',
-            position: { 
-              x: defaults.position.x + Math.random() * 50 - 25, 
-              y: defaults.position.y + Math.random() * 50 - 25 
-            },
+            position: defaults.position,
             size: defaults.size,
             color: type,
             connections: [],
@@ -291,10 +285,7 @@ export const SpatialCanvas: React.FC<SpatialCanvasProps> = ({
             type,
             title: 'Mission',
             content: '',
-            position: { 
-              x: defaults.position.x + Math.random() * 50 - 25, 
-              y: defaults.position.y + Math.random() * 50 - 25 
-            },
+            position: defaults.position,
             size: defaults.size,
             color: type,
             connections: [],
@@ -310,10 +301,7 @@ export const SpatialCanvas: React.FC<SpatialCanvasProps> = ({
             type,
             title: 'Value Proposition',
             content: '',
-            position: { 
-              x: defaults.position.x + Math.random() * 50 - 25, 
-              y: defaults.position.y + Math.random() * 50 - 25 
-            },
+            position: defaults.position,
             size: defaults.size,
             color: type,
             connections: [],
@@ -330,10 +318,7 @@ export const SpatialCanvas: React.FC<SpatialCanvasProps> = ({
             type,
             title: 'User Persona',
             content: '',
-            position: { 
-              x: defaults.position.x + Math.random() * 50 - 25, 
-              y: defaults.position.y + Math.random() * 50 - 25 
-            },
+            position: defaults.position,
             size: defaults.size,
             color: type,
             connections: [],
@@ -352,10 +337,7 @@ export const SpatialCanvas: React.FC<SpatialCanvasProps> = ({
             type,
             title: 'Competitor',
             content: '',
-            position: { 
-              x: defaults.position.x + Math.random() * 50 - 25, 
-              y: defaults.position.y + Math.random() * 50 - 25 
-            },
+            position: defaults.position,
             size: defaults.size,
             color: type,
             connections: [],
@@ -374,16 +356,23 @@ export const SpatialCanvas: React.FC<SpatialCanvasProps> = ({
             type,
             title: `New ${type.charAt(0).toUpperCase() + type.slice(1)}`,
             content: 'Click edit to add content...',
-            position: { 
-              x: Math.random() * 300 + 150, 
-              y: Math.random() * 200 + 150 
-            },
+            position: { x: 300, y: 300 },
             size: { width: 180, height: 100 },
             color: type,
             connections: [],
             resizable: true
           };
       }
+
+      // Use smart positioning for the new node
+      newNode.position = getSmartNodePosition(
+        nodes,
+        newNode.size,
+        newNode.type,
+        newNode.position,
+        newNode.metadata?.stage as string,
+        true // isUserCreated
+      );
       
       addNode(newNode);
       setSelectedNode(newNode.id);
@@ -394,15 +383,22 @@ export const SpatialCanvas: React.FC<SpatialCanvasProps> = ({
         type,
         title: `New ${type.charAt(0).toUpperCase() + type.slice(1)}`,
         content: 'Click edit to add content...',
-        position: { 
-          x: Math.random() * 300 + 150, 
-          y: Math.random() * 200 + 150 
-        },
+        position: { x: 300, y: 300 },
         size: { width: 180, height: 100 },
         color: type,
         connections: [],
         resizable: true
       };
+      
+      // Use smart positioning for the new node
+      newNode.position = getSmartNodePosition(
+        nodes,
+        newNode.size,
+        newNode.type,
+        newNode.position,
+        undefined,
+        true // isUserCreated
+      );
       
       addNode(newNode);
       setSelectedNode(newNode.id);
@@ -423,13 +419,13 @@ export const SpatialCanvas: React.FC<SpatialCanvasProps> = ({
   const handleAutoLayout = useCallback(() => {
     // Simple force-directed layout
     try {
-      const nodesByType = nodes.reduce((acc, node) => {
+      const nodesByType = nodes.reduce<Record<string, CanvasNodeData[]>>((acc, node) => {
         if (!node) return acc;
         const type = node.type || 'unknown'; 
         if (!acc[type]) acc[type] = [];
         acc[type].push(node);
         return acc;
-      }, {} as Record<string, CanvasNodeData[]>);
+      }, {});
   
       let x = 100;
       const typeSpacing = 300;

@@ -20,6 +20,7 @@
 
 import { CanvasNodeData } from '../CanvasNode';
 import { STAGE1_NODE_TYPES, STAGE1_NODE_DEFAULTS } from '../customnodetypes/stage1nodes';
+import { getSmartNodePosition } from '../../../lib/canvas/nodePlacementUtils';
 
 export interface ProcessorState {
   nodes: CanvasNodeData[];
@@ -410,7 +411,7 @@ export class CanvasDataProcessor {
     // Create or update singleton nodes (these should replace existing ones)
     if (ideationData.appName && (!existingAppNameNode || existingAppNameNode.value !== ideationData.appName)) {
       if (existingAppNameNode) {
-        // Update existing node
+        // Update existing node but keep its position
         const index = nodes.findIndex(node => node.id === STAGE1_NODE_TYPES.APP_NAME);
         if (index !== -1) {
           nodes[index] = {
@@ -422,13 +423,22 @@ export class CanvasDataProcessor {
         }
       } else {
         // Create new node
-        nodes.push(this.createAppNameNode(ideationData.appName, existingAppNameNode));
+        const newNode = this.createAppNameNode(ideationData.appName);
+        // Use smart positioning for new node
+        newNode.position = getSmartNodePosition(
+          nodes,
+          newNode.size,
+          newNode.type,
+          STAGE1_NODE_DEFAULTS.appName.position,
+          'ideation-discovery'
+        );
+        nodes.push(newNode);
       }
     }
 
     if (ideationData.tagline && (!existingTaglineNode || existingTaglineNode.value !== ideationData.tagline)) {
       if (existingTaglineNode) {
-        // Update existing node
+        // Update existing node but keep its position
         const index = nodes.findIndex(node => node.id === STAGE1_NODE_TYPES.TAGLINE);
         if (index !== -1) {
           nodes[index] = {
@@ -438,13 +448,22 @@ export class CanvasDataProcessor {
         }
       } else {
         // Create new node
-        nodes.push(this.createTaglineNode(ideationData.tagline, existingTaglineNode));
+        const newNode = this.createTaglineNode(ideationData.tagline);
+        // Use smart positioning for new node
+        newNode.position = getSmartNodePosition(
+          nodes,
+          newNode.size,
+          newNode.type,
+          STAGE1_NODE_DEFAULTS.tagline.position,
+          'ideation-discovery'
+        );
+        nodes.push(newNode);
       }
     }
 
     if (ideationData.problemStatement && (!existingCoreProblemNode || existingCoreProblemNode.value !== ideationData.problemStatement)) {
       if (existingCoreProblemNode) {
-        // Update existing node
+        // Update existing node but keep its position
         const index = nodes.findIndex(node => node.id === STAGE1_NODE_TYPES.CORE_PROBLEM);
         if (index !== -1) {
           nodes[index] = {
@@ -454,13 +473,22 @@ export class CanvasDataProcessor {
         }
       } else {
         // Create new node
-        nodes.push(this.createCoreProblemNode(ideationData.problemStatement, existingCoreProblemNode));
+        const newNode = this.createCoreProblemNode(ideationData.problemStatement);
+        // Use smart positioning for new node
+        newNode.position = getSmartNodePosition(
+          nodes,
+          newNode.size,
+          newNode.type,
+          STAGE1_NODE_DEFAULTS.coreProblem.position,
+          'ideation-discovery'
+        );
+        nodes.push(newNode);
       }
     }
 
     if (ideationData.appIdea && (!existingMissionNode || existingMissionNode.value !== ideationData.appIdea)) {
       if (existingMissionNode) {
-        // Update existing node
+        // Update existing node but keep its position
         const index = nodes.findIndex(node => node.id === STAGE1_NODE_TYPES.MISSION);
         if (index !== -1) {
           const updates: Partial<CanvasNodeData> = { 
@@ -479,13 +507,22 @@ export class CanvasDataProcessor {
         }
       } else {
         // Create new node
-        nodes.push(this.createMissionNode(ideationData.appIdea, ideationData.missionStatement, existingMissionNode));
+        const newNode = this.createMissionNode(ideationData.appIdea, ideationData.missionStatement);
+        // Use smart positioning for new node
+        newNode.position = getSmartNodePosition(
+          nodes,
+          newNode.size,
+          newNode.type,
+          STAGE1_NODE_DEFAULTS.mission.position,
+          'ideation-discovery'
+        );
+        nodes.push(newNode);
       }
     }
 
     if (ideationData.valueProposition && (!existingValuePropNode || existingValuePropNode.value !== ideationData.valueProposition)) {
       if (existingValuePropNode) {
-        // Update existing node
+        // Update existing node but keep its position
         const index = nodes.findIndex(node => node.id === STAGE1_NODE_TYPES.VALUE_PROPOSITION);
         if (index !== -1) {
           nodes[index] = {
@@ -495,7 +532,16 @@ export class CanvasDataProcessor {
         }
       } else {
         // Create new node
-        nodes.push(this.createValuePropNode(ideationData.valueProposition, existingValuePropNode));
+        const newNode = this.createValuePropNode(ideationData.valueProposition);
+        // Use smart positioning for new node
+        newNode.position = getSmartNodePosition(
+          nodes,
+          newNode.size,
+          newNode.type,
+          STAGE1_NODE_DEFAULTS.valueProp.position,
+          'ideation-discovery'
+        );
+        nodes.push(newNode);
       }
     }
 
@@ -532,7 +578,27 @@ export class CanvasDataProcessor {
           existingPersonasMap.delete(personaKey);
         } else {
           // Create new persona node
-          nodes.push(this.createUserPersonaNode(persona, index));
+          const existing = nodes.find(node => 
+            node.metadata?.stage === 'ideation-discovery' && 
+            node.metadata?.nodeType === 'userPersona' &&
+            existing.name === persona.name && existing.role === persona.role
+          );
+          
+          if (!existing) {        
+            const newNode = this.createUserPersonaNode(persona, index);
+            // Use smart positioning for new node
+            newNode.position = getSmartNodePosition(
+              nodes,
+              newNode.size,
+              newNode.type,
+              {
+                x: STAGE1_NODE_DEFAULTS.userPersona.position.x + (index * 30),
+                y: STAGE1_NODE_DEFAULTS.userPersona.position.y + (index * 20)
+              },
+              'ideation-discovery'
+            );
+            nodes.push(newNode);
+          }
         }
       });
       
@@ -560,7 +626,16 @@ export class CanvasDataProcessor {
       );
     
       if (!legacyPersonaExists) {
-        nodes.push(this.createLegacyUserPersonaNode(ideationData.targetUsers));
+        const newNode = this.createLegacyUserPersonaNode(ideationData.targetUsers);
+        // Use smart positioning for new node
+        newNode.position = getSmartNodePosition(
+          nodes,
+          newNode.size,
+          newNode.type,
+          STAGE1_NODE_DEFAULTS.userPersona.position,
+          'ideation-discovery'
+        );
+        nodes.push(newNode);
       }
     }
 
@@ -581,85 +656,79 @@ export class CanvasDataProcessor {
     let featureX = 100;
     let featureY = 350;
 
-    // Create a map of existing feature nodes
-    const existingFeatureNodes = new Map();
+    // Remove old feature nodes but keep track of their positions for reference
+    const oldFeaturePositions: Record<string, Position> = {};
     nodes.filter(node => 
-      node.metadata?.stage === 'feature-planning'
+      node?.metadata?.stage === 'feature-planning'
     ).forEach(node => {
-      existingFeatureNodes.set(node.id, node);
+      if (node && node.position) {
+        oldFeaturePositions[node.type] = { 
+          x: node.position.x, 
+          y: node.position.y 
+        };
+      }
     });
     
-    // Track nodes to keep
-    const nodesToKeep = nodes.filter(node => 
-      !node.metadata?.stage || node.metadata.stage !== 'feature-planning'
-    );
+    // Now remove the old nodes
+    nodes = nodes.filter(node => 
+      !node.metadata?.stage || node.metadata.stage !== 'feature-planning');
 
     // Process selected feature packs
     if (featureData.selectedFeaturePacks) {
-      featureData.selectedFeaturePacks.forEach((pack: string, index: number) => {
-        // Generate a stable ID for this feature pack
-        const stableId = `feature-pack-${pack}`;
-        const existingNode = nodes.find(node => 
-          node.id === stableId || 
-          (node.metadata?.stage === 'feature-planning' && 
-           node.metadata?.pack === pack && 
-           !node.metadata?.custom)
+      featureData.selectedFeaturePacks.forEach((pack: string, index: number) => {        
+        const newNode = this.createFeaturePackNode(pack, index, featureX, featureY);
+        // Use smart positioning for new node
+        newNode.position = getSmartNodePosition(
+          nodes,
+          newNode.size,
+          newNode.type,
+          { 
+            x: featureX + (index % 3) * 200, 
+            y: featureY + Math.floor(index / 3) * 120 
+          },
+          'feature-planning'
         );
-        
-        nodesToKeep.push(this.createFeaturePackNode(
-          pack, 
-          index, 
-          featureX, 
-          featureY, 
-          existingNode,
-          stableId
-        ));
+        nodes.push(newNode);
       });
     }
 
     // Process custom features
     if (featureData.customFeatures) {
       const startIndex = featureData.selectedFeaturePacks?.length || 0;
-      featureData.customFeatures.forEach((feature: any, index: number) => {
-        // Generate a stable ID for this custom feature
-        const stableId = feature.id ? `feature-custom-${feature.id}` : `feature-custom-${feature.name.replace(/\s+/g, '-').toLowerCase()}`;
-        const existingNode = nodes.find(node => 
-          node.id === stableId || 
-          (node.metadata?.stage === 'feature-planning' && 
-           node.metadata?.custom === true &&
-           node.title === feature.name)
+      featureData.customFeatures.forEach((feature: any, index: number) => {        
+        const newNode = this.createCustomFeatureNode(feature, startIndex + index, featureX, featureY);
+        // Use smart positioning for new node
+        newNode.position = getSmartNodePosition(
+          nodes,
+          newNode.size,
+          newNode.type,
+          { 
+            x: featureX + ((startIndex + index) % 3) * 200, 
+            y: featureY + Math.floor((startIndex + index) / 3) * 120 
+          },
+          'feature-planning'
         );
-        
-        nodesToKeep.push(this.createCustomFeatureNode(
-          feature, 
-          startIndex + index, 
-          featureX, 
-          featureY, 
-          existingNode,
-          stableId
-        ));
+        nodes.push(newNode);
       });
     }
 
     // Add natural language features if provided
     if (featureData.naturalLanguageFeatures) {
-      const stableId = 'feature-natural-language';
-      const existingNode = nodes.find(node => 
-        node.id === stableId || 
-        (node.metadata?.stage === 'feature-planning' && 
-         node.metadata?.type === 'description')
+      const newNode = this.createNaturalLanguageFeatureNode(featureData.naturalLanguageFeatures);
+      // Use smart positioning for new node
+      newNode.position = getSmartNodePosition(
+        nodes,
+        newNode.size,
+        newNode.type,
+        { x: 700, y: 350 },
+        'feature-planning'
       );
-      
-      nodesToKeep.push(this.createNaturalLanguageFeatureNode(
-        featureData.naturalLanguageFeatures,
-        existingNode,
-        stableId
-      ));
+      nodes.push(newNode);
     }
 
     console.log('Processed feature data:', nodes.length - originalNodeCount, 'nodes added/updated');
 
-    return nodesToKeep;
+    return nodes;
   }
 
   private static processStructureData(stageData: any, currentState: ProcessorState, nodes: CanvasNodeData[], preservePositions: boolean = false): CanvasNodeData[] {
@@ -674,68 +743,64 @@ export class CanvasDataProcessor {
     let flowX = 100;
     let flowY = 600;
 
-    // Create a map of existing structure nodes
-    const existingStructureNodes = new Map();
+    // Remove old structure nodes but keep track of their positions for reference
+    const oldStructurePositions: Record<string, Position> = {};
     nodes.filter(node => 
-      node.metadata?.stage === 'structure-flow'
+      node?.metadata?.stage === 'structure-flow'
     ).forEach(node => {
-      existingStructureNodes.set(node.id, node);
+      if (node && node.position) {
+        oldStructurePositions[node.type] = { 
+          x: node.position.x, 
+          y: node.position.y 
+        };
+      }
     });
     
-    // Track nodes to keep
-    const nodesToKeep = nodes.filter(node => 
-      !node.metadata?.stage || node.metadata.stage !== 'structure-flow'
-    );
+    // Now remove the old nodes
+    nodes = nodes.filter(node => 
+      !node.metadata?.stage || node.metadata.stage !== 'structure-flow');
 
     // Process screens
     if (structureData.screens) {
-      structureData.screens.forEach((screen: any, index: number) => {
-        // Generate a stable ID for this screen
-        const stableId = screen.id ? `screen-${screen.id}` : `screen-${screen.name.replace(/\s+/g, '-').toLowerCase()}`;
-        const existingNode = nodes.find(node => 
-          node.id === stableId || 
-          (node.metadata?.stage === 'structure-flow' && 
-           node.metadata?.screenType === screen.type &&
-           node.title === screen.name)
+      structureData.screens.forEach((screen: any, index: number) => {        
+        const newNode = this.createScreenNode(screen, index, flowX, flowY);
+        // Use smart positioning for new node
+        newNode.position = getSmartNodePosition(
+          nodes,
+          newNode.size,
+          newNode.type,
+          { 
+            x: flowX + (index % 4) * 160, 
+            y: flowY 
+          },
+          'structure-flow'
         );
-        
-        nodesToKeep.push(this.createScreenNode(
-          screen, 
-          index, 
-          flowX, 
-          flowY, 
-          existingNode,
-          stableId
-        ));
+        nodes.push(newNode);
       });
     }
 
     // Process user flows
     if (structureData.userFlows) {
-      structureData.userFlows.forEach((flow: any, index: number) => {
-        // Generate a stable ID for this flow
-        const stableId = flow.id ? `flow-${flow.id}` : `flow-${flow.name.replace(/\s+/g, '-').toLowerCase()}`;
-        const existingNode = nodes.find(node => 
-          node.id === stableId || 
-          (node.metadata?.stage === 'structure-flow' && 
-           node.metadata?.flowType === 'user-journey' &&
-           node.title === flow.name)
+      structureData.userFlows.forEach((flow: any, index: number) => {        
+        const newNode = this.createUserFlowNode(flow, index, flowX, flowY);
+        // Use smart positioning for new node
+        newNode.position = getSmartNodePosition(
+          nodes,
+          newNode.size,
+          newNode.type,
+          { 
+            x: flowX + (index % 3) * 220, 
+            y: flowY + 120 
+          },
+          'structure-flow'
         );
-        
-        nodesToKeep.push(this.createUserFlowNode(
-          flow, 
-          index, 
-          flowX, 
-          flowY, 
-          existingNode,
-          stableId
-        ));
+        nodes.push(newNode);
       });
     }
 
     console.log('Processed structure data:', nodes.length - originalNodeCount, 'nodes added/updated');
 
-    return nodesToKeep;
+    return nodes;
   }
 
   private static processArchitectureData(stageData: any, currentState: ProcessorState, nodes: CanvasNodeData[], preservePositions: boolean = false): CanvasNodeData[] {
@@ -750,86 +815,78 @@ export class CanvasDataProcessor {
     let systemX = 100;
     let systemY = 800;
 
-    // Create a map of existing architecture nodes
-    const existingArchitectureNodes = new Map();
+    // Remove old architecture nodes but keep track of their positions for reference
+    const oldArchitecturePositions: Record<string, Position> = {};
     nodes.filter(node => 
-      node.metadata?.stage === 'architecture-design'
+      node?.metadata?.stage === 'architecture-design'
     ).forEach(node => {
-      existingArchitectureNodes.set(node.id, node);
+      if (node && node.position) {
+        oldArchitecturePositions[node.type] = { 
+          x: node.position.x, 
+          y: node.position.y 
+        };
+      }
     });
     
-    // Track nodes to keep
-    const nodesToKeep = nodes.filter(node => 
-      !node.metadata?.stage || node.metadata.stage !== 'architecture-design'
-    );
+    // Now remove the old nodes
+    nodes = nodes.filter(node => 
+      !node.metadata?.stage || node.metadata.stage !== 'architecture-design');
 
     // Process database schema
     if (architectureData.databaseSchema) {
-      architectureData.databaseSchema.forEach((table: any, index: number) => {
-        // Generate a stable ID for this table
-        const stableId = table.id ? `db-table-${table.id}` : `db-table-${table.name.replace(/\s+/g, '-').toLowerCase()}`;
-        const existingNode = nodes.find(node => 
-          node.id === stableId || 
-          (node.metadata?.stage === 'architecture-design' && 
-           node.metadata?.tableType === 'database' &&
-           node.title === `${table.name} Table`)
+      architectureData.databaseSchema.forEach((table: any, index: number) => {        
+        const newNode = this.createDatabaseTableNode(table, index, systemX, systemY);
+        // Use smart positioning for new node
+        newNode.position = getSmartNodePosition(
+          nodes,
+          newNode.size,
+          newNode.type,
+          { 
+            x: systemX + (index % 3) * 200, 
+            y: systemY 
+          },
+          'architecture-design'
         );
-        
-        nodesToKeep.push(this.createDatabaseTableNode(
-          table, 
-          index, 
-          systemX, 
-          systemY, 
-          existingNode,
-          stableId
-        ));
+        nodes.push(newNode);
       });
     }
 
     // Process API endpoints
     if (architectureData.apiEndpoints) {
-      const stableId = 'api-endpoints';
-      const existingNode = nodes.find(node => 
-        node.id === stableId || 
-        (node.metadata?.stage === 'architecture-design' && 
-         node.metadata?.systemType === 'api')
+      const newNode = this.createAPIEndpointsNode(architectureData.apiEndpoints, systemX, systemY);
+      // Use smart positioning for new node
+      newNode.position = getSmartNodePosition(
+        nodes,
+        newNode.size,
+        newNode.type,
+        { x: systemX + 400, y: systemY },
+        'architecture-design'
       );
-      
-      nodesToKeep.push(this.createAPIEndpointsNode(
-        architectureData.apiEndpoints, 
-        systemX, 
-        systemY, 
-        existingNode,
-        stableId
-      ));
+      nodes.push(newNode);
     }
 
     // Process other architecture components
     if (architectureData.sitemap) {
-      architectureData.sitemap.forEach((route: any, index: number) => {
-        // Generate a stable ID for this route
-        const stableId = route.id ? `route-${route.id}` : `route-${route.path.replace(/\//g, '-').replace(/:/g, '')}`;
-        const existingNode = nodes.find(node => 
-          node.id === stableId || 
-          (node.metadata?.stage === 'architecture-design' && 
-           node.metadata?.routeType === 'page' &&
-           node.title === `${route.path} Route`)
+      architectureData.sitemap.forEach((route: any, index: number) => {        
+        const newNode = this.createRouteNode(route, index, systemX, systemY);
+        // Use smart positioning for new node
+        newNode.position = getSmartNodePosition(
+          nodes,
+          newNode.size,
+          newNode.type,
+          { 
+            x: systemX + (index % 4) * 150, 
+            y: systemY + 120 
+          },
+          'architecture-design'
         );
-        
-        nodesToKeep.push(this.createRouteNode(
-          route, 
-          index, 
-          systemX, 
-          systemY, 
-          existingNode,
-          stableId
-        ));
+        nodes.push(newNode);
       });
     }
 
     console.log('Processed architecture data:', nodes.length - originalNodeCount, 'nodes added/updated');
 
-    return nodesToKeep;
+    return nodes;
   }
 
   private static processInterfaceData(stageData: any, currentState: ProcessorState, nodes: CanvasNodeData[], preservePositions: boolean = false): CanvasNodeData[] {
@@ -844,76 +901,68 @@ export class CanvasDataProcessor {
     let uiX = 100;
     let uiY = 1000;
 
-    // Create a map of existing interface nodes
-    const existingInterfaceNodes = new Map();
+    // Remove old interface nodes but keep track of their positions for reference
+    const oldInterfacePositions: Record<string, Position> = {};
     nodes.filter(node => 
-      node.metadata?.stage === 'interface-interaction'
+      node?.metadata?.stage === 'interface-interaction'
     ).forEach(node => {
-      existingInterfaceNodes.set(node.id, node);
+      if (node && node.position) {
+        oldInterfacePositions[node.type] = { 
+          x: node.position.x, 
+          y: node.position.y 
+        };
+      }
     });
     
-    // Track nodes to keep
-    const nodesToKeep = nodes.filter(node => 
-      !node.metadata?.stage || node.metadata.stage !== 'interface-interaction'
-    );
+    // Now remove the old nodes
+    nodes = nodes.filter(node => 
+      !node.metadata?.stage || node.metadata.stage !== 'interface-interaction');
 
     // Process design system
     if (interfaceData.selectedDesignSystem) {
-      const stableId = 'design-system';
-      const existingNode = nodes.find(node => 
-        node.id === stableId || 
-        (node.metadata?.stage === 'interface-interaction' && 
-         node.metadata?.uiType === 'design-system')
+      const newNode = this.createDesignSystemNode(interfaceData.selectedDesignSystem, uiX, uiY);
+      // Use smart positioning for new node
+      newNode.position = getSmartNodePosition(
+        nodes,
+        newNode.size,
+        newNode.type,
+        { x: uiX, y: uiY },
+        'interface-interaction'
       );
-      
-      nodesToKeep.push(this.createDesignSystemNode(
-        interfaceData.selectedDesignSystem, 
-        uiX, 
-        uiY, 
-        existingNode,
-        stableId
-      ));
+      nodes.push(newNode);
     }
 
     // Process custom branding
     if (interfaceData.customBranding) {
-      const stableId = 'brand-colors';
-      const existingNode = nodes.find(node => 
-        node.id === stableId || 
-        (node.metadata?.stage === 'interface-interaction' && 
-         node.metadata?.uiType === 'branding')
+      const newNode = this.createBrandingNode(interfaceData.customBranding, uiX, uiY);
+      // Use smart positioning for new node
+      newNode.position = getSmartNodePosition(
+        nodes,
+        newNode.size,
+        newNode.type,
+        { x: uiX + 180, y: uiY },
+        'interface-interaction'
       );
-      
-      nodesToKeep.push(this.createBrandingNode(
-        interfaceData.customBranding, 
-        uiX, 
-        uiY, 
-        existingNode,
-        stableId
-      ));
+      nodes.push(newNode);
     }
 
     // Process layout blocks
     if (interfaceData.layoutBlocks && interfaceData.layoutBlocks.length > 0) {
-      const stableId = 'layout-structure';
-      const existingNode = nodes.find(node => 
-        node.id === stableId || 
-        (node.metadata?.stage === 'interface-interaction' && 
-         node.metadata?.uiType === 'layout')
+      const newNode = this.createLayoutNode(interfaceData.layoutBlocks, uiX, uiY);
+      // Use smart positioning for new node
+      newNode.position = getSmartNodePosition(
+        nodes,
+        newNode.size,
+        newNode.type,
+        { x: uiX + 340, y: uiY },
+        'interface-interaction'
       );
-      
-      nodesToKeep.push(this.createLayoutNode(
-        interfaceData.layoutBlocks, 
-        uiX, 
-        uiY, 
-        existingNode,
-        stableId
-      ));
+      nodes.push(newNode);
     }
 
     console.log('Processed interface data:', nodes.length - originalNodeCount, 'nodes added/updated');
 
-    return nodesToKeep;
+    return nodes;
   }
 
   private static processAuthData(stageData: any, currentState: ProcessorState, nodes: CanvasNodeData[], preservePositions: boolean = false): CanvasNodeData[] {
@@ -928,82 +977,74 @@ export class CanvasDataProcessor {
     let authX = 100;
     let authY = 1200;
 
-    // Create a map of existing auth nodes
-    const existingAuthNodes = new Map();
+    // Remove old auth nodes but keep track of their positions for reference
+    const oldAuthPositions: Record<string, Position> = {};
     nodes.filter(node => 
-      node.metadata?.stage === 'user-auth-flow'
+      node?.metadata?.stage === 'user-auth-flow'
     ).forEach(node => {
-      existingAuthNodes.set(node.id, node);
+      if (node && node.position) {
+        oldAuthPositions[node.type] = { 
+          x: node.position.x, 
+          y: node.position.y 
+        };
+      }
     });
     
-    // Track nodes to keep
-    const nodesToKeep = nodes.filter(node => 
-      !node.metadata?.stage || node.metadata.stage !== 'user-auth-flow'
-    );
+    // Now remove the old nodes
+    nodes = nodes.filter(node => 
+      !node.metadata?.stage || node.metadata.stage !== 'user-auth-flow');
 
     // Process authentication methods
     if (authData.authMethods) {
       const enabledMethods = authData.authMethods.filter((m: any) => m.enabled);
       if (enabledMethods.length > 0) {
-        const stableId = 'auth-methods';
-        const existingNode = nodes.find(node => 
-          node.id === stableId || 
-          (node.metadata?.stage === 'user-auth-flow' && 
-           node.metadata?.authType === 'methods')
+        const newNode = this.createAuthMethodsNode(enabledMethods, authX, authY);
+        // Use smart positioning for new node
+        newNode.position = getSmartNodePosition(
+          nodes,
+          newNode.size,
+          newNode.type,
+          { x: authX, y: authY },
+          'user-auth-flow'
         );
-        
-        nodesToKeep.push(this.createAuthMethodsNode(
-          enabledMethods, 
-          authX, 
-          authY, 
-          existingNode,
-          stableId
-        ));
+        nodes.push(newNode);
       }
     }
 
     // Process user roles
     if (authData.userRoles && authData.userRoles.length > 0) {
-      const stableId = 'user-roles';
-      const existingNode = nodes.find(node => 
-        node.id === stableId || 
-        (node.metadata?.stage === 'user-auth-flow' && 
-         node.metadata?.authType === 'roles')
+      const newNode = this.createUserRolesNode(authData.userRoles, authX, authY);
+      // Use smart positioning for new node
+      newNode.position = getSmartNodePosition(
+        nodes,
+        newNode.size,
+        newNode.type,
+        { x: authX + 200, y: authY },
+        'user-auth-flow'
       );
-      
-      nodesToKeep.push(this.createUserRolesNode(
-        authData.userRoles, 
-        authX, 
-        authY, 
-        existingNode,
-        stableId
-      ));
+      nodes.push(newNode);
     }
 
     // Process security features
     if (authData.securityFeatures) {
       const enabledSecurity = authData.securityFeatures.filter((f: any) => f.enabled);
       if (enabledSecurity.length > 0) {
-        const stableId = 'security-features';
-        const existingNode = nodes.find(node => 
-          node.id === stableId || 
-          (node.metadata?.stage === 'user-auth-flow' && 
-           node.metadata?.authType === 'security')
+        const newNode = this.createSecurityFeaturesNode(enabledSecurity, authX, authY);
+        // Use smart positioning for new node
+        newNode.position = getSmartNodePosition(
+          nodes,
+          newNode.size,
+          newNode.type,
+          { x: authX, y: authY + 120 },
+          'user-auth-flow'
         );
-        
-        nodesToKeep.push(this.createSecurityFeaturesNode(
-          enabledSecurity, 
-          authX, 
-          authY, 
-          existingNode,
-          stableId
-        ));
+        nodes.push(newNode);
       }
     }
 
     console.log('Processed auth data:', nodes.length - originalNodeCount, 'nodes added/updated');
 
-    return nodesToKeep;
+    return nodes;
   }
 
   private static generateAIAnalysisNode(stageData: any, nodeCount: number): CanvasNodeData | null {
@@ -1014,14 +1055,14 @@ export class CanvasDataProcessor {
     // Generate AI analysis based on project completeness
     const completedStages = Object.keys(stageData).length;
     if (completedStages === 0) return null;
-
-    return {
+    
+    // Create the AI analysis node
+    const aiNode = {
       id: `ai-analysis-${this.nodeIdCounter++}`,
       type: 'agent-output',
       title: 'AI Analysis',
       content: `Project has ${completedStages} completed stages`,
-      position: { x: 100 + (nodeCount * 50), y: 100 + (nodeCount * 50) },
-      size: { width: 200, height: 120 }, // Add proper size
+      size: { width: 200, height: 120 },
       color: 'gray',
       connections: [],
       metadata: {
@@ -1030,6 +1071,19 @@ export class CanvasDataProcessor {
         totalNodes: nodeCount
       },
       resizable: true
+    } as CanvasNodeData;
+    
+    // Use smart positioning for the AI analysis node
+    aiNode.position = getSmartNodePosition(
+      nodes,
+      aiNode.size,
+      aiNode.type,
+      { x: 100 + (nodeCount * 10), y: 100 + (nodeCount * 10) },
+      'ai-analysis'
+    );
+    
+    return {
+      ...aiNode
     };
   }
 
@@ -1156,10 +1210,7 @@ export class CanvasDataProcessor {
       type: 'userPersona',
       title: 'User Persona',
       content: '',
-      position: { 
-        x: STAGE1_NODE_DEFAULTS.userPersona.position.x + (index * 180), 
-        y: STAGE1_NODE_DEFAULTS.userPersona.position.y 
-      },
+      position: STAGE1_NODE_DEFAULTS.userPersona.position,
       size: STAGE1_NODE_DEFAULTS.userPersona.size,
       color: 'userPersona',
       connections: [],
@@ -1213,10 +1264,7 @@ export class CanvasDataProcessor {
     };
     
     // Use existing position and size if available
-    const position = existingNode?.position || { 
-      x: baseX + (index % 3) * 200, 
-      y: baseY + Math.floor(index / 3) * 120 
-    };
+    const position = existingNode?.position || { x: baseX, y: baseY };
     const size = existingNode?.size || { width: 180, height: 100 };
     const connections = existingNode?.connections || [];
     
@@ -1243,10 +1291,7 @@ export class CanvasDataProcessor {
     stableId?: string
   ): CanvasNodeData {
     // Use existing position and size if available
-    const position = existingNode?.position || { 
-      x: baseX + (index % 3) * 200, 
-      y: baseY + Math.floor(index / 3) * 120 
-    };
+    const position = existingNode?.position || { x: baseX, y: baseY };
     const size = existingNode?.size || { width: 180, height: 120 };
     const connections = existingNode?.connections || [];
     
@@ -1270,7 +1315,7 @@ export class CanvasDataProcessor {
     stableId?: string
   ): CanvasNodeData {
     // Use existing position and size if available
-    const position = existingNode?.position || { x: 700, y: 350 };
+    const position = existingNode?.position || { x: baseX, y: baseY };
     const size = existingNode?.size || { width: 220, height: 140 };
     const connections = existingNode?.connections || [];
     
@@ -1297,10 +1342,7 @@ export class CanvasDataProcessor {
     stableId?: string
   ): CanvasNodeData {
     // Use existing position and size if available
-    const position = existingNode?.position || { 
-      x: baseX + (index % 4) * 160, 
-      y: baseY 
-    };
+    const position = existingNode?.position || { x: baseX, y: baseY };
     const size = existingNode?.size || { width: 150, height: 100 };
     const connections = existingNode?.connections || [];
     
@@ -1327,10 +1369,7 @@ export class CanvasDataProcessor {
     stableId?: string
   ): CanvasNodeData {
     // Use existing position and size if available
-    const position = existingNode?.position || { 
-      x: baseX + (index % 3) * 220, 
-      y: baseY + 120 
-    };
+    const position = existingNode?.position || { x: baseX, y: baseY };
     const size = existingNode?.size || { width: 200, height: 120 };
     const connections = existingNode?.connections || [];
     
@@ -1357,10 +1396,7 @@ export class CanvasDataProcessor {
     stableId?: string
   ): CanvasNodeData {
     // Use existing position and size if available
-    const position = existingNode?.position || { 
-      x: baseX + (index % 3) * 200, 
-      y: baseY 
-    };
+    const position = existingNode?.position || { x: baseX, y: baseY };
     const size = existingNode?.size || { width: 180, height: 100 };
     const connections = existingNode?.connections || [];
     
@@ -1386,7 +1422,7 @@ export class CanvasDataProcessor {
     stableId?: string
   ): CanvasNodeData {
     // Use existing position and size if available
-    const position = existingNode?.position || { x: baseX + 400, y: baseY };
+    const position = existingNode?.position || { x: baseX, y: baseY };
     const size = existingNode?.size || { width: 160, height: 80 };
     const connections = existingNode?.connections || [];
     
@@ -1413,10 +1449,7 @@ export class CanvasDataProcessor {
     stableId?: string
   ): CanvasNodeData {
     // Use existing position and size if available
-    const position = existingNode?.position || { 
-      x: baseX + (index % 4) * 150, 
-      y: baseY + 120 
-    };
+    const position = existingNode?.position || { x: baseX, y: baseY };
     const size = existingNode?.size || { width: 140, height: 90 };
     const connections = existingNode?.connections || [];
     
@@ -1468,7 +1501,7 @@ export class CanvasDataProcessor {
     stableId?: string
   ): CanvasNodeData {
     // Use existing position and size if available
-    const position = existingNode?.position || { x: baseX + 180, y: baseY };
+    const position = existingNode?.position || { x: baseX, y: baseY };
     const size = existingNode?.size || { width: 140, height: 80 };
     const connections = existingNode?.connections || [];
     
@@ -1494,7 +1527,7 @@ export class CanvasDataProcessor {
     stableId?: string
   ): CanvasNodeData {
     // Use existing position and size if available
-    const position = existingNode?.position || { x: baseX + 340, y: baseY };
+    const position = existingNode?.position || { x: baseX, y: baseY };
     const size = existingNode?.size || { width: 160, height: 80 };
     const connections = existingNode?.connections || [];
     
@@ -1546,7 +1579,7 @@ export class CanvasDataProcessor {
     stableId?: string
   ): CanvasNodeData {
     // Use existing position and size if available
-    const position = existingNode?.position || { x: baseX + 200, y: baseY };
+    const position = existingNode?.position || { x: baseX, y: baseY };
     const size = existingNode?.size || { width: 180, height: 120 };
     const connections = existingNode?.connections || [];
     
@@ -1562,7 +1595,7 @@ export class CanvasDataProcessor {
           ? description.slice(0, 20) + '...' 
           : 'No description';
         return `• ${name}: ${truncatedDesc}`;
-      }).join('\n')}`,
+      }).join('\n')}`,      
       position: position,
       size: size,
       color: 'red',
@@ -1580,7 +1613,7 @@ export class CanvasDataProcessor {
     stableId?: string
   ): CanvasNodeData {
     // Use existing position and size if available
-    const position = existingNode?.position || { x: baseX, y: baseY + 120 };
+    const position = existingNode?.position || { x: baseX, y: baseY };
     const size = existingNode?.size || { width: 200, height: 100 };
     const connections = existingNode?.connections || [];
     
