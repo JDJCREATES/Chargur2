@@ -166,14 +166,6 @@ export function processIdeationData(
       ? ideationData.competitorData 
       : ideationData.competitors;
     
-  if ((ideationData.competitors && Array.isArray(ideationData.competitors)) || 
-      (ideationData.competitorData && Array.isArray(ideationData.competitorData))) {
-    
-    // Determine which data source to use
-    const competitorArray = Array.isArray(ideationData.competitorData) 
-      ? ideationData.competitorData 
-      : ideationData.competitors;
-    
     // Get existing competitor nodes
     const existingCompetitors = nodes.filter(node => 
       node.metadata?.stage === 'ideation-discovery' && node.type === 'competitor'
@@ -191,73 +183,6 @@ export function processIdeationData(
       }
     });
   }
-  
-  // Process platform if available
-  if (ideationData.platform) {
-    // Check if platform node already exists
-    const existingPlatformNode = nodes.find(node => 
-      node.type === 'platform' && node.metadata?.stage === 'ideation-discovery');
-    
-    if (existingPlatformNode) {
-      // Update existing node
-      const index = nodes.findIndex(node => 
-        node.type === 'platform' && node.metadata?.stage === 'ideation-discovery');
-      if (index !== -1) {
-        nodes[index] = {
-          ...nodes[index],
-          platform: ideationData.platform
-        };
-      }
-    } else {
-      // Create new node
-      nodes.push(nodeFactory.createPlatformNode(ideationData.platform, nodes));
-    }
-  }
-  
-  // Process tech stack if available
-  if (ideationData.techStack && Array.isArray(ideationData.techStack) && ideationData.techStack.length > 0) {
-    // Check if tech stack node already exists
-    const existingTechStackNode = nodes.find(node => 
-      node.type === 'techStack' && node.metadata?.stage === 'ideation-discovery');
-    
-    if (existingTechStackNode) {
-      // Update existing node
-      const index = nodes.findIndex(node => 
-        node.type === 'techStack' && node.metadata?.stage === 'ideation-discovery');
-      if (index !== -1) {
-        nodes[index] = {
-          ...nodes[index],
-          techStack: ideationData.techStack
-        };
-      }
-    } else {
-      // Create new node
-      nodes.push(nodeFactory.createTechStackNode(ideationData.techStack, nodes));
-    }
-  }
-  
-  // Process UI style if available
-  if (ideationData.uiStyle) {
-    // Check if UI style node already exists
-    const existingUIStyleNode = nodes.find(node => 
-      node.type === 'uiStyle' && node.metadata?.stage === 'ideation-discovery');
-    
-    if (existingUIStyleNode) {
-      // Update existing node
-      const index = nodes.findIndex(node => 
-        node.type === 'uiStyle' && node.metadata?.stage === 'ideation-discovery');
-      if (index !== -1) {
-        nodes[index] = {
-          ...nodes[index],
-          uiStyle: ideationData.uiStyle
-        };
-      }
-    } else {
-      // Create new node
-      nodes.push(nodeFactory.createUIStyleNode(ideationData.uiStyle, nodes));
-    }
-  }
-  
   
   // Process platform if available
   if (ideationData.platform) {
