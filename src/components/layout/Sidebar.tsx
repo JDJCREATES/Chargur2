@@ -20,7 +20,6 @@ import { ExportPanel } from '../export/ExportPanel';
 import { Stage, ChatMessage } from '../../types';
 
 import { StageProgressBubbles } from '../ui/StageProgressBubbles';
-import { useEffect, useState } from 'react';
 
 interface AgentChatProps {
   sendMessage: (message: string) => void;
