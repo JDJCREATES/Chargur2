@@ -101,7 +101,7 @@ Respond in this exact JSON format:
   "autoFillData": {
     "fieldName": "suggested value if applicable"
   },
-  "stageComplete": false,
+  "stageComplete": boolean,
   "context": {
     "keyInsights": ["insight1", "insight2"],
     "nextSteps": ["step1", "step2"],
