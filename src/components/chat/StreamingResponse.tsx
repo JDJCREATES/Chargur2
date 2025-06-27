@@ -8,6 +8,7 @@ interface StreamingResponseProps {
   suggestions: string[];
   onSuggestionClick: (suggestion: string) => void;
   isStreaming: boolean;
+  debug?: any;
 }
 
 export const StreamingResponse: React.FC<StreamingResponseProps> = ({
@@ -15,7 +16,8 @@ export const StreamingResponse: React.FC<StreamingResponseProps> = ({
   isComplete,
   suggestions,
   onSuggestionClick,
-  isStreaming
+  isStreaming,
+  debug
 }) => {
   const [displayedContent, setDisplayedContent] = useState('');
   const [showCursor, setShowCursor] = useState(true);
@@ -64,6 +66,20 @@ export const StreamingResponse: React.FC<StreamingResponseProps> = ({
             </div>
           )}
         </div>
+
+        {/* Debug info - only in development */}
+        {import.meta.env.DEV && debug && (
+          <div className="mt-2 p-2 bg-gray-100 rounded-lg text-xs text-gray-500 border border-gray-200">
+            <div className="flex items-center gap-1 mb-1">
+              <span className="font-medium">Debug Info</span>
+            </div>
+            <div>ConversationId: {debug.hasConversationId ? '✅' : '❌'}</div>
+            <div>History: {debug.historyMessageCount} messages</div>
+            <div>Auth: {debug.isAuthenticated ? '✅' : '❌'}</div>
+            <div>Project: {debug.projectId?.substring(0, 8) || 'none'}</div>
+            <div>Stage: {debug.stageId || 'none'}</div>
+          </div>
+        )}
 
         <div className="prose prose-sm max-w-none">
           <div className="whitespace-pre-wrap text-gray-700">

@@ -237,6 +237,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
                           suggestions: agentChat.suggestions,
                           isStreaming: agentChat.isStreaming,
                           error: agentChat.error,
+                          debug: agentChat.debug
                         }
                       : undefined
                   }

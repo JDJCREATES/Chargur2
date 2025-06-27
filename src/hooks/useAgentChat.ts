@@ -108,27 +108,112 @@ export const useAgentChat = ({
 
   // Reset chat state when projectId or stageId changes
   React.useEffect(() => {
-    // Reset state
-    setState({
-      isLoading: false,
-      error: null,
-      content: '',
-      suggestions: [],
-      autoFillData: {},
-      isComplete: false,
-      conversationId: null,
-      historyMessages: [],
-      goToStageId: null
-    });
-    
-    // If we have both a projectId and stageId, try to find an existing conversation
-    if (projectId && stageId && user) {
-      console.log('🔍 Looking for existing conversation for project:', projectId, 'and stage:', stageId);
-      
-      // This would be a good place to fetch existing conversations for this project and stage
-      // For now, we'll just reset the state and let a new conversation be created on the next message
+    const loadExistingConversation = async () => {
+      try {
+        // Only proceed if we have all required data
+        if (!projectId || !stageId || !user || !session?.access_token) {
+          console.log('⚠️ Missing required data to load conversation:', { 
+            hasProjectId: !!projectId, 
+            hasStageId: !!stageId, 
+            hasUser: !!user 
+          });
+          
+          // Reset only conversation-specific state, not the entire state
+          setState(prev => ({
+            ...prev,
+            conversationId: null,
+            historyMessages: [],
+            content: '',
+            suggestions: [],
+            autoFillData: {},
+            isComplete: false,
+            goToStageId: null
+          }));
+          return;
+        }
+        
+        console.log('🔍 Looking for existing conversation for project:', projectId, 'and stage:', stageId);
+        
+        // Set loading state while we check for existing conversations
+        setState(prev => ({ ...prev, isLoading: true, error: null }));
+        
+        const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
+        const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY;
+
+        if (!supabaseUrl || !supabaseAnonKey) {
+          throw new Error('Missing Supabase configuration');
+        }
+
+        // Query for existing conversation for this project and stage
+        const response = await fetch(
+          `${supabaseUrl}/rest/v1/chat_conversations?project_id=eq.${projectId}&stage_id=eq.${stageId}&user_id=eq.${user.id}&order=created_at.desc&limit=1`,
+          {
+            headers: {
+              'Authorization': `Bearer ${session.access_token}`,
+              'apikey': supabaseAnonKey,
+            }
+          }
+        );
+
+        if (!response.ok) {
+          throw new Error(`Failed to query conversations: ${response.status}`);
+        }
+
+        const conversations = await response.json();
+        console.log(`🔍 Found ${conversations.length} existing conversations`);
+        
+        if (conversations.length > 0) {
+          const existingConversation = conversations[0];
+          console.log('✅ Found existing conversation:', existingConversation.id);
+          
+          // Set the conversation ID in state
+          setState(prev => ({ 
+            ...prev, 
+            conversationId: existingConversation.id,
+            isLoading: false
+          }));
+          
+          // Load chat history for this conversation
+          await loadChatHistory(existingConversation.id);
+          
+          console.log('✅ Chat history loaded successfully');
+        } else {
+          console.log('ℹ️ No existing conversation found, will create new one on first message');
+          setState(prev => ({ 
+            ...prev, 
+            conversationId: null,
+            historyMessages: [],
+            isLoading: false 
+          }));
+        }
+      } catch (error) {
+        console.error('❌ Error loading existing conversation:', error);
+        setState(prev => ({ 
+          ...prev, 
+          error: error instanceof Error ? error.message : 'Failed to load conversation',
+          isLoading: false 
+        }));
+      }
+    };
+
+    // Execute the async function
+    if (user) {
+      loadExistingConversation();
+    } else {
+      // Reset state if no user is logged in
+      setState({
+        isLoading: false,
+        error: null,
+        content: '',
+        suggestions: [],
+        autoFillData: {},
+        isComplete: false,
+        conversationId: null,
+        historyMessages: [],
+        goToStageId: null
+      });
     }
-  }, [projectId, stageId, user]);
+  }, [projectId, stageId, user, session?.access_token]);
 
   const createConversation = useCallback(async () => {
     try {
@@ -210,6 +295,7 @@ export const useAgentChat = ({
   // Load chat history from database
   const loadChatHistory = useCallback(async (conversationId: string) => {
     try {
+      console.log('📚 Loading chat history for conversation:', conversationId);
       if (!session?.access_token) return;
 
       const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
@@ -226,6 +312,7 @@ export const useAgentChat = ({
       );
 
       if (response.ok) {
+        console.log(`📚 Found ${responses.length} messages in history`);
         const responses = await response.json();
         const historyMessages: ChatMessage[] = [];
         
@@ -254,7 +341,10 @@ export const useAgentChat = ({
           }
         });
         
+        console.log(`📚 Processed ${historyMessages.length} messages for history`);
         setState(prev => ({ ...prev, historyMessages }));
+      } else {
+        console.error('❌ Failed to load chat history:', response.status, response.statusText);
       }
     } catch (error) {
       console.error('❌ Failed to load chat history:', error);
@@ -513,7 +603,7 @@ const processWithEdgeFunction = useCallback(async (
     // Add user message to history immediately
     const userMsg: ChatMessage = {
       id: `user-${Date.now()}`,
-      content: userMessage,
+      content: userMessage.trim(),
       timestamp: new Date(),
       type: 'user',
     };
@@ -521,10 +611,10 @@ const processWithEdgeFunction = useCallback(async (
     setState(prev => ({
       ...prev,
       historyMessages: [...prev.historyMessages, userMsg]
-    }));
-    // Reset state
-    setState(prev => ({
-      ...prev,
+    }), () => {
+      // Reset response state after adding user message
+      setState(prev => ({
+        ...prev,
       isLoading: true,
       error: null,
       content: '',
@@ -532,7 +622,8 @@ const processWithEdgeFunction = useCallback(async (
       autoFillData: {},
       isComplete: false,
       goToStageId: null
-    }));
+      }));
+    });
 
     retryCountRef.current = 0;
 
@@ -559,7 +650,13 @@ const processWithEdgeFunction = useCallback(async (
         // Success - just mark as not loading
         setState(prev => ({
           ...prev,
-          isLoading: false
+          isLoading: false,
+          // Add debug info
+          context: {
+            ...prev.context,
+            conversationId,
+            timestamp: new Date().toISOString()
+          }
         }));
         
         retryCountRef.current = 0;
@@ -606,6 +703,14 @@ const processWithEdgeFunction = useCallback(async (
 
   return {
     ...state,
+    // Add debug info
+    debug: {
+      hasConversationId: !!state.conversationId,
+      historyMessageCount: state.historyMessages.length,
+      isAuthenticated: !!user,
+      projectId,
+      stageId
+    },
     sendMessage,
     retry,
     clearError,
