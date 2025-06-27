@@ -27,9 +27,9 @@ export const StageProgressBubbles: React.FC<StageProgressBubblesProps> = ({
   const completionPercentage = Math.round((completedStages / batteryStages.length) * 100);
 
   return (
-    <div className={`flex ${orientation === 'vertical' ? 'flex-col' : 'flex-row'} items-center gap-3`}>
+    <div className={`flex flex-col items-center gap-3`}>
       {/* Battery Container */}
-      <div className="relative flex items-center">
+      <div className="flex items-center justify-center">
         {/* Battery Body */}
         <div className="relative flex items-center bg-gray-200 rounded-lg border-2 border-gray-300 p-1">
           {/* Battery Stages */}
@@ -110,18 +110,16 @@ export const StageProgressBubbles: React.FC<StageProgressBubblesProps> = ({
       </div>
 
       {/* Progress Info */}
-      {orientation === 'horizontal' && (
-        <div className="text-gray-700">
-          <div className="text-sm font-semibold">{completedStages}/{batteryStages.length} Stages</div>
-          <div className="text-xs text-gray-500">
-            {completionPercentage}% Complete
-          </div>
+      <div className="text-gray-700">
+        <div className="text-sm font-semibold">{completedStages}/{batteryStages.length} Stages</div>
+        <div className="text-xs text-gray-500">
+          {completionPercentage}% Complete
         </div>
-      )}
+      </div>
 
       {/* Additional Buttons for Auto-Prompt and Export */}
       {remainingStages.length > 0 && (
-        <div className="flex gap-2">
+        <div className="flex gap-2 mt-2">
           <motion.button
             onClick={() => onStageClick(remainingStages[0].id)}
             initial={{ opacity: 0, scale: 0.8 }}
@@ -130,7 +128,7 @@ export const StageProgressBubbles: React.FC<StageProgressBubblesProps> = ({
             whileHover={{ scale: 1.05 }}
             whileTap={{ scale: 0.95 }}
             className="flex items-center gap-1 px-3 py-2 bg-purple-600 text-white rounded-lg shadow-sm hover:bg-purple-700 transition-colors"
-            title={remainingStages[0].title}
+            title={remainingStages[0]?.title || 'Auto-Prompt'}
           >
             <Zap className="w-4 h-4" />
             <span className="text-sm">Auto-Prompt</span>
@@ -145,7 +143,7 @@ export const StageProgressBubbles: React.FC<StageProgressBubblesProps> = ({
               whileHover={{ scale: 1.05 }}
               whileTap={{ scale: 0.95 }}
               className="flex items-center gap-1 px-3 py-2 bg-green-600 text-white rounded-lg shadow-sm hover:bg-green-700 transition-colors"
-              title={remainingStages[1].title}
+              title={remainingStages[1]?.title || 'Export'}
             >
               <FileText className="w-4 h-4" />
               <span className="text-sm">Export</span>

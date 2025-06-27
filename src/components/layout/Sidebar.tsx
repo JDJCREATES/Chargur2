@@ -203,18 +203,6 @@ export const Sidebar: React.FC<SidebarProps> = ({
           </div>
         </div>
 
-        {/* Stage Progress */}
-        <div className={`transition-opacity duration-200 ${isOpen ? 'opacity-100' : 'opacity-0'}`}>
-          <div className="p-4 border-b border-gray-200">
-            <StageProgressBubbles 
-              stages={stages} 
-              onStageClick={goToStage}
-              orientation="horizontal"
-              size="md"
-            />
-          </div>
-        </div>
-
         {/* Stage Form */}
         <div className={`flex-1 overflow-y-auto transition-opacity duration-200 ${isOpen ? 'opacity-100' : 'opacity-0'}`}>
           {renderStageForm()}
@@ -289,22 +277,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
       
       {/* Collapsed Sidebar - Vertical Stage Bubbles */}
       {!isOpen && (
-        <motion.div
-          initial={{ opacity: 0, x: -20 }}
-          animate={{ opacity: 1, x: 0 }}
-          transition={{ delay: 0.3, duration: 0.3 }}
-          className="fixed right-12 top-20 z-40"
-        >
-          <div className="bg-white bg-opacity-95 backdrop-blur-sm rounded-lg shadow-lg border border-gray-200 p-3">
-            <StageProgressBubbles 
-              stages={stages} 
-              onStageClick={goToStage}
-              orientation="vertical"
-              size="sm"
-              showLabels={false}
-            />
-          </div>
-        </motion.div>
+        <></>
       )}
     </div>
   );
