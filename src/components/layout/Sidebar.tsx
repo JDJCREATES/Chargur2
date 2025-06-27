@@ -78,7 +78,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
       setIsChatAccordionExpanded(true);
     }
   }, [
-    isOpen, agentChat.isLoading, agentChat.isStreaming, projectId
+    isOpen, agentChat.isLoading, agentChat.isStreaming
   ]);
 
   const handleRetry = () => {
