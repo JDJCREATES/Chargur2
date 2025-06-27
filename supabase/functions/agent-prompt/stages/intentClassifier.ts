@@ -40,8 +40,8 @@ CLASSIFICATION GUIDELINES:
     *   If the query is high-level, conceptual, or about preferences (e.g., "What UI style should I use?"), it likely belongs to an earlier, more foundational stage (like Ideation & Discovery).
     *   If the query is detailed, implementation-specific, or about specific components (e.g., "How do I implement a dark mode UI?"), it likely belongs to a later, more technical stage (like Interface & Interaction).
 3.  **Stage Progression:** Understand that concepts evolve across stages. A topic introduced in an early stage might be refined in a later one. Always map to the *earliest relevant stage* that can address the query at its current level of detail.
-4.  **Evaluate Message Context:** Consider the full message, conversation history, and existing `allStageData` to infer intent.
-5.  **Uncertainty:** If there is significant ambiguity, lean towards the `currentStage` and provide a lower `confidence` score.
+4.  **Evaluate Message Context:** Consider the full message, conversation history, and existing \`allStageData` to infer intent.
+5.  **Uncertainty:** If there is significant ambiguity, lean towards the `currentStage\` and provide a lower `confidence\` score.
 
     STAGE-SPECIFIC KEYWORDS & GRANULARITY HINTS:
  - **Ideation & Discovery (ideation-discovery):**
@@ -80,9 +80,9 @@ SPECIAL INTENTS:
 
 IMPORTANT: You must respond with valid JSON only. Do not include any explanatory text outside the JSON structure.`;
 
-  const userPrompt = `Analyze this user message: "${userMessage.replace(/"/g, '\\"')}"
+  const userPrompt = \`Analyze this user message: "${userMessage.replace(/"/g, '\\"')}"
 
-Determine which stage(s) of the app planning process this message relates to. The user is currently in the "${stageName}" stage.
+Determine which stage(s) of the app planning process this message relates to. The user is currently in the "${stageName}\" stage.
 
 Respond in this exact JSON format:
 {
@@ -132,7 +132,7 @@ function getStageNameById(stageId: string): string {
 
 // Generate a summary of all stages and their purposes
 function generateStagesSummary(): string {
-  return `1. Ideation & Discovery (ideation-discovery)
+  return \`1. Ideation & Discovery (ideation-discovery)
    - App concept, name, tagline, problem statement, target users, value proposition, *high-level UI style preferences*, *general tech stack preferences*, *platform choice*.
    - Keywords: idea, concept, name, problem, mission, tagline, user, persona, competitor, UI style, tech stack, platform
 
@@ -178,23 +178,23 @@ function generateProjectSummary(allStageData: any): string {
     let summary = '';
     
     if (ideationData.appName) {
-      summary += `App Name: ${ideationData.appName}\n`;
+      summary += \`App Name: ${ideationData.appName}\n`;
     }
     
     if (ideationData.appIdea) {
-      summary += `App Concept: ${ideationData.appIdea}\n`;
+      summary += \`App Concept: ${ideationData.appIdea}\n`;
     }
     
     if (ideationData.problemStatement) {
-      summary += `Problem: ${ideationData.problemStatement}\n`;
+      summary += \`Problem: ${ideationData.problemStatement}\n`;
     }
     
     if (featureData.selectedFeaturePacks && featureData.selectedFeaturePacks.length > 0) {
-      summary += `Selected Feature Packs: ${featureData.selectedFeaturePacks.join(', ')}\n`;
+      summary += \`Selected Feature Packs: ${featureData.selectedFeaturePacks.join(', ')}\n`;
     }
     
     if (featureData.customFeatures && featureData.customFeatures.length > 0) {
-      summary += `Custom Features: ${featureData.customFeatures.length} defined\n`;
+      summary += \`Custom Features: ${featureData.customFeatures.length} defined\n`;
     }
     
     return summary || 'No project data available yet';
