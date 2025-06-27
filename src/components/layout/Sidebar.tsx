@@ -7,7 +7,6 @@ import { useAppStore } from '../../store/useAppStore';
 import { ChatHistory } from '../ui/ChatHistory';
 import { ChatInterface } from '../chat/ChatInterface';
 import { Settings } from '../ui/Settings';
-import { Settings } from '../ui/Settings';
 import { ProjectManager } from '../ui/ProjectManager';
 import { IdeationDiscovery } from '../stages/content/IdeationDiscovery';
 import { FeaturePlanning } from '../stages/content/FeaturePlanning';
