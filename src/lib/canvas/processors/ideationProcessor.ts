@@ -172,14 +172,14 @@ export function processIdeationData(
     );
     
     // Add new competitors that don't already exist
-    competitorArray.forEach((competitor: any) => {
+    competitorArray.forEach((competitor: any, index: number) => {
       // Check if this competitor already exists by name
       const competitorExists = existingCompetitors.some(existing => 
         existing.name === competitor.name
       );
       
       if (!competitorExists && competitor.name) {
-        nodes.push(nodeFactory.createCompetitorNode(competitor, nodes));
+        nodes.push(nodeFactory.createCompetitorNode(competitor, index, nodes));
       }
     });
   }

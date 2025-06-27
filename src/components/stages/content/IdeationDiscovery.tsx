@@ -134,7 +134,7 @@ userPersonas: [] as UserPersona[],
           competitors: competitorText,
           // Add competitor nodes data that can be used by the board
           competitorNodes: data.competitors.map((comp: any, index: number) => ({
-            id: `competitor-${comp.name.toLowerCase().replace(/\s+/g, '-')}`,
+            id: `competitor-${Date.now()}-${index}-${comp.name.toLowerCase().replace(/\s+/g, '-')}`,
             type: 'competitor',
             data: {
               label: comp.name,
