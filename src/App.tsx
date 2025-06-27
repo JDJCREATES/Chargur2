@@ -146,6 +146,16 @@ function App() {
           isSidebarOpen ? "mr-80" : "mr-12"
         }`}
       >
+        {/* Progress Bubbles - Positioned at the bottom center */}
+        <div className="fixed bottom-4 left-1/2 transform -translate-x-1/2 z-40 bg-white bg-opacity-90 backdrop-blur-sm rounded-lg shadow-md border border-gray-200 p-3">
+          <StageProgressBubbles 
+            stages={stages} 
+            onStageClick={goToStage}
+            orientation="horizontal"
+            size="md"
+          />
+        </div>
+
         <Canvas
           agentChat={{
             sendMessage,
@@ -167,18 +177,6 @@ function App() {
           onUpdateCanvasConnections={updateCanvasConnections}
           onOpenSidebar={openSidebar}
         />
-        
-        {/* Progress Bubbles - Centered below the canvas */}
-        <div className={`w-full flex justify-center py-4 transition-all duration-300`}>
-          <div className="bg-white bg-opacity-90 backdrop-blur-sm rounded-lg shadow-md border border-gray-200 p-3 z-40">
-            <StageProgressBubbles 
-              stages={stages} 
-              onStageClick={goToStage}
-              orientation="horizontal"
-              size="md"
-            />
-          </div>
-        </div>
       </div>
 
       {/* Sidebar */}

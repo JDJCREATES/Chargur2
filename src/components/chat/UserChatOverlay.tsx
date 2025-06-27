@@ -105,7 +105,7 @@ export const UserChatOverlay: React.FC<UserChatOverlayProps> = ({
         whileHover={{ scale: 1.01 }}
         transition={{ duration: 0.2 }}
       >
-        <div className="flex items-end gap-3 p-3 bg-white/80 backdrop-blur-sm">
+        <div className="flex items-end gap-3 p-3 bg-white/80 backdrop-blur-sm mb-16">
           {/* Input Container */}
           <motion.div
             className="flex-1 relative"
@@ -123,7 +123,7 @@ export const UserChatOverlay: React.FC<UserChatOverlayProps> = ({
               onBlur={() => setIsFocused(false)}
               placeholder="Ask the AI assistant about your app design..."
               disabled={isLoading || disabled}
-              className="w-full px-3 py-2 bg-white border-0 rounded-xl resize-none focus:outline-none focus:ring-2 focus:ring-blue-500/20 disabled:bg-gray-50 disabled:text-gray-500 shadow-sm transition-all duration-200"
+              className="w-full px-4 py-3 bg-white border-0 rounded-xl resize-none focus:outline-none focus:ring-2 focus:ring-blue-500/20 disabled:bg-gray-50 disabled:text-gray-500 shadow-sm transition-all duration-200"
               rows={1}
               style={{ minHeight: '40px', maxHeight: '120px' }}
             />
