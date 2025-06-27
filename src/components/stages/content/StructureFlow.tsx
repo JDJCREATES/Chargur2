@@ -118,11 +118,11 @@ export const StructureFlow: React.FC<StructureFlowProps> = ({
   };
 
   const removeScreen = (id: string) => {
-    updateFormData('screens', formData.screens.filter(s => s.id !== id));
+    updateFormData('screens', formData.screens.filter((s: Screen) => s.id !== id));
   };
 
   const updateScreen = (id: string, updates: Partial<Screen>) => {
-    updateFormData('screens', formData.screens.map(s => 
+    updateFormData('screens', formData.screens.map((s: Screen) => 
       s.id === id ? { ...s, ...updates } : s
     ));
   };
@@ -160,16 +160,16 @@ export const StructureFlow: React.FC<StructureFlowProps> = ({
 **Architecture Overview**
 
 **Screens (${formData.screens.length}):**
-${formData.screens.map(s => `- ${s.name} (${s.type})`).join('\n')}
+${formData.screens.map((s: Screen) => `- ${s.name} (${s.type})`).join('\n')}
 
 **Data Models (${formData.dataModels.length}):**
-${formData.dataModels.map(m => `- ${m.name}: ${m.fields.join(', ')}`).join('\n')}
+${formData.dataModels.map((m: DataModel) => `- ${m.name}: ${m.fields.join(', ')}`).join('\n')}
 
 **User Flows (${formData.userFlows.length}):**
-${formData.userFlows.map(f => `- ${f.name}: ${f.steps.length} steps`).join('\n')}
+${formData.userFlows.map((f: UserFlow) => `- ${f.name}: ${f.steps.length} steps`).join('\n')}
 
 **Components (${formData.components.length}):**
-${formData.components.map(c => `- <${c.name} /> (${c.type})`).join('\n')}
+${formData.components.map((c: Component) => `- <${c.name} /> (${c.type})`).join('\n')}
 
 **State Management:** ${formData.stateManagement}
 
@@ -207,17 +207,17 @@ ${formData.components.map(c => `- <${c.name} /> (${c.type})`).join('\n')}
                 </button>
               </div>
               <div className="space-y-2">
-                {formData.screens.map((screen) => (
-                  <div key={screen.id} className="flex items-center gap-2 p-2 bg-gray-50 rounded-md">
+                {formData.screens.map((s: Screen) => (
+                  <div key={s.id} className="flex items-center gap-2 p-2 bg-gray-50 rounded-md">
                     <input
                       type="text"
-                      value={screen.name}
-                      onChange={(e) => updateScreen(screen.id, { name: e.target.value })}
+                      value={s.name}
+                      onChange={(e) => updateScreen(s.id, { name: e.target.value })}
                       className="flex-1 px-2 py-1 text-sm border border-gray-200 rounded focus:outline-none focus:ring-1 focus:ring-blue-500"
                     />
                     <select
-                      value={screen.type}
-                      onChange={(e) => updateScreen(screen.id, { type: e.target.value as Screen['type'] })}
+                      value={s.type}
+                      onChange={(e) => updateScreen(s.id, { type: e.target.value as Screen['type'] })}
                       className="px-2 py-1 text-xs border border-gray-200 rounded focus:outline-none focus:ring-1 focus:ring-blue-500"
                     >
                       <option value="core">Core</option>
@@ -225,7 +225,7 @@ ${formData.components.map(c => `- <${c.name} /> (${c.type})`).join('\n')}
                       <option value="modal">Modal</option>
                     </select>
                     <button
-                      onClick={() => removeScreen(screen.id)}
+                      onClick={() => removeScreen(s.id)}
                       className="p-1 text-red-600 hover:bg-red-50 rounded"
                     >
                       <Trash2 className="w-3 h-3" />
@@ -248,7 +248,7 @@ ${formData.components.map(c => `- <${c.name} /> (${c.type})`).join('\n')}
                 </button>
               </div>
               <div className="space-y-2">
-                {formData.dataModels.map((model) => (
+                {formData.dataModels.map((model: DataModel) => (
                   <div key={model.id} className="p-2 bg-green-50 rounded-md">
                     <div className="flex items-center gap-2 mb-1">
                       <Database className="w-3 h-3 text-green-600" />
@@ -285,12 +285,12 @@ ${formData.components.map(c => `- <${c.name} /> (${c.type})`).join('\n')}
                 Add Flow
               </button>
             </div>
-            
-            {formData.userFlows.map((flow) => (
+                  
+                {formData.userFlows.map((flow: UserFlow) => (
               <div key={flow.id} className="p-3 bg-purple-50 rounded-lg">
                 <h4 className="font-medium text-sm text-purple-800 mb-2">{flow.name}</h4>
                 <div className="flex items-center gap-2 text-xs">
-                  {flow.steps.map((step, index) => (
+                  {flow.steps.map((step: string, index: number) => (
                     <React.Fragment key={index}>
                       <span className="px-2 py-1 bg-white rounded text-purple-700">{step}</span>
                       {index < flow.steps.length - 1 && <ArrowRight className="w-3 h-3 text-purple-400" />}
@@ -299,7 +299,7 @@ ${formData.components.map(c => `- <${c.name} /> (${c.type})`).join('\n')}
                 </div>
               </div>
             ))}
-          </div>
+            </div>
         </AccordionDetails>
       </Accordion>
 
@@ -357,10 +357,10 @@ ${formData.components.map(c => `- <${c.name} /> (${c.type})`).join('\n')}
             </div>
             
             <div className="grid grid-cols-1 gap-2">
-              {formData.components.map((component) => (
+              {formData.components.map((component: Component) => (
                 <div key={component.id} className="p-2 bg-teal-50 rounded-md">
                   <div className="flex items-center gap-2 mb-1">
-                    <span className="font-mono text-sm text-teal-800">&lt;{component.name} /&gt;</span>
+                    <span className="font-mono text-sm text-teal-800">{`<${component.name} />`}</span>
                     <span className="text-xs px-1 py-0.5 bg-teal-200 text-teal-700 rounded">
                       {component.type}
                     </span>

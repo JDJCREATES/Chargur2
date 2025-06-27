@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { motion } from 'framer-motion';
+
 import { 
   CheckCircle, 
   AlertTriangle, 
@@ -12,19 +12,11 @@ import {
   Zap,
   BarChart3,
   Users,
-  Shield,
-  Database,
-  Layout,
   Lightbulb,
-  Settings,
-  Play,
-  Pause,
-  SkipForward,
   Edit3,
   MessageSquare,
   Brain,
   Target,
-  Clock,
   Star,
   TrendingUp
 } from 'lucide-react';

@@ -1,7 +1,7 @@
 /**
  * Supabase Edge Function: retrieve-agent-response
  * 
- * Retrieves saved agent response tokens for conversation recovery.
+ * Retrieves saved agent response  for conversation recovery.
  * Used when clients need to recover from disconnections or navigation.
  */
 

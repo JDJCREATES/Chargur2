@@ -13,7 +13,7 @@
  */
 
 import React, { useState, useRef } from 'react';
-import { motion } from 'framer-motion';
+import { motion, useMotionValue } from 'framer-motion';
 import { CanvasNodeData } from './CanvasNode';
 
 interface DraggableConnectableWrapperProps {
@@ -53,6 +53,16 @@ export const DraggableConnectableWrapper: React.FC<DraggableConnectableWrapperPr
   const nodeSize = node?.size || { width: 200, height: 100 };
   const nodePosition = node?.position || { x: 0, y: 0 };
 
+  // Create motion values for position
+  const x = useMotionValue(nodePosition.x);
+  const y = useMotionValue(nodePosition.y);
+
+  // Update motion values when node position changes
+  React.useEffect(() => {
+    x.set(nodePosition.x);
+    y.set(nodePosition.y);
+  }, [nodePosition.x, nodePosition.y, x, y]);
+
   const handleDragStart = (event: any, info: any) => {
     try {
       setIsDragging(true);
@@ -79,18 +89,6 @@ export const DraggableConnectableWrapper: React.FC<DraggableConnectableWrapperPr
     } catch (error) {
       console.error('Error in handleDragEnd:', error);
     }
-  };
-
-  // Alternative approach - use transform instead of position updates during drag
-  const handleDragAlternative = (event: any, info: any) => {
-    // Only update position on drag end for smoother performance
-    if (!isDragging) return;
-    
-    const newPosition = {
-      x: Math.max(0, nodePosition.x + info.delta.x / scale),
-      y: Math.max(0, nodePosition.y + info.delta.y / scale),
-    };
-    onUpdate(node.id, { position: newPosition });
   };
 
   const handleResizeStart = (e: React.MouseEvent) => {
@@ -148,9 +146,9 @@ export const DraggableConnectableWrapper: React.FC<DraggableConnectableWrapperPr
         absolute cursor-move select-none transition-shadow
         ${isDragging ? 'z-50' : isSelected ? 'z-30' : 'z-10'}
       `}
-      x={nodePosition.x}
-      y={nodePosition.y}
       style={{
+        x,
+        y,
         width: nodeSize.width,
         minHeight: nodeSize.height,
       }}
@@ -239,6 +237,7 @@ export const DraggableConnectableWrapper: React.FC<DraggableConnectableWrapperPr
           <div
             className="absolute bottom-0 right-0 w-4 h-4 bg-white border border-gray-300 rounded-bl-sm rounded-tr-sm cursor-nwse-resize hover:bg-gray-100"
             onMouseDown={handleResizeStart}
+            
             onClick={(e) => e.stopPropagation()}
           />
         )}

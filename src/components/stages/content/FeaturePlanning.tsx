@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 
 import { 
   Lightbulb, 
@@ -173,7 +173,7 @@ export const FeaturePlanning: React.FC<FeaturePlanningProps> = ({
 
   const toggleFeaturePack = (packId: string) => {
     const updated = formData.selectedFeaturePacks.includes(packId)
-      ? formData.selectedFeaturePacks.filter(id => id !== packId)
+      ? formData.selectedFeaturePacks.filter((id: string) => id !== packId)
       : [...formData.selectedFeaturePacks, packId];
     updateFormData('selectedFeaturePacks', updated);
   };
@@ -195,14 +195,14 @@ export const FeaturePlanning: React.FC<FeaturePlanningProps> = ({
   };
 
   const updateFeature = (featureId: string, updates: Partial<Feature>) => {
-    const updated = formData.customFeatures.map(f => 
+    const updated = formData.customFeatures.map((f: Feature) => 
       f.id === featureId ? { ...f, ...updates } : f
     );
     updateFormData('customFeatures', updated);
   };
 
   const removeFeature = (featureId: string) => {
-    updateFormData('customFeatures', formData.customFeatures.filter(f => f.id !== featureId));
+    updateFormData('customFeatures', formData.customFeatures.filter((f: Feature) => f.id !== featureId));
   };
 
   const generateAIFeatureBreakdown = (featureName: string) => {
@@ -235,7 +235,7 @@ export const FeaturePlanning: React.FC<FeaturePlanningProps> = ({
 
   const generateArchitecturePrep = () => {
     const selectedPacks = featurePacks.filter(pack => formData.selectedFeaturePacks.includes(pack.id));
-    const allFeatures = [...selectedPacks.flatMap(pack => pack.features), ...formData.customFeatures.map(f => f.name)];
+    const allFeatures = [...selectedPacks.flatMap(pack => pack.features), ...formData.customFeatures.map((f: Feature) => f.name)];
     
     // Generate screens based on features
     const screens = [
@@ -253,7 +253,7 @@ export const FeaturePlanning: React.FC<FeaturePlanningProps> = ({
       ...allFeatures.includes('User Registration') ? ['/api/auth/login', '/api/auth/register', '/api/users'] : [],
       ...allFeatures.includes('Real-time Chat') ? ['/api/messages', '/api/chat/rooms'] : [],
       ...allFeatures.includes('File Upload') ? ['/api/upload', '/api/files'] : [],
-      ...formData.customFeatures.map(f => `/api/${f.name.toLowerCase().replace(/\s+/g, '-')}`),
+      ...formData.customFeatures.map((f: Feature) => `/api/${f.name.toLowerCase().replace(/\s+/g, '-')}`),
     ];
 
     // Generate components
@@ -262,7 +262,7 @@ export const FeaturePlanning: React.FC<FeaturePlanningProps> = ({
       ...allFeatures.includes('User Registration') ? ['LoginForm', 'UserProfile', 'AuthGuard'] : [],
       ...allFeatures.includes('Real-time Chat') ? ['ChatWindow', 'MessageBubble', 'ChatInput'] : [],
       ...allFeatures.includes('File Upload') ? ['FileUploader', 'FilePreview'] : [],
-      ...formData.customFeatures.map(f => `${f.name.replace(/\s+/g, '')}Component`),
+      ...formData.customFeatures.map((f: Feature) => `${f.name.replace(/\s+/g, '')}Component`),
     ];
 
     updateFormData('architecturePrep', { screens, apiRoutes, components });
@@ -271,7 +271,7 @@ export const FeaturePlanning: React.FC<FeaturePlanningProps> = ({
   const generateFeatureSummary = () => {
     const selectedPacks = featurePacks.filter(pack => formData.selectedFeaturePacks.includes(pack.id));
     const totalFeatures = selectedPacks.reduce((acc, pack) => acc + pack.features.length, 0) + formData.customFeatures.length;
-    const mustHaveFeatures = formData.customFeatures.filter(f => f.priority === 'must').length;
+    const mustHaveFeatures = formData.customFeatures.filter((f: Feature) => f.priority === 'must').length;
     
     return `
 **Feature Planning Summary**
@@ -283,7 +283,7 @@ ${formData.naturalLanguageFeatures || 'No description provided'}
 ${selectedPacks.map(pack => `- ${pack.name}: ${pack.features.length} features`).join('\n')}
 
 **Custom Features (${formData.customFeatures.length}):**
-${formData.customFeatures.map(f => `- ${f.name} (${f.priority}, ${f.complexity} complexity)`).join('\n')}
+${formData.customFeatures.map((f: Feature) => `- ${f.name} (${f.priority}, ${f.complexity} complexity)`).join('\n')}
 
 **Total Features:** ${totalFeatures}
 **MVP Features:** ${mustHaveFeatures}
@@ -382,7 +382,7 @@ ${formData.customFeatures.map(f => `- ${f.name} (${f.priority}, ${f.complexity} 
             </div>
 
             {/* Selected Feature Packs Breakdown */}
-            {formData.selectedFeaturePacks.map(packId => {
+            {formData.selectedFeaturePacks.map((packId: string) => {
               const pack = featurePacks.find(p => p.id === packId);
               if (!pack) return null;
               
@@ -393,7 +393,7 @@ ${formData.customFeatures.map(f => `- ${f.name} (${f.priority}, ${f.complexity} 
                     <h4 className="font-medium text-sm text-blue-800">{pack.name}</h4>
                   </div>
                   <div className="grid grid-cols-2 gap-1">
-                    {pack.features.map((feature, index) => (
+                    {pack.features.map((feature: string, index: number) => (
                       <div key={index} className="text-xs bg-white rounded px-2 py-1 text-blue-700">
                         {feature}
                       </div>
@@ -405,7 +405,7 @@ ${formData.customFeatures.map(f => `- ${f.name} (${f.priority}, ${f.complexity} 
 
             {/* Custom Features */}
             <div className="space-y-2">
-              {formData.customFeatures.map((feature) => (
+              {formData.customFeatures.map((feature: Feature) => (
                 <div key={feature.id} className="bg-white border border-gray-200 rounded-lg p-3">
                   <div className="flex items-center justify-between mb-2">
                     <input
@@ -513,8 +513,8 @@ ${formData.customFeatures.map(f => `- ${f.name} (${f.priority}, ${f.complexity} 
                   
                   <div className="space-y-1">
                     {formData.customFeatures
-                      .filter(f => f.priority === bucket.id)
-                      .map(feature => (
+                      .filter((f: Feature) => f.priority === bucket.id)
+                      .map((feature: Feature) => (
                         <div key={feature.id} className={`text-xs p-2 bg-white rounded border border-${bucket.color}-200 text-${bucket.color}-700`}>
                           {feature.name}
                         </div>
@@ -604,7 +604,7 @@ ${formData.customFeatures.map(f => `- ${f.name} (${f.priority}, ${f.complexity} 
                   <h4 className="font-medium text-sm text-indigo-800">Screens ({formData.architecturePrep.screens.length})</h4>
                 </div>
                 <div className="space-y-1">
-                  {formData.architecturePrep.screens.map((screen, index) => (
+                  {formData.architecturePrep.screens.map((screen: string, index: number) => (
                     <div key={index} className="text-xs bg-white rounded px-2 py-1 text-indigo-700">
                       {screen}
                     </div>
@@ -618,7 +618,7 @@ ${formData.customFeatures.map(f => `- ${f.name} (${f.priority}, ${f.complexity} 
                   <h4 className="font-medium text-sm text-green-800">API Routes ({formData.architecturePrep.apiRoutes.length})</h4>
                 </div>
                 <div className="space-y-1">
-                  {formData.architecturePrep.apiRoutes.map((route, index) => (
+                  {formData.architecturePrep.apiRoutes.map((route: string, index: number) => (
                     <div key={index} className="text-xs bg-white rounded px-2 py-1 text-green-700 font-mono">
                       {route}
                     </div>
@@ -632,7 +632,7 @@ ${formData.customFeatures.map(f => `- ${f.name} (${f.priority}, ${f.complexity} 
                   <h4 className="font-medium text-sm text-orange-800">Components ({formData.architecturePrep.components.length})</h4>
                 </div>
                 <div className="space-y-1">
-                  {formData.architecturePrep.components.map((component, index) => (
+                  {formData.architecturePrep.components.map((component: string, index: number) => (
                     <div key={index} className="text-xs bg-white rounded px-2 py-1 text-orange-700">
                       {`<${component} />`}
                     </div>
@@ -666,7 +666,7 @@ ${formData.customFeatures.map(f => `- ${f.name} (${f.priority}, ${f.complexity} 
             </div>
 
             <div className="space-y-2">
-              {formData.aiEnhancements.map((enhancement, index) => (
+              {formData.aiEnhancements.map((enhancement: string, index: number) => (
                 <div key={index} className="flex items-center gap-3 p-2 bg-pink-50 rounded-lg">
                   <Sparkles className="w-4 h-4 text-pink-600" />
                   <span className="text-sm text-pink-700">{enhancement}</span>

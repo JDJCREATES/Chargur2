@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 
 import { 
   Building2, 
@@ -47,13 +47,15 @@ interface Component {
 interface DatabaseTable {
   id: string;
   name: string;
-  fields: Array<{
-    name: string;
-    type: string;
-    required: boolean;
-    unique: boolean;
-  }>;
+  fields: DatabaseField[];
   relations: string[];
+}
+
+interface DatabaseField {
+  name: string;
+  type: string;
+  required: boolean;
+  unique: boolean;
 }
 
 interface APIEndpoint {
@@ -234,8 +236,8 @@ export const ArchitectureDesign: React.FC<ArchitectureDesignProps> = ({
   };
 
   const generateSQLSchema = () => {
-    return formData.databaseSchema.map(table => {
-      const fields = table.fields.map(field => {
+    return formData.databaseSchema.map((table: DatabaseTable) => {
+      const fields = table.fields.map((field: DatabaseField) => {
         const constraints = [];
         if (field.required) constraints.push('NOT NULL');
         if (field.unique) constraints.push('UNIQUE');
@@ -247,7 +249,7 @@ export const ArchitectureDesign: React.FC<ArchitectureDesignProps> = ({
   };
 
   const generateEnvTemplate = () => {
-    return formData.envVariables.map(envVar => {
+    return formData.envVariables.map((envVar: EnvVariable) => {
       const comment = `# ${envVar.description} (${envVar.usage})`;
       const required = envVar.required ? ' # REQUIRED' : ' # OPTIONAL';
       return `${comment}\n${envVar.name}=${envVar.type === 'secret' ? 'your_secret_here' : 'your_value_here'}${required}`;
@@ -267,13 +269,13 @@ export const ArchitectureDesign: React.FC<ArchitectureDesignProps> = ({
 **State Management:** ${formData.stateManagement}
 
 **Key Integrations:**
-${formData.integrations.map(integration => `- ${integration}`).join('\n')}
+${formData.integrations.map((integration: string) => `- ${integration}`).join('\n')}
 
 **AI Agent Zones:**
-${formData.aiAgentZones.map(zone => `- ${zone}`).join('\n')}
+${formData.aiAgentZones.map((zone: string) => `- ${zone}`).join('\n')}
 
-**Protected Routes:** ${formData.sitemap.filter(route => route.protected).length}/${formData.sitemap.length}
-**Auth Required Endpoints:** ${formData.apiEndpoints.filter(endpoint => endpoint.auth).length}/${formData.apiEndpoints.length}
+**Protected Routes:** ${formData.sitemap.filter((route: Route) => route.protected).length}/${formData.sitemap.length}
+**Auth Required Endpoints:** ${formData.apiEndpoints.filter((endpoint: APIEndpoint) => endpoint.auth).length}/${formData.apiEndpoints.length}
     `.trim();
   };
 
@@ -313,7 +315,7 @@ ${formData.aiAgentZones.map(zone => `- ${zone}`).join('\n')}
             </div>
 
             <div className="space-y-2">
-              {formData.sitemap.map((route) => (
+              {formData.sitemap.map((route: Route) => (
                 <div key={route.id} className="p-3 bg-blue-50 rounded-lg">
                   <div className="grid grid-cols-4 gap-2 text-xs">
                     <div>
@@ -487,7 +489,7 @@ ${formData.aiAgentZones.map(zone => `- ${zone}`).join('\n')}
             </div>
 
             <div className="space-y-3">
-              {formData.databaseSchema.map((table) => (
+              {formData.databaseSchema.map((table: DatabaseTable) => (
                 <div key={table.id} className="bg-orange-50 rounded-lg p-3">
                   <div className="flex items-center gap-2 mb-2">
                     <Database className="w-4 h-4 text-orange-600" />
@@ -503,7 +505,7 @@ ${formData.aiAgentZones.map(zone => `- ${zone}`).join('\n')}
                     <div className="font-medium text-orange-700">Required</div>
                     <div className="font-medium text-orange-700">Unique</div>
                     
-                    {table.fields.map((field, index) => (
+                    {table.fields.map((field: DatabaseField, index: number) => (
                       <React.Fragment key={index}>
                         <div className="text-orange-600 font-mono">{field.name}</div>
                         <div className="text-orange-600">{field.type}</div>
@@ -559,7 +561,7 @@ ${formData.aiAgentZones.map(zone => `- ${zone}`).join('\n')}
             </div>
 
             <div className="space-y-2">
-              {formData.apiEndpoints.map((endpoint) => (
+              {formData.apiEndpoints.map((endpoint: APIEndpoint) => (
                 <div key={endpoint.id} className="p-3 bg-teal-50 rounded-lg">
                   <div className="grid grid-cols-5 gap-2 text-xs">
                     <div>
@@ -604,7 +606,7 @@ ${formData.aiAgentZones.map(zone => `- ${zone}`).join('\n')}
             <div className="bg-teal-50 rounded-lg p-3">
               <h4 className="font-medium text-sm text-teal-800 mb-2">Third-party Integrations</h4>
               <div className="space-y-1">
-                {formData.integrations.map((integration, index) => (
+                {formData.integrations.map((integration: string, index: number) => (
                   <div key={index} className="flex items-center gap-2 text-sm text-teal-700">
                     <Link className="w-3 h-3" />
                     <span>{integration}</span>
@@ -638,7 +640,7 @@ ${formData.aiAgentZones.map(zone => `- ${zone}`).join('\n')}
             </div>
 
             <div className="space-y-2">
-              {formData.envVariables.map((envVar) => (
+              {formData.envVariables.map((envVar: EnvVariable) => (
                 <div key={envVar.id} className="p-3 bg-indigo-50 rounded-lg">
                   <div className="grid grid-cols-4 gap-2 text-xs">
                     <div>
@@ -696,7 +698,7 @@ ${formData.aiAgentZones.map(zone => `- ${zone}`).join('\n')}
             <p className="text-sm text-gray-600">Areas where AI can dynamically adjust and optimize the architecture</p>
             
             <div className="space-y-2">
-              {formData.aiAgentZones.map((zone, index) => (
+              {formData.aiAgentZones.map((zone: string, index: number) => (
                 <div key={index} className="flex items-center gap-3 p-2 bg-pink-50 rounded-lg">
                   <Brain className="w-4 h-4 text-pink-600" />
                   <span className="text-sm text-pink-700">{zone}</span>

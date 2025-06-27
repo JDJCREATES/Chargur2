@@ -1,5 +1,4 @@
-import React, { useState, useEffect } from 'react';
-import { motion } from 'framer-motion';
+import React, { useState } from 'react';
 import { 
   Layout, 
   Palette, 
@@ -7,22 +6,18 @@ import {
   Navigation, 
   Type, 
   Eye, 
-  Save,
   Smartphone,
   Monitor,
   Tablet,
   Grid,
-  Move,
   Zap,
   Settings,
   FileText,
   Download,
   CheckCircle,
   Plus,
-  Trash2,
   Edit3,
-  Copy,
-  RotateCcw
+  Copy
 } from 'lucide-react';
 import { Accordion, AccordionSummary, AccordionDetails, Typography } from '@mui/material';
 import { ChevronDown } from 'lucide-react';
@@ -242,7 +237,7 @@ export const InterfaceInteraction: React.FC<InterfaceInteractionProps> = ({
               
               {/* Simplified Layout Visualization */}
               <div className="bg-white rounded border-2 border-dashed border-gray-300 h-48 relative">
-                {formData.layoutBlocks.map((block) => (
+                {formData.layoutBlocks.map((block: LayoutBlock) => (
                   <div
                     key={block.id}
                     className={`absolute border-2 rounded flex items-center justify-center text-xs font-medium ${
@@ -390,7 +385,7 @@ export const InterfaceInteraction: React.FC<InterfaceInteractionProps> = ({
             </div>
             
             <div className="space-y-2">
-              {formData.interactionRules.map((rule) => (
+              {formData.interactionRules.map((rule: InteractionRule) => (
                 <div key={rule.id} className="p-3 bg-green-50 rounded-lg">
                   <div className="grid grid-cols-4 gap-2 text-xs">
                     <div>
@@ -407,7 +402,7 @@ export const InterfaceInteraction: React.FC<InterfaceInteractionProps> = ({
                       <select 
                         value={rule.trigger}
                         onChange={(e) => {
-                          const updatedRules = formData.interactionRules.map(r => 
+                          const updatedRules = formData.interactionRules.map((r: InteractionRule) => 
                             r.id === rule.id ? { ...r, trigger: e.target.value } : r
                           );
                           updateFormData('interactionRules', updatedRules);
@@ -433,7 +428,7 @@ export const InterfaceInteraction: React.FC<InterfaceInteractionProps> = ({
                       <select 
                         value={rule.animation}
                         onChange={(e) => {
-                          const updatedRules = formData.interactionRules.map(r => 
+                          const updatedRules = formData.interactionRules.map((r: InteractionRule) => 
                             r.id === rule.id ? { ...r, animation: e.target.value } : r
                           );
                           updateFormData('interactionRules', updatedRules);
@@ -534,7 +529,7 @@ export const InterfaceInteraction: React.FC<InterfaceInteractionProps> = ({
             </div>
             
             <div className="space-y-2">
-              {formData.copywriting.map((item) => (
+              {formData.copywriting.map((item: CopywritingItem) => (
                 <div key={item.id} className="p-3 bg-teal-50 rounded-lg">
                   <div className="grid grid-cols-4 gap-2 text-xs">
                     <div>
@@ -542,7 +537,7 @@ export const InterfaceInteraction: React.FC<InterfaceInteractionProps> = ({
                       <select 
                         value={item.type}
                         onChange={(e) => {
-                          const updatedItems = formData.copywriting.map(i => 
+                          const updatedItems = formData.copywriting.map((i: CopywritingItem) => 
                             i.id === item.id ? { ...i, type: e.target.value as 'button' | 'label' | 'placeholder' | 'error' | 'heading' } : i
                           );
                           updateFormData('copywriting', updatedItems);
@@ -577,7 +572,7 @@ export const InterfaceInteraction: React.FC<InterfaceInteractionProps> = ({
                       <select 
                         value={item.tone}
                         onChange={(e) => {
-                          const updatedItems = formData.copywriting.map(i => 
+                          const updatedItems = formData.copywriting.map((i: CopywritingItem) => 
                             i.id === item.id ? { ...i, tone: e.target.value as 'professional' | 'playful' | 'casual' } : i
                           );
                           updateFormData('copywriting', updatedItems);

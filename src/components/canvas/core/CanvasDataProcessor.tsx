@@ -86,7 +86,7 @@ export class CanvasDataProcessor {
     console.log('Generated nodes from stage data:', generatedNodes.length);
     
     // Now reconcile with existing nodes to preserve positions and other properties
-    const updatedNodes = this._reconcileNodes(currentState.nodes, generatedNodes);
+    let updatedNodes = this._reconcileNodes(currentState.nodes, generatedNodes);
     console.log('After reconciliation:', updatedNodes.length, 'nodes');
     
     // Generate AI analysis node

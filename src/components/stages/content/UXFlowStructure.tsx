@@ -1,6 +1,6 @@
-import React, { useState, useEffect } from 'react';
-import { motion } from 'framer-motion';
-import { Map, Layers, Navigation, Workflow, Users, ArrowRight, Settings } from 'lucide-react';
+import React, { useState } from 'react';
+
+import {  Layers, Navigation, Workflow, Users } from 'lucide-react';
 import { Stage } from '../../../types';
 
 interface UXFlowStructureProps {

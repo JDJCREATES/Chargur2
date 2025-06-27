@@ -59,18 +59,6 @@ userPersonas: [] as UserPersona[],
   }));
 
   const [selectedTags, setSelectedTags] = useState<string[]>([]);
-  
-  // Initialize selectedPersonas based on initialFormData
-  const [selectedPersonas, setSelectedPersonas] = useState<string[]>(() => {
-    if (initialFormData?.userPersonas?.length > 0) {
-      return initialFormData.userPersonas
-        .map((p: UserPersona) => 
-          personas.find(persona => persona.label === p.name)?.id
-        )
-        .filter(Boolean);
-    }
-    return [];
-  });
 
   const updateFormData = (key: string, value: any) => {
     const updated = { ...formData, [key]: value };
@@ -114,6 +102,20 @@ userPersonas: [] as UserPersona[],
     { id: 'professional', label: 'Professional', desc: 'Corporate-friendly, trustworthy' },
   ];
 
+    // Initialize selectedPersonas based on initialFormData
+
+const [selectedPersonas, setSelectedPersonas] = useState<string[]>(() => {
+  if (initialFormData?.userPersonas?.length > 0) {
+    return initialFormData.userPersonas
+      .map((p: UserPersona) => 
+        personas.find(persona => persona.label === p.name)?.id
+      )
+      .filter(Boolean);
+  }
+  return [];
+});
+
+
   const toggleTag = (tag: string) => {
     const updated = selectedTags.includes(tag)
       ? selectedTags.filter((t: string) => t !== tag)
@@ -128,7 +130,7 @@ userPersonas: [] as UserPersona[],
     if (selectedPersonas.includes(persona)) {
       // Remove persona
       setSelectedPersonas(selectedPersonas.filter(p => p !== persona));
-      updateFormData('userPersonas', formData.userPersonas.filter(p => p.name !== personaData.label));
+     updateFormData('userPersonas', formData.userPersonas.filter((p: UserPersona) => p.name !== personaData.label));
     } else {
       // Add persona
       setSelectedPersonas([...selectedPersonas, persona]);
