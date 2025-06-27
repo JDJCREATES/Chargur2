@@ -1,12 +1,21 @@
 /**
  * Supabase Edge Function: fetch-competitors
  * 
- * Fetches competitor information based on app description.
- * Uses external search API to find and analyze competitors.
+ * Fetches competitor information based on app description using OpenAI's web search capability.
  */
 
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
-import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
+
+// Environment validation
+const validateEnvironment = () => {
+  const openaiApiKey = Deno.env.get("OPENAI_API_KEY");
+  
+  if (!openaiApiKey) {
+    throw new Error("OPENAI_API_KEY environment variable is required");
+  }
+  
+  return { openaiApiKey };
+};
 
 // Get the origin from environment or request
 const getAllowedOrigin = (request: Request): string => {
@@ -54,193 +63,334 @@ interface CompetitorRequest {
 
 interface Competitor {
   name: string;
-  domain?: string;
-  link?: string;
-  tagline?: string;
-  features?: string[];
-  pricingTiers?: string[];
-  marketPositioning?: string;
-  strengths?: string[];
-  weaknesses?: string[];
-  notes?: string;
+  domain: string;
+  link: string;
+  tagline: string;
+  features: string[];
+  pricingTiers: string[];
+  marketPositioning: string;
+  strengths: string[];
+  weaknesses: string[];
+  notes: string;
+  sourceUrl: string;
 }
 
 interface CompetitorResponse {
   competitors: Competitor[];
   searchQuery: string;
   timestamp: string;
+  processingTimeMs: number;
+  resultCount: number;
+  webSearchUsed: boolean;
 }
 
-// Main function to search for competitors
+interface OpenAIResponse {
+  choices: Array<{
+    message: {
+      content?: string;
+      tool_calls?: Array<{
+        id: string;
+        type: string;
+        function?: {
+          name: string;
+          arguments: string;
+        };
+      }>;
+    };
+  }>;
+}
+
+interface RawCompetitor {
+  name?: string;
+  domain?: string;
+  link?: string;
+  url?: string;
+  tagline?: string;
+  features?: unknown[];
+  pricingTiers?: unknown[];
+  pricing?: unknown[];
+  marketPositioning?: string;
+  market_positioning?: string;
+  strengths?: unknown[];
+  weaknesses?: unknown[];
+  notes?: string;
+  sourceUrl?: string;
+}
+
+// Main competitor search function using OpenAI's web search
 async function searchCompetitors(appDescription: string, maxResults: number = 4): Promise<Competitor[]> {
-  console.log(`🔍 Searching for competitors based on: "${appDescription}"`);
-  console.log(`📊 Max results requested: ${maxResults}`);
+  console.log(`🔍 [${new Date().toISOString()}] Searching competitors with web search for: "${appDescription.substring(0, 100)}..."`);
   
   try {
-    // 1. Prepare the search query based on the app description
-    const searchQuery = `top competitors for ${appDescription} app`;
-    console.log(`🔎 Search query: "${searchQuery}"`);
+    const { openaiApiKey } = validateEnvironment();
     
-    // Check if we have the OpenAI API key
-    const openaiApiKey = Deno.env.get("OPENAI_API_KEY");
-    if (!openaiApiKey) {
-      throw new Error("OPENAI_API_KEY environment variable is required");
+    // Input validation
+    if (!appDescription?.trim()) {
+      throw new Error("App description cannot be empty");
     }
     
-    // Make the API call to OpenAI with web search tool enabled
-    const response = await fetch("https://api.openai.com/v1/chat/completions", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        "Authorization": `Bearer ${openaiApiKey}`
-      },
-      body: JSON.stringify({
-        model: "gpt-4o",
-        tools: [
-          {
-            "type": "web_search",
-            "config": {
-              "provider": "bing"
+    if (maxResults < 1 || maxResults > 10) {
+      throw new Error("maxResults must be between 1 and 10");
+    }
+
+    // Add timeout and retry logic
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), 60000); // 60 second timeout for web search
+    
+    try {
+      const response = await fetch("https://api.openai.com/v1/chat/completions", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "Authorization": `Bearer ${openaiApiKey}`,
+          "User-Agent": "Chargur-CompetitorAnalysis/1.0"
+        },
+        body: JSON.stringify({
+          model: "gpt-4o", // Use gpt-4o for web search capability
+          messages: [
+            {
+              role: "system",
+              content: `You are a competitive analysis expert with real-time web search capabilities. Your task is to search the web and identify current, real competitors for a given app description.
+
+SEARCH STRATEGY:
+1. Search for current competitors, alternatives, and similar products
+2. Look for company websites, product pages, and recent reviews
+3. Focus on direct competitors first, then related tools
+4. Verify companies are currently active and operational
+
+ANALYSIS REQUIREMENTS:
+- Only include REAL, currently operating companies/products
+- Extract factual information from current web sources
+- Provide accurate website URLs and current information
+- Include recent pricing and feature information when available
+- Note the source URLs where information was found
+
+For each competitor, provide a JSON object with:
+- name: Exact company/product name from web sources
+- domain: Website domain (e.g., "example.com")
+- link: Full URL to their main website
+- tagline: Their current tagline or brief description
+- features: Array of 3-5 current key features
+- pricingTiers: Current pricing information or ["Contact for pricing"]
+- marketPositioning: "budget" | "mid-market" | "premium" | "enterprise"
+- strengths: 2-3 competitive advantages based on current info
+- weaknesses: 2-3 potential limitations (be objective)
+- notes: Additional relevant current information
+- sourceUrl: Primary URL where this information was found
+
+Return ONLY a valid JSON array of ${maxResults} competitors. No markdown formatting, no explanations outside the JSON.`
+            },
+            {
+              role: "user",
+              content: `Please search the web and find the top ${maxResults} current competitors for this app: "${appDescription}"
+
+Search for:
+1. Direct competitors offering similar functionality
+2. Alternative solutions in the same market
+3. Popular tools that serve the same user needs
+4. Recent market leaders in this space
+
+Focus on companies that are currently active and have recent web presence. Include their current websites, features, and pricing information.`
             }
-          }
-        ],
-        tool_choice: "auto",
-        messages: [
-          {
-            role: "system",
-            content: `You are a competitive analysis expert. Your task is to identify and analyze competitors for a given app description.
-
-INSTRUCTIONS:
-1. Use the web_search tool to find real, current competitors for the app description
-2. Search for each competitor's website, features, pricing, and reviews
-3. For each competitor, gather:
-   - Name (official company/product name)
-   - Domain (just the domain, e.g., "example.com")
-   - Full URL (e.g., "https://example.com")
-   - Tagline or elevator pitch (from their website)
-   - 3-5 unique core features or value propositions
-   - Pricing tiers (if available)
-   - Market positioning (budget, mid-market, premium, enterprise)
-   - 2-3 key strengths (based on reviews or analysis)
-   - 2-3 key weaknesses (based on reviews or analysis)
-
-4. Format your response as a valid JSON array of competitor objects
-5. Include citations for your sources when possible
-6. Focus on finding REAL competitors with ACCURATE information
-7. Prioritize direct competitors in the same market segment`
-          },
-          {
-            role: "user",
-            content: `Find the top ${maxResults} competitors for this app: "${appDescription}". 
-            
-Use web search to find real, current competitors and gather detailed information about them. Return ONLY a JSON array of competitor objects with no additional text.`
-          }
-        ],
-        temperature: 0.5,
-        max_tokens: 3000,
-      })
-    });
-    
-    if (!response.ok) {
-      const errorData = await response.json();
-      console.error("❌ OpenAI API error:", errorData);
-      throw new Error(`Search API error: ${response.status} - ${JSON.stringify(errorData)}`);
+          ],
+          temperature: 0.2, // Low temperature for factual accuracy
+          max_tokens: 4000,
+          presence_penalty: 0.1,
+          frequency_penalty: 0.1,
+          // Enable web search - this is the key addition
+          tools: [
+            {
+              type: "web_search"
+            }
+          ]
+        }),
+        signal: controller.signal
+      });
+      
+      clearTimeout(timeoutId);
+      
+      if (!response.ok) {
+        const errorData: unknown = await response.json().catch(() => ({}));
+        console.error(`❌ OpenAI API error: ${response.status}`, errorData);
+        
+        // Type guard for error data
+        const errorMessage = (errorData && typeof errorData === 'object' && 'error' in errorData && 
+          errorData.error && typeof errorData.error === 'object' && 'message' in errorData.error) 
+          ? String(errorData.error.message) : 'Unknown error';
+        
+        throw new Error(`OpenAI API error: ${response.status} - ${errorMessage}`);
+      }
+      
+      const data: OpenAIResponse = await response.json();
+      console.log(`📊 OpenAI response received, processing...`);
+      
+      // Handle the response - OpenAI with web search may return content directly
+      const message = data.choices?.[0]?.message;
+      if (!message) {
+        throw new Error("No message returned from OpenAI API");
+      }
+      
+      const content = message.content;
+      
+      // If there are tool calls (web search results), the content should contain the analysis
+      if (message.tool_calls && message.tool_calls.length > 0) {
+        console.log(`🔧 Web search was performed with ${message.tool_calls.length} tool calls`);
+      }
+      
+      if (!content) {
+        throw new Error("No content returned from OpenAI API");
+      }
+      
+      console.log(`📄 Processing competitor analysis from web search results`);
+      
+      // Parse and validate the response
+      const competitors = extractAndValidateCompetitors(content, maxResults);
+      
+      console.log(`✅ Successfully found ${competitors.length} competitors using web search`);
+      return competitors;
+      
+    } catch (fetchError: unknown) {
+      clearTimeout(timeoutId);
+      if (fetchError instanceof Error && fetchError.name === 'AbortError') {
+        throw new Error("Request timed out after 60 seconds");
+      }
+      throw fetchError instanceof Error ? fetchError : new Error(String(fetchError));
     }
     
-    const data = await response.json();
-    const content = data.choices[0]?.message?.content;
-    const toolCalls = data.choices[0]?.message?.tool_calls;
-    
-    console.log(`🔧 Tool calls: ${toolCalls ? toolCalls.length : 0}`);
-    
-    // Process the response based on whether tool calls were used
-    let competitors: Competitor[] = [];
-    
-    if (content) {
-      // Try to extract competitors from the content
-      console.log(`📄 Content returned from API (first 100 chars): ${content.substring(0, 100)}...`);
-      
-      // Parse the content as JSON or extract JSON from it
-      competitors = await extractCompetitorsFromContent(content);
-    } else if (toolCalls && toolCalls.length > 0) {
-      // Process tool calls if content is not available
-      console.log(`🔧 Processing tool calls response`);
-      
-      // In a real implementation, you might need to make additional API calls
-      // to get the results of the tool calls, but for this example we'll assume
-      // the results are already included in the response
-      
-      // This would be where you'd process the tool_calls data
-      // For now, we'll just log that we received tool calls
-      console.log(`⚠️ Tool calls processing not fully implemented`);
-      
-      // Fallback to empty array if we can't extract competitors
-      competitors = [];
-    } else {
-      throw new Error("No usable content or tool calls returned from search API");
-    }
-    
-    // Return the competitors, limited to the requested number
-    return competitors.slice(0, maxResults);
-    
-  } catch (error) {
-    console.error("❌ Error searching for competitors:", error);
-    throw error;
+  } catch (error: unknown) {
+    console.error(`❌ [${new Date().toISOString()}] Error in searchCompetitors:`, error);
+    throw error instanceof Error ? error : new Error(String(error));
   }
 }
 
-// Helper function to extract competitors from content
-async function extractCompetitorsFromContent(content: string): Promise<Competitor[]> {
+// Enhanced JSON extraction and validation
+function extractAndValidateCompetitors(content: string, maxResults: number): Competitor[] {
   try {
-    // Extract the JSON array from the content (it might be wrapped in markdown code blocks)
-    const jsonMatch = content.match(/```json\n([\s\S]*?)\n```/) || content.match(/```\n([\s\S]*?)\n```/);
-    const jsonString = jsonMatch ? jsonMatch[1] : content;
+    // Clean the content - remove markdown code blocks if present
+    let cleanContent = content.trim();
     
-    // Parse the JSON string into an array of competitor objects
-    const competitors = JSON.parse(jsonString);
+    // Remove markdown code blocks
+    const codeBlockMatch = cleanContent.match(/(?:json)?\s*([\s\S]*?)\s*/);
+    if (codeBlockMatch) {
+      cleanContent = codeBlockMatch[1].trim();
+    }
     
-    // Validate and clean up the competitor objects
-    return competitors.map((competitor: any) => ({
-      name: competitor.name || "Unknown Competitor",
-      domain: competitor.domain || "",
-      link: competitor.link || competitor.url || "",
-      tagline: competitor.tagline || competitor.elevator_pitch || "",
-      features: Array.isArray(competitor.features) ? competitor.features : 
-               Array.isArray(competitor.core_features) ? competitor.core_features : [],
-      pricingTiers: Array.isArray(competitor.pricing_tiers) ? competitor.pricing_tiers : 
-                   Array.isArray(competitor.pricing) ? competitor.pricing : [],
-      marketPositioning: competitor.market_positioning || competitor.positioning || "",
-      strengths: Array.isArray(competitor.strengths) ? competitor.strengths : [],
-      weaknesses: Array.isArray(competitor.weaknesses) ? competitor.weaknesses : [],
-      notes: competitor.notes || ""
-    }));
-  } catch (parseError) {
+    // Sometimes the response might have explanatory text before/after JSON
+    // Try to extract just the JSON array
+    const jsonArrayMatch = cleanContent.match(/\[[\s\S]*\]/);
+    if (jsonArrayMatch) {
+      cleanContent = jsonArrayMatch[0];
+    }
+    
+    // Parse JSON
+    const parsed: unknown = JSON.parse(cleanContent);
+    
+    if (!Array.isArray(parsed)) {
+      throw new Error("Response is not an array");
+    }
+    
+    // Validate and clean up each competitor
+    const validatedCompetitors: Competitor[] = [];
+    
+    for (let index = 0; index < Math.min(parsed.length, maxResults); index++) {
+      const competitor: unknown = parsed[index];
+      
+      // Type guard to ensure competitor is an object
+      if (!competitor || typeof competitor !== 'object' || competitor === null) {
+        console.warn(`⚠️ Invalid competitor object at index ${index}`);
+        continue;
+      }
+      
+      const rawCompetitor = competitor as RawCompetitor;
+      
+      // Validate required fields
+      if (!rawCompetitor.name || typeof rawCompetitor.name !== 'string') {
+        console.warn(`⚠️ Missing or invalid name for competitor at index ${index}`);
+        continue;
+      }
+      
+      // Create a properly typed competitor object
+      const validCompetitor: Competitor = {
+        name: String(rawCompetitor.name).trim(),
+        domain: extractDomain(rawCompetitor.link || rawCompetitor.domain || ''),
+        link: String(rawCompetitor.link || '').trim(),
+        tagline: String(rawCompetitor.tagline || '').trim(),
+        features: Array.isArray(rawCompetitor.features) ? 
+          rawCompetitor.features.map((f: unknown) => String(f).trim()).filter(Boolean).slice(0, 5) : [],
+        pricingTiers: Array.isArray(rawCompetitor.pricingTiers) ? 
+          rawCompetitor.pricingTiers.map((p: unknown) => String(p).trim()).filter(Boolean) : 
+          (Array.isArray(rawCompetitor.pricing) ? 
+            rawCompetitor.pricing.map((p: unknown) => String(p).trim()).filter(Boolean) : []),
+        marketPositioning: validateMarketPositioning(rawCompetitor.marketPositioning || rawCompetitor.market_positioning),
+        strengths: Array.isArray(rawCompetitor.strengths) ? 
+          rawCompetitor.strengths.map((s: unknown) => String(s).trim()).filter(Boolean).slice(0, 3) : [],
+        weaknesses: Array.isArray(rawCompetitor.weaknesses) ? 
+          rawCompetitor.weaknesses.map((w: unknown) => String(w).trim()).filter(Boolean).slice(0, 3) : [],
+        notes: String(rawCompetitor.notes || '').trim(),
+        sourceUrl: String(rawCompetitor.sourceUrl || rawCompetitor.link || '').trim()
+      };
+      
+      validatedCompetitors.push(validCompetitor);
+    }
+    
+    return validatedCompetitors;
+    
+  } catch (parseError: unknown) {
     console.error("❌ Error parsing competitor data:", parseError);
-    console.error("Raw content (first 200 chars):", content.substring(0, 200));
+    console.error("Raw content (first 500 chars):", content.substring(0, 500));
     
-    // If we can't parse as JSON, try to extract competitors using a more lenient approach
-    console.log("🔄 Attempting alternative parsing approach...");
-    
-    // Return empty array as fallback
+    // Return empty array for graceful degradation
     return [];
   }
 }
 
+// Helper functions
+function extractDomain(url: string): string {
+  if (!url) return '';
+  try {
+    const urlObj = new URL(url.startsWith('http') ? url : `https://${url}`);
+    return urlObj.hostname.replace('www.', '');
+  } catch {
+    return url.replace(/^https?:\/\/(www\.)?/, '').split('/')[0] || '';
+  }
+}
+
+function validateMarketPositioning(positioning: unknown): string {
+  const validPositions = ['budget', 'mid-market', 'premium', 'enterprise'];
+  const pos = String(positioning || '').toLowerCase().trim();
+  return validPositions.includes(pos) ? pos : 'mid-market';
+}
+
+// Main serve function
 serve(async (req: Request) => {
   const corsHeaders = getCorsHeaders(req);
-
+  
   // Handle CORS preflight requests
   if (req.method === 'OPTIONS') {
     return new Response('ok', { headers: corsHeaders });
   }
 
+  // Only allow POST requests
+  if (req.method !== 'POST') {
+    return new Response(
+      JSON.stringify({ error: "Method not allowed. Use POST." }),
+      { 
+        status: 405, 
+        headers: { ...corsHeaders, 'Content-Type': 'application/json' } 
+      }
+    );
+  }
+
+  const startTime = Date.now();
+  let requestBody;
+  
   try {
-    // Parse the request body
-    const { appDescription, maxResults = 4 }: CompetitorRequest = await req.json();
-    
-    if (!appDescription) {
+    // Parse and validate request body
+    try {
+      requestBody = await req.json();
+    } catch (parseError: unknown) {
       return new Response(
-        JSON.stringify({ error: "appDescription is required" }),
+        JSON.stringify({ error: "Invalid JSON in request body" }),
         { 
           status: 400, 
           headers: { ...corsHeaders, 'Content-Type': 'application/json' } 
@@ -248,67 +398,92 @@ serve(async (req: Request) => {
       );
     }
     
-    console.log(`📥 Received request to find competitors for: "${appDescription}"`);
+    const { appDescription, maxResults = 4 }: CompetitorRequest = requestBody;
     
-    // Search for competitors
-    const competitors = await searchCompetitors(appDescription, maxResults);
-    
-    // If we have a user ID from the request, save the search history
-    try {
-      const authHeader = req.headers.get('authorization');
-      if (authHeader && authHeader.startsWith('Bearer ')) {
-        const token = authHeader.substring(7);
-        
-        // Initialize Supabase client
-        const supabaseUrl = Deno.env.get('SUPABASE_URL');
-        const supabaseAnonKey = Deno.env.get('SUPABASE_ANON_KEY');
-        
-        if (supabaseUrl && supabaseAnonKey) {
-          const supabase = createClient(supabaseUrl, supabaseAnonKey);
-          
-          // Get user from token
-          const { data: { user } } = await supabase.auth.getUser(token);
-          
-          if (user) {
-            // Save search history
-            await supabase.from('competitor_search_history').insert({
-              user_id: user.id,
-              search_query: appDescription,
-              results: competitors
-            });
-            
-            console.log(`✅ Saved search history for user: ${user.id}`);
-          }
+    // Enhanced validation
+    if (!appDescription || typeof appDescription !== 'string') {
+      return new Response(
+        JSON.stringify({ error: "appDescription is required and must be a string" }),
+        { 
+          status: 400, 
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' } 
         }
-      }
-    } catch (saveError) {
-      // Don't fail the request if saving history fails
-      console.error("⚠️ Error saving search history:", saveError);
+      );
     }
     
-    // Prepare the response
+    if (appDescription.trim().length < 10) {
+      return new Response(
+        JSON.stringify({ error: "appDescription must be at least 10 characters long" }),
+        { 
+          status: 400, 
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' } 
+        }
+      );
+    }
+    
+    if (appDescription.length > 1000) {
+      return new Response(
+        JSON.stringify({ error: "appDescription must be less than 1000 characters" }),
+        { 
+          status: 400, 
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' } 
+        }
+      );
+    }
+    
+    if (typeof maxResults !== 'number' || maxResults < 1 || maxResults > 10) {
+      return new Response(
+        JSON.stringify({ error: "maxResults must be a number between 1 and 10" }),
+        { 
+          status: 400, 
+          headers: { ...corsHeaders, 'Content-Type': 'application/json' } 
+        }
+      );
+    }
+    
+    console.log(`📥 [${new Date().toISOString()}] Request: ${appDescription.substring(0, 100)}... (maxResults: ${maxResults})`);
+    
+    // Search for competitors using web search
+    const competitors = await searchCompetitors(appDescription.trim(), maxResults);
+    
+        // Prepare the response
     const response: CompetitorResponse = {
       competitors,
-      searchQuery: `top competitors for ${appDescription} app`,
-      timestamp: new Date().toISOString()
+      searchQuery: `competitors for ${appDescription.trim()}`,
+      timestamp: new Date().toISOString(),
+      processingTimeMs: Date.now() - startTime,
+      resultCount: competitors.length,
+      webSearchUsed: true
     };
     
-    console.log(`✅ Found ${competitors.length} competitors`);
+    console.log(`✅ [${new Date().toISOString()}] Success: Found ${competitors.length} competitors in ${Date.now() - startTime}ms using web search`);
     
     return new Response(
       JSON.stringify(response),
       { 
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' } 
+        headers: { 
+          ...corsHeaders, 
+          'Content-Type': 'application/json',
+          'Cache-Control': 'public, max-age=1800' // Cache for 30 minutes (web search results change)
+        } 
       }
     );
     
-  } catch (error) {
-    console.error("❌ Error processing request:", error);
+  } catch (error: unknown) {
+    const processingTime = Date.now() - startTime;
+    console.error(`❌ [${new Date().toISOString()}] Error after ${processingTime}ms:`, error);
+    
+    // Don't expose internal errors in production
+    const isProduction = Deno.env.get("ENVIRONMENT") === "production";
+    const errorMessage = isProduction ? "Internal server error" : (error instanceof Error ? error.message : "Unknown error occurred");
     
     return new Response(
       JSON.stringify({ 
-        error: error instanceof Error ? error.message : "Unknown error occurred",
-        timestamp: new Date().toISOString()
+        error: errorMessage,
+        timestamp: new Date().toISOString(),
+        processingTimeMs: processingTime,
+        webSearchUsed: true,
+        ...(isProduction ? {} : { details: error instanceof Error ? error.stack : String(error) })
       }),
       { 
         status: 500, 
@@ -317,3 +492,5 @@ serve(async (req: Request) => {
     );
   }
 });
+
+console.log("🚀 fetch-competitors function ready with OpenAI web search capability");

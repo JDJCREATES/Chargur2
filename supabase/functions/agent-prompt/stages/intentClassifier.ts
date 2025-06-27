@@ -39,7 +39,7 @@ CLASSIFICATION GUIDELINES:
 2. Consider implicit references to stage activities or deliverables
 3. Evaluate if the message is continuing work in the current stage
 4. Identify if the message spans multiple stages
-5. When uncertain, default to the current stage
+5. When uncertain, default to whatever number first comes after the word stage in their message
 
 IMPORTANT: You must respond with valid JSON only. Do not include any explanatory text outside the JSON structure.`;
 
