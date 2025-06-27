@@ -3,7 +3,7 @@ import { motion } from 'framer-motion';
 import { 
   Lightbulb, 
   Target, 
-  Users, 
+  Users,
   TrendingUp,  
   Settings,
   Smartphone,
@@ -17,6 +17,7 @@ import { Accordion, AccordionSummary, AccordionDetails, Typography } from '@mui/
 import { ChevronDown } from 'lucide-react';
 import { Stage } from '../../../types';
 import { useAuth } from '../../../hooks/useAuth';
+import { Chip, Stack } from '@mui/material';
 
 interface IdeationDiscoveryProps {
   stage: Stage;
@@ -172,7 +173,8 @@ userPersonas: [] as UserPersona[],
 
   const quickTags = [
     'E-commerce', 'AI/ML', 'Social', 'Productivity', 'Health', 'Education',
-    'Finance', 'Entertainment', 'Travel', 'Food', 'Fitness', 'Gaming'
+    'Finance', 'Entertainment', 'Travel', 'Food', 'Fitness', 'Gaming',
+    'SaaS', 'IoT', 'AR/VR', 'Mobile App'
   ];
 
   const personas = [
@@ -195,15 +197,16 @@ userPersonas: [] as UserPersona[],
   ];
 
   const techOptions = [
-    'React', 'TypeScript', 'Tailwind CSS', 'Material-UI', 'Supabase',
-    'Firebase', 'Node.js', 'Express', 'PostgreSQL', 'MongoDB'
+    'React', 'TypeScript', 'Tailwind CSS', 'Next.js', 'Supabase',
+    'Firebase', 'Node.js', 'Express', 'PostgreSQL', 'MongoDB', 'React-Native'
   ];
 
   const uiStyles = [
-    { id: 'sleek-dark', label: 'Sleek & Dark', desc: 'Modern dark theme with bold accents' },
-    { id: 'fun-playful', label: 'Fun & Playful', desc: 'Bright colors and rounded elements' },
-    { id: 'clean-minimal', label: 'Clean & Minimal', desc: 'Simple, focused, lots of whitespace' },
-    { id: 'professional', label: 'Professional', desc: 'Corporate-friendly, trustworthy' },
+    { id: 'sleek-dark', label: 'Sleek & Dark', desc: 'Modern apps, developer tools, high-tech' },
+    { id: 'fun-playful', label: 'Fun & Playful', desc: 'Consumer apps, kids, games, lifestyle' },
+    { id: 'clean-minimal', label: 'Clean & Minimal', desc: 'Startups, design-focused tools, UX-first apps' },
+    { id: 'professional', label: 'Professional', desc: 'B2B, fintech, healthcare, enterprise' },
+    { id: 'accessible-first', label: 'Accessible-First', desc: 'Inclusive design, education, public services' },
   ];
 
     // Initialize selectedPersonas based on initialFormData
@@ -271,6 +274,8 @@ const [selectedPersonas, setSelectedPersonas] = useState<string[]>(() => {
 **Platform:** ${formData.platform} | **Style:** ${uiStyles.find(s => s.id === formData.uiStyle)?.label}
 
 **Tech Stack:** ${formData.techStack.join(', ') || 'Modern web technologies'}
+
+**UI Style:** ${uiStyles.find(s => s.id === formData.uiStyle)?.label || 'Clean & Minimal'}
     `.trim();
 
     return summary;
@@ -330,19 +335,19 @@ const [selectedPersonas, setSelectedPersonas] = useState<string[]>(() => {
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">Quick Tags</label>
               <div className="flex flex-wrap gap-1">
-                {quickTags.map((tag) => (
-                  <button
-                    key={tag}
-                    onClick={() => toggleTag(tag)}
-                    className={`px-2 py-1 text-xs rounded-full border transition-colors ${
-                      selectedTags.includes(tag)
-                        ? 'bg-blue-100 border-blue-300 text-blue-700'
-                        : 'bg-gray-50 border-gray-200 text-gray-600 hover:bg-gray-100'
-                    }`}
-                  >
-                    {tag}
-                  </button>
-                ))}
+                <Stack direction="row" spacing={1} flexWrap="wrap" useFlexGap>
+                  {quickTags.map((tag) => (
+                    <Chip
+                      key={tag}
+                      label={tag}
+                      size="small"
+                      onClick={() => toggleTag(tag)}
+                      color={selectedTags.includes(tag) ? "primary" : "default"}
+                      variant={selectedTags.includes(tag) ? "filled" : "outlined"}
+                      sx={{ margin: '2px' }}
+                    />
+                  ))}
+                </Stack>
               </div>
             </div>
           </div>
@@ -539,19 +544,19 @@ const [selectedPersonas, setSelectedPersonas] = useState<string[]>(() => {
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-2">Tech Preferences</label>
               <div className="flex flex-wrap gap-1">
-                {techOptions.map((tech) => (
-                  <button
-                    key={tech}
-                    onClick={() => toggleTechStack(tech)}
-                    className={`px-2 py-1 text-xs rounded-full border transition-colors ${
-                      formData.techStack.includes(tech)
-                        ? 'bg-purple-100 border-purple-300 text-purple-700'
-                        : 'bg-gray-50 border-gray-200 text-gray-600 hover:bg-gray-100'
-                    }`}
-                  >
-                    {tech}
-                  </button>
-                ))}
+                <Stack direction="row" spacing={1} flexWrap="wrap" useFlexGap>
+                  {techOptions.map((tech) => (
+                    <Chip
+                      key={tech}
+                      label={tech}
+                      size="small"
+                      onClick={() => toggleTechStack(tech)}
+                      color={formData.techStack.includes(tech) ? "secondary" : "default"}
+                      variant={formData.techStack.includes(tech) ? "filled" : "outlined"}
+                      sx={{ margin: '2px' }}
+                    />
+                  ))}
+                </Stack>
               </div>
             </div>
           </div>

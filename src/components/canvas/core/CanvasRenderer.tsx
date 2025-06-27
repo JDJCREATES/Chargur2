@@ -32,7 +32,9 @@ import {
   MissionNode, 
   UserPersonaNode, 
   ValuePropositionNode, 
-  CompetitorNode,
+  CompetitorNode, 
+  TechStackNode,
+  UIStyleNode,
   STAGE1_NODE_TYPES 
 } from '../customnodetypes/stage1nodes';
 
@@ -180,6 +182,10 @@ export const CanvasRenderer: React.FC<CanvasRendererProps> = ({
                       return <ValuePropositionNode {...commonProps} />;
                     case 'competitor':
                       return <CompetitorNode {...commonProps} onDelete={onNodeDelete} />;
+                    case 'techStack':
+                      return <TechStackNode {...commonProps} />;
+                    case 'uiStyle':
+                      return <UIStyleNode {...commonProps} />;
                     default:
                       return <DefaultCanvasNode 
                                 node={node} 

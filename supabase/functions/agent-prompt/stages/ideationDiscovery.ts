@@ -66,8 +66,21 @@ When asked to generate or refine a mission statement:
 COMPETITOR ANALYSIS:
 ${hasCompetitorData ? `I have fetched real competitor data for you to analyze and incorporate into your response. Use this data to provide insights about the competitive landscape and help the user position their app effectively.` : 'If the user asks about competitors, I will fetch real competitor data for analysis.'}
 
+TECH STACK RECOMMENDATIONS:
+- Mobile-focused apps → React Native, Expo, Firebase
+- Web apps → React, Next.js, Tailwind CSS
+- Full-stack apps → TypeScript, Node.js, PostgreSQL
+- Real-time apps → Supabase, Socket.io, Firebase
+- Data-heavy apps → MongoDB, Express, Node.js
+
+UI STYLE RECOMMENDATIONS:
+- Sleek & Dark → Modern apps, developer tools, high-tech
+- Fun & Playful → Consumer apps, kids, games, lifestyle
+- Clean & Minimal → Startups, design-focused tools, UX-first apps
+- Professional → B2B, fintech, healthcare, enterprise
+- Accessible-First → Inclusive design, education, public services`;
+
   const userPrompt = `User message: "${userMessage}"
-}
 
 ${hasCompetitorData ? `I've searched the web and found ${allStageData['ideation-discovery'].competitors.length} competitors for your app idea:
 
@@ -91,14 +104,17 @@ Respond in this exact JSON format:
     "missionStatement": "formal mission statement",
     "competitors": ${hasCompetitorData ? JSON.stringify(allStageData['ideation-discovery'].competitors) : '[]'},
     "userPersonas": [
+@@ .. @@
       {
         "name": "Primary User",
         "role": "Professional Role",
         "painPoint": "Main challenge or goal",
         "emoji": "👤"
       }
-    ],
-    "valueProposition": "unique value proposition"
+    ], 
+    "valueProposition": "unique value proposition",
+    "techStack": ["React", "TypeScript", "Tailwind CSS"],
+    "uiStyle": "clean-minimal"
   },
   "stageComplete": false,
   "context": {

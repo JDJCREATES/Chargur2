@@ -183,6 +183,51 @@ export function processIdeationData(
       }
     });
   }
+  
+  // Process tech stack if available
+  if (ideationData.techStack && Array.isArray(ideationData.techStack) && ideationData.techStack.length > 0) {
+    // Check if tech stack node already exists
+    const existingTechStackNode = nodes.find(node => 
+      node.type === 'techStack' && node.metadata?.stage === 'ideation-discovery');
+    
+    if (existingTechStackNode) {
+      // Update existing node
+      const index = nodes.findIndex(node => 
+        node.type === 'techStack' && node.metadata?.stage === 'ideation-discovery');
+      if (index !== -1) {
+        nodes[index] = {
+          ...nodes[index],
+          techStack: ideationData.techStack
+        };
+      }
+    } else {
+      // Create new node
+      nodes.push(nodeFactory.createTechStackNode(ideationData.techStack, nodes));
+    }
+  }
+  
+  // Process UI style if available
+  if (ideationData.uiStyle) {
+    // Check if UI style node already exists
+    const existingUIStyleNode = nodes.find(node => 
+      node.type === 'uiStyle' && node.metadata?.stage === 'ideation-discovery');
+    
+    if (existingUIStyleNode) {
+      // Update existing node
+      const index = nodes.findIndex(node => 
+        node.type === 'uiStyle' && node.metadata?.stage === 'ideation-discovery');
+      if (index !== -1) {
+        nodes[index] = {
+          ...nodes[index],
+          uiStyle: ideationData.uiStyle
+        };
+      }
+    } else {
+      // Create new node
+      nodes.push(nodeFactory.createUIStyleNode(ideationData.uiStyle, nodes));
+    }
+  }
+  
   console.log('Processed ideation data:', nodes.length - originalNodeCount, 'nodes added/updated');
 
   return nodes;

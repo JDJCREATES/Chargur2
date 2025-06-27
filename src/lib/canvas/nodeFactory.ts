@@ -824,6 +824,64 @@ export function createAIAnalysisNode(
 }
 
 /**
+ * Create a tech stack node
+ */
+export function createTechStackNode(
+  techStack: string[],
+  existingNodes: CanvasNodeData[] = []
+): CanvasNodeData {
+  return {
+    id: uuidv4(),
+    type: 'techStack',
+    title: 'Tech Stack',
+    content: '',
+    position: getSmartNodePosition(
+      existingNodes,
+      { width: 180, height: 120 },
+      'techStack',
+      { x: 500, y: 400 },
+      'ideation-discovery'
+    ),
+    size: { width: 180, height: 120 },
+    color: 'indigo',
+    connections: [],
+    metadata: { stage: 'ideation-discovery', nodeType: 'techStack' },
+    techStack: techStack,
+    editable: true,
+    resizable: true
+  };
+}
+
+/**
+ * Create a UI style node
+ */
+export function createUIStyleNode(
+  uiStyle: string,
+  existingNodes: CanvasNodeData[] = []
+): CanvasNodeData {
+  return {
+    id: uuidv4(),
+    type: 'uiStyle',
+    title: 'UI Style',
+    content: '',
+    position: getSmartNodePosition(
+      existingNodes,
+      { width: 180, height: 120 },
+      'uiStyle',
+      { x: 300, y: 400 },
+      'ideation-discovery'
+    ),
+    size: { width: 180, height: 120 },
+    color: 'pink',
+    connections: [],
+    metadata: { stage: 'ideation-discovery', nodeType: 'uiStyle' },
+    uiStyle: uiStyle,
+    editable: true,
+    resizable: true
+  };
+}
+
+/**
  * Reset the node ID counter
  * Useful for testing or when clearing the canvas
  */
