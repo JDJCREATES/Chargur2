@@ -29,6 +29,7 @@ function App() {
     updateCanvasNodes,
     updateCanvasConnections,
     initializeProject,
+    projectId,
   } = useAppStore();
 
   // Get the current stage object
@@ -56,7 +57,7 @@ function App() {
     isStreaming,
   } = useAgentChat({
     stageId: currentStage?.id || "",
-    projectId: projectId,
+    projectId: projectId || "",
     currentStageData: currentStage ? stageData[currentStage.id] : {},
     allStageData: stageData,
     onAutoFill: (data) => {

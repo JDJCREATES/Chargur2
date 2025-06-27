@@ -7,7 +7,7 @@
       Managing conversation lifecycle
 */
 
-import { useState, useCallback, useRef } from 'react';
+import React, { useState, useCallback, useRef } from 'react';
 import { useAuth } from './useAuth';
 import { ChatStorageManager } from '../lib/auth/chat/chatStorage';
 import { createLLMClient, LLMRequest } from '../lib/llm/llmClient';
