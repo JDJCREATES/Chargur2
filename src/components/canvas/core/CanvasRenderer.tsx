@@ -35,6 +35,7 @@ import {
   CompetitorNode, 
   TechStackNode,
   UIStyleNode,
+  PlatformNode,
   STAGE1_NODE_TYPES 
 } from '../customnodetypes/stage1nodes';
 
@@ -186,6 +187,8 @@ export const CanvasRenderer: React.FC<CanvasRendererProps> = ({
                       return <TechStackNode {...commonProps} />;
                     case 'uiStyle':
                       return <UIStyleNode {...commonProps} />;
+                    case 'platform':
+                      return <PlatformNode {...commonProps} />;
                     default:
                       return <DefaultCanvasNode 
                                 node={node} 

@@ -198,7 +198,7 @@ userPersonas: [] as UserPersona[],
 
   const techOptions = [
     'React', 'TypeScript', 'Tailwind CSS', 'Next.js', 'Supabase',
-    'Firebase', 'Node.js', 'Express', 'PostgreSQL', 'MongoDB', 'React-Native'
+    'Firebase', 'Node.js', 'Express', 'PostgreSQL', 'MongoDB', 'React-Native', 'Expo'
   ];
 
   const uiStyles = [

@@ -184,6 +184,28 @@ export function processIdeationData(
     });
   }
   
+  // Process platform if available
+  if (ideationData.platform) {
+    // Check if platform node already exists
+    const existingPlatformNode = nodes.find(node => 
+      node.type === 'platform' && node.metadata?.stage === 'ideation-discovery');
+    
+    if (existingPlatformNode) {
+      // Update existing node
+      const index = nodes.findIndex(node => 
+        node.type === 'platform' && node.metadata?.stage === 'ideation-discovery');
+      if (index !== -1) {
+        nodes[index] = {
+          ...nodes[index],
+          platform: ideationData.platform
+        };
+      }
+    } else {
+      // Create new node
+      nodes.push(nodeFactory.createPlatformNode(ideationData.platform, nodes));
+    }
+  }
+  
   // Process tech stack if available
   if (ideationData.techStack && Array.isArray(ideationData.techStack) && ideationData.techStack.length > 0) {
     // Check if tech stack node already exists

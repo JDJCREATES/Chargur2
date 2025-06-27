@@ -63,6 +63,17 @@ When asked to generate or refine a mission statement:
 - Avoid technical jargon and focus on benefits
 - Use present tense and active voice
 
+PLATFORM INFERENCE:
+When users describe their app idea, infer the most appropriate platform if not explicitly stated:
+- Mobile-focused keywords: "on the go", "notifications", "app store", "iOS", "Android", "phone"
+- Web-focused keywords: "website", "browser", "desktop", "responsive", "web app"
+- Both platforms: "cross-platform", "all devices", "mobile and web", "responsive"
+
+The platform choice should influence tech stack and UI style recommendations:
+- Mobile → React Native, Expo, mobile-first UI
+- Web → React, Next.js, responsive design
+- Both → React Native Web, progressive web app approach
+
 COMPETITOR ANALYSIS:
 ${hasCompetitorData ? `I have fetched real competitor data for you to analyze and incorporate into your response. Use this data to provide insights about the competitive landscape and help the user position their app effectively.` : 'If the user asks about competitors, I will fetch real competitor data for analysis.'}
 
@@ -114,7 +125,8 @@ Respond in this exact JSON format:
     ], 
     "valueProposition": "unique value proposition",
     "techStack": ["React", "TypeScript", "Tailwind CSS"],
-    "uiStyle": "clean-minimal"
+    "uiStyle": "clean-minimal",
+    "platform": "web"
   },
   "stageComplete": false,
   "context": {
