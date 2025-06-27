@@ -9,6 +9,7 @@ import React, { useState } from 'react';
 import { motion } from 'framer-motion';
 import { Stage, StageData, Connection } from '../../types';
 import { SpatialCanvas } from '../canvas/SpatialCanvas';
+import { Logo } from './Logo';
 import { useAppStore } from '../../store/useAppStore';
 import { UserChatOverlay } from '../chat/UserChatOverlay';
 import { CanvasNodeData } from '../canvas/CanvasNode';
@@ -107,10 +108,10 @@ export const Canvas: React.FC<CanvasProps> = ({
       <motion.div
         initial={{ y: -20, opacity: 0 }}
         animate={{ y: 0, opacity: 1 }}
-        transition={{ delay: 0.1 }}
-        className="bg-white border-b border-gray-200 px-4 py-3 flex-shrink-0"
+        transition={{ delay: 0.1 }}  
+        className="bg-white border-b border-gray-200 px-4 py-3 flex-shrink-0 flex justify-between items-center"
       >
-        <div className="flex items-center justify-between">
+        <div className="flex items-center">
           <div>
             <h1 className="text-xl font-semibold text-gray-800">{currentStage.title}   
               
@@ -127,11 +128,11 @@ export const Canvas: React.FC<CanvasProps> = ({
             </motion.span>
           )}
         </div> 
-         <h2 className="items-center space-x-2 pr-5 font-chargur inline-flex">ChargUr </h2>
         </div>
-      
-          </div>
-         
+        </div>
+        
+        {/* Logo */}
+        <Logo size="lg" />
       </motion.div>
 
       {/* Canvas Content - Flexible Height with Chat Overlay */}

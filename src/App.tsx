@@ -8,6 +8,7 @@ import { useAppStore } from "./store/useAppStore";
 import { useAgentChat } from "./hooks/useAgentChat";
 import { LoginModal } from './components/auth/LoginModal';
 import { StageProgressBubbles } from './components/ui/StageProgressBubbles';
+import { Logo } from './components/layout/Logo';
 
 function App() {
   const [isSidebarOpen, setIsSidebarOpen] = useState(true);
@@ -172,7 +173,8 @@ function App() {
         <div className={`absolute bottom-4 left-1/2 transform -translate-x-1/2 z-40 transition-all duration-300 ${
           isSidebarOpen ? "-ml-40" : ""
         }`}>
-          <div className="bg-white bg-opacity-90 backdrop-blur-sm rounded-lg shadow-md border border-gray-200 p-3">
+          <div className="bg-white bg-opacity-90 backdrop-blur-sm rounded-lg shadow-md border border-gray-200 p-3 flex items-center justify-between space-x-4">
+            <Logo size="md" />
             <StageProgressBubbles 
               stages={stages} 
               onStageClick={goToStage}
