@@ -57,6 +57,7 @@ userPersonas: [] as UserPersona[],
     ...defaultFormData,
     ...(initialFormData || {})
   }));
+  const [isSearchingCompetitors, setIsSearchingCompetitors] = useState(false);
 
   const [selectedTags, setSelectedTags] = useState<string[]>([]);
 
@@ -70,6 +71,62 @@ userPersonas: [] as UserPersona[],
   const addCompetitor = (competitor: any) => {
     const competitors = formData.competitors || [];
     updateFormData('competitors', [...competitors, competitor]);
+  };
+
+  // Function to search for competitors using the Edge Function
+  const searchCompetitors = async () => {
+    if (!formData.appIdea) {
+      alert('Please describe your app idea first.');
+      return;
+    }
+    
+    try {
+      setIsSearchingCompetitors(true);
+      
+      const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
+      const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY;
+      
+      if (!supabaseUrl || !supabaseAnonKey) {
+        throw new Error('Missing Supabase configuration');
+      }
+      
+      // Call the fetch-competitors Edge Function
+      const response = await fetch(`${supabaseUrl}/functions/v1/fetch-competitors`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${localStorage.getItem('supabase.auth.token') || ''}`,
+        },
+        body: JSON.stringify({
+          appDescription: formData.appIdea,
+          maxResults: 3 // Limit to 3 competitors for now
+        })
+      });
+      
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(`API error: ${errorData.error || response.statusText}`);
+      }
+      
+      const data = await response.json();
+      
+      // Add the competitors to the form data
+      if (data.competitors && Array.isArray(data.competitors)) {
+        // Update the form data with the new competitors
+        const currentCompetitors = formData.competitors || [];
+        const newCompetitors = data.competitors.filter((comp: any) => 
+          !currentCompetitors.some((existing: any) => existing.name === comp.name)
+        );
+        
+        updateFormData('competitors', [...currentCompetitors, ...newCompetitors]);
+      }
+      
+    } catch (error) {
+      console.error('Failed to search for competitors:', error);
+      alert(`Failed to search for competitors: ${error instanceof Error ? error.message : 'Unknown error'}`);
+    } finally {
+      setIsSearchingCompetitors(false);
+    }
   };
 
   const quickTags = [
@@ -375,28 +432,26 @@ const [selectedPersonas, setSelectedPersonas] = useState<string[]>(() => {
                 className="w-full p-2 border border-gray-200 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
               />
               <div className="mt-2 flex justify-end">
-                <button
-                  onClick={() => {
-                    if (formData.appIdea) {
-                      // This would trigger the AI to search for competitors
-                      // The actual implementation would be handled by the agent chat
-                      const message = `Find competitors for my app: ${formData.appIdea}`;
-                      // This is a placeholder - in a real implementation, you would call the agent
-                      console.log('Would send message to agent:', message);
-                      // For now, just log that this would happen
-                      alert('This would trigger the AI to search for competitors based on your app idea.');
-                    } else {
-                      alert('Please describe your app idea first.');
-                    }
-                  }}
-                  className="flex items-center gap-1 px-2 py-1 text-xs bg-orange-600 text-white rounded hover:bg-orange-700 transition-colors"
-                >
-                  <svg xmlns="http://www.w3.org/2000/svg" className="w-3 h-3" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                    <circle cx="11" cy="11" r="8"></circle>
-                    <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
-                  </svg>
-                  Find Competitors
-                </button>
+                {isSearchingCompetitors ? (
+                  <button
+                    disabled
+                    className="flex items-center gap-1 px-2 py-1 text-xs bg-gray-400 text-white rounded cursor-not-allowed"
+                  >
+                    <div className="w-3 h-3 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
+                    Searching...
+                  </button>
+                ) : (
+                  <button
+                    onClick={searchCompetitors}
+                    className="flex items-center gap-1 px-2 py-1 text-xs bg-orange-600 text-white rounded hover:bg-orange-700 transition-colors"
+                  >
+                    <svg xmlns="http://www.w3.org/2000/svg" className="w-3 h-3" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                      <circle cx="11" cy="11" r="8"></circle>
+                      <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+                    </svg>
+                    Find Competitors
+                  </button>
+                )}
               </div>
             </div>
           </div>
