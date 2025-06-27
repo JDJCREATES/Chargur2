@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { motion } from 'framer-motion';
 import { ChevronLeft, ChevronRight, ChevronDown } from 'lucide-react';
 import { GiUnplugged } from 'react-icons/gi';
