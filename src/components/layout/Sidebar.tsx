@@ -19,7 +19,6 @@ import { AutoPromptEngine } from '../stages/content/AutoPromptEngine';
 import { ExportPanel } from '../export/ExportPanel';
 import { Stage, ChatMessage } from '../../types';
 
-import { StageProgressBubbles } from '../ui/StageProgressBubbles';
 
 interface AgentChatProps {
   sendMessage: (message: string) => void;
@@ -236,8 +235,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
                           isComplete: agentChat.isComplete,
                           suggestions: agentChat.suggestions,
                           isStreaming: agentChat.isStreaming,
-                          error: agentChat.error,
-                          debug: agentChat.debug
+                          error: agentChat.error
                         }
                       : undefined
                   }

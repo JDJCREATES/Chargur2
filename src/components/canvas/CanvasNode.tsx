@@ -1,7 +1,8 @@
     export interface CanvasNodeData {
   id: string;
   type: 'concept' | 'feature' | 'ux-flow' | 'wireframe' | 'system' | 'agent-output' | 
-        'appName' | 'tagline' | 'coreProblem' | 'mission' | 'userPersona' | 'valueProp' | 'competitor';
+        'appName' | 'tagline' | 'coreProblem' | 'mission' | 'userPersona' | 'valueProp' | 'competitor' |
+        'techStack' | 'uiStyle' | 'platform';
   title: string;
   content: string;
   position: { x: number; y: number };
@@ -32,6 +33,10 @@
   marketPositioning?: string;
   strengths?: string[];
   weaknesses?: string[];
+  // Add properties for the new node types
+  techStack?: string[];
+  uiStyle?: string;
+  platform?: string;
 }
 
 interface CanvasNodeProps {
