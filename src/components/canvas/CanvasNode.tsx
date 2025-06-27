@@ -24,6 +24,14 @@
   notes?: string;
   link?: string;
   missionStatement?: string;
+  // Enhanced competitor node properties
+  domain?: string;
+  tagline?: string;
+  features?: string[];
+  pricingTiers?: string[];
+  marketPositioning?: string;
+  strengths?: string[];
+  weaknesses?: string[];
 }
 
 interface CanvasNodeProps {
