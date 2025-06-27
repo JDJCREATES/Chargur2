@@ -312,8 +312,8 @@ export const useAgentChat = ({
       );
 
       if (response.ok) {
-        console.log(`📚 Found ${responses.length} messages in history`);
         const responses = await response.json();
+        console.log(`📚 Found ${responses.length} messages in history`);
         const historyMessages: ChatMessage[] = [];
         
         responses.forEach((resp: any) => {
