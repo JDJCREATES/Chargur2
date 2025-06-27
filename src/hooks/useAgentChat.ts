@@ -608,13 +608,15 @@ const processWithEdgeFunction = useCallback(async (
       type: 'user',
     };
     
+    // Update history messages first
     setState(prev => ({
       ...prev,
       historyMessages: [...prev.historyMessages, userMsg]
-    }), () => {
-      // Reset response state after adding user message
-      setState(prev => ({
-        ...prev,
+    }));
+    
+    // Then reset response state (React will batch these updates)
+    setState(prev => ({
+      ...prev,
       isLoading: true,
       error: null,
       content: '',
@@ -622,8 +624,7 @@ const processWithEdgeFunction = useCallback(async (
       autoFillData: {},
       isComplete: false,
       goToStageId: null
-      }));
-    });
+    }));
 
     retryCountRef.current = 0;
 
