@@ -6,6 +6,7 @@
  * by both the CanvasDataProcessor and the SpatialCanvas components.
  */
 
+import { v4 as uuidv4 } from 'uuid';
 import { CanvasNodeData } from '../../components/canvas/CanvasNode';
 import { STAGE1_NODE_TYPES, STAGE1_NODE_DEFAULTS } from '../../components/canvas/customnodetypes/stage1nodes';
 import { getSmartNodePosition } from './nodePlacementUtils';
@@ -173,7 +174,7 @@ export function createUserPersonaNode(
   };
   
   return {
-    id: `userPersona-${Date.now()}-${index}`,
+    id: uuidv4(),
     type: 'userPersona',
     title: 'User Persona',
     content: '',
@@ -206,7 +207,7 @@ export function createLegacyUserPersonaNode(
   const defaults = STAGE1_NODE_DEFAULTS.userPersona;
   
   return {
-    id: `userPersona-${Date.now()}`,
+    id: uuidv4(),
     type: 'userPersona',
     title: 'User Persona',
     content: '',
@@ -240,7 +241,7 @@ export function createCompetitorNode(
   const defaults = STAGE1_NODE_DEFAULTS.competitor;
   
   return {
-    id: `competitor-${Date.now()}-${index}`,
+    id: uuidv4(),
     type: 'competitor',
     title: 'Competitor',
     content: '',
@@ -296,7 +297,7 @@ export function createFeaturePackNode(
   };
   
   return {
-    id: `feature-${nodeIdCounter++}`,
+    id: uuidv4(),
     type: 'feature',
     title: packNames[pack] || pack.charAt(0).toUpperCase() + pack.slice(1),
     content: `Feature pack selected\nIncludes core ${pack} functionality`,
@@ -310,7 +311,7 @@ export function createFeaturePackNode(
     size: { width: 180, height: 100 },
     color: 'blue',
     connections: [],
-    metadata: { stage: 'feature-planning', pack },
+    metadata: { stage: 'feature-planning', pack, sourceId: pack },
     resizable: true
   };
 }
@@ -331,7 +332,7 @@ export function createCustomFeatureNode(
   };
   
   return {
-    id: `feature-${feature.id || Date.now()}`,
+    id: uuidv4(),
     type: 'feature',
     title: feature.name,
     content: `${feature.description || 'Custom feature'}\n\nPriority: ${feature.priority || 'medium'}\nComplexity: ${feature.complexity || 'medium'}`,
@@ -345,7 +346,7 @@ export function createCustomFeatureNode(
     size: { width: 180, height: 120 },
     color: 'blue',
     connections: [],
-    metadata: { stage: 'feature-planning', custom: true, featureId: feature.id },
+    metadata: { stage: 'feature-planning', custom: true, sourceId: feature.id },
     resizable: true
   };
 }
@@ -358,7 +359,7 @@ export function createNaturalLanguageFeatureNode(
   existingNodes: CanvasNodeData[] = []
 ): CanvasNodeData {
   return {
-    id: `feature-${nodeIdCounter++}`,
+    id: uuidv4(),
     type: 'feature',
     title: 'Feature Description',
     content: naturalLanguageFeatures,
@@ -393,7 +394,7 @@ export function createScreenNode(
   };
   
   return {
-    id: `ux-flow-${nodeIdCounter++}`,
+    id: uuidv4(),
     type: 'ux-flow',
     title: screen.name,
     content: `Screen type: ${screen.type}\n\n${screen.description || 'Core app screen'}`,
@@ -407,7 +408,7 @@ export function createScreenNode(
     size: { width: 150, height: 100 },
     color: 'green',
     connections: [],
-    metadata: { stage: 'structure-flow', screenType: screen.type },
+    metadata: { stage: 'structure-flow', screenType: screen.type, sourceId: screen.id },
     resizable: true
   };
 }
@@ -428,7 +429,7 @@ export function createUserFlowNode(
   };
   
   return {
-    id: `ux-flow-${nodeIdCounter++}`,
+    id: uuidv4(),
     type: 'ux-flow',
     title: flow.name,
     content: `User journey:\n${flow.steps?.slice(0, 3).join(' → ') || 'Flow steps'}${flow.steps?.length > 3 ? '...' : ''}`,
@@ -442,7 +443,7 @@ export function createUserFlowNode(
     size: { width: 200, height: 120 },
     color: 'green',
     connections: [],
-    metadata: { stage: 'structure-flow', flowType: 'user-journey' },
+    metadata: { stage: 'structure-flow', flowType: 'user-journey', sourceId: flow.id },
     resizable: true
   };
 }
@@ -463,7 +464,7 @@ export function createDatabaseTableNode(
   };
   
   return {
-    id: `system-${nodeIdCounter++}`,
+    id: uuidv4(),
     type: 'system',
     title: `${table.name} Table`,
     content: `Database table\n\nFields:\n${table.fields?.slice(0, 4).map((f: any) => `• ${f.name}`).join('\n') || 'No fields defined'}${table.fields?.length > 4 ? '\n...' : ''}`,
@@ -477,7 +478,7 @@ export function createDatabaseTableNode(
     size: { width: 180, height: 100 },
     color: 'red',
     connections: [],
-    metadata: { stage: 'architecture-design', tableType: 'database' },
+    metadata: { stage: 'architecture-design', tableType: 'database', sourceId: table.id },
     resizable: true
   };
 }
@@ -492,7 +493,7 @@ export function createAPIEndpointsNode(
   existingNodes: CanvasNodeData[] = []
 ): CanvasNodeData {
   return {
-    id: `system-${nodeIdCounter++}`,
+    id: uuidv4(),
     type: 'system',
     title: 'API Endpoints',
     content: `${apiEndpoints.length} endpoints defined\n\nIncludes REST API routes for data operations`,
@@ -527,7 +528,7 @@ export function createRouteNode(
   };
   
   return {
-    id: `system-${nodeIdCounter++}`,
+    id: uuidv4(),
     type: 'system',
     title: `${route.path} Route`,
     content: `Component: ${route.component}\nProtected: ${route.protected ? 'Yes' : 'No'}\n\n${route.description}`,
@@ -541,7 +542,7 @@ export function createRouteNode(
     size: { width: 140, height: 90 },
     color: 'red',
     connections: [],
-    metadata: { stage: 'architecture-design', routeType: 'page' },
+    metadata: { stage: 'architecture-design', routeType: 'page', sourceId: route.id },
     resizable: true
   };
 }
@@ -556,7 +557,7 @@ export function createDesignSystemNode(
   existingNodes: CanvasNodeData[] = []
 ): CanvasNodeData {
   return {
-    id: `ui-${nodeIdCounter++}`,
+    id: uuidv4(),
     type: 'wireframe',
     title: 'Design System',
     content: `${designSystem}\n\nComponent library and styling approach`,
@@ -585,7 +586,7 @@ export function createBrandingNode(
   existingNodes: CanvasNodeData[] = []
 ): CanvasNodeData {
   return {
-    id: `ui-${nodeIdCounter++}`,
+    id: uuidv4(),
     type: 'wireframe',
     title: 'Brand Colors',
     content: `Primary: ${branding.primaryColor}\nSecondary: ${branding.secondaryColor}\nFont: ${branding.fontFamily}`,
@@ -614,7 +615,7 @@ export function createLayoutNode(
   existingNodes: CanvasNodeData[] = []
 ): CanvasNodeData {
   return {
-    id: `ui-${nodeIdCounter++}`,
+    id: uuidv4(),
     type: 'wireframe',
     title: 'Layout Structure',
     content: `${layoutBlocks.length} layout blocks\n\n${layoutBlocks.map((block: any) => block.type).join(', ')}`,
@@ -643,7 +644,7 @@ export function createAuthMethodsNode(
   existingNodes: CanvasNodeData[] = []
 ): CanvasNodeData {
   return {
-    id: `auth-${nodeIdCounter++}`,
+    id: uuidv4(),
     type: 'system',
     title: 'Auth Methods',
     content: `${authMethods.length} methods enabled\n\n${authMethods.map((m: any) => `• ${m.name}`).join('\n')}`,
@@ -672,7 +673,7 @@ export function createUserRolesNode(
   existingNodes: CanvasNodeData[] = []
 ): CanvasNodeData {
   return {
-    id: `auth-${nodeIdCounter++}`,
+    id: uuidv4(),
     type: 'system',
     title: 'User Roles',
     content: `${userRoles.length} roles defined\n\n${userRoles.map((r: any) => {
@@ -709,7 +710,7 @@ export function createSecurityFeaturesNode(
   existingNodes: CanvasNodeData[] = []
 ): CanvasNodeData {
   return {
-    id: `auth-${nodeIdCounter++}`,
+    id: uuidv4(),
     type: 'system',
     title: 'Security Features',
     content: `${securityFeatures.length} features enabled\n\n${securityFeatures.slice(0, 4).map((f: any) => `• ${f.name}`).join('\n')}${securityFeatures.length > 4 ? '\n...' : ''}`,
@@ -799,7 +800,7 @@ export function createAIAnalysisNode(
   }
 
   return {
-    id: `ai-analysis-${nodeIdCounter++}`,
+    id: uuidv4(),
     type: 'agent-output',
     title: 'AI Analysis',
     content,

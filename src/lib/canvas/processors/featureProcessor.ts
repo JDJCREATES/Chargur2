@@ -66,7 +66,7 @@ export function processFeatureData(
       // Check if this custom feature already exists by ID
       const existingNode = existingFeaturePlanningNodes.find(node => 
         node.metadata?.custom === true && 
-        node.metadata?.featureId === feature.id);
+        node.metadata?.sourceId === feature.id);
       
       if (existingNode) {
         // Keep the existing node, but update its content if needed
