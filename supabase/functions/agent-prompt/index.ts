@@ -497,6 +497,14 @@ async function processAgentRequest(controller: ReadableStreamDefaultController, 
       intentResult = { competitorSearchIntent: false }
     }
     
+    // Add this right after intent classification:
+    console.log('🔍 Intent classification debug:')
+    console.log('- User message:', userMessage)
+    console.log('- Intent response raw:', intentResponse)
+    console.log('- Intent result parsed:', JSON.stringify(intentResult, null, 2))
+    console.log('- Competitor search intent:', intentResult.competitorSearchIntent)
+    console.log('- Intent type:', typeof intentResult.competitorSearchIntent)
+    
     // STEP 2: Handle competitor search if detected
     if (intentResult.competitorSearchIntent === true) {
       console.log('🎯 Competitor search intent detected! Calling fetch-competitors...')
