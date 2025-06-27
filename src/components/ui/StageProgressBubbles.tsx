@@ -18,16 +18,15 @@ export const StageProgressBubbles: React.FC<StageProgressBubblesProps> = ({
   size = 'md',
   showLabels = false,
 }) => {
-  // Only show the first 7 stages for the battery visualization
-  const batteryStages = stages.slice(0, 7);
-  const remainingStages = stages.slice(7);
+  // Show all stages in the battery visualization
+  const batteryStages = stages;
 
   // Calculate completion percentage
   const completedStages = batteryStages.filter(stage => stage.completed).length;
   const completionPercentage = Math.round((completedStages / batteryStages.length) * 100);
 
   return (
-    <div className="flex items-center gap-6">
+    <div className="flex items-center gap-4">
       {/* Battery Container */}
       <div className="flex items-center">
         {/* Battery Body */}
@@ -60,7 +59,7 @@ export const StageProgressBubbles: React.FC<StageProgressBubblesProps> = ({
                 <div className="h-full flex items-center justify-center">
                   <motion.span
                     initial={{ scale: 0.8 }}
-                    animate={{ scale: stage.active ? 1.1 : 1 }}
+                    animate={{ scale: stage.active ? 1.05 : 1 }}
                     transition={{ duration: 0.2 }}
                     className="relative z-10 text-xs font-medium text-white"
                   >
@@ -110,47 +109,12 @@ export const StageProgressBubbles: React.FC<StageProgressBubblesProps> = ({
       </div>
 
       {/* Progress Info */}
-      <div className="text-gray-700">
-        <div className="text-sm font-semibold">{completedStages}/{batteryStages.length} Stages</div>
-        <div className="text-xs text-gray-500">
+      <div className="text-gray-700 text-center">
+        <div className="text-xs font-semibold">{completedStages}/{batteryStages.length} Stages</div>
+        <div className="text-xs text-gray-500 whitespace-nowrap">
           {completionPercentage}% Complete
         </div>
       </div>
-
-      {/* Additional Buttons for Auto-Prompt and Export */}
-      {remainingStages.length > 0 && (
-        <div className="flex gap-2">
-          <motion.button
-            onClick={() => onStageClick(remainingStages[0].id)}
-            initial={{ opacity: 0, scale: 0.8 }}
-            animate={{ opacity: 1, scale: 1 }}
-            transition={{ delay: 0.4 }}
-            whileHover={{ scale: 1.05 }}
-            whileTap={{ scale: 0.95 }}
-            className="flex items-center gap-1 px-3 py-2 bg-purple-600 text-white rounded-lg shadow-sm hover:bg-purple-700 transition-colors"
-            title={remainingStages[0]?.title || 'Auto-Prompt'}
-          >
-            <Zap className="w-4 h-4" />
-            <span className="text-sm">Auto-Prompt</span>
-          </motion.button>
-
-          {remainingStages.length > 1 && (
-            <motion.button
-              onClick={() => onStageClick(remainingStages[1].id)}
-              initial={{ opacity: 0, scale: 0.8 }}
-              animate={{ opacity: 1, scale: 1 }}
-              transition={{ delay: 0.5 }}
-              whileHover={{ scale: 1.05 }}
-              whileTap={{ scale: 0.95 }}
-              className="flex items-center gap-1 px-3 py-2 bg-green-600 text-white rounded-lg shadow-sm hover:bg-green-700 transition-colors"
-              title={remainingStages[1]?.title || 'Export'}
-            >
-              <FileText className="w-4 h-4" />
-              <span className="text-sm">Export</span>
-            </motion.button>
-          )}
-        </div>
-      )}
     </div>
   );
 };

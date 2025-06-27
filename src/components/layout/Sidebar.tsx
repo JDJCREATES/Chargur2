@@ -203,8 +203,33 @@ export const Sidebar: React.FC<SidebarProps> = ({
           </div>
         </div>
 
+        {/* Stage Progress */}
+        <div className={`transition-opacity duration-200 ${isOpen ? 'opacity-100' : 'opacity-0'}`}>
+          <div className="p-4 border-b border-gray-200">
+            <div className="flex justify-between items-center">
+              <div className="text-sm font-medium text-gray-700">Progress</div>
+              <div className="flex gap-2">
+                <button
+                  onClick={() => onStageClick('auto-prompt-engine')}
+                  className="flex items-center gap-1 px-2 py-1 text-xs bg-purple-600 text-white rounded hover:bg-purple-700 transition-colors"
+                >
+                  <Zap className="w-3 h-3" />
+                  Auto-Prompt
+                </button>
+                <button
+                  onClick={() => onStageClick('export-handoff')}
+                  className="flex items-center gap-1 px-2 py-1 text-xs bg-green-600 text-white rounded hover:bg-green-700 transition-colors"
+                >
+                  <FileText className="w-3 h-3" />
+                  Export
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+
         {/* Stage Form */}
-        <div className={`flex-1 overflow-y-auto transition-opacity duration-200 ${isOpen ? 'opacity-100' : 'opacity-0'}`}>
+        <div className={`flex-1 overflow-y-auto transition-opacity duration-200 ${isOpen ? 'opacity-100' : 'opacity-0'} pt-2`}>
           {renderStageForm()}
         </div>
 
