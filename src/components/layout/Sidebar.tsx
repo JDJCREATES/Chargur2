@@ -46,7 +46,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
   agentChat
 }) => {
   // State to control chat accordion expansion
-  const [isChatAccordionExpanded, setIsChatAccordionExpanded] = useState(true);
+  const [isChatAccordionExpanded, setIsChatAccordionExpanded] = useState(false);
 
   // Get data from store instead of props:
   const { 
@@ -73,12 +73,12 @@ export const Sidebar: React.FC<SidebarProps> = ({
   // Effect to automatically expand chat accordion when messages are sent or received
   useEffect(() => {
     // Only expand if the sidebar is open and there's activity in the chat
-    if (isOpen && (agentChat.isLoading || agentChat.isStreaming || agentChat.content)) {
+    if (isOpen && (agentChat.isLoading || agentChat.isStreaming)) {
       // Expand the chat accordion
       setIsChatAccordionExpanded(true);
     }
   }, [
-    isOpen, agentChat.isLoading, agentChat.isStreaming, agentChat.content, projectId
+    isOpen, agentChat.isLoading, agentChat.isStreaming, projectId
   ]);
 
   const handleRetry = () => {

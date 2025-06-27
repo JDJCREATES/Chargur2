@@ -234,12 +234,13 @@ export function createLegacyUserPersonaNode(
  */
 export function createCompetitorNode(
   competitor: any, 
+  index: number = 0,
   existingNodes: CanvasNodeData[] = []
 ): CanvasNodeData {
   const defaults = STAGE1_NODE_DEFAULTS.competitor;
   
   return {
-    id: `competitor-${Date.now()}`,
+    id: `competitor-${Date.now()}-${index}`,
     type: 'competitor',
     title: 'Competitor',
     content: '',

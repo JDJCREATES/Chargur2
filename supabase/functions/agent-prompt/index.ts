@@ -467,6 +467,7 @@ async function processAgentRequest(controller: ReadableStreamDefaultController, 
   // STEP 1: Use Intent Classifier to detect competitor search intent
   console.log('🔍 Running intent classification...')
   const llmClient = new EdgeLLMClient(llmProvider)
+  let intentResult = { competitorSearchIntent: false }
   
   // Generate intent classification prompt
   const intentContext = {
@@ -489,9 +490,10 @@ async function processAgentRequest(controller: ReadableStreamDefaultController, 
     console.log('📋 Intent classification response:', intentResponse)
     
     // Parse intent classification result
-    let intentResult
+    let competitorSearchIntent = false
     try {
       intentResult = JSON.parse(intentResponse)
+      competitorSearchIntent = intentResult.competitorSearchIntent === true
     } catch (parseError) {
       console.error('❌ Failed to parse intent classification:', parseError)
       intentResult = { competitorSearchIntent: false }
@@ -503,10 +505,10 @@ async function processAgentRequest(controller: ReadableStreamDefaultController, 
     console.log('- Intent response raw:', intentResponse)
     console.log('- Intent result parsed:', JSON.stringify(intentResult, null, 2))
     console.log('- Competitor search intent:', intentResult.competitorSearchIntent)
-    console.log('- Intent type:', typeof intentResult.competitorSearchIntent)
+    console.log('- Intent value type:', typeof intentResult.competitorSearchIntent)
     
     // STEP 2: Handle competitor search if detected
-    if (intentResult.competitorSearchIntent === true) {
+    if (competitorSearchIntent) {
       console.log('🎯 Competitor search intent detected! Calling fetch-competitors...')
       
       // Get app description from current stage or all stage data
@@ -534,10 +536,11 @@ async function processAgentRequest(controller: ReadableStreamDefaultController, 
             const competitorData = await competitorResponse.json()
             console.log('✅ Competitor search successful:', competitorData.resultCount, 'competitors found')
             
+            // Store the results for later use
             competitorSearchPerformed = true
             competitorSearchResults = competitorData
             
-            // NOW safeEnqueue is defined and can be used
+            // Send intermediate update to client
             const competitorUpdate = {
               type: 'competitor_results',
               competitors: competitorData.competitors,
@@ -550,9 +553,16 @@ async function processAgentRequest(controller: ReadableStreamDefaultController, 
             }
             
           } else {
-            const errorData = await competitorResponse.json().catch(() => ({}))
-            console.error('❌ Competitor search API error:', competitorResponse.status, errorData)
-            competitorSearchError = `API error: ${competitorResponse.status}`
+            // Handle error response
+            const errorText = await competitorResponse.text()
+            let errorData = {}
+            try {
+              errorData = JSON.parse(errorText)
+            } catch (e) {
+              // Text wasn't JSON
+            }
+            console.error('❌ Competitor search API error:', competitorResponse.status, errorData, errorText)
+            competitorSearchError = `API error: ${competitorResponse.status} - ${errorData.error || errorText || 'Unknown error'}`
           }
           
         } catch (fetchError) {
@@ -612,8 +622,10 @@ async function processAgentRequest(controller: ReadableStreamDefaultController, 
     // STEP 6: Add competitor data to autoFillData if search was performed
     if (competitorSearchPerformed && competitorSearchResults) {
       console.log('📊 Adding competitor data to autoFillData')
+      const competitors = competitorSearchResults.competitors || []
       
-      const competitorText = competitorSearchResults.competitors
+      // Create a text representation for the competitors field
+      const competitorText = competitors
         .map((comp: any) => `${comp.name} (${comp.domain}) - ${comp.tagline}`)
         .join('\n')
       
@@ -625,8 +637,8 @@ async function processAgentRequest(controller: ReadableStreamDefaultController, 
       response.autoFillData[stageId] = {
         ...response.autoFillData[stageId],
         competitors: competitorText,
-        competitorData: competitorSearchResults.competitors,
-        competitorNodes: competitorSearchResults.competitors.map((comp: any, index: number) => ({
+        competitorData: competitors,
+        competitorNodes: competitors.map((comp: any, index: number) => ({
           id: `competitor-${comp.name.toLowerCase().replace(/\s+/g, '-')}`,
           type: 'competitor',
           data: {
@@ -678,6 +690,8 @@ async function processAgentRequest(controller: ReadableStreamDefaultController, 
         stageComplete: response.stageComplete || false,
         goToStageId: suggestedPrimaryStage,
         competitorSearchPerformed,
+        competitorSearchResults: competitorSearchPerformed ? competitorSearchResults : null,
+        competitorSearchError,
         conversationId
       }
       
