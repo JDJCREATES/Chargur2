@@ -146,8 +146,8 @@ function App() {
           isSidebarOpen ? "mr-80" : "mr-12"
         }`}
       >
-        {/* Progress Bubbles - Positioned below chat bar */}
-        <div className="fixed bottom-20 left-1/2 transform -translate-x-1/2 z-40 bg-white bg-opacity-90 backdrop-blur-sm rounded-lg shadow-md border border-gray-200 p-3">
+        {/* Progress Bubbles - Positioned at the bottom center */}
+        <div className="fixed bottom-4 left-1/2 transform -translate-x-1/2 z-40 bg-white bg-opacity-90 backdrop-blur-sm rounded-lg shadow-md border border-gray-200 p-3">
           <StageProgressBubbles 
             stages={stages} 
             onStageClick={goToStage}

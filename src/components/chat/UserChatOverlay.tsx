@@ -102,10 +102,10 @@ export const UserChatOverlay: React.FC<UserChatOverlayProps> = ({
       <motion.form
         onSubmit={handleSubmit}
         className="relative"
-        whileHover={{ scale: 1.005 }}
+        whileHover={{ scale: 1.01 }}
         transition={{ duration: 0.2 }}
       >
-        <div className="flex items-end gap-3 p-3 bg-white/80 backdrop-blur-sm">
+        <div className="flex items-end gap-3 p-3 bg-white/80 backdrop-blur-sm mb-16">
           {/* Input Container */}
           <motion.div
             className="flex-1 relative"
