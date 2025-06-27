@@ -102,10 +102,10 @@ export const UserChatOverlay: React.FC<UserChatOverlayProps> = ({
       <motion.form
         onSubmit={handleSubmit}
         className="relative"
-        whileHover={{ scale: 1.01 }}
+        whileHover={{ scale: 1.005 }}
         transition={{ duration: 0.2 }}
       >
-        <div className="flex items-end gap-3 p-4 bg-white/80 backdrop-blur-sm">
+        <div className="flex items-end gap-3 p-3 bg-white/80 backdrop-blur-sm">
           {/* Input Container */}
           <motion.div
             className="flex-1 relative"
@@ -125,7 +125,7 @@ export const UserChatOverlay: React.FC<UserChatOverlayProps> = ({
               disabled={isLoading || disabled}
               className="w-full px-4 py-3 bg-white border-0 rounded-xl resize-none focus:outline-none focus:ring-2 focus:ring-blue-500/20 disabled:bg-gray-50 disabled:text-gray-500 shadow-sm transition-all duration-200"
               rows={1}
-              style={{ minHeight: '48px', maxHeight: '120px' }}
+              style={{ minHeight: '40px', maxHeight: '120px' }}
             />
             
             {/* Animated border */}
@@ -146,7 +146,7 @@ export const UserChatOverlay: React.FC<UserChatOverlayProps> = ({
             disabled={!message.trim() || isLoading || disabled}
             whileHover={{ scale: 1.05 }}
             whileTap={{ scale: 0.95 }}
-            className="flex items-center justify-center w-12 h-12 bg-blue-600 text-white rounded-xl hover:bg-blue-700 disabled:bg-gray-300 disabled:cursor-not-allowed transition-colors shadow-sm"
+            className="flex items-center justify-center w-10 h-10 bg-blue-600 text-white rounded-xl hover:bg-blue-700 disabled:bg-gray-300 disabled:cursor-not-allowed transition-colors shadow-sm"
           >
             <AnimatePresence mode="wait">
               {isLoading ? (

@@ -50,14 +50,12 @@ export const Canvas: React.FC<CanvasProps> = ({
   const [lastUserMessage, setLastUserMessage] = useState<string>('');
   const { projectId } = useAppStore();
   
-  // Use the props directly (they're already passed from App.tsx)
   const effectiveCanvasNodes = canvasNodes || [];
   const effectiveCanvasConnections = canvasConnections || [];
 
   const handleSendMessage = (message: string) => {
     setLastUserMessage(message);
     agentChat.sendMessage(message);
-    // Open the sidebar when a message is sent
     if (onOpenSidebar) {
       onOpenSidebar();
     }
@@ -167,6 +165,7 @@ export const Canvas: React.FC<CanvasProps> = ({
           initial={{ y: 50, opacity: 0 }}
           animate={{ y: 0, opacity: 1 }}
           transition={{ delay: 0.5, type: "spring", stiffness: 200 }}
+          className="mb-20"
         >
           <UserChatOverlay
             onSendMessage={handleSendMessage}
