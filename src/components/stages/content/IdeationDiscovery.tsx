@@ -167,10 +167,6 @@ userPersonas: [] as UserPersona[],
       alert(`Failed to search for competitors: ${error instanceof Error ? error.message : 'Unknown error'}`);
     } finally {
       setIsSearchingCompetitors(false);
-      console.error('Failed to search for competitors:', error);
-      alert(`Failed to search for competitors: ${error instanceof Error ? error.message : 'Unknown error'}`);
-    } finally {
-      setIsSearchingCompetitors(false);
     }
   };
 
