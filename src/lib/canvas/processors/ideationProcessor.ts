@@ -156,6 +156,25 @@ export function processIdeationData(
     }
   }
 
+  // Process competitors if available
+  if (ideationData.competitors && Array.isArray(ideationData.competitors)) {
+    // Get existing competitor nodes
+    const existingCompetitors = nodes.filter(node => 
+      node.metadata?.stage === 'ideation-discovery' && node.type === 'competitor'
+    );
+    
+    // Add new competitors that don't already exist
+    ideationData.competitors.forEach((competitor: any) => {
+      // Check if this competitor already exists by name
+      const competitorExists = existingCompetitors.some(existing => 
+        existing.name === competitor.name
+      );
+      
+      if (!competitorExists && competitor.name) {
+        nodes.push(nodeFactory.createCompetitorNode(competitor, nodes));
+      }
+    });
+  }
   console.log('Processed ideation data:', nodes.length - originalNodeCount, 'nodes added/updated');
 
   return nodes;

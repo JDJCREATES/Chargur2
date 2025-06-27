@@ -256,6 +256,13 @@ export function createCompetitorNode(
     name: competitor.name || '',
     notes: competitor.notes || '',
     link: competitor.link || '',
+    domain: competitor.domain || '',
+    tagline: competitor.tagline || '',
+    features: competitor.features || [],
+    pricingTiers: competitor.pricingTiers || [],
+    marketPositioning: competitor.marketPositioning || '',
+    strengths: competitor.strengths || [],
+    weaknesses: competitor.weaknesses || [],
     editable: true,
     resizable: true
   };

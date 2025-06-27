@@ -66,6 +66,12 @@ userPersonas: [] as UserPersona[],
     onUpdateData(updated);
   };
 
+  // Function to add a competitor
+  const addCompetitor = (competitor: any) => {
+    const competitors = formData.competitors || [];
+    updateFormData('competitors', [...competitors, competitor]);
+  };
+
   const quickTags = [
     'E-commerce', 'AI/ML', 'Social', 'Productivity', 'Health', 'Education',
     'Finance', 'Entertainment', 'Travel', 'Food', 'Fitness', 'Gaming'
@@ -368,6 +374,30 @@ const [selectedPersonas, setSelectedPersonas] = useState<string[]>(() => {
                 rows={2}
                 className="w-full p-2 border border-gray-200 rounded-md text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
               />
+              <div className="mt-2 flex justify-end">
+                <button
+                  onClick={() => {
+                    if (formData.appIdea) {
+                      // This would trigger the AI to search for competitors
+                      // The actual implementation would be handled by the agent chat
+                      const message = `Find competitors for my app: ${formData.appIdea}`;
+                      // This is a placeholder - in a real implementation, you would call the agent
+                      console.log('Would send message to agent:', message);
+                      // For now, just log that this would happen
+                      alert('This would trigger the AI to search for competitors based on your app idea.');
+                    } else {
+                      alert('Please describe your app idea first.');
+                    }
+                  }}
+                  className="flex items-center gap-1 px-2 py-1 text-xs bg-orange-600 text-white rounded hover:bg-orange-700 transition-colors"
+                >
+                  <svg xmlns="http://www.w3.org/2000/svg" className="w-3 h-3" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                    <circle cx="11" cy="11" r="8"></circle>
+                    <line x1="21" y1="21" x2="16.65" y2="16.65"></line>
+                  </svg>
+                  Find Competitors
+                </button>
+              </div>
             </div>
           </div>
         </AccordionDetails>
