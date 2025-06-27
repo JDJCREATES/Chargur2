@@ -178,7 +178,7 @@ export const useCanvasStateManager = (
     setState(prev => ({ ...prev, showGrid: !prev.showGrid }));
   }, []);
 
-  const processStageData = useCallback((stageData: any) => {
+  const processStageData = useCallback(async (stageData: any) => {
     // Prevent concurrent processing
     if (processingRef.current) {
       console.log('Already processing stage data, skipping...');
