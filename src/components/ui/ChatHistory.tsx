@@ -224,8 +224,7 @@ export const ChatHistory: React.FC<ChatHistoryProps> = ({
   return (
     <div 
       ref={scrollRef} 
-      className="flex-1 overflow-y-auto px-3 py-4 bg-transparent"
-      style={{ maxHeight: 'calc(100vh - 200px)' }}
+      className="flex-1 overflow-y-auto px-3 py-4 bg-transparent h-[calc(100vh-200px)]"
     >
       {(!messages || messages.length === 0) && !currentResponse ? (
         <div className="flex flex-col justify-center h-full py-8">

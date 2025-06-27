@@ -7,6 +7,7 @@ import { useAppStore } from '../../store/useAppStore';
 import { ChatHistory } from '../ui/ChatHistory';
 import { ChatInterface } from '../chat/ChatInterface';
 import { Settings } from '../ui/Settings';
+import { Settings } from '../ui/Settings';
 import { ProjectManager } from '../ui/ProjectManager';
 import { IdeationDiscovery } from '../stages/content/IdeationDiscovery';
 import { FeaturePlanning } from '../stages/content/FeaturePlanning';
@@ -16,10 +17,7 @@ import { ArchitectureDesign } from '../stages/content/ArchitectureDesign';
 import { UserAuthFlow } from '../stages/content/UserAuthFlow';
 import { UXReviewUserCheck } from '../stages/content/UXReviewUserCheck';
 import { AutoPromptEngine } from '../stages/content/AutoPromptEngine';
-import { ExportPanel } from '../export/ExportPanel';
 import { Stage, ChatMessage } from '../../types';
-
-import { StageProgressBubbles } from '../ui/StageProgressBubbles';
 
 interface AgentChatProps {
   sendMessage: (message: string) => void;
@@ -204,12 +202,11 @@ export const Sidebar: React.FC<SidebarProps> = ({
         </div>
 
         {/* Stage Form */}
-        <div className={`flex-1 overflow-y-auto transition-opacity duration-200 ${isOpen ? 'opacity-100' : 'opacity-0'}`}>
+        <div className={`flex-1 overflow-y-auto transition-opacity duration-200 relative ${isOpen ? 'opacity-100' : 'opacity-0'}`}>
           {renderStageForm()}
-        </div>
-
-        {/* AI Assistant */}
-        <div className={`transition-opacity duration-200 ${isOpen ? 'opacity-100' : 'opacity-0'}`}>
+          
+          {/* AI Assistant */}
+          <div className={`transition-opacity duration-200 ${isOpen ? 'opacity-100' : 'opacity-0'}`}>
           <Accordion 
             expanded={isChatAccordionExpanded}
             onChange={(_, expanded) => setIsChatAccordionExpanded(expanded)}
@@ -223,10 +220,14 @@ export const Sidebar: React.FC<SidebarProps> = ({
               <div className="flex items-center gap-2">
                 <GiUnplugged className="w-5 h-5 text-teal-500" />
                 <Typography className="font-semibold text-gray-800 font-nova-round">Charg</Typography>
+                <Zap className="w-4 h-4 text-blue-500 transform rotate-90" />
+                <Typography className="font-semibold text-gray-800 font-nova-round">r</Typography>
               </div>
             </AccordionSummary>
-            <AccordionDetails className="p-0">
-              <div className="flex flex-col max-h-[400px] bg-gray-25">
+            <AccordionDetails className="p-0 overflow-visible">
+              <div className={`flex flex-col bg-gray-25 ${
+                isChatAccordionExpanded ? 'absolute inset-0 z-[60] shadow-lg border-t border-gray-200' : ''
+              }`}>
                 <ChatHistory
                   messages={agentChat.historyMessages || []}
                   currentResponse={
@@ -254,24 +255,25 @@ export const Sidebar: React.FC<SidebarProps> = ({
                 </div>
               </div>
             </AccordionDetails>
-          </Accordion>
-        </div>
+            </Accordion>
+          </div>
 
-        {/* Settings */}
-        <div className={`transition-opacity duration-200 ${isOpen ? 'opacity-100' : 'opacity-0'}`}>
-          <Accordion>
-            <AccordionSummary
-              expandIcon={<ChevronDown size={20} />}
-              aria-controls="settings-content"
-              id="settings-header"
-              className="border-t border-gray-200"
-            >
-              <Typography className="font-semibold text-gray-800">Settings</Typography>
-            </AccordionSummary>
-            <AccordionDetails className="p-0">
-              <Settings />
-            </AccordionDetails>
-          </Accordion>
+          {/* Settings */}
+          <div className={`transition-opacity duration-200 ${isOpen ? 'opacity-100' : 'opacity-0'}`}>
+            <Accordion>
+              <AccordionSummary
+                expandIcon={<ChevronDown size={20} />}
+                aria-controls="settings-content"
+                id="settings-header"
+                className="border-t border-gray-200"
+              >
+                <Typography className="font-semibold text-gray-800">Settings</Typography>
+              </AccordionSummary>
+              <AccordionDetails className="p-0">
+                <Settings />
+              </AccordionDetails>
+            </Accordion>
+          </div>
         </div>
       </motion.div>
       
