@@ -8,7 +8,7 @@
 export function generateIntentClassificationPrompt(context: any) {
   const { userMessage, stageId, allStageData, conversationHistory = [] } = context;
   
-  // Get the current stage name for context
+  // Get the current stage name for context and generate a summary of all stages
   const stageName = getStageNameById(stageId);
   
   // Create a summary of all stages and their purposes
@@ -35,11 +35,42 @@ PROJECT DATA SUMMARY:
 ${projectSummary}
 
 CLASSIFICATION GUIDELINES:
-1. Analyze the user's message for explicit mentions of stage-specific concepts
-2. Consider implicit references to stage activities or deliverables
-3. Evaluate if the message is continuing work in the current stage
-4. Identify if the message spans multiple stages
-5. When uncertain, default to the current stage
+1.  **Prioritize Current Stage:** Assume the user's intent is related to their `currentStage` unless the message *explicitly* and *unambiguously* indicates a different stage.
+2.  **Consider Granularity/Depth:**
+    *   If the query is high-level, conceptual, or about preferences (e.g., "What UI style should I use?"), it likely belongs to an earlier, more foundational stage (like Ideation & Discovery).
+    *   If the query is detailed, implementation-specific, or about specific components (e.g., "How do I implement a dark mode UI?"), it likely belongs to a later, more technical stage (like Interface & Interaction).
+3.  **Stage Progression:** Understand that concepts evolve across stages. A topic introduced in an early stage might be refined in a later one. Always map to the *earliest relevant stage* that can address the query at its current level of detail.
+4.  **Evaluate Message Context:** Consider the full message, conversation history, and existing `allStageData` to infer intent.
+5.  **Uncertainty:** If there is significant ambiguity, lean towards the `currentStage` and provide a lower `confidence` score.
+
+    STAGE-SPECIFIC KEYWORDS & GRANULARITY HINTS:
+ - **Ideation & Discovery (ideation-discovery):**
+     - Keywords: idea, concept, name, problem, mission, tagline, user, persona, competitor, *high-level UI style preference*, *general tech stack preference*, *platform choice*.
+     - Granularity: Broad, conceptual, strategic.
+ - **Feature Planning (feature-planning):**
+     - Keywords: feature, functionality, mvp, priority, moscow, core feature, *feature breakdown*.
+     - Granularity: Functional, scope definition.
+ - **Structure & Flow (structure-flow):**
+     - Keywords: structure, flow, screen, navigation, user flow, journey, sitemap, *data models (conceptual)*.
+     - Granularity: Structural, user journey mapping.
+ - **Interface & Interaction (interface-interaction):**
+     - Keywords: interface, ui, design, color, layout, component, style, visual, *specific design system*, *interaction patterns*, *UX copywriting*.
+     - Granularity: Detailed design, visual implementation.
+ - **Architecture Design (architecture-design):**
+     - Keywords: architecture, database, schema, api, endpoint, technical, folder, structure, *detailed data models*.
+     - Granularity: Technical blueprint, system design.
+ - **User & Auth Flow (user-auth-flow):**
+     - Keywords: auth, authentication, login, register, user, role, permission, security, *session management*.
+     - Granularity: Security, access control.
+ - **UX Review & User Check (ux-review-check):**
+     - Keywords: review, check, validate, test, assessment, evaluation, *completeness*, *feedback*.
+     - Granularity: Audit, validation.
+ - **Auto-Prompt Engine (auto-prompt-engine):**
+     - Keywords: prompt, generate, bolt, code, export, development, *AI generation*.
+     - Granularity: Code generation, AI interaction.
+ - **Export & Handoff (export-handoff):**
+     - Keywords: export, handoff, documentation, readme, deliver, *project artifacts*.
+     - Granularity: Deliverables, finalization.
 
 SPECIAL INTENTS:
 1. Competitor Analysis: Detect when users want to find, analyze, or compare competitors
@@ -102,39 +133,39 @@ function getStageNameById(stageId: string): string {
 // Generate a summary of all stages and their purposes
 function generateStagesSummary(): string {
   return `1. Ideation & Discovery (ideation-discovery)
-   - App concept, name, tagline, problem statement, target users, value proposition
-   - Keywords: idea, concept, name, problem, mission, tagline, user, persona, competitor
+   - App concept, name, tagline, problem statement, target users, value proposition, *high-level UI style preferences*, *general tech stack preferences*, *platform choice*.
+   - Keywords: idea, concept, name, problem, mission, tagline, user, persona, competitor, UI style, tech stack, platform
 
 2. Feature Planning (feature-planning)
-   - Core features, feature prioritization, MVP definition, feature dependencies
+   - Core features, feature prioritization, MVP definition, feature dependencies.
    - Keywords: feature, functionality, mvp, priority, moscow, core feature
 
 3. Structure & Flow (structure-flow)
-   - App architecture, screens, user journeys, navigation patterns, data models
-   - Keywords: structure, flow, screen, navigation, user flow, journey, sitemap
+   - App architecture, screens, user journeys, navigation patterns, data models (conceptual).
+   - Keywords: structure, flow, screen, navigation, user flow, journey, sitemap, data model
 
 4. Interface & Interaction (interface-interaction)
-   - Visual design, layout, component styling, interaction patterns, design system
-   - Keywords: interface, ui, design, color, layout, component, style, visual
+   - Visual design, layout, component styling, interaction patterns, design system, *detailed UI style implementation*.
+   - Keywords: interface, ui, design, color, layout, component, style, visual, design system, interaction, copywriting
 
 5. Architecture Design (architecture-design)
-   - Technical architecture, database schema, API endpoints, file structure
+   - Technical architecture, database schema, API endpoints, file structure, *detailed data models*.
    - Keywords: architecture, database, schema, api, endpoint, technical, folder, structure
 
 6. User & Auth Flow (user-auth-flow)
-   - Authentication methods, user roles, permissions, security features
+   - Authentication methods, user roles, permissions, security features, session management.
    - Keywords: auth, authentication, login, register, user, role, permission, security
 
 7. UX Review & User Check (ux-review-check)
-   - Design validation, completeness check, user testing scenarios
+   - Design validation, completeness check, user testing scenarios, overall project assessment.
    - Keywords: review, check, validate, test, assessment, evaluation
 
 8. Auto-Prompt Engine (auto-prompt-engine)
-   - Generate development prompts, code scaffolding instructions
+   - Generate development prompts, code scaffolding instructions, AI generation.
    - Keywords: prompt, generate, bolt, code, export, development
 
 9. Export & Handoff (export-handoff)
-   - Documentation, export formats, developer handoff materials
+   - Documentation, export formats, developer handoff materials, project artifacts.
    - Keywords: export, handoff, documentation, readme, deliver`;
 }
 
