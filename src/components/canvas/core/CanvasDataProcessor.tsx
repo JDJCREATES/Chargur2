@@ -27,6 +27,11 @@ export interface ProcessorState {
   lastProcessedData?: { [key: string]: any };
 }
 
+interface Position {
+  x: number;
+  y: number;
+}
+
 export class CanvasDataProcessor {
   private static nodeIdCounter = 1;
   private static lastProcessedHash = '';
@@ -578,45 +583,31 @@ export class CanvasDataProcessor {
           existingPersonasMap.delete(personaKey);
         } else {
           // Create new persona node
-          const existing = nodes.find(node => 
-            node.metadata?.stage === 'ideation-discovery' && 
-            node.metadata?.nodeType === 'userPersona' &&
-            existing.name === persona.name && existing.role === persona.role
-          );
-          
-          if (!existing) {        
-            const newNode = this.createUserPersonaNode(persona, index);
-            // Use smart positioning for new node
-            newNode.position = getSmartNodePosition(
-              nodes,
-              newNode.size,
-              newNode.type,
-              {
-                x: STAGE1_NODE_DEFAULTS.userPersona.position.x + (index * 30),
-                y: STAGE1_NODE_DEFAULTS.userPersona.position.y + (index * 20)
-              },
-              'ideation-discovery'
-            );
-            nodes.push(newNode);
-          }
+         const existingPersona = nodes.find(node => 
+  node.metadata?.stage === 'ideation-discovery' && 
+  node.metadata?.nodeType === 'userPersona' &&
+  node.name === persona.name && node.role === persona.role
+);
+
+if (!existingPersona) {        
+  const newNode = this.createUserPersonaNode(persona, index);
+  // Use smart positioning for new node
+  newNode.position = getSmartNodePosition(
+    nodes,
+    newNode.size,
+    newNode.type,
+    {
+      x: STAGE1_NODE_DEFAULTS.userPersona.position.x + (index * 30),
+      y: STAGE1_NODE_DEFAULTS.userPersona.position.y + (index * 20)
+    },
+    'ideation-discovery'
+  );
+  nodes.push(newNode);
+}
         }
       });
       
-      // Optional: Remove personas that no longer exist in the data
-      // Uncomment if you want to remove personas that aren't in the current data
-      /*
-      if (preservePositions) {
-        // Keep all nodes even if they're not in the current data
-      } else {
-        // Remove personas that aren't in the current data
-        existingPersonasMap.forEach((node) => {
-          const index = nodes.findIndex(n => n.id === node.id);
-          if (index !== -1) {
-            nodes.splice(index, 1);
-          }
-        });
-      }
-      */
+  
     } else if (ideationData.targetUsers && !ideationData.userPersonas) {
       // Check if legacy persona already exists
       const legacyPersonaExists = nodes.some(node => 
@@ -1052,40 +1043,39 @@ export class CanvasDataProcessor {
       return null; // Don't create analysis node for empty canvas
     }
     
-    // Generate AI analysis based on project completeness
-    const completedStages = Object.keys(stageData).length;
-    if (completedStages === 0) return null;
-    
-    // Create the AI analysis node
-    const aiNode = {
-      id: `ai-analysis-${this.nodeIdCounter++}`,
-      type: 'agent-output',
-      title: 'AI Analysis',
-      content: `Project has ${completedStages} completed stages`,
-      size: { width: 200, height: 120 },
-      color: 'gray',
-      connections: [],
-      metadata: {
-        generated: true,
-        stagesCompleted: completedStages,
-        totalNodes: nodeCount
-      },
-      resizable: true
-    } as CanvasNodeData;
-    
-    // Use smart positioning for the AI analysis node
-    aiNode.position = getSmartNodePosition(
-      nodes,
-      aiNode.size,
-      aiNode.type,
-      { x: 100 + (nodeCount * 10), y: 100 + (nodeCount * 10) },
-      'ai-analysis'
-    );
-    
-    return {
-      ...aiNode
-    };
-  }
+   // Generate AI analysis based on project completeness
+  const completedStages = Object.keys(stageData).length;
+  if (completedStages === 0) return null;
+  
+  // Create the AI analysis node with all required properties
+  const aiNode: CanvasNodeData = {
+    id: `ai-analysis-${this.nodeIdCounter++}`,
+    type: 'agent-output',
+    title: 'AI Analysis',
+    content: `Project has ${completedStages} completed stages`,
+    position: { x: 100 + (nodeCount * 10), y: 100 + (nodeCount * 10) }, // Add required position
+    size: { width: 200, height: 120 },
+    color: 'gray',
+    connections: [],
+    metadata: {
+      generated: true,
+      stagesCompleted: completedStages,
+      totalNodes: nodeCount
+    },
+    resizable: true
+  };
+  
+  // Update position using smart positioning
+  aiNode.position = getSmartNodePosition(
+    [], // Pass empty array since we don't have access to nodes here
+    aiNode.size,
+    aiNode.type,
+    { x: 100 + (nodeCount * 10), y: 100 + (nodeCount * 10) },
+    'ai-analysis'
+  );
+  
+  return aiNode;
+}
 
   // Node creation helper methods
   private static createAppNameNode(appName: string, existingNode?: CanvasNodeData | null): CanvasNodeData {
@@ -1309,29 +1299,33 @@ export class CanvasDataProcessor {
     };
   }
 
-  private static createNaturalLanguageFeatureNode(
-    naturalLanguageFeatures: string,
-    existingNode?: CanvasNodeData | null,
-    stableId?: string
-  ): CanvasNodeData {
-    // Use existing position and size if available
-    const position = existingNode?.position || { x: baseX, y: baseY };
-    const size = existingNode?.size || { width: 220, height: 140 };
-    const connections = existingNode?.connections || [];
-    
-    return {
-      id: stableId || 'feature-natural-language',
-      type: 'feature',
-      title: 'Feature Description',
-      content: naturalLanguageFeatures,
-      position: position,
-      size: size,
-      color: 'blue',
-      connections: connections,
-      metadata: { stage: 'feature-planning', type: 'description' },
-      resizable: true
-    };
-  }
+ private static createNaturalLanguageFeatureNode(
+  naturalLanguageFeatures: string,
+  existingNode?: CanvasNodeData | null,
+  stableId?: string
+): CanvasNodeData {
+  // Define default position values or use constants from STAGE defaults
+  const defaultPosition = { x: 50, y: 50 }; // Or use STAGE2_NODE_DEFAULTS if available
+  
+  // Use existing position and size if available
+  const position = existingNode?.position || defaultPosition;
+  const size = existingNode?.size || { width: 220, height: 140 };
+  const connections = existingNode?.connections || [];
+  
+  return {
+    id: stableId || 'feature-natural-language',
+    type: 'feature',
+    title: 'Feature Description',
+    content: naturalLanguageFeatures,
+    position: position,
+    size: size,
+    color: 'blue',
+    connections: connections,
+    metadata: { stage: 'feature-planning', type: 'description' },
+    resizable: true
+  };
+}
+
 
   private static createScreenNode(
     screen: any, 

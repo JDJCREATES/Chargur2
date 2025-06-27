@@ -225,8 +225,6 @@ export const SpatialCanvas: React.FC<SpatialCanvasProps> = ({
       
       // Create the appropriate custom node
       let newNode: CanvasNodeData;
-      const defaults = STAGE1_NODE_DEFAULTS[type as keyof typeof STAGE1_NODE_DEFAULTS] || 
-        { position: { x: 100, y: 100 }, size: { width: 200, height: 100 } };
       
       switch (type) {
         case 'appName':
