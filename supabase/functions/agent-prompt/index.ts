@@ -12,6 +12,7 @@
 import { serve } from 'https://deno.land/std@0.168.0/http/server.ts'
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2'
 import { EdgeStagePromptEngine } from './stages/index.ts'
+import { fetchCompetitors } from './utils/competitorSearch.ts'
 
 // Get the origin from environment or request
 const getAllowedOrigin = (request: Request): string => {

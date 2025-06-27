@@ -84,45 +84,20 @@ userPersonas: [] as UserPersona[],
     
     try {
       setIsSearchingCompetitors(true);
+
+      // Instead of directly calling the edge function, send a message to the AI agent
+      // The agent will detect the competitor search intent and call the edge function
+      const searchMessage = `Find competitors for my app idea: ${formData.appIdea}`;
       
-      const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
-      const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY;
-      
-      if (!supabaseUrl || !supabaseAnonKey) {
-        throw new Error('Missing Supabase configuration');
+      // This will trigger the agent to search for competitors
+      // The agent will then update the stage data with the competitors
+      // which will be reflected in the UI
+      if (onUpdateData) {
+        // Send the message to the agent
+        if (stage.onSendMessage) {
+          stage.onSendMessage(searchMessage);
+        }
       }
-      
-      // Call the fetch-competitors Edge Function
-      const response = await fetch(`${supabaseUrl}/functions/v1/fetch-competitors`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${session?.access_token || ''}`,
-        },
-        body: JSON.stringify({
-          appDescription: formData.appIdea,
-          maxResults: 3 // Limit to 3 competitors for now
-        })
-      });
-      
-      if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(`API error: ${errorData.error || response.statusText}`);
-      }
-      
-      const data = await response.json();
-      
-      // Add the competitors to the form data
-      if (data.competitors && Array.isArray(data.competitors)) {
-        // Update the form data with the new competitors
-        const currentCompetitors = formData.competitors || [];
-        const newCompetitors = data.competitors.filter((comp: any) => 
-          !currentCompetitors.some((existing: any) => existing.name === comp.name)
-        );
-        
-        updateFormData('competitors', [...currentCompetitors, ...newCompetitors]);
-      }
-      
     } catch (error) {
       console.error('Failed to search for competitors:', error);
       alert(`Failed to search for competitors: ${error instanceof Error ? error.message : 'Unknown error'}`);
@@ -437,7 +412,7 @@ const [selectedPersonas, setSelectedPersonas] = useState<string[]>(() => {
                 {isSearchingCompetitors ? (
                   <button
                     disabled
-                    className="flex items-center gap-1 px-2 py-1 text-xs bg-gray-400 text-white rounded cursor-not-allowed"
+                    className="flex items-center gap-1 px-2 py-1 text-xs bg-gray-400 text-white rounded-md cursor-not-allowed"
                   >
                     <div className="w-3 h-3 border-2 border-white border-t-transparent rounded-full animate-spin"></div>
                     Searching...
@@ -445,7 +420,7 @@ const [selectedPersonas, setSelectedPersonas] = useState<string[]>(() => {
                 ) : (
                   <button
                     onClick={searchCompetitors}
-                    className="flex items-center gap-1 px-2 py-1 text-xs bg-orange-600 text-white rounded hover:bg-orange-700 transition-colors"
+                    className="flex items-center gap-1 px-2 py-1 text-xs bg-orange-600 text-white rounded-md hover:bg-orange-700 transition-colors"
                   >
                     <svg xmlns="http://www.w3.org/2000/svg" className="w-3 h-3" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                       <circle cx="11" cy="11" r="8"></circle>

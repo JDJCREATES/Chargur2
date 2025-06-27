@@ -6,7 +6,12 @@
  */
 
 export function generateIdeationPrompt(context: any) {
-  const { currentStageData, userMessage, conversationHistory } = context;
+  const { currentStageData, userMessage, conversationHistory, competitorSearchPerformed, competitorSearchResults, competitorSearchError, allStageData } = context;
+  
+  // Check if we have competitor data from a search
+  const hasCompetitorData = allStageData?.['ideation-discovery']?.competitors && 
+                           Array.isArray(allStageData['ideation-discovery'].competitors) &&
+                           allStageData['ideation-discovery'].competitors.length > 0;
   
   const systemPrompt = `You are an expert UX strategist and product discovery specialist. Your role is to help users define and refine their app concept through intelligent questioning and strategic guidance.
 
@@ -58,7 +63,18 @@ When asked to generate or refine a mission statement:
 - Avoid technical jargon and focus on benefits
 - Use present tense and active voice`;
 
+COMPETITOR ANALYSIS:
+${hasCompetitorData ? `I have fetched real competitor data for you to analyze and incorporate into your response. Use this data to provide insights about the competitive landscape and help the user position their app effectively.` : 'If the user asks about competitors, I will fetch real competitor data for analysis.'}
+
   const userPrompt = `User message: "${userMessage}"
+
+${hasCompetitorData ? `I've searched the web and found ${allStageData['ideation-discovery'].competitors.length} competitors for your app idea:
+
+${JSON.stringify(allStageData['ideation-discovery'].competitors, null, 2)}
+
+Please analyze these competitors and incorporate insights into your response. Help the user understand the competitive landscape and how to position their app effectively.` : ''}
+
+${competitorSearchPerformed && !hasCompetitorData ? `I attempted to search for competitors but couldn't find any relevant results. ${competitorSearchError ? `Error: ${competitorSearchError}` : ''}` : ''}
 
 Based on this message and our conversation history, help the user develop their app concept. If you can extract specific information, provide it in the autoFillData. When users mention target users, create structured persona objects. If the stage appears complete, set stageComplete to true.
 
@@ -72,6 +88,7 @@ Respond in this exact JSON format:
     "tagline": "memorable tagline",
     "problemStatement": "core problem statement",
     "missionStatement": "formal mission statement",
+    "competitors": ${hasCompetitorData ? JSON.stringify(allStageData['ideation-discovery'].competitors) : '[]'},
     "userPersonas": [
       {
         "name": "Primary User",
@@ -86,13 +103,14 @@ Respond in this exact JSON format:
   "context": {
     "extractedInfo": "what information was extracted",
     "nextSteps": "what should happen next"
+    ${hasCompetitorData ? ',"competitorAnalysis": "insights from competitor data"' : ''}
   }
 }`;
 
   return {
     systemPrompt,
     userPrompt,
-    temperature: 0.7,
+    temperature: 0.6,
     maxTokens: 1000
   };
 }
