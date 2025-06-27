@@ -30,14 +30,32 @@ export function processFeatureData(
   let featureX = 100;
   let featureY = 350;
 
-  // Remove old feature nodes
-  nodes = nodes.filter(node => 
+  // Get existing feature planning nodes
+  const existingFeaturePlanningNodes = nodes.filter(node => 
+    node.metadata?.stage === 'feature-planning');
+  
+  // Get non-feature planning nodes
+  const nonFeaturePlanningNodes = nodes.filter(node => 
     !node.metadata?.stage || node.metadata.stage !== 'feature-planning');
+  
+  // Create a new array for updated feature planning nodes
+  const updatedFeaturePlanningNodes: CanvasNodeData[] = [];
 
   // Process selected feature packs
   if (featureData.selectedFeaturePacks) {
     featureData.selectedFeaturePacks.forEach((pack: string, index: number) => {
-      nodes.push(nodeFactory.createFeaturePackNode(pack, index, featureX, featureY, nodes));
+      // Check if this feature pack already exists
+      const existingNode = existingFeaturePlanningNodes.find(node => 
+        node.metadata?.pack === pack && node.type === 'feature');
+      
+      if (existingNode) {
+        // Keep the existing node
+        updatedFeaturePlanningNodes.push(existingNode);
+      } else {
+        // Create a new node
+        const newNode = nodeFactory.createFeaturePackNode(pack, index, featureX, featureY, [...nonFeaturePlanningNodes, ...updatedFeaturePlanningNodes]);
+        updatedFeaturePlanningNodes.push(newNode);
+      }
     });
   }
 
@@ -45,14 +63,52 @@ export function processFeatureData(
   if (featureData.customFeatures) {
     const startIndex = featureData.selectedFeaturePacks?.length || 0;
     featureData.customFeatures.forEach((feature: any, index: number) => {
-      nodes.push(nodeFactory.createCustomFeatureNode(feature, startIndex + index, featureX, featureY, nodes));
+      // Check if this custom feature already exists by ID
+      const existingNode = existingFeaturePlanningNodes.find(node => 
+        node.metadata?.custom === true && 
+        node.metadata?.featureId === feature.id);
+      
+      if (existingNode) {
+        // Keep the existing node, but update its content if needed
+        const updatedNode = {
+          ...existingNode,
+          title: feature.name,
+          content: `${feature.description || 'Custom feature'}\n\nPriority: ${feature.priority || 'medium'}\nComplexity: ${feature.complexity || 'medium'}`
+        };
+        updatedFeaturePlanningNodes.push(updatedNode);
+      } else {
+        // Create a new node
+        const newNode = nodeFactory.createCustomFeatureNode(feature, startIndex + index, featureX, featureY, [...nonFeaturePlanningNodes, ...updatedFeaturePlanningNodes]);
+        updatedFeaturePlanningNodes.push(newNode);
+      }
     });
   }
 
   // Add natural language features if provided
   if (featureData.naturalLanguageFeatures) {
-    nodes.push(nodeFactory.createNaturalLanguageFeatureNode(featureData.naturalLanguageFeatures, nodes));
+    // Check if natural language feature node already exists
+    const existingNLNode = existingFeaturePlanningNodes.find(node => 
+      node.metadata?.type === 'description');
+    
+    if (existingNLNode) {
+      // Update the existing node
+      const updatedNode = {
+        ...existingNLNode,
+        content: featureData.naturalLanguageFeatures
+      };
+      updatedFeaturePlanningNodes.push(updatedNode);
+    } else {
+      // Create a new node
+      const newNode = nodeFactory.createNaturalLanguageFeatureNode(
+        featureData.naturalLanguageFeatures, 
+        [...nonFeaturePlanningNodes, ...updatedFeaturePlanningNodes]
+      );
+      updatedFeaturePlanningNodes.push(newNode);
+    }
   }
+
+  // Combine non-feature planning nodes with updated feature planning nodes
+  nodes = [...nonFeaturePlanningNodes, ...updatedFeaturePlanningNodes];
 
   console.log('Processed feature data:', nodes.length - originalNodeCount, 'nodes added/updated');
 

@@ -331,7 +331,7 @@ export function createCustomFeatureNode(
   };
   
   return {
-    id: `feature-${nodeIdCounter++}`,
+    id: `feature-${feature.id || Date.now()}`,
     type: 'feature',
     title: feature.name,
     content: `${feature.description || 'Custom feature'}\n\nPriority: ${feature.priority || 'medium'}\nComplexity: ${feature.complexity || 'medium'}`,
@@ -345,7 +345,7 @@ export function createCustomFeatureNode(
     size: { width: 180, height: 120 },
     color: 'blue',
     connections: [],
-    metadata: { stage: 'feature-planning', custom: true },
+    metadata: { stage: 'feature-planning', custom: true, featureId: feature.id },
     resizable: true
   };
 }
