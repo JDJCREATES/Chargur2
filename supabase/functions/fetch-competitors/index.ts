@@ -215,8 +215,23 @@ Focus on companies that are currently active and have recent web presence. Inclu
                   required: ["query"]
                 }
               }
+              function: {
+                name: "web_search",
+                description: "Search the web for current information about competitors",
+                parameters: {
+                  type: "object",
+                  properties: {
+                    query: {
+                      type: "string",
+                      description: "Search query for finding competitors"
+                    }
+                  },
+                  required: ["query"]
+                }
+              }
             }
           ],
+          tool_choice: "auto" // Let the model decide when to use web search
           tool_choice: "auto" // Let the model decide when to use web search
         }),
         signal: controller.signal
@@ -255,11 +270,17 @@ Focus on companies that are currently active and have recent web presence. Inclu
             console.log(`🔍 Web search query: ${toolCall.function.arguments}`);
           }
         }
+        
+        // Process tool calls if needed (for more advanced implementations)
+      const content = message.content;
+        for (const toolCall of message.tool_calls) {
+          if (toolCall.function?.name === 'web_search') {
+            console.log(`🔍 Web search query: ${toolCall.function.arguments}`);
+          }
+        }
       }
       
-      const content = message.content;
-      if (!content) {
-        throw new Error("No content returned from OpenAI API");
+      // Check if there were tool calls (web searches)
       }
       
       console.log(`📄 Processing competitor analysis from web search results`);

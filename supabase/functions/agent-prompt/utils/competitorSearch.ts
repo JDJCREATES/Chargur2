@@ -75,5 +75,6 @@ export async function fetchCompetitors(
     console.error('❌ Error in fetchCompetitors:', error);
     // Return null instead of throwing to allow for graceful degradation
     return null;
+    return null;
   }
 }

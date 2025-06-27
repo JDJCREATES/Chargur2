@@ -14,6 +14,9 @@ export { CompetitorNode } from './CompetitorNode';
 export { TechStackNode } from './TechStackNode';
 export { UIStyleNode } from './UIStyleNode';
 export { PlatformNode } from './PlatformNode';
+export { TechStackNode } from './TechStackNode';
+export { UIStyleNode } from './UIStyleNode';
+export { PlatformNode } from './PlatformNode';
 
 // Node type definitions for easy reference
 export const STAGE1_NODE_TYPES = {
@@ -24,6 +27,9 @@ export const STAGE1_NODE_TYPES = {
   USER_PERSONA: 'userPersona',
   VALUE_PROPOSITION: 'valueProp',
   COMPETITOR: 'competitor', 
+  TECH_STACK: 'techStack',
+  UI_STYLE: 'uiStyle',
+  PLATFORM: 'platform',
   TECH_STACK: 'techStack',
   UI_STYLE: 'uiStyle',
   PLATFORM: 'platform',
@@ -64,6 +70,21 @@ export const STAGE1_NODE_DEFAULTS = {
   competitor: {
     size: { width: 140, height: 100 },
     position: { x: 700, y: 400 },
+    editable: true,
+  },
+  techStack: {
+    size: { width: 180, height: 120 },
+    position: { x: 500, y: 400 },
+    editable: true,
+  },
+  uiStyle: {
+    size: { width: 180, height: 120 },
+    position: { x: 300, y: 400 },
+    editable: true,
+  },
+  platform: {
+    size: { width: 160, height: 80 },
+    position: { x: 400, y: 300 },
     editable: true,
   },
   techStack: {

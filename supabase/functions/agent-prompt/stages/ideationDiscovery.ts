@@ -74,10 +74,35 @@ The platform choice should influence tech stack and UI style recommendations:
 - Web → React, Next.js, responsive design
 - Both → React Native Web, progressive web app approach
 
+PLATFORM INFERENCE:
+When users describe their app idea, infer the most appropriate platform if not explicitly stated:
+- Mobile-focused keywords: "on the go", "notifications", "app store", "iOS", "Android", "phone"
+- Web-focused keywords: "website", "browser", "desktop", "responsive", "web app"
+- Both platforms: "cross-platform", "all devices", "mobile and web", "responsive"
+
+The platform choice should influence tech stack and UI style recommendations:
+- Mobile → React Native, Expo, mobile-first UI
+- Web → React, Next.js, responsive design
+- Both → React Native Web, progressive web app approach
+
 COMPETITOR ANALYSIS:
 ${hasCompetitorData ? `I have fetched real competitor data for you to analyze and incorporate into your response. Use this data to provide insights about the competitive landscape and help the user position their app effectively.` : 'If the user asks about competitors, I will fetch real competitor data for analysis.'}
 
 TECH STACK RECOMMENDATIONS:
+- Mobile-focused apps → React Native, Expo, Firebase
+- Web apps → React, Next.js, Tailwind CSS
+- Full-stack apps → TypeScript, Node.js, PostgreSQL
+- Real-time apps → Supabase, Socket.io, Firebase
+- Data-heavy apps → MongoDB, Express, Node.js
+
+UI STYLE RECOMMENDATIONS:
+- Sleek & Dark → Modern apps, developer tools, high-tech
+- Fun & Playful → Consumer apps, kids, games, lifestyle
+- Clean & Minimal → Startups, design-focused tools, UX-first apps
+- Professional → B2B, fintech, healthcare, enterprise
+- Accessible-First → Inclusive design, education, public services`;
+
+  const userPrompt = `User message: "${userMessage}"
 - Mobile-focused apps → React Native, Expo, Firebase
 - Web apps → React, Next.js, Tailwind CSS
 - Full-stack apps → TypeScript, Node.js, PostgreSQL
@@ -123,6 +148,9 @@ Respond in this exact JSON format:
       }
     ], 
     "valueProposition": "unique value proposition",
+    "techStack": ["React", "TypeScript", "Tailwind CSS"],
+    "uiStyle": "clean-minimal",
+    "platform": "web"
     "techStack": ["React", "TypeScript", "Tailwind CSS"],
     "uiStyle": "clean-minimal",
     "platform": "web"

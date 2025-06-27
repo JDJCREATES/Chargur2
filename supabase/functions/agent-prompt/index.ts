@@ -338,8 +338,6 @@ serve(async (req: Request) => {
       }
     )
   }
-})
-
 async function processAgentRequest(controller: ReadableStreamDefaultController, request: AgentRequest, req: Request) {
   
   const { 
@@ -352,6 +350,11 @@ async function processAgentRequest(controller: ReadableStreamDefaultController, 
     conversationId, 
     llmProvider = 'openai'
   } = request
+
+  // Track if competitor search was performed
+  let competitorSearchPerformed = false
+  let competitorSearchResults = null
+  let competitorSearchError = null
 
   // Track if competitor search was performed
   let competitorSearchPerformed = false
@@ -395,7 +398,6 @@ async function processAgentRequest(controller: ReadableStreamDefaultController, 
       return false
     }
     
-    try {
       const encoder = new TextEncoder()
       const encoded = encoder.encode(`data: ${JSON.stringify(data)}\n\n`)
       controller.enqueue(encoded)
@@ -417,7 +419,6 @@ async function processAgentRequest(controller: ReadableStreamDefaultController, 
       console.log('🔌 Stream already closed')
       return
     }
-    
     if (heartbeatInterval !== null) {
       clearInterval(heartbeatInterval)
       heartbeatInterval = null
@@ -468,7 +469,129 @@ async function processAgentRequest(controller: ReadableStreamDefaultController, 
   console.log('🔍 Running intent classification...')
   const llmClient = new EdgeLLMClient(llmProvider)
   let intentResult = { competitorSearchIntent: false }
+
+  // STEP 1: Use Intent Classifier to detect competitor search intent
+  console.log('🔍 Running intent classification...')
+  const llmClient = new EdgeLLMClient(llmProvider)
+  let intentResult = { competitorSearchIntent: false }
   
+  // Generate intent classification prompt
+  const intentContext = {
+    userMessage,
+    stageId,
+    allStageData,
+    conversationHistory: request.conversationHistory || []
+  }
+  
+  const intentPrompt = generateIntentClassificationPrompt(intentContext)
+  
+  try {
+    const intentResponse = await llmClient.generateResponse(
+      intentPrompt.systemPrompt,
+      intentPrompt.userPrompt,
+      intentPrompt.temperature,
+      intentPrompt.maxTokens
+    )
+    
+    console.log('📋 Intent classification response:', intentResponse)
+    
+    // Parse intent classification result
+    let competitorSearchIntent = false
+    try {
+      intentResult = JSON.parse(intentResponse)
+      competitorSearchIntent = intentResult.competitorSearchIntent === true
+    } catch (parseError) {
+      console.error('❌ Failed to parse intent classification:', parseError)
+      intentResult = { competitorSearchIntent: false }
+    }
+    
+    // Add this right after intent classification:
+    console.log('🔍 Intent classification debug:')
+    console.log('- User message:', userMessage)
+    console.log('- Intent response raw:', intentResponse)
+    console.log('- Intent result parsed:', JSON.stringify(intentResult, null, 2))
+    console.log('- Competitor search intent:', intentResult.competitorSearchIntent)
+    console.log('- Intent value type:', typeof intentResult.competitorSearchIntent)
+    
+    // STEP 2: Handle competitor search if detected
+    if (intentResult.competitorSearchIntent === true) {
+      console.log('🎯 Competitor search intent detected! Calling fetch-competitors...')
+      
+      // Get app description from current stage or all stage data
+      const appDescription = currentStageData?.appIdea || 
+                           allStageData?.['ideation-discovery']?.appIdea ||
+                           userMessage
+      
+      if (appDescription) {
+        try {
+          console.log('🔍 Calling fetch-competitors with description:', appDescription.substring(0, 100) + '...')
+          
+          const competitorResponse = await fetch(`${supabaseUrl}/functions/v1/fetch-competitors`, {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+              'Authorization': authHeader || '',
+            },
+            body: JSON.stringify({
+              appDescription: appDescription,
+              maxResults: 4
+            })
+          })
+
+          if (competitorResponse.ok) {
+            const competitorData = await competitorResponse.json()
+            console.log('✅ Competitor search successful:', competitorData.resultCount, 'competitors found')
+            
+            // Store the results for later use
+            competitorSearchPerformed = true
+            competitorSearchResults = competitorData
+            
+            // Send intermediate update to client
+            const competitorUpdate = {
+              type: 'competitor_results',
+              competitors: competitorData.competitors,
+              conversationId
+            }
+            
+            if (!safeEnqueue(competitorUpdate)) {
+              console.log('🔌 Client disconnected during competitor search')
+              return
+            }
+            
+          } else {
+            // Improved error handling with proper typing
+            const getErrorMessage = async (response: Response): Promise<string> => {
+              try {
+                const errorData = await response.json()
+                
+                // Type-safe error extraction
+                if (errorData && typeof errorData === 'object') {
+                  if ('error' in errorData && typeof errorData.error === 'string') {
+                    return errorData.error
+                  }
+                  if ('message' in errorData && typeof errorData.message === 'string') {
+                    return errorData.message
+                  }
+                }
+                
+                return `HTTP ${response.status}: ${response.statusText}`
+              } catch (parseError) {
+                return `HTTP ${response.status}: ${response.statusText}`
+              }
+            }
+            
+            const errorMessage = await getErrorMessage(competitorResponse)
+            console.error('❌ Competitor search API error:', competitorResponse.status, errorMessage)
+            competitorSearchError = `API error: ${competitorResponse.status} - ${errorMessage}`
+          }
+          
+        } catch (fetchError) {
+          console.error('❌ Competitor search failed:', fetchError)
+          competitorSearchError = fetchError instanceof Error ? fetchError.message : 'Unknown error'
+        }
+      } else {
+        console.warn('⚠️ No app description available for competitor search')
+        competitorSearchError = 'No app description available'
   // Generate intent classification prompt
   const intentContext = {
     userMessage,
@@ -599,10 +722,13 @@ async function processAgentRequest(controller: ReadableStreamDefaultController, 
     console.log('🤖 Using LLM provider:', llmProvider)
     console.log('📝 User message:', userMessage)
     
-    startHeartbeat()
 
+      allStageData,
     // STEP 3: Generate stage-specific prompt with competitor context
-    console.log('📋 Generating stage-specific prompt...')
+      competitorSearchResults,
+      competitorSearchError
+    }
+    
     
     const requestWithCompetitorContext = {
       ...request,
@@ -614,7 +740,6 @@ async function processAgentRequest(controller: ReadableStreamDefaultController, 
     
     const promptData = await EdgeStagePromptEngine.generatePrompt(requestWithCompetitorContext, llmClient)
     console.log('✅ Prompt generated successfully with temperature:', promptData.temperature)
-    
     const suggestedPrimaryStage = promptData.suggestedPrimaryStage
     console.log('🔄 Suggested primary stage:', suggestedPrimaryStage || 'none')
     
@@ -672,6 +797,44 @@ async function processAgentRequest(controller: ReadableStreamDefaultController, 
     }
     
     // STEP 7: Stream the content word by word
+    if (competitorSearchPerformed && competitorSearchResults) {
+      console.log('📊 Adding competitor data to autoFillData')
+      const competitors = competitorSearchResults.competitors || []
+      
+      // Create a text representation for the competitors field
+      const competitorText = competitors
+        .map((comp: any) => `${comp.name} (${comp.domain}) - ${comp.tagline}`)
+        .join('\n')
+      
+      // Add to the current stage's autoFillData
+      if (!response.autoFillData[stageId]) {
+        response.autoFillData[stageId] = {}
+      }
+      
+      response.autoFillData[stageId] = {
+        ...response.autoFillData[stageId],
+        competitors: competitorText,
+        competitorData: competitors,
+        competitorNodes: competitors.map((comp: any, index: number) => ({
+          id: `competitor-${comp.name.toLowerCase().replace(/\s+/g, '-')}`,
+          type: 'competitor',
+          data: {
+            label: comp.name,
+            domain: comp.domain,
+            tagline: comp.tagline,
+            features: comp.features,
+            pricing: comp.pricingTiers,
+            positioning: comp.marketPositioning,
+            strengths: comp.strengths,
+            weaknesses: comp.weaknesses,
+            url: comp.link
+          },
+          position: { x: 100 + (index * 200), y: 100 + (Math.floor(index / 3) * 150) }
+        }))
+      }
+    }
+    
+    // STEP 7: Stream the content word by word
     const words = response.content.split(' ')
     let fullContent = ''
     
@@ -688,7 +851,6 @@ async function processAgentRequest(controller: ReadableStreamDefaultController, 
         console.log('🔌 Client disconnected')
         break
       }
-      
       if (i < words.length - 1) {
         await new Promise(resolve => setTimeout(resolve, 50))
       }
@@ -703,6 +865,9 @@ async function processAgentRequest(controller: ReadableStreamDefaultController, 
         autoFillData: response.autoFillData || {},
         stageComplete: response.stageComplete || false,
         goToStageId: suggestedPrimaryStage,
+        competitorSearchPerformed,
+        competitorSearchResults: competitorSearchPerformed ? competitorSearchResults : null,
+        competitorSearchError,
         competitorSearchPerformed,
         competitorSearchResults: competitorSearchPerformed ? competitorSearchResults : null,
         competitorSearchError,
@@ -734,9 +899,6 @@ async function processAgentRequest(controller: ReadableStreamDefaultController, 
         stack: undefined
       }
     }
-    
-    console.error('🔍 Error details:', getErrorDetails(error))
-    
     // Handle stream errors gracefully
     if (!streamClosed) {
       // Try to send an error message to the client first
@@ -766,7 +928,6 @@ async function processAgentRequest(controller: ReadableStreamDefaultController, 
             console.error('❌ Failed to update conversation status:', getErrorMessage(err))
           })
       }
-    }
     
     // Always try to close gracefully
     safeClose()
