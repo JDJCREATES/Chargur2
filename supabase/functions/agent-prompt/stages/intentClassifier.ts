@@ -43,9 +43,9 @@ CLASSIFICATION GUIDELINES:
 
 SPECIAL INTENTS:
 1. Competitor Analysis: Detect when users want to find, analyze, or compare competitors
-   - Keywords: competitor, competition, similar app, alternative, market research, compare, comparison, competitor analysis, competitor research, competitor review
+   - Keywords: competitor, competition, similar app, alternative, market research, compare, comparison, competitor analysis, competitor research, competitor review, similar products, market analysis
    - Example: "Find competitors for my app", "What are similar apps to mine?", "Show me competitors"
-   - Action: Set competitorSearchIntent to true in response <- this is very important!
+   - Action: Set competitorSearchIntent to true in response
 
 IMPORTANT: You must respond with valid JSON only. Do not include any explanatory text outside the JSON structure.`;
 
@@ -53,14 +53,14 @@ IMPORTANT: You must respond with valid JSON only. Do not include any explanatory
 
 Determine which stage(s) of the app planning process this message relates to. The user is currently in the "${stageName}" stage.
 
-Respond in this exact JSON format with no explanatory text:
+Respond in this exact JSON format:
 {
   "relevantStageIds": ["stage-id-1", "stage-id-2"],
   "confidence": 0.85,
   "reasoning": "Brief explanation of why these stages were selected",
   "currentStageRelevance": "high|medium|low",
   "suggestedPrimaryStage": "most-relevant-stage-id",
-  "competitorSearchIntent": false
+  "competitorSearchIntent": true|false
 }
 
 Available stage IDs:

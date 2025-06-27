@@ -86,7 +86,7 @@ userPersonas: [] as UserPersona[],
       setIsSearchingCompetitors(true);
 
       // Direct API call to fetch-competitors (bypasses agent-prompt)
-      const supabaseUrl = process.env.REACT_APP_SUPABASE_URL;
+      const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
       if (!supabaseUrl) {
         throw new Error('Supabase URL not configured');
       }
@@ -107,8 +107,15 @@ userPersonas: [] as UserPersona[],
       });
 
       if (!response.ok) {
-        const errorData = await response.json().catch(() => ({}));
-        throw new Error(`API error: ${response.status} - ${errorData.error || 'Unknown error'}`);
+        const errorText = await response.text();
+        let errorMessage = `API error: ${response.status}`;
+        try {
+          const errorData = JSON.parse(errorText);
+          errorMessage += ` - ${errorData.error || 'Unknown error'}`;
+        } catch (e) {
+          errorMessage += ` - ${errorText || 'Unknown error'}`;
+        }
+        throw new Error(errorMessage);
       }
 
       const data = await response.json();
@@ -153,8 +160,13 @@ userPersonas: [] as UserPersona[],
         console.log(`✅ Found ${data.competitors.length} competitors via direct API call`);
       } else {
         alert('No competitors found for your app idea. Try refining your description.');
+        console.log('⚠️ No competitors found in API response:', data);
       }
     } catch (error) {
+      console.error('❌ Failed to search for competitors:', error);
+      alert(`Failed to search for competitors: ${error instanceof Error ? error.message : 'Unknown error'}`);
+    } finally {
+      setIsSearchingCompetitors(false);
       console.error('Failed to search for competitors:', error);
       alert(`Failed to search for competitors: ${error instanceof Error ? error.message : 'Unknown error'}`);
     } finally {
