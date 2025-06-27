@@ -27,9 +27,9 @@ export const StageProgressBubbles: React.FC<StageProgressBubblesProps> = ({
   const completionPercentage = Math.round((completedStages / batteryStages.length) * 100);
 
   return (
-    <div className={`flex flex-col items-center gap-3`}>
+    <div className="flex items-center gap-6">
       {/* Battery Container */}
-      <div className="flex items-center justify-center">
+      <div className="flex items-center">
         {/* Battery Body */}
         <div className="relative flex items-center bg-gray-200 rounded-lg border-2 border-gray-300 p-1">
           {/* Battery Stages */}
@@ -119,7 +119,7 @@ export const StageProgressBubbles: React.FC<StageProgressBubblesProps> = ({
 
       {/* Additional Buttons for Auto-Prompt and Export */}
       {remainingStages.length > 0 && (
-        <div className="flex gap-2 mt-2">
+        <div className="flex gap-2">
           <motion.button
             onClick={() => onStageClick(remainingStages[0].id)}
             initial={{ opacity: 0, scale: 0.8 }}
