@@ -85,18 +85,74 @@ userPersonas: [] as UserPersona[],
     try {
       setIsSearchingCompetitors(true);
 
-      // Instead of directly calling the edge function, send a message to the AI agent
-      // The agent will detect the competitor search intent and call the edge function
-      const searchMessage = `Find competitors for my app idea: ${formData.appIdea}`;
+      // Direct API call to fetch-competitors (bypasses agent-prompt)
+      const supabaseUrl = process.env.REACT_APP_SUPABASE_URL;
+      if (!supabaseUrl) {
+        throw new Error('Supabase URL not configured');
+      }
+
+      const response = await fetch(`${supabaseUrl}/functions/v1/fetch-competitors`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          // Add auth header if session is available
+          ...(session?.access_token && {
+            'Authorization': `Bearer ${session.access_token}`
+          })
+        },
+        body: JSON.stringify({
+          appDescription: formData.appIdea,
+          maxResults: 4
+        })
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({}));
+        throw new Error(`API error: ${response.status} - ${errorData.error || 'Unknown error'}`);
+      }
+
+      const data = await response.json();
       
-      // This will trigger the agent to search for competitors
-      // The agent will then update the stage data with the competitors
-      // which will be reflected in the UI
-      if (onUpdateData) {
-        // Send the message to the agent
-        if (stage.onSendMessage) {
-          stage.onSendMessage(searchMessage);
-        }
+      if (data.competitors && data.competitors.length > 0) {
+        // Update the competitors text field
+        const competitorText = data.competitors
+          .map((comp: any) => `${comp.name} (${comp.domain}) - ${comp.tagline}`)
+          .join('\n');
+        
+        updateFormData('competitors', competitorText);
+        
+        // Create structured data for board nodes and pass to parent
+        const updatedFormData = {
+          ...formData,
+          competitors: competitorText,
+          // Add competitor nodes data that can be used by the board
+          competitorNodes: data.competitors.map((comp: any, index: number) => ({
+            id: `competitor-${comp.name.toLowerCase().replace(/\s+/g, '-')}`,
+            type: 'competitor',
+            data: {
+              label: comp.name,
+              domain: comp.domain,
+              tagline: comp.tagline,
+              features: comp.features || [],
+              pricing: comp.pricingTiers || [],
+              positioning: comp.marketPositioning || 'mid-market',
+              strengths: comp.strengths || [],
+              weaknesses: comp.weaknesses || [],
+              url: comp.link || ''
+            },
+            position: { 
+              x: 100 + (index * 200), 
+              y: 100 + (Math.floor(index / 3) * 150) 
+            }
+          }))
+        };
+        
+        // Update parent with all the data including nodes
+        onUpdateData(updatedFormData);
+        
+        console.log(`✅ Found ${data.competitors.length} competitors via direct API call`);
+      } else {
+        alert('No competitors found for your app idea. Try refining your description.');
       }
     } catch (error) {
       console.error('Failed to search for competitors:', error);

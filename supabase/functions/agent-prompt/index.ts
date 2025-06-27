@@ -12,7 +12,7 @@
 import { serve } from 'https://deno.land/std@0.168.0/http/server.ts'
 import { createClient } from 'https://esm.sh/@supabase/supabase-js@2'
 import { EdgeStagePromptEngine } from './stages/index.ts'
-import { fetchCompetitors } from './utils/competitorSearch.ts'
+import { generateIntentClassificationPrompt } from './stages/intentClassifier.ts'
 
 // Get the origin from environment or request
 const getAllowedOrigin = (request: Request): string => {
@@ -340,9 +340,7 @@ serve(async (req: Request) => {
   }
 })
 
-async function processAgentRequest(controller: ReadableStreamDefaultController, request: AgentRequest,
-  req: Request) {
-
+async function processAgentRequest(controller: ReadableStreamDefaultController, request: AgentRequest, req: Request) {
   
   const { 
     stageId, 
@@ -372,7 +370,7 @@ async function processAgentRequest(controller: ReadableStreamDefaultController, 
   const supabase = createClient(supabaseUrl, supabaseServiceKey)
   console.log('✅ Supabase client initialized for database operations')
 
-    // Get user from JWT token
+  // Get user from JWT token
   const authHeader = req.headers.get('authorization')
   const token = authHeader?.replace('Bearer ', '')
   
@@ -398,7 +396,6 @@ async function processAgentRequest(controller: ReadableStreamDefaultController, 
     }
     
     try {
-      // Convert to Uint8Array properly
       const encoder = new TextEncoder()
       const encoded = encoder.encode(`data: ${JSON.stringify(data)}\n\n`)
       controller.enqueue(encoded)
@@ -421,7 +418,6 @@ async function processAgentRequest(controller: ReadableStreamDefaultController, 
       return
     }
     
-    // Clear heartbeat interval when closing
     if (heartbeatInterval !== null) {
       clearInterval(heartbeatInterval)
       heartbeatInterval = null
@@ -442,9 +438,9 @@ async function processAgentRequest(controller: ReadableStreamDefaultController, 
     }
   }
 
-  // Helper function to start heartbeat
+  // Start heartbeat
   const startHeartbeat = () => {
-    if (heartbeatInterval !== null) return // Already started
+    if (heartbeatInterval !== null) return
     
     console.log('💓 Starting heartbeat to keep connection alive')
     heartbeatInterval = setInterval(() => {
@@ -465,16 +461,105 @@ async function processAgentRequest(controller: ReadableStreamDefaultController, 
         clearInterval(heartbeatInterval!)
         heartbeatInterval = null
       }
-    }, 12000) // Send heartbeat every 12 seconds
+    }, 12000)
+  }
+
+  // STEP 1: Use Intent Classifier to detect competitor search intent
+  console.log('🔍 Running intent classification...')
+  const llmClient = new EdgeLLMClient(llmProvider)
+  
+  // Generate intent classification prompt
+  const intentContext = {
+    userMessage,
+    stageId,
+    allStageData,
+    conversationHistory: request.conversationHistory || []
   }
   
-  // Helper function to stop heartbeat
-  const stopHeartbeat = () => {
-    if (heartbeatInterval !== null) {
-      clearInterval(heartbeatInterval)
-      heartbeatInterval = null
-      console.log('💓 Heartbeat stopped')
+  const intentPrompt = generateIntentClassificationPrompt(intentContext)
+  
+  try {
+    const intentResponse = await llmClient.generateResponse(
+      intentPrompt.systemPrompt,
+      intentPrompt.userPrompt,
+      intentPrompt.temperature,
+      intentPrompt.maxTokens
+    )
+    
+    console.log('📋 Intent classification response:', intentResponse)
+    
+    // Parse intent classification result
+    let intentResult
+    try {
+      intentResult = JSON.parse(intentResponse)
+    } catch (parseError) {
+      console.error('❌ Failed to parse intent classification:', parseError)
+      intentResult = { competitorSearchIntent: false }
     }
+    
+    // STEP 2: Handle competitor search if detected
+    if (intentResult.competitorSearchIntent === true) {
+      console.log('🎯 Competitor search intent detected! Calling fetch-competitors...')
+      
+      // Get app description from current stage or all stage data
+      const appDescription = currentStageData?.appIdea || 
+                           allStageData?.['ideation-discovery']?.appIdea ||
+                           userMessage
+      
+      if (appDescription) {
+        try {
+          console.log('🔍 Calling fetch-competitors with description:', appDescription.substring(0, 100) + '...')
+          
+          const competitorResponse = await fetch(`${supabaseUrl}/functions/v1/fetch-competitors`, {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+              'Authorization': authHeader || '',
+            },
+            body: JSON.stringify({
+              appDescription: appDescription,
+              maxResults: 4
+            })
+          })
+
+          if (competitorResponse.ok) {
+            const competitorData = await competitorResponse.json()
+            console.log('✅ Competitor search successful:', competitorData.resultCount, 'competitors found')
+            
+            competitorSearchPerformed = true
+            competitorSearchResults = competitorData
+            
+            // NOW safeEnqueue is defined and can be used
+            const competitorUpdate = {
+              type: 'competitor_results',
+              competitors: competitorData.competitors,
+              conversationId
+            }
+            
+            if (!safeEnqueue(competitorUpdate)) {
+              console.log('🔌 Client disconnected during competitor search')
+              return
+            }
+            
+          } else {
+            const errorData = await competitorResponse.json().catch(() => ({}))
+            console.error('❌ Competitor search API error:', competitorResponse.status, errorData)
+            competitorSearchError = `API error: ${competitorResponse.status}`
+          }
+          
+        } catch (fetchError) {
+          console.error('❌ Competitor search failed:', fetchError)
+          competitorSearchError = fetchError instanceof Error ? fetchError.message : 'Unknown error'
+        }
+      } else {
+        console.warn('⚠️ No app description available for competitor search')
+        competitorSearchError = 'No app description available'
+      }
+    }
+    
+  } catch (intentError) {
+    console.error('❌ Intent classification failed:', intentError)
+    // Continue with normal processing if intent classification fails
   }
 
   try {
@@ -482,18 +567,11 @@ async function processAgentRequest(controller: ReadableStreamDefaultController, 
     console.log('🤖 Using LLM provider:', llmProvider)
     console.log('📝 User message:', userMessage)
     
-    // Start heartbeat immediately to keep connection alive during processing
     startHeartbeat()
-    
-    // Initialize LLM client with requested provider
-    console.log('🤖 Initializing LLM client...')
-    const llmClient = new EdgeLLMClient(llmProvider)
-    console.log('✅ LLM client initialized successfully with provider:', llmProvider)
 
-    // Generate stage-specific prompt using modular system
+    // STEP 3: Generate stage-specific prompt with competitor context
     console.log('📋 Generating stage-specific prompt...')
     
-    // Add competitor search context to the request
     const requestWithCompetitorContext = {
       ...request,
       allStageData,
@@ -505,11 +583,10 @@ async function processAgentRequest(controller: ReadableStreamDefaultController, 
     const promptData = await EdgeStagePromptEngine.generatePrompt(requestWithCompetitorContext, llmClient)
     console.log('✅ Prompt generated successfully with temperature:', promptData.temperature)
     
-    // Capture the suggestedPrimaryStage from the prompt generation
     const suggestedPrimaryStage = promptData.suggestedPrimaryStage
     console.log('🔄 Suggested primary stage:', suggestedPrimaryStage || 'none')
     
-    // Get LLM response (not streaming in this simplified version)
+    // STEP 4: Get LLM response
     console.log('🚀 Calling LLM API...')
     const llmResponse = await llmClient.generateResponse(
       promptData.systemPrompt,
@@ -519,12 +596,48 @@ async function processAgentRequest(controller: ReadableStreamDefaultController, 
     )
     console.log('✅ LLM response received')
     
-    // Parse and validate response
+    // STEP 5: Parse and validate response
     console.log('🔧 Parsing and validating response...')
     const response = parseAndValidateResponse(llmResponse, stageId)
     console.log('✅ Response parsed successfully')
     
-    // Stream the content word by word for better UX
+    // STEP 6: Add competitor data to autoFillData if search was performed
+    if (competitorSearchPerformed && competitorSearchResults) {
+      console.log('📊 Adding competitor data to autoFillData')
+      
+      const competitorText = competitorSearchResults.competitors
+        .map((comp: any) => `${comp.name} (${comp.domain}) - ${comp.tagline}`)
+        .join('\n')
+      
+      // Add to the current stage's autoFillData
+      if (!response.autoFillData[stageId]) {
+        response.autoFillData[stageId] = {}
+      }
+      
+      response.autoFillData[stageId] = {
+        ...response.autoFillData[stageId],
+        competitors: competitorText,
+        competitorData: competitorSearchResults.competitors,
+        competitorNodes: competitorSearchResults.competitors.map((comp: any, index: number) => ({
+          id: `competitor-${comp.name.toLowerCase().replace(/\s+/g, '-')}`,
+          type: 'competitor',
+          data: {
+            label: comp.name,
+            domain: comp.domain,
+            tagline: comp.tagline,
+            features: comp.features,
+            pricing: comp.pricingTiers,
+            positioning: comp.marketPositioning,
+            strengths: comp.strengths,
+            weaknesses: comp.weaknesses,
+            url: comp.link
+          },
+          position: { x: 100 + (index * 200), y: 100 + (Math.floor(index / 3) * 150) }
+        }))
+      }
+    }
+    
+    // STEP 7: Stream the content word by word
     const words = response.content.split(' ')
     let fullContent = ''
     
@@ -542,13 +655,12 @@ async function processAgentRequest(controller: ReadableStreamDefaultController, 
         break
       }
       
-      // Add small delay for streaming effect
       if (i < words.length - 1) {
         await new Promise(resolve => setTimeout(resolve, 50))
       }
     }
     
-    // Send completion and save complete response
+    // STEP 8: Send completion
     if (!streamClosed && fullContent) {
       const completionData = {
         type: 'complete',
@@ -557,6 +669,7 @@ async function processAgentRequest(controller: ReadableStreamDefaultController, 
         autoFillData: response.autoFillData || {},
         stageComplete: response.stageComplete || false,
         goToStageId: suggestedPrimaryStage,
+        competitorSearchPerformed,
         conversationId
       }
       
@@ -588,9 +701,6 @@ async function processAgentRequest(controller: ReadableStreamDefaultController, 
     
     console.error('🔍 Error details:', getErrorDetails(error))
     
-    // Stop heartbeat on error
-    stopHeartbeat()
-    
     // Handle stream errors gracefully
     if (!streamClosed) {
       // Try to send an error message to the client first
@@ -604,14 +714,14 @@ async function processAgentRequest(controller: ReadableStreamDefaultController, 
         console.log('🔌 Could not send error to client (already disconnected)')
       }
       
-         // Update conversation status to failed
+      // Update conversation status to failed
       if (conversationId && supabase) {
         supabase
           .from('chat_conversations')
           .update({ status: 'failed' })
           .eq('id', conversationId)
           .then(() => console.log('📝 Conversation marked as failed'))
-          .catch((err: unknown) => { // Explicitly type as unknown
+          .catch((err: unknown) => {
             const getErrorMessage = (error: unknown): string => {
               if (error instanceof Error) return error.message
               if (typeof error === 'string') return error
@@ -620,7 +730,6 @@ async function processAgentRequest(controller: ReadableStreamDefaultController, 
             console.error('❌ Failed to update conversation status:', getErrorMessage(err))
           })
       }
-
     }
     
     // Always try to close gracefully
