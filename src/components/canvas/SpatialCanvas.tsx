@@ -36,8 +36,8 @@ import { useCanvasStateManager } from './core/CanvasStateManager';
 import { useCanvasScreenshot } from './core/CanvasScreenshot';
 import { useCanvasInteractionManager } from './core/CanvasInteractionManager';
 import { CanvasNodeData } from './CanvasNode'; 
-import { getSmartNodePosition } from '../../lib/canvas/nodePlacementUtils';
 import { STAGE1_NODE_TYPES, STAGE1_NODE_DEFAULTS } from './customnodetypes/stage1nodes';
+import * as nodeFactory from '../../lib/canvas/nodeFactory';
 
 // Update the props interface to make callbacks optional
 interface SpatialCanvasProps {
@@ -215,7 +215,7 @@ export const SpatialCanvas: React.FC<SpatialCanvasProps> = ({
       if (type === 'appName' || type === 'tagline' || type === 'coreProblem' || 
           type === 'mission' || type === 'valueProp') {
         // Check if this singleton node already exists          
-        const existingNode = nodes.find(n => n.id === type);
+        const existingNode = nodes.find(node => node.id === type);
         if (existingNode) {
           // Select the existing node instead of creating a new one
           setSelectedNode(existingNode.id);
@@ -225,127 +225,38 @@ export const SpatialCanvas: React.FC<SpatialCanvasProps> = ({
       
       // Create the appropriate custom node
       let newNode: CanvasNodeData;
-      
-      switch (type) {
+
+      // Use the nodeFactory to create the appropriate node type
+      switch(type) {
         case 'appName':
-          newNode = {
-            id: type,
-            type,
-            title: 'App Name',
-            content: '',
-            position: defaults.position,
-            size: defaults.size,
-            color: type,
-            connections: [],
-            metadata: { stage: 'ideation-discovery', nodeType: type },
-            value: '',
-            editable: true,
-            nameHistory: [],
-            resizable: true
-          };
+          newNode = nodeFactory.createAppNameNode('', nodes);
           break;
         case 'tagline':
-          newNode = {
-            id: type,
-            type,
-            title: 'Tagline',
-            content: '',
-            position: defaults.position,
-            size: defaults.size,
-            color: type,
-            connections: [],
-            metadata: { stage: 'ideation-discovery', nodeType: type },
-            value: '',
-            editable: true,
-            resizable: true
-          };
+          newNode = nodeFactory.createTaglineNode('', nodes);
           break;
         case 'coreProblem':
-          newNode = {
-            id: type,
-            type,
-            title: 'Core Problem',
-            content: '',
-            position: defaults.position,
-            size: defaults.size,
-            color: type,
-            connections: [],
-            metadata: { stage: 'ideation-discovery', nodeType: type },
-            value: '',
-            editable: true,
-            keywords: [],
-            resizable: true
-          };
+          newNode = nodeFactory.createCoreProblemNode('', nodes);
           break;
         case 'mission':
-          newNode = {
-            id: type,
-            type,
-            title: 'Mission',
-            content: '',
-            position: defaults.position,
-            size: defaults.size,
-            color: type,
-            connections: [],
-            metadata: { stage: 'ideation-discovery', nodeType: type },
-            value: '',
-            editable: true,
-            resizable: true
-          };
+          newNode = nodeFactory.createMissionNode('', '', nodes);
           break;
         case 'valueProp':
-          newNode = {
-            id: type,
-            type,
-            title: 'Value Proposition',
-            content: '',
-            position: defaults.position,
-            size: defaults.size,
-            color: type,
-            connections: [],
-            metadata: { stage: 'ideation-discovery', nodeType: type },
-            value: '',
-            editable: true,
-            bulletPoints: [],
-            resizable: true
-          };
+          newNode = nodeFactory.createValuePropNode('', nodes);
           break;
         case 'userPersona':
-          newNode = {
-            id: `${type}-${Date.now()}`,
-            type,
-            title: 'User Persona',
-            content: '',
-            position: defaults.position,
-            size: defaults.size,
-            color: type,
-            connections: [],
-            metadata: { stage: 'ideation-discovery', nodeType: type },
-            name: '',
-            role: '',
-            painPoint: '',
-            emoji: '👤',
-            editable: true,
-            resizable: true
-          };
+          newNode = nodeFactory.createUserPersonaNode({
+            name: 'New Persona',
+            role: 'Role',
+            painPoint: 'Pain point',
+            emoji: '👤'
+          }, 0, nodes);
           break;
         case 'competitor':
-          newNode = {
-            id: `${type}-${Date.now()}`,
-            type,
-            title: 'Competitor',
-            content: '',
-            position: defaults.position,
-            size: defaults.size,
-            color: type,
-            connections: [],
-            metadata: { stage: 'ideation-discovery', nodeType: type },
-            name: '',
+          newNode = nodeFactory.createCompetitorNode({
+            name: 'New Competitor',
             notes: '',
-            link: '',
-            editable: true,
-            resizable: true
-          };
+            link: ''
+          }, nodes);
           break;
         default:
           // Default node creation for other types
@@ -361,42 +272,22 @@ export const SpatialCanvas: React.FC<SpatialCanvasProps> = ({
             resizable: true
           };
       }
-
-      // Use smart positioning for the new node
-      newNode.position = getSmartNodePosition(
-        nodes,
-        newNode.size,
-        newNode.type,
-        newNode.position,
-        newNode.metadata?.stage as string,
-        true // isUserCreated
-      );
       
       addNode(newNode);
       setSelectedNode(newNode.id);
     } else {
       // Default node creation for other types
       const newNode: CanvasNodeData = {
-        id: `${type}-${Date.now()}`,
-        type,
-        title: `New ${type.charAt(0).toUpperCase() + type.slice(1)}`,
-        content: 'Click edit to add content...',
-        position: { x: 300, y: 300 },
-        size: { width: 180, height: 100 },
-        color: type,
-        connections: [],
-        resizable: true
-      };
-      
-      // Use smart positioning for the new node
-      newNode.position = getSmartNodePosition(
-        nodes,
-        newNode.size,
-        newNode.type,
-        newNode.position,
-        undefined,
-        true // isUserCreated
-      );
+          id: `${type}-${Date.now()}`,
+          type,
+          title: `New ${type.charAt(0).toUpperCase() + type.slice(1)}`,
+          content: 'Click edit to add content...',
+          position: { x: 300, y: 300 },
+          size: { width: 180, height: 100 },
+          color: type,
+          connections: [],
+          resizable: true
+        };
       
       addNode(newNode);
       setSelectedNode(newNode.id);
