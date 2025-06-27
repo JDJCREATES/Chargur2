@@ -824,6 +824,35 @@ export function createAIAnalysisNode(
 }
 
 /**
+ * Create a platform node
+ */
+export function createPlatformNode(
+  platform: string,
+  existingNodes: CanvasNodeData[] = []
+): CanvasNodeData {
+  return {
+    id: uuidv4(),
+    type: 'platform',
+    title: 'Platform',
+    content: '',
+    position: getSmartNodePosition(
+      existingNodes,
+      { width: 160, height: 80 },
+      'platform',
+      { x: 400, y: 300 },
+      'ideation-discovery'
+    ),
+    size: { width: 160, height: 80 },
+    color: 'blue',
+    connections: [],
+    metadata: { stage: 'ideation-discovery', nodeType: 'platform' },
+    platform: platform,
+    editable: true,
+    resizable: true
+  };
+}
+
+/**
  * Create a tech stack node
  */
 export function createTechStackNode(

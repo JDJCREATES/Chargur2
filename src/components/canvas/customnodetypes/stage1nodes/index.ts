@@ -13,6 +13,7 @@ export { ValuePropositionNode } from './ValuePropositionNode';
 export { CompetitorNode } from './CompetitorNode';
 export { TechStackNode } from './TechStackNode';
 export { UIStyleNode } from './UIStyleNode';
+export { PlatformNode } from './PlatformNode';
 
 // Node type definitions for easy reference
 export const STAGE1_NODE_TYPES = {
@@ -25,6 +26,7 @@ export const STAGE1_NODE_TYPES = {
   COMPETITOR: 'competitor', 
   TECH_STACK: 'techStack',
   UI_STYLE: 'uiStyle',
+  PLATFORM: 'platform',
 } as const;
 
 // Default node configurations
@@ -72,6 +74,11 @@ export const STAGE1_NODE_DEFAULTS = {
   uiStyle: {
     size: { width: 180, height: 120 },
     position: { x: 300, y: 400 },
+    editable: true,
+  },
+  platform: {
+    size: { width: 160, height: 80 },
+    position: { x: 400, y: 300 },
     editable: true,
   },
 };
