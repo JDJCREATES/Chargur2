@@ -105,7 +105,7 @@ export const UserChatOverlay: React.FC<UserChatOverlayProps> = ({
         whileHover={{ scale: 1.01 }}
         transition={{ duration: 0.2 }}
       >
-        <div className="flex items-end gap-3 p-3 bg-white/80 backdrop-blur-sm mb-16">
+        <div className="flex items-end gap-3 p-3 bg-white/80 backdrop-blur-sm">
           {/* Input Container */}
           <motion.div
             className="flex-1 relative"
