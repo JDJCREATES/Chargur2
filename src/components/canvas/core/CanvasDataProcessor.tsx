@@ -1,6 +1,28 @@
-Here's the fixed version with all missing closing brackets added:
+import { CanvasNode } from '../../../types';
+import { getSmartNodePosition } from '../../lib/canvas/nodePlacementUtils';
 
-```typescript
+export class CanvasDataProcessor {
+  /**
+   * Process authentication data and create/update canvas nodes
+   */
+  static processAuthData(nodes: CanvasNode[], authData: any): CanvasNode[] {
+    console.log('Processing auth data:', authData);
+    
+    const originalNodeCount = nodes.length;
+    const authX = 100;
+    const authY = 100;
+
+    // Process authentication methods
+    if (authData.authMethods && authData.authMethods.length > 0) {
+      const enabledMethods = authData.authMethods.filter((method: any) => method.enabled);
+      if (enabledMethods.length > 0) {
+        const newNode = this.createAuthMethodsNode(enabledMethods, authX, authY);
+        // Use smart positioning for new node
+        newNode.position = getSmartNodePosition(
+          nodes,
+          newNode.size,
+          newNode.type,
+          { x: authX, y: authY },
           'user-auth-flow'
         );
         nodes.push(newNode);
@@ -44,6 +66,57 @@ Here's the fixed version with all missing closing brackets added:
   }
 
   /**
+   * Create authentication methods node
+   */
+  private static createAuthMethodsNode(methods: any[], x: number, y: number): CanvasNode {
+    return {
+      id: `auth-methods-${Date.now()}`,
+      type: 'auth-methods',
+      position: { x, y },
+      size: { width: 160, height: 120 },
+      data: {
+        title: 'Auth Methods',
+        content: methods.map(m => m.name).join(', '),
+        methods: methods
+      }
+    };
+  }
+
+  /**
+   * Create user roles node
+   */
+  private static createUserRolesNode(roles: any[], x: number, y: number): CanvasNode {
+    return {
+      id: `user-roles-${Date.now()}`,
+      type: 'user-roles',
+      position: { x, y },
+      size: { width: 160, height: 120 },
+      data: {
+        title: 'User Roles',
+        content: roles.join(', '),
+        roles: roles
+      }
+    };
+  }
+
+  /**
+   * Create security features node
+   */
+  private static createSecurityFeaturesNode(features: any[], x: number, y: number): CanvasNode {
+    return {
+      id: `security-features-${Date.now()}`,
+      type: 'security-features',
+      position: { x, y },
+      size: { width: 160, height: 120 },
+      data: {
+        title: 'Security Features',
+        content: features.map(f => f.name).join(', '),
+        features: features
+      }
+    };
+  }
+
+  /**
    * Create stable hash function that ignores object key ordering
    */
   private static createStableHash(data: any): string {
@@ -66,4 +139,3 @@ Here's the fixed version with all missing closing brackets added:
     return sorted;
   }
 }
-```
