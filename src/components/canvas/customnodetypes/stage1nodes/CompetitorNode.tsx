@@ -476,6 +476,21 @@ export const CompetitorNode: React.FC<CompetitorNodeProps> = ({
                         <span className="font-mono">{node.domain}</span>
                       </div>
                     )}
+                    {node.link && (
+                      <div className="text-xs text-red-700 flex items-center gap-1">
+                        <span className="font-medium">Website:</span>
+                        <button 
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            openLink();
+                          }}
+                          className="font-mono text-red-600 hover:text-red-800 hover:underline flex items-center gap-1"
+                        >
+                          <span className="truncate max-w-24">{node.link}</span>
+                          <ExternalLink className="w-3 h-3" />
+                        </button>
+                      </div>
+                    )}
                     {hasTagline && (
                       <div className="text-xs text-red-700 italic">
                         "{node.tagline}"
