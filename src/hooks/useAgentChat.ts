@@ -10,6 +10,7 @@
 import { useState, useCallback, useRef } from 'react';
 import { useAuth } from './useAuth';
 import { ChatStorageManager } from '../lib/auth/chat/chatStorage';
+import { createLLMClient, LLMRequest } from '../lib/llm/llmClient';
 
 interface ChatMessage {
   id: string;
@@ -41,6 +42,7 @@ interface UseAgentChatOptions {
   onStageComplete?: () => void;
   onGoToStage?: (stageId: string) => void;
   llmProvider?: 'openai' | 'anthropic';
+  useDirectLLM?: boolean; // Maybe rename this to 'useStreamingResponse' or similar
   memory?: any;
   recommendations?: any[];
 }
@@ -53,6 +55,7 @@ export const useAgentChat = ({
   onStageComplete,
   onGoToStage,
   llmProvider = 'openai',
+  useDirectLLM = false,
   memory = {}, // Add this
   recommendations = [] // Add this
 }: UseAgentChatOptions) => {
@@ -73,6 +76,29 @@ export const useAgentChat = ({
   const retryCountRef = useRef(0);
   const maxRetries = 4;
   const baseRetryDelay = 1000;
+
+  // Initialize LLM client for direct usage
+  const llmClientRef = useRef<ReturnType<typeof createLLMClient> | null>(null);
+
+  const initializeLLMClient = useCallback(() => {
+    if (!llmClientRef.current && useDirectLLM) {
+      const apiKey = llmProvider === 'openai' 
+        ? import.meta.env.VITE_OPENAI_API_KEY 
+        : import.meta.env.VITE_ANTHROPIC_API_KEY;
+      
+      if (!apiKey) {
+        console.warn(`⚠️ ${llmProvider.toUpperCase()} API key not found, falling back to Edge Function`);
+        return null;
+      }
+
+      llmClientRef.current = createLLMClient({
+        provider: llmProvider,
+        apiKey,
+        model: llmProvider === 'openai' ? 'gpt-4o-mini' : 'claude-3-sonnet-20240229'
+      });
+    }
+    return llmClientRef.current;
+  }, [llmProvider, useDirectLLM]);
 
   const clearError = useCallback(() => {
     setState(prev => ({ ...prev, error: null }));
@@ -102,6 +128,7 @@ export const useAgentChat = ({
           allStageData,
           timestamp: new Date().toISOString(),
           llmProvider,
+          useDirectLLM
         }
       };
       
@@ -235,7 +262,7 @@ const processWithEdgeFunction = useCallback(async (
     conversationHistory: state.historyMessages, // Pass conversation history
     recommendations, // Pass recommendations to Edge Function
     llmProvider // Pass the provider preference
-  }; 
+  };
 
   const response = await fetch(`${supabaseUrl}/functions/v1/agent-prompt`, {
     method: 'POST',
@@ -558,6 +585,7 @@ const processWithEdgeFunction = useCallback(async (
     isStreaming: state.isLoading && !!state.content,
     // Expose configuration
     llmProvider,
+    useDirectLLM,
     goToStageId: state.goToStageId
   };
 };
