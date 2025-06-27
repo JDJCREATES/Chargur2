@@ -48,6 +48,7 @@ export const Canvas: React.FC<CanvasProps> = ({
   agentChat
 }) => {
   const [lastUserMessage, setLastUserMessage] = useState<string>('');
+  const { projectId } = useAppStore();
   
   // Use the props directly (they're already passed from App.tsx)
   const effectiveCanvasNodes = canvasNodes || [];
@@ -152,6 +153,7 @@ export const Canvas: React.FC<CanvasProps> = ({
           <SpatialCanvas
             currentStage={currentStage}
             stageData={stageData}
+            projectId={projectId}
             canvasNodes={effectiveCanvasNodes}
             canvasConnections={effectiveCanvasConnections}
             onUpdateCanvasNodes={onUpdateCanvasNodes}

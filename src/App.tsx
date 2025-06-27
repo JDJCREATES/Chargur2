@@ -56,6 +56,7 @@ function App() {
     isStreaming,
   } = useAgentChat({
     stageId: currentStage?.id || "",
+    projectId: projectId,
     currentStageData: currentStage ? stageData[currentStage.id] : {},
     allStageData: stageData,
     onAutoFill: (data) => {

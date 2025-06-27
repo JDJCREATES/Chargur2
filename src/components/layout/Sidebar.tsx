@@ -52,6 +52,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
   const { 
     stages, 
     currentStageId,
+    projectId,
     stageData, 
     getCurrentStage,
     goToStage,
@@ -77,7 +78,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
       setIsChatAccordionExpanded(true);
     }
   }, [
-    isOpen, agentChat.isLoading, agentChat.isStreaming, agentChat.content
+    isOpen, agentChat.isLoading, agentChat.isStreaming, agentChat.content, projectId
   ]);
 
   const handleRetry = () => {

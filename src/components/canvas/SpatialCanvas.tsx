@@ -43,6 +43,7 @@ import { STAGE1_NODE_TYPES, STAGE1_NODE_DEFAULTS } from './customnodetypes/stage
 interface SpatialCanvasProps {
   currentStage?: any;
   stageData: any;
+  projectId: string | null;
   canvasNodes?: CanvasNodeData[];
   canvasConnections?: Connection[];
   onUpdateCanvasNodes?: (nodes: CanvasNodeData[]) => void;
@@ -53,6 +54,7 @@ interface SpatialCanvasProps {
 // In the component, use store methods when callbacks aren't provided
 export const SpatialCanvas: React.FC<SpatialCanvasProps> = ({
   stageData,
+  projectId,
   canvasNodes = [],
   canvasConnections = [],
   onUpdateCanvasNodes,
@@ -70,8 +72,6 @@ export const SpatialCanvas: React.FC<SpatialCanvasProps> = ({
     updateCanvasNodes, 
     updateCanvasConnections 
   } = useAppStore();
-
-  const { projectId } = useAppStore();
 
   const [isToolbarCollapsed, setIsToolbarCollapsed] = useState(false);
 

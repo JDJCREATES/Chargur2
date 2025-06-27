@@ -38,6 +38,7 @@ interface UseAgentChatOptions {
   stageId: string;
   currentStageData: any;
   allStageData: any;
+  projectId: string | null;
   onAutoFill?: (data: any) => void;
   onStageComplete?: () => void;
   onGoToStage?: (stageId: string) => void;
@@ -51,6 +52,7 @@ export const useAgentChat = ({
   stageId,
   currentStageData,
   allStageData,
+  projectId,
   onAutoFill,
   onStageComplete,
   onGoToStage,
@@ -104,6 +106,30 @@ export const useAgentChat = ({
     setState(prev => ({ ...prev, error: null }));
   }, []);
 
+  // Reset chat state when projectId or stageId changes
+  React.useEffect(() => {
+    // Reset state
+    setState({
+      isLoading: false,
+      error: null,
+      content: '',
+      suggestions: [],
+      autoFillData: {},
+      isComplete: false,
+      conversationId: null,
+      historyMessages: [],
+      goToStageId: null
+    });
+    
+    // If we have both a projectId and stageId, try to find an existing conversation
+    if (projectId && stageId && user) {
+      console.log('🔍 Looking for existing conversation for project:', projectId, 'and stage:', stageId);
+      
+      // This would be a good place to fetch existing conversations for this project and stage
+      // For now, we'll just reset the state and let a new conversation be created on the next message
+    }
+  }, [projectId, stageId, user]);
+
   const createConversation = useCallback(async () => {
     try {
       // Check authentication first
@@ -123,6 +149,7 @@ export const useAgentChat = ({
       
       const requestBody = {
         stage_id: stageId,
+        project_id: projectId,
         metadata: {
           currentStageData,
           allStageData,
@@ -178,7 +205,7 @@ export const useAgentChat = ({
       console.error('Failed to create conversation:', error);
       throw error;
     }
-  }, [stageId, currentStageData, allStageData, user, session, llmProvider, useDirectLLM]);
+  }, [stageId, projectId, currentStageData, allStageData, user, session, llmProvider, useDirectLLM]);
 
   // Load chat history from database
   const loadChatHistory = useCallback(async (conversationId: string) => {
