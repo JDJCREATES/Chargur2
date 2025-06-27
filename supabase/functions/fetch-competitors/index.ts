@@ -146,7 +146,7 @@ async function searchCompetitors(appDescription: string, maxResults: number = 4)
           "User-Agent": "Chargur-CompetitorAnalysis/1.0"
         },
         body: JSON.stringify({
-          model: "gpt-4o", // Use gpt-4o for web search capability
+          model: "gpt-4o", // gpt-4o supports web search
           messages: [
             {
               role: "system",
@@ -197,12 +197,27 @@ Focus on companies that are currently active and have recent web presence. Inclu
           max_tokens: 4000,
           presence_penalty: 0.1,
           frequency_penalty: 0.1,
-          // Enable web search - this is the key addition
+          // CORRECT web search tool configuration
           tools: [
             {
-              type: "web_search"
+              type: "function",
+              function: {
+                name: "web_search",
+                description: "Search the web for current information about competitors",
+                parameters: {
+                  type: "object",
+                  properties: {
+                    query: {
+                      type: "string",
+                      description: "Search query for finding competitors"
+                    }
+                  },
+                  required: ["query"]
+                }
+              }
             }
-          ]
+          ],
+          tool_choice: "auto" // Let the model decide when to use web search
         }),
         signal: controller.signal
       });
@@ -224,19 +239,25 @@ Focus on companies that are currently active and have recent web presence. Inclu
       const data: OpenAIResponse = await response.json();
       console.log(`📊 OpenAI response received, processing...`);
       
-      // Handle the response - OpenAI with web search may return content directly
+      // Handle the response - may include tool calls for web search
       const message = data.choices?.[0]?.message;
       if (!message) {
         throw new Error("No message returned from OpenAI API");
       }
       
-      const content = message.content;
-      
-      // If there are tool calls (web search results), the content should contain the analysis
+      // Check if there were tool calls (web searches)
       if (message.tool_calls && message.tool_calls.length > 0) {
         console.log(`🔧 Web search was performed with ${message.tool_calls.length} tool calls`);
+        
+        // Process tool calls if needed (for more advanced implementations)
+        for (const toolCall of message.tool_calls) {
+          if (toolCall.function?.name === 'web_search') {
+            console.log(`🔍 Web search query: ${toolCall.function.arguments}`);
+          }
+        }
       }
       
+      const content = message.content;
       if (!content) {
         throw new Error("No content returned from OpenAI API");
       }
