@@ -157,14 +157,22 @@ export function processIdeationData(
   }
 
   // Process competitors if available
-  if (ideationData.competitors && Array.isArray(ideationData.competitors)) {
+  // Check for both competitors (string) and competitorData (array)
+  if ((ideationData.competitors && Array.isArray(ideationData.competitors)) || 
+      (ideationData.competitorData && Array.isArray(ideationData.competitorData))) {
+    
+    // Determine which data source to use
+    const competitorArray = Array.isArray(ideationData.competitorData) 
+      ? ideationData.competitorData 
+      : ideationData.competitors;
+    
     // Get existing competitor nodes
     const existingCompetitors = nodes.filter(node => 
       node.metadata?.stage === 'ideation-discovery' && node.type === 'competitor'
     );
     
     // Add new competitors that don't already exist
-    ideationData.competitors.forEach((competitor: any) => {
+    competitorArray.forEach((competitor: any) => {
       // Check if this competitor already exists by name
       const competitorExists = existingCompetitors.some(existing => 
         existing.name === competitor.name

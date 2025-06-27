@@ -33,7 +33,7 @@ interface CompetitorResponse {
 export async function fetchCompetitors(
   appDescription: string,
   maxResults: number = 3
-): Promise<CompetitorResponse> {
+): Promise<CompetitorResponse | null> {
   console.log(`🔍 Fetching competitors for: "${appDescription.substring(0, 100)}..."`);
   
   try {
@@ -73,6 +73,7 @@ export async function fetchCompetitors(
     return data;
   } catch (error) {
     console.error('❌ Error in fetchCompetitors:', error);
-    throw error;
+    // Return null instead of throwing to allow for graceful degradation
+    return null;
   }
 }
