@@ -15,12 +15,13 @@ import * as nodeFactory from '../nodeFactory';
  * Process ideation and discovery stage data
  */
 export function processIdeationData(
-  stageData: any, 
-  currentState: ProcessorState, 
-  nodes: CanvasNodeData[]
+  currentNodes: CanvasNodeData[],
+  stageSpecificData: any,
+  lastProcessedData: Record<string, any>
 ): CanvasNodeData[] {
-  const ideationData = stageData['ideation-discovery'];
-  const lastIdeationData = (currentState.lastProcessedData || {})['ideation-discovery'] || {};
+  const ideationData = stageSpecificData;
+  const lastIdeationData = lastProcessedData['ideation-discovery'] || {};
+  let nodes = [...currentNodes];
   const originalNodeCount = nodes.length;
   
   if (!ideationData || JSON.stringify(ideationData) === JSON.stringify(lastIdeationData)) {

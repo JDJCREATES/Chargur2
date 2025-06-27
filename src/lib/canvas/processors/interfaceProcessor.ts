@@ -14,12 +14,13 @@ import * as nodeFactory from '../nodeFactory';
  * Process interface and interaction stage data
  */
 export function processInterfaceData(
-  stageData: any, 
-  currentState: ProcessorState, 
-  nodes: CanvasNodeData[]
+  currentNodes: CanvasNodeData[],
+  stageSpecificData: any,
+  lastProcessedData: Record<string, any>
 ): CanvasNodeData[] {
-  const interfaceData = stageData['interface-interaction'] || {};
-  const lastInterfaceData = (currentState.lastProcessedData || {})['interface-interaction'] || {};
+  const interfaceData = stageSpecificData || {};
+  const lastInterfaceData = lastProcessedData['interface-interaction'] || {};
+  let nodes = [...currentNodes];
   const originalNodeCount = nodes.length;
   
   if (!interfaceData || JSON.stringify(interfaceData) === JSON.stringify(lastInterfaceData)) {

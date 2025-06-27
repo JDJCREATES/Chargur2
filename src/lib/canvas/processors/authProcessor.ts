@@ -14,12 +14,13 @@ import * as nodeFactory from '../nodeFactory';
  * Process user authentication and authorization stage data
  */
 export function processAuthData(
-  stageData: any, 
-  currentState: ProcessorState, 
-  nodes: CanvasNodeData[]
+  currentNodes: CanvasNodeData[],
+  stageSpecificData: any,
+  lastProcessedData: Record<string, any>
 ): CanvasNodeData[] {
-  const authData = stageData['user-auth-flow'] || {};
-  const lastAuthData = (currentState.lastProcessedData || {})['user-auth-flow'] || {};
+  const authData = stageSpecificData || {};
+  const lastAuthData = lastProcessedData['user-auth-flow'] || {};
+  let nodes = [...currentNodes];
   const originalNodeCount = nodes.length;
   
   if (!authData || JSON.stringify(authData) === JSON.stringify(lastAuthData)) {

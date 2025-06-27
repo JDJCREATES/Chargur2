@@ -307,6 +307,8 @@ export const useAppStore = create<AppState>((set, get) => {
     
     fetchProjects: async () => {
       try {
+        set({ error: null }); // Clear any existing errors
+        
         // Get current user from Supabase
         const { data: { user } } = await supabase.auth.getUser();
         
@@ -328,7 +330,8 @@ export const useAppStore = create<AppState>((set, get) => {
         set({ projects: data || [] });
       } catch (err) {
         console.error('Failed to fetch projects:', err);
-        // Don't set error state here to avoid disrupting the UI
+        const errorMessage = err instanceof Error ? err.message : 'Failed to fetch projects';
+        set({ error: errorMessage });
       }
     },
     

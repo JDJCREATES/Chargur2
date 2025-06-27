@@ -14,12 +14,13 @@ import * as nodeFactory from '../nodeFactory';
  * Process structure and flow stage data
  */
 export function processStructureData(
-  stageData: any, 
-  currentState: ProcessorState, 
-  nodes: CanvasNodeData[]
+  currentNodes: CanvasNodeData[],
+  stageSpecificData: any,
+  lastProcessedData: Record<string, any>
 ): CanvasNodeData[] {
-  const structureData = stageData['structure-flow'];
-  const lastStructureData = (currentState.lastProcessedData || {})['structure-flow'] || {};
+  const structureData = stageSpecificData;
+  const lastStructureData = lastProcessedData['structure-flow'] || {};
+  let nodes = [...currentNodes];
   const originalNodeCount = nodes.length;
   
   if (!structureData || JSON.stringify(structureData) === JSON.stringify(lastStructureData)) {

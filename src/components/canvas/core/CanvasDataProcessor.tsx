@@ -42,22 +42,22 @@ export class CanvasDataProcessor {
       // Process based on stage type
       switch (stageId) {
         case 'ideation-discovery':
-          nodes = processIdeationData(nodes, stageData);
+          nodes = processIdeationData(nodes, stageData, lastProcessedData);
           break;
         case 'feature-planning':
-          nodes = processFeatureData(nodes, stageData);
+          nodes = processFeatureData(nodes, stageData, lastProcessedData);
           break;
         case 'structure-flow':
-          nodes = processStructureData(nodes, stageData);
+          nodes = processStructureData(nodes, stageData, lastProcessedData);
           break;
         case 'architecture-design':
-          nodes = processArchitectureData(nodes, stageData);
+          nodes = processArchitectureData(nodes, stageData, lastProcessedData);
           break;
         case 'interface-interaction':
-          nodes = processInterfaceData(nodes, stageData);
+          nodes = processInterfaceData(nodes, stageData, lastProcessedData);
           break;
         case 'user-auth-flow':
-          nodes = processAuthData(nodes, stageData);
+          nodes = processAuthData(nodes, stageData, lastProcessedData);
           break;
         default:
           console.warn('Unknown stage type:', stageId);
@@ -87,6 +87,6 @@ export class CanvasDataProcessor {
    */
   static processAuthData(nodes: CanvasNode[], authData: any): CanvasNode[] {
     console.warn('CanvasDataProcessor.processAuthData is deprecated. Use processAuthData from authProcessor instead.');
-    return processAuthData(nodes, authData);
+    return processAuthData(nodes, authData, {});
   }
 }

@@ -14,12 +14,13 @@ import * as nodeFactory from '../nodeFactory';
  * Process feature planning stage data
  */
 export function processFeatureData(
-  stageData: any, 
-  currentState: ProcessorState, 
-  nodes: CanvasNodeData[]
+  currentNodes: CanvasNodeData[],
+  stageSpecificData: any,
+  lastProcessedData: Record<string, any>
 ): CanvasNodeData[] {
-  const featureData = stageData['feature-planning'];
-  const lastFeatureData = (currentState.lastProcessedData || {})['feature-planning'] || {};
+  const featureData = stageSpecificData;
+  const lastFeatureData = lastProcessedData['feature-planning'] || {};
+  let nodes = [...currentNodes];
   const originalNodeCount = nodes.length;
   
   if (!featureData || JSON.stringify(featureData) === JSON.stringify(lastFeatureData)) {

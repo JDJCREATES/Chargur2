@@ -14,12 +14,13 @@ import * as nodeFactory from '../nodeFactory';
  * Process architecture design stage data
  */
 export function processArchitectureData(
-  stageData: any, 
-  currentState: ProcessorState, 
-  nodes: CanvasNodeData[]
+  currentNodes: CanvasNodeData[],
+  stageSpecificData: any,
+  lastProcessedData: Record<string, any>
 ): CanvasNodeData[] {
-  const architectureData = stageData['architecture-design'];
-  const lastArchitectureData = (currentState.lastProcessedData || {})['architecture-design'] || {};
+  const architectureData = stageSpecificData;
+  const lastArchitectureData = lastProcessedData['architecture-design'] || {};
+  let nodes = [...currentNodes];
   const originalNodeCount = nodes.length;
   
   if (!architectureData || JSON.stringify(architectureData) === JSON.stringify(lastArchitectureData)) {

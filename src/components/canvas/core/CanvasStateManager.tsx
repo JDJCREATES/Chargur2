@@ -189,31 +189,47 @@ export const useCanvasStateManager = (
 
     processingRef.current = true;
     
-    const processorState: ProcessorState = {
-      nodes: initialNodes,
-      lastProcessedData: lastProcessedStageData || {}
-    };
-    
-    console.log('Calling CanvasDataProcessor with:', {
-      stageDataKeys: Object.keys(stageData),
-      nodeCount: initialNodes.length
-    });
+    try {
+      // Get current stage ID from the app store
+      const { useAppStore } = await import('../../../store/useAppStore');
+      const currentStageId = useAppStore.getState().currentStageId;
+      
+      console.log('Calling CanvasDataProcessor with:', {
+        currentStageId,
+        stageDataKeys: Object.keys(stageData),
+        nodeCount: initialNodes.length
+      });
 
-    CanvasDataProcessor.updateCanvasFromStageData(
-      stageData,
-      processorState,
-      (newState: ProcessorState) => {
-        console.log('CanvasDataProcessor callback with:', {
-          newNodeCount: newState.nodes.length
-        });
-        updateNodes(newState.nodes); 
-        setLastProcessedStageData(newState.lastProcessedData || {});
-        console.log('Canvas data processed, node count:', newState.nodes.length);
-        
-        // Reset processing flag
+      // Get stage-specific data
+      const stageSpecificData = stageData[currentStageId];
+      
+      if (!stageSpecificData) {
+        console.log('No data for current stage:', currentStageId);
         processingRef.current = false;
+        return;
       }
-    );
+
+      const result = CanvasDataProcessor.updateCanvasFromStageData(
+        initialNodes,
+        initialConnections,
+        currentStageId,
+        stageSpecificData,
+        lastProcessedStageData
+      );
+      
+      console.log('CanvasDataProcessor result:', {
+        newNodeCount: result.nodes.length
+      });
+      
+      updateNodes(result.nodes); 
+      setLastProcessedStageData(result.lastProcessedData || {});
+      console.log('Canvas data processed, node count:', result.nodes.length);
+    } catch (error) {
+      console.error('Error in processStageData:', error);
+    } finally {
+      // Reset processing flag
+      processingRef.current = false;
+    }
   }, [lastProcessedStageData, updateNodes, initialNodes]);
 
   return {
