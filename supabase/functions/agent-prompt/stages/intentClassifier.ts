@@ -39,7 +39,13 @@ CLASSIFICATION GUIDELINES:
 2. Consider implicit references to stage activities or deliverables
 3. Evaluate if the message is continuing work in the current stage
 4. Identify if the message spans multiple stages
-5. When uncertain, default to whatever number first comes after the word stage in their message
+5. When uncertain, default to the current stage
+
+SPECIAL INTENTS:
+1. Competitor Analysis: Detect when users want to find, analyze, or compare competitors
+   - Keywords: competitor, competition, similar app, alternative, market research, compare
+   - Example: "Find competitors for my app", "What are similar apps to mine?", "Show me competitors"
+   - Action: Set competitorSearchIntent to true in response
 
 IMPORTANT: You must respond with valid JSON only. Do not include any explanatory text outside the JSON structure.`;
 
@@ -53,7 +59,8 @@ Respond in this exact JSON format:
   "confidence": 0.85,
   "reasoning": "Brief explanation of why these stages were selected",
   "currentStageRelevance": "high|medium|low",
-  "suggestedPrimaryStage": "most-relevant-stage-id"
+  "suggestedPrimaryStage": "most-relevant-stage-id",
+  "competitorSearchIntent": false
 }
 
 Available stage IDs:
