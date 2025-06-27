@@ -41,7 +41,7 @@ export interface Connection {
 
 const DEFAULT_STATE: CanvasState = {
   selectedNodeId: null,
-  scale: 1,
+  scale: .75,
   offset: { x: 0, y: 0 },
   showGrid: true,
 };
