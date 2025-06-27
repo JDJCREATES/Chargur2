@@ -157,7 +157,7 @@ export const useCanvasStateManager = (
     // Update local state
     setState(prev => ({
       ...prev,
-      scale: 1,
+      scale: DEFAULT_STATE.scale,
       offset: { x: 0, y: 0 }
     }));
   }, [storeResetView]);
