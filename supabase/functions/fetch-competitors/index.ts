@@ -215,23 +215,8 @@ Focus on companies that are currently active and have recent web presence. Inclu
                   required: ["query"]
                 }
               }
-              function: {
-                name: "web_search",
-                description: "Search the web for current information about competitors",
-                parameters: {
-                  type: "object",
-                  properties: {
-                    query: {
-                      type: "string",
-                      description: "Search query for finding competitors"
-                    }
-                  },
-                  required: ["query"]
-                }
-              }
             }
           ],
-          tool_choice: "auto" // Let the model decide when to use web search
           tool_choice: "auto" // Let the model decide when to use web search
         }),
         signal: controller.signal
@@ -270,19 +255,9 @@ Focus on companies that are currently active and have recent web presence. Inclu
             console.log(`🔍 Web search query: ${toolCall.function.arguments}`);
           }
         }
-        
-        // Process tool calls if needed (for more advanced implementations)
+      }
+      
       const content = message.content;
-        for (const toolCall of message.tool_calls) {
-          if (toolCall.function?.name === 'web_search') {
-            console.log(`🔍 Web search query: ${toolCall.function.arguments}`);
-          }
-        }
-      }
-      
-      // Check if there were tool calls (web searches)
-      }
-      
       console.log(`📄 Processing competitor analysis from web search results`);
       
       // Parse and validate the response
@@ -488,7 +463,7 @@ serve(async (req: Request) => {
     // Search for competitors using web search
     const competitors = await searchCompetitors(appDescription.trim(), maxResults);
     
-        // Prepare the response
+    // Prepare the response
     const response: CompetitorResponse = {
       competitors,
       searchQuery: `competitors for ${appDescription.trim()}`,
