@@ -745,7 +745,7 @@ export function createAIAnalysisNode(
   if (completedStages === 0) return null;
 
   // Calculate the total number of items across all stages
-  const totalItems = Object.values(stageData).reduce((count, stageItems: any) => {
+  const totalItems = Object.values(stageData).reduce((count: number, stageItems: any) => {
     return count + Object.keys(stageItems || {}).length;
   }, 0);
 

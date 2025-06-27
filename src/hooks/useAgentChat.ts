@@ -651,14 +651,14 @@ const processWithEdgeFunction = useCallback(async (
         // Success - just mark as not loading
         setState(prev => ({
           ...prev,
-          isLoading: false,
-          // Add debug info
-          context: {
-            ...prev.context,
-            conversationId,
-            timestamp: new Date().toISOString()
-          }
+          isLoading: false
         }));
+        
+        // Log debug info separately instead of storing in state
+        console.log('🎉 Request completed successfully:', {
+          conversationId,
+          timestamp: new Date().toISOString()
+        });
         
         retryCountRef.current = 0;
       } catch (error: any) {

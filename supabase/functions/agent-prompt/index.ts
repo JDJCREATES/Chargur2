@@ -508,7 +508,7 @@ async function processAgentRequest(controller: ReadableStreamDefaultController, 
     console.log('- Intent value type:', typeof intentResult.competitorSearchIntent)
     
     // STEP 2: Handle competitor search if detected
-    if (competitorSearchIntent) {
+    if (intentResult.competitorSearchIntent === true) {
       console.log('🎯 Competitor search intent detected! Calling fetch-competitors...')
       
       // Get app description from current stage or all stage data
@@ -553,16 +553,30 @@ async function processAgentRequest(controller: ReadableStreamDefaultController, 
             }
             
           } else {
-            // Handle error response
-            const errorText = await competitorResponse.text()
-            let errorData = {}
-            try {
-              errorData = JSON.parse(errorText)
-            } catch (e) {
-              // Text wasn't JSON
+            // Improved error handling with proper typing
+            const getErrorMessage = async (response: Response): Promise<string> => {
+              try {
+                const errorData = await response.json()
+                
+                // Type-safe error extraction
+                if (errorData && typeof errorData === 'object') {
+                  if ('error' in errorData && typeof errorData.error === 'string') {
+                    return errorData.error
+                  }
+                  if ('message' in errorData && typeof errorData.message === 'string') {
+                    return errorData.message
+                  }
+                }
+                
+                return `HTTP ${response.status}: ${response.statusText}`
+              } catch (parseError) {
+                return `HTTP ${response.status}: ${response.statusText}`
+              }
             }
-            console.error('❌ Competitor search API error:', competitorResponse.status, errorData, errorText)
-            competitorSearchError = `API error: ${competitorResponse.status} - ${errorData.error || errorText || 'Unknown error'}`
+            
+            const errorMessage = await getErrorMessage(competitorResponse)
+            console.error('❌ Competitor search API error:', competitorResponse.status, errorMessage)
+            competitorSearchError = `API error: ${competitorResponse.status} - ${errorMessage}`
           }
           
         } catch (fetchError) {

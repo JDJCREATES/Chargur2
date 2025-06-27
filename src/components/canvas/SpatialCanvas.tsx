@@ -255,8 +255,15 @@ export const SpatialCanvas: React.FC<SpatialCanvasProps> = ({
           newNode = nodeFactory.createCompetitorNode({
             name: 'New Competitor',
             notes: '',
-            link: ''
-          }, nodes);
+            link: '',
+            domain: '',
+            tagline: '',
+            features: [],
+            pricingTiers: [],
+            marketPositioning: '',
+            strengths: [],
+            weaknesses: []
+          }, 0, nodes); // Pass 0 as index, nodes as existingNodes
           break;
         default:
           // Default node creation for other types
