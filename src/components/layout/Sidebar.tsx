@@ -2,8 +2,8 @@ import React from 'react';
 import { motion } from 'framer-motion';
 import { ChevronLeft, ChevronRight, ChevronDown } from 'lucide-react';
 import { GiUnplugged } from 'react-icons/gi';
-import { useAppStore } from '../../store/useAppStore';
 import { Accordion, AccordionSummary, AccordionDetails, Typography } from '@mui/material';
+import { useAppStore } from '../../store/useAppStore';
 import { ChatHistory } from '../ui/ChatHistory';
 import { ChatInterface } from '../chat/ChatInterface';
 import { Settings } from '../ui/Settings';
@@ -45,6 +45,9 @@ export const Sidebar: React.FC<SidebarProps> = ({
   onToggle,
   agentChat
 }) => {
+  // State to control chat accordion expansion
+  const [isChatAccordionExpanded, setIsChatAccordionExpanded] = useState(true);
+
   // Get data from store instead of props:
   const { 
     stages, 
@@ -65,6 +68,17 @@ export const Sidebar: React.FC<SidebarProps> = ({
   const handleSuggestionClick = (suggestion: string) => {
     handleSendMessage(suggestion);
   };
+
+  // Effect to automatically expand chat accordion when messages are sent or received
+  useEffect(() => {
+    // Only expand if the sidebar is open and there's activity in the chat
+    if (isOpen && (agentChat.isLoading || agentChat.isStreaming || agentChat.content)) {
+      // Expand the chat accordion
+      setIsChatAccordionExpanded(true);
+    }
+  }, [
+    isOpen, agentChat.isLoading, agentChat.isStreaming, agentChat.content
+  ]);
 
   const handleRetry = () => {
     agentChat.retry();
@@ -207,7 +221,10 @@ export const Sidebar: React.FC<SidebarProps> = ({
 
         {/* AI Assistant */}
         <div className={`transition-opacity duration-200 ${isOpen ? 'opacity-100' : 'opacity-0'}`}>
-          <Accordion>
+          <Accordion 
+            expanded={isChatAccordionExpanded}
+            onChange={(_, expanded) => setIsChatAccordionExpanded(expanded)}
+          >
             <AccordionSummary
               expandIcon={<ChevronDown size={20} />}
               aria-controls="ai-assistant-content"

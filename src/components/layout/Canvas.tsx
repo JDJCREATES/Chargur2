@@ -56,9 +56,7 @@ export const Canvas: React.FC<CanvasProps> = ({
   const handleSendMessage = (message: string) => {
     setLastUserMessage(message);
     agentChat.sendMessage(message);
-  };
-
-  const handleOpenSidebar = () => {
+    // Open the sidebar when a message is sent
     if (onOpenSidebar) {
       onOpenSidebar();
     }
@@ -170,7 +168,7 @@ export const Canvas: React.FC<CanvasProps> = ({
         >
           <UserChatOverlay
             onSendMessage={handleSendMessage}
-            onOpenSidebar={handleOpenSidebar}
+            onOpenSidebar={onOpenSidebar || (() => {})}
             isLoading={agentChat.isLoading || agentChat.isStreaming}
             lastUserMessage={lastUserMessage}
             disabled={!currentStage}
