@@ -98,8 +98,22 @@ export class CanvasDataProcessor {
     // Generate AI analysis node
     const aiAnalysisNode = this.generateAIAnalysisNode(stageData, updatedNodes.length);
     if (aiAnalysisNode) {
-      // Remove any existing AI analysis nodes
+      // Find and remove any existing AI analysis nodes
+      const existingAiNodes = updatedNodes.filter(node => node.metadata?.generated);
       updatedNodes = updatedNodes.filter(node => !node.metadata?.generated);
+      
+      // Position the new AI node intelligently
+      if (updatedNodes.length > 0) {
+        aiAnalysisNode.position = getSmartNodePosition(
+          updatedNodes,
+          aiAnalysisNode.size,
+          'agent-output',
+          { x: 0, y: 0 },
+          undefined,
+          false
+        );
+      }
+      
       console.log('Adding AI analysis node');
       updatedNodes.push(aiAnalysisNode);
     }
@@ -1042,40 +1056,139 @@ if (!existingPersona) {
     if (nodeCount === 0) {
       return null; // Don't create analysis node for empty canvas
     }
+
+    // Extract key data from each stage
+    const ideationData = stageData['ideation-discovery'] || {};
+    const featureData = stageData['feature-planning'] || {};
+    const structureData = stageData['structure-flow'] || {};
+    const interfaceData = stageData['interface-interaction'] || {};
+    const architectureData = stageData['architecture-design'] || {};
+    const authData = stageData['user-auth-flow'] || {};
     
-   // Generate AI analysis based on project completeness
-  const completedStages = Object.keys(stageData).length;
-  if (completedStages === 0) return null;
-  
-  // Create the AI analysis node with all required properties
-  const aiNode: CanvasNodeData = {
-    id: `ai-analysis-${this.nodeIdCounter++}`,
-    type: 'agent-output',
-    title: 'AI Analysis',
-    content: `Project has ${completedStages} completed stages`,
-    position: { x: 100 + (nodeCount * 10), y: 100 + (nodeCount * 10) }, // Add required position
-    size: { width: 200, height: 120 },
-    color: 'gray',
-    connections: [],
-    metadata: {
-      generated: true,
-      stagesCompleted: completedStages,
-      totalNodes: nodeCount
-    },
-    resizable: true
-  };
-  
-  // Update position using smart positioning
-  aiNode.position = getSmartNodePosition(
-    [], // Pass empty array since we don't have access to nodes here
-    aiNode.size,
-    aiNode.type,
-    { x: 100 + (nodeCount * 10), y: 100 + (nodeCount * 10) },
-    'ai-analysis'
-  );
-  
-  return aiNode;
-}
+    // Count completed stages
+    const completedStages = Object.keys(stageData).length;
+    
+    // Calculate feature counts
+    const selectedFeaturePacks = featureData.selectedFeaturePacks || [];
+    const customFeatures = featureData.customFeatures || [];
+    const totalFeatures = selectedFeaturePacks.length + customFeatures.length;
+    
+    // Calculate screen counts
+    const screens = structureData.screens || [];
+    const userFlows = structureData.userFlows || [];
+    
+    // Calculate database and API counts
+    const databaseTables = architectureData.databaseSchema || [];
+    const apiEndpoints = architectureData.apiEndpoints || [];
+    
+    // Calculate auth methods
+    const authMethods = authData.authMethods?.filter((m: any) => m.enabled) || [];
+    const userRoles = authData.userRoles || [];
+    
+    // Generate a comprehensive content summary
+    let content = `# Project Overview\n`;
+    
+    if (ideationData.appName) {
+      content += `**App Name:** ${ideationData.appName}\n`;
+    }
+    
+    if (ideationData.tagline) {
+      content += `**Tagline:** ${ideationData.tagline}\n`;
+    }
+    
+    if (ideationData.appIdea) {
+      content += `**Mission:** ${ideationData.appIdea}\n`;
+    }
+    
+    if (ideationData.problemStatement) {
+      content += `**Problem:** ${ideationData.problemStatement}\n`;
+    }
+    
+    content += `\n## Project Stats\n`;
+    content += `- **Completed Stages:** ${completedStages}/9\n`;
+    content += `- **Total Features:** ${totalFeatures}\n`;
+    
+    if (selectedFeaturePacks.length > 0) {
+      content += `- **Feature Packs:** ${selectedFeaturePacks.join(', ')}\n`;
+    }
+    
+    if (screens.length > 0) {
+      content += `- **Screens:** ${screens.length}\n`;
+    }
+    
+    if (userFlows.length > 0) {
+      content += `- **User Flows:** ${userFlows.length}\n`;
+    }
+    
+    if (databaseTables.length > 0) {
+      content += `- **Database Tables:** ${databaseTables.length}\n`;
+    }
+    
+    if (apiEndpoints.length > 0) {
+      content += `- **API Endpoints:** ${apiEndpoints.length}\n`;
+    }
+    
+    if (authMethods.length > 0) {
+      content += `- **Auth Methods:** ${authMethods.length}\n`;
+    }
+    
+    if (userRoles.length > 0) {
+      content += `- **User Roles:** ${userRoles.length}\n`;
+    }
+    
+    if (interfaceData.selectedDesignSystem) {
+      content += `- **Design System:** ${interfaceData.selectedDesignSystem}\n`;
+    }
+    
+    // Add user personas if available
+    if (ideationData.userPersonas && ideationData.userPersonas.length > 0) {
+      content += `\n## Target Users\n`;
+      ideationData.userPersonas.forEach((persona: any, index: number) => {
+        if (index < 3) { // Limit to 3 personas to avoid overcrowding
+          content += `- ${persona.emoji} **${persona.name}:** ${persona.role}\n`;
+        }
+      });
+      
+      if (ideationData.userPersonas.length > 3) {
+        content += `- ...and ${ideationData.userPersonas.length - 3} more\n`;
+      }
+    }
+    
+    // Add next steps recommendations
+    content += `\n## Next Steps\n`;
+    
+    if (completedStages < 3) {
+      content += `- Complete Ideation & Feature Planning\n`;
+      content += `- Define core user flows and screens\n`;
+      content += `- Choose a design system\n`;
+    } else if (completedStages < 6) {
+      content += `- Finalize technical architecture\n`;
+      content += `- Define authentication flow\n`;
+      content += `- Review UX for completeness\n`;
+    } else {
+      content += `- Generate development prompts\n`;
+      content += `- Export project for handoff\n`;
+      content += `- Deploy with Bolt.new\n`;
+    }
+    
+    return {
+      id: `ai-analysis-${this.nodeIdCounter++}`,
+      type: 'agent-output',
+      title: 'Project Summary',
+      content: content,
+      position: { x: 0, y: 0 }, // Will be positioned by getSmartNodePosition
+      size: { width: 350, height: 300 },
+      color: 'blue',
+      connections: [],
+      metadata: {
+        generated: true,
+        stagesCompleted: completedStages,
+        totalNodes: nodeCount,
+        lastUpdated: new Date().toISOString()
+      },
+      resizable: true
+    };
+  }
 
   // Node creation helper methods
   private static createAppNameNode(appName: string, existingNode?: CanvasNodeData | null): CanvasNodeData {
