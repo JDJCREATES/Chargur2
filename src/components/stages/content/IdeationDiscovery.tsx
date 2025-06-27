@@ -16,6 +16,7 @@ import {
 import { Accordion, AccordionSummary, AccordionDetails, Typography } from '@mui/material';
 import { ChevronDown } from 'lucide-react';
 import { Stage } from '../../../types';
+import { useAuth } from '../../../hooks/useAuth';
 
 interface IdeationDiscoveryProps {
   stage: Stage;
@@ -39,6 +40,7 @@ export const IdeationDiscovery: React.FC<IdeationDiscoveryProps> = ({
   onComplete,
   onUpdateData,
 }) => {
+  const { session } = useAuth();
   const defaultFormData = {
     appIdea: '',
     appName: '',
@@ -95,7 +97,7 @@ userPersonas: [] as UserPersona[],
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
-          'Authorization': `Bearer ${localStorage.getItem('supabase.auth.token') || ''}`,
+          'Authorization': `Bearer ${session?.access_token || ''}`,
         },
         body: JSON.stringify({
           appDescription: formData.appIdea,
