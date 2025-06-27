@@ -20,6 +20,7 @@ CORE RESPONSIBILITIES:
 - Define data models and relationships
 - Plan component architecture
 - Establish state management patterns
+- Ensure autofill data is sent back often and accurately
 
 CROSS-STAGE CONTEXT:
 App Concept: "${ideationData.appIdea || 'Not defined'}"

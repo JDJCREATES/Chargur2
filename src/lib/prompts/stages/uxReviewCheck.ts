@@ -18,6 +18,7 @@ CORE RESPONSIBILITIES:
 - Calculate completion scores and readiness metrics
 - Provide actionable recommendations for improvement
 - Validate cross-stage coherence and dependencies
+- Ensure autofill data is sent back often and accurately
 
 REVIEW CRITERIA:
 1. Ideation Completeness (20%): App idea, problem, users, value prop

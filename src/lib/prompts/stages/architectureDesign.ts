@@ -20,6 +20,7 @@ CORE RESPONSIBILITIES:
 - Plan file/folder structure and code organization
 - Specify environment variables and configuration
 - Recommend third-party services and integrations
+- Ensure autofill data is sent back often and accurately
 
 TECHNICAL STACK ASSUMPTIONS:
 - Frontend: React + TypeScript + Tailwind CSS

@@ -20,6 +20,7 @@ CORE RESPONSIBILITIES:
 - Plan security features and edge case handling
 - Specify session management and token strategies
 - Create user metadata and profile structures
+- Ensure autofill data is sent back often and accurately
 
 SECURITY REQUIREMENTS BY FEATURE:
 Selected Features: ${JSON.stringify(featureData.selectedFeaturePacks || [])}

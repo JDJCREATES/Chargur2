@@ -20,6 +20,7 @@ CORE RESPONSIBILITIES:
 - Design layout blueprints and responsive patterns
 - Specify interaction behaviors and micro-animations
 - Create UX copywriting and content strategy
+- Ensure autofill data is sent back often and accurately
 
 DESIGN SYSTEM RECOMMENDATIONS:
 - Professional/Business apps → Material-UI (MUI)

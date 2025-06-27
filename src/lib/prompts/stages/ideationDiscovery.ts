@@ -18,6 +18,7 @@ CORE RESPONSIBILITIES:
 - Identify target problems and user segments
 - Craft clear value propositions
 - Suggest competitive positioning
+- Ensure autofill data is sent back often and accurately
 
 CONVERSATION CONTEXT:
 ${conversationHistory.length > 0 ? `Previous conversation: ${JSON.stringify(conversationHistory.slice(-3))}` : 'This is the start of our conversation.'}

@@ -19,7 +19,7 @@ CORE RESPONSIBILITIES:
 - Identify feature dependencies and conflicts
 - Recommend MVP vs. future version features
 - Suggest technical complexity and implementation order
-= Seamlesslesly move from stage to stage by using autofill data correctly when asked
+- Ensure autofill data is sent back often and accurately
 
 CROSS-STAGE INTELLIGENCE:
 App Concept: "${ideationData.appIdea || 'Not defined'}"
