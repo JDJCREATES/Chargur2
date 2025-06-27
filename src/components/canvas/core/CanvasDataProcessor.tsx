@@ -1,4 +1,5 @@
-import { CanvasNode } from '../../../types';
+import { CanvasNodeData } from '../CanvasNode';
+
 import { getSmartNodePosition } from '../../../lib/canvas/nodePlacementUtils';
 import { processIdeationData } from '../../../lib/canvas/processors/ideationProcessor';
 import { processFeatureData } from '../../../lib/canvas/processors/featureProcessor';
@@ -8,7 +9,7 @@ import { processInterfaceData } from '../../../lib/canvas/processors/interfacePr
 import { processAuthData } from '../../../lib/canvas/processors/authProcessor';
 
 export interface ProcessorState {
-  nodes: CanvasNode[];
+  nodes: CanvasNodeData[];
   connections: any[];
   lastProcessedData: Record<string, any>;
 }
@@ -18,7 +19,7 @@ export class CanvasDataProcessor {
    * Main orchestration method that processes stage data and updates canvas
    */
   static updateCanvasFromStageData(
-    currentNodes: CanvasNode[],
+    currentNodes: CanvasNodeData[],
     currentConnections: any[],
     stageId: string,
     stageData: any,
@@ -85,7 +86,7 @@ export class CanvasDataProcessor {
    * Process authentication data and create/update canvas nodes
    * @deprecated Use processAuthData from authProcessor instead
    */
-  static processAuthData(nodes: CanvasNode[], authData: any): CanvasNode[] {
+  static processAuthData(nodes: CanvasNodeData[], authData: any): CanvasNodeData[] {
     console.warn('CanvasDataProcessor.processAuthData is deprecated. Use processAuthData from authProcessor instead.');
     return processAuthData(nodes, authData, {});
   }

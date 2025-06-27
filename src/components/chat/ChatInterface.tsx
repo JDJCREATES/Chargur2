@@ -60,7 +60,7 @@ export const ChatInterface: React.FC<ChatInterfaceProps> = ({
             initial={{ opacity: 0, height: 0 }}
             animate={{ opacity: 1, height: "auto" }}
             exit={{ opacity: 0, height: 0 }}
-            className="px-4 py-3 bg-red-50 border-b border-red-200"
+            className="px-2 py-2 bg-red-50 border-b border-red-200"
           >
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-2 text-red-700">
@@ -93,15 +93,15 @@ export const ChatInterface: React.FC<ChatInterfaceProps> = ({
               onInput={adjustTextareaHeight}
               placeholder="Ready to start designing?"
               disabled={isLoading || disabled}
-              className="w-full px-4 py-3 border border-gray-200 rounded-xl resize-none focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent disabled:bg-gray-50 disabled:text-gray-500 text-sm leading-relaxed"
+              className="w-full px-2 py-2 border border-gray-200 rounded-xl resize-none focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent disabled:bg-gray-50 disabled:text-gray-500 text-sm leading-relaxed inline-flex"
               rows={1}
-              style={{ minHeight: "48px", maxHeight: "120px" }}
+              style={{ minHeight: "25px", maxHeight: "120px" }}
             />
           </div>
           <button
             type="submit"
             disabled={!message.trim() || isLoading || disabled}
-            className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:bg-gray-300 disabled:cursor-not-allowed transition-colors flex items-center gap-2"
+            className="px-2 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:bg-gray-300 disabled:cursor-not-allowed transition-colors flex items-center gap-2"
           >
             {isLoading ? (
               <Loader2 className="w-4 h-4 animate-spin" />
