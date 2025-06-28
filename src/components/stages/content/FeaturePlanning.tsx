@@ -532,7 +532,9 @@ For each component, include:
 - Description
 - Subcomponents (if applicable)
 
-Please organize these intelligently based on best practices for React applications. Group related components together and ensure the architecture reflects a production-ready application structure.`;
+Please organize these intelligently based on best practices for React applications. Group related components together and ensure the architecture reflects a production-ready application structure.
+
+`;
 
       // Send the prompt to the AI
       onSendMessage(prompt);
