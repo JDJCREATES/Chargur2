@@ -25,7 +25,6 @@ import { CanvasNodeData } from '../CanvasNode';
 import { DefaultCanvasNode } from '../DefaultCanvasNode';
 import { DraggableConnectableWrapper } from '../DraggableConnectableWrapper';
 import { CanvasConnection } from '../CanvasConnection';
-import { FeatureBreakdownNode } from '../customnodetypes/stage2nodes/FeatureBreakdownNode';
 import { 
   AppNameNode, 
   TaglineNode, 
@@ -39,6 +38,10 @@ import {
   PlatformNode,
   STAGE1_NODE_TYPES 
 } from '../customnodetypes/stage1nodes';
+import {
+  FeatureNode,
+  STAGE2_NODE_TYPES
+} from '../customnodetypes/stage2nodes';
 
 export interface Connection {
   id: string;
@@ -190,11 +193,8 @@ export const CanvasRenderer: React.FC<CanvasRendererProps> = ({
                       return <UIStyleNode {...commonProps} />;
                     case 'platform':
                       return <PlatformNode {...commonProps} />;
-                    case 'feature-breakdown':
-                      return <FeatureBreakdownNode 
-                                {...commonProps} 
-                                onDelete={onNodeDelete}
-                              />;
+                    case 'feature':
+                      return <FeatureNode {...commonProps} onDelete={onNodeDelete} />;
                     default:
                       return <DefaultCanvasNode 
                                 node={node} 

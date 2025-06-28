@@ -9,7 +9,7 @@
 import { v4 as uuidv4 } from 'uuid';
 import { CanvasNodeData } from '../../components/canvas/CanvasNode';
 import { STAGE1_NODE_TYPES, STAGE1_NODE_DEFAULTS } from '../../components/canvas/customnodetypes/stage1nodes';
-import { STAGE2_NODE_TYPES, STAGE2_NODE_DEFAULTS } from '../../components/canvas/customnodetypes/stage2nodes';
+import { STAGE2_NODE_TYPES } from '../../components/canvas/customnodetypes/stage2nodes';
 import { getSmartNodePosition } from './nodePlacementUtils';
 
 // Node ID counter for generating unique IDs
@@ -312,7 +312,15 @@ export function createFeaturePackNode(
     size: { width: 180, height: 100 },
     color: 'blue',
     connections: [],
-    metadata: { stage: 'feature-planning', pack, sourceId: pack },
+    metadata: { 
+      stage: 'feature-planning', 
+      pack, 
+      sourceId: pack,
+      priority: 'should',
+      complexity: 'medium'
+    },
+    subFeatures: [],
+    showBreakdown: false,
     resizable: true
   };
 }
@@ -347,57 +355,16 @@ export function createCustomFeatureNode(
     size: { width: 180, height: 120 },
     color: 'blue',
     connections: [],
-    metadata: { stage: 'feature-planning', custom: true, sourceId: feature.id },
-    resizable: true
-  };
-}
-
-/**
- * Create a feature breakdown node
- */
-export function createFeatureBreakdownNode(
-  parentFeatureId: string,
-  parentFeatureName: string,
-  breakdownSteps: string[],
-  existingNodes: CanvasNodeData[] = []
-): CanvasNodeData {
-  const defaults = STAGE2_NODE_DEFAULTS['feature-breakdown'];
-  
-  // Find parent feature node to position breakdown below it
-  const parentNode = existingNodes.find(node => node.id === parentFeatureId);
-  let position = defaults.position;
-  
-  if (parentNode) {
-    position = {
-      x: parentNode.position.x,
-      y: parentNode.position.y + parentNode.size.height + 40
-    };
-  }
-  
-  return {
-    id: uuidv4(),
-    type: 'feature-breakdown',
-    title: `${parentFeatureName} Breakdown`,
-    content: '',
-    position: getSmartNodePosition(
-      existingNodes,
-      defaults.size,
-      'feature-breakdown',
-      position,
-      'feature-planning'
-    ),
-    size: defaults.size,
-    color: 'blue',
-    connections: [],
     metadata: { 
       stage: 'feature-planning', 
-      nodeType: 'feature-breakdown',
-      parentFeatureId,
-      parentFeatureName
+      custom: true, 
+      sourceId: feature.id,
+      priority: feature.priority || 'should',
+      complexity: feature.complexity || 'medium',
+      category: feature.category || 'both'
     },
-    breakdownSteps: breakdownSteps,
-    parentFeatureId: parentFeatureId,
-    editable: true,
+    subFeatures: feature.subFeatures || [],
+    showBreakdown: false,
     resizable: true
   };
 }

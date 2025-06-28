@@ -9,7 +9,6 @@
 import { CanvasNodeData } from '../../../components/canvas/CanvasNode';
 import { ProcessorState } from '../../../components/canvas/core/CanvasDataProcessor';
 import * as nodeFactory from '../nodeFactory';
-import { v4 as uuidv4 } from 'uuid';
 
 /**
  * Process feature planning stage data
@@ -51,50 +50,27 @@ export function processFeatureData(
       
       if (existingNode) {
         // Keep the existing node
-        updatedFeaturePlanningNodes.push(existingNode);
+        const updatedNode = { ...existingNode };
         
-        // Check if this feature has subFeatures that need a breakdown node
-        if (pack === 'auth' || pack === 'social' || pack === 'commerce' || pack === 'analytics') {
-          // These feature packs typically have subfeatures
-          const breakdownSteps = getDefaultSubFeatures(pack);
-          
-          // Check if a breakdown node already exists for this feature
-          const existingBreakdownNode = existingFeaturePlanningNodes.find(node => 
-            node.type === 'feature-breakdown' && 
-            node.metadata?.parentFeatureId === existingNode.metadata?.sourceId);
-          
-          if (!existingBreakdownNode && breakdownSteps.length > 0) {
-            // Create a new breakdown node
-            const newBreakdownNode = nodeFactory.createFeatureBreakdownNode(
-              existingNode.id,
-              existingNode.title,
-              breakdownSteps,
-              [...nonFeaturePlanningNodes, ...updatedFeaturePlanningNodes]
-            );
-            updatedFeaturePlanningNodes.push(newBreakdownNode);
-          }
+        // Add default sub-features if none exist
+        if ((!updatedNode.subFeatures || updatedNode.subFeatures.length === 0) && 
+            (pack === 'auth' || pack === 'social' || pack === 'commerce' || pack === 'analytics' || 
+             pack === 'media' || pack === 'communication')) {
+          updatedNode.subFeatures = getDefaultSubFeatures(pack);
         }
+        
+        updatedFeaturePlanningNodes.push(updatedNode);
       } else {
         // Create a new node
         const newNode = nodeFactory.createFeaturePackNode(pack, index, featureX, featureY, [...nonFeaturePlanningNodes, ...updatedFeaturePlanningNodes]);
-        updatedFeaturePlanningNodes.push(newNode);
         
-        // Check if this feature pack should have a breakdown node
-        if (pack === 'auth' || pack === 'social' || pack === 'commerce' || pack === 'analytics') {
-          // These feature packs typically have subfeatures
-          const breakdownSteps = getDefaultSubFeatures(pack);
-          
-          if (breakdownSteps.length > 0) {
-            // Create a new breakdown node
-            const newBreakdownNode = nodeFactory.createFeatureBreakdownNode(
-              newNode.id,
-              newNode.title,
-              breakdownSteps,
-              [...nonFeaturePlanningNodes, ...updatedFeaturePlanningNodes]
-            );
-            updatedFeaturePlanningNodes.push(newBreakdownNode);
-          }
+        // Add default sub-features for common feature packs
+        if (pack === 'auth' || pack === 'social' || pack === 'commerce' || pack === 'analytics' || 
+            pack === 'media' || pack === 'communication') {
+          newNode.subFeatures = getDefaultSubFeatures(pack);
         }
+        
+        updatedFeaturePlanningNodes.push(newNode);
       }
     });
   }
@@ -113,51 +89,39 @@ export function processFeatureData(
         const updatedNode = {
           ...existingNode,
           title: feature.name,
-          content: `${feature.description || 'Custom feature'}\n\nPriority: ${feature.priority || 'medium'}\nComplexity: ${feature.complexity || 'medium'}`
-        };
-        updatedFeaturePlanningNodes.push(updatedNode);
-        
-        // Check if this feature has subFeatures that need a breakdown node
-        if (feature.subFeatures && Array.isArray(feature.subFeatures) && feature.subFeatures.length > 0) {
-          // Check if a breakdown node already exists for this feature
-          const existingBreakdownNode = existingFeaturePlanningNodes.find(node => 
-            node.type === 'feature-breakdown' && 
-            node.metadata?.parentFeatureId === existingNode.id);
-          
-          if (existingBreakdownNode) {
-            // Update existing breakdown node
-            const updatedBreakdownNode = {
-              ...existingBreakdownNode,
-              breakdownSteps: feature.subFeatures
-            };
-            updatedFeaturePlanningNodes.push(updatedBreakdownNode);
-          } else {
-            // Create a new breakdown node
-            const newBreakdownNode = nodeFactory.createFeatureBreakdownNode(
-              existingNode.id,
-              feature.name,
-              feature.subFeatures,
-              [...nonFeaturePlanningNodes, ...updatedFeaturePlanningNodes]
-            );
-            updatedFeaturePlanningNodes.push(newBreakdownNode);
+          content: `${feature.description || 'Custom feature'}\n\nPriority: ${feature.priority || 'medium'}\nComplexity: ${feature.complexity || 'medium'}`,
+          metadata: {
+            ...existingNode.metadata,
+            priority: feature.priority || 'should',
+            complexity: feature.complexity || 'medium',
+            category: feature.category || 'both'
           }
+        };
+        
+        // Update sub-features if they exist in the feature data
+        if (feature.subFeatures && Array.isArray(feature.subFeatures)) {
+          updatedNode.subFeatures = feature.subFeatures;
         }
+        
+        updatedFeaturePlanningNodes.push(updatedNode);
       } else {
         // Create a new node
         const newNode = nodeFactory.createCustomFeatureNode(feature, startIndex + index, featureX, featureY, [...nonFeaturePlanningNodes, ...updatedFeaturePlanningNodes]);
-        updatedFeaturePlanningNodes.push(newNode);
         
-        // Check if this feature has subFeatures that need a breakdown node
-        if (feature.subFeatures && Array.isArray(feature.subFeatures) && feature.subFeatures.length > 0) {
-          // Create a new breakdown node
-          const newBreakdownNode = nodeFactory.createFeatureBreakdownNode(
-            newNode.id,
-            feature.name,
-            feature.subFeatures,
-            [...nonFeaturePlanningNodes, ...updatedFeaturePlanningNodes]
-          );
-          updatedFeaturePlanningNodes.push(newBreakdownNode);
+        // Add metadata for priority, complexity, and category
+        newNode.metadata = {
+          ...newNode.metadata,
+          priority: feature.priority || 'should',
+          complexity: feature.complexity || 'medium',
+          category: feature.category || 'both'
+        };
+        
+        // Add sub-features if they exist in the feature data
+        if (feature.subFeatures && Array.isArray(feature.subFeatures)) {
+          newNode.subFeatures = feature.subFeatures;
         }
+        
+        updatedFeaturePlanningNodes.push(newNode);
       }
     });
   }
