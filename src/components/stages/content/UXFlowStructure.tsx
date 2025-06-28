@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 
-import {  Layers, Navigation, Workflow, Users } from 'lucide-react';
+import { Layers, Navigation, Workflow, Users } from 'lucide-react';
 import { Stage } from '../../../types';
 
 interface UXFlowStructureProps {
@@ -9,12 +9,21 @@ interface UXFlowStructureProps {
   onUpdateData: (data: any) => void;
 }
 
+interface UXFlowOptions {
+  includeOnboarding: boolean;
+  includeAuth: boolean;
+  includeSettings: boolean;
+  navigationStyle: string;
+  userFlowComplexity: string;
+  screenDepth: string;
+}
+
 export const UXFlowStructure: React.FC<UXFlowStructureProps> = ({
   stage,
   onComplete,
   onUpdateData,
 }) => {
-  const [options, setOptions] = useState({
+  const [options, setOptions] = useState<UXFlowOptions>({
     includeOnboarding: true,
     includeAuth: true,
     includeSettings: true,
