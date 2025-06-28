@@ -187,7 +187,7 @@ export function processFeatureData(
           STAGE2_NODE_DEFAULTS.architecture.size,
           'feature',
           undefined,
-          'feature-planning',
+          'feature-planning'),
         data: {
           title: 'Architecture Blueprint',
           content: `Architecture blueprint with ${featureData.architecturePrep.screens.length} screens, ${featureData.architecturePrep.apiRoutes.length} API routes, and ${featureData.architecturePrep.components.length} components.`,
