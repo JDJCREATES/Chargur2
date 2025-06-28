@@ -2,7 +2,7 @@
   id: string;
   type: 'concept' | 'feature' | 'ux-flow' | 'wireframe' | 'system' | 'agent-output' | 
         'appName' | 'tagline' | 'coreProblem' | 'mission' | 'userPersona' | 'valueProp' | 'competitor' |
-        'techStack' | 'uiStyle' | 'platform';
+        'techStack' | 'uiStyle' | 'platform' | 'architecture';
   title: string;
   content: string;
   position: { x: number; y: number };

@@ -11,6 +11,10 @@ import { ProcessorState } from '../../../components/canvas/core/CanvasDataProces
 import * as nodeFactory from '../nodeFactory';
 import { v4 as uuidv4 } from 'uuid';
 
+import { STAGE2_NODE_TYPES, STAGE2_NODE_DEFAULTS } from '../../../components/canvas/customnodetypes/stage2nodes';
+import { getSmartNodePosition } from '../../../lib/canvas/nodePlacementUtils';
+
+
 /**
  * Process feature planning stage data
  */
@@ -178,11 +182,12 @@ export function processFeatureData(
         title: 'Architecture Blueprint',
         content: `Architecture blueprint with ${featureData.architecturePrep.screens.length} screens, ${featureData.architecturePrep.apiRoutes.length} API routes, and ${featureData.architecturePrep.components.length} components.`,
         position: getSmartNodePosition(
-          existingNodes,
+          [...nonFeaturePlanningNodes, ...updatedFeaturePlanningNodes],
           STAGE2_NODE_DEFAULTS.architecture.size,
-          'architecture',
-          STAGE2_NODE_DEFAULTS.architecture.position,
-          'feature-planning'
+          'feature',
+          undefined,
+          'feature-planning',
+          false
         ),
         size: STAGE2_NODE_DEFAULTS.architecture.size,
         color: 'indigo',
