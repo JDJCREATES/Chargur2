@@ -115,26 +115,7 @@ userPersonas: [] as UserPersona[],
           errorMessage += ` - ${errorData.error || 'Unknown error'}`;
         } catch (e) {
           errorMessage += ` - ${errorText || 'Unknown error'}`;
-          ...(session?.access_token && {
-            'Authorization': `Bearer ${session.access_token}`
-          })
-        },
-        body: JSON.stringify({
-          appDescription: formData.appIdea,
-          maxResults: 4
-        })
-      });
-
-      if (!response.ok) {
-        const errorText = await response.text();
-        let errorMessage = `API error: ${response.status}`;
-        try {
-          const errorData = JSON.parse(errorText);
-          errorMessage += ` - ${errorData.error || 'Unknown error'}`;
-        } catch (e) {
-          errorMessage += ` - ${errorText || 'Unknown error'}`;
         }
-        throw new Error(errorMessage);
         throw new Error(errorMessage);
       }
 
@@ -172,33 +153,6 @@ userPersonas: [] as UserPersona[],
               y: 100 + (Math.floor(index / 3) * 150) 
             }
           }))
-        };
-        
-        // Update parent with all the data including nodes
-        onUpdateData(updatedFormData);
-        
-        console.log(`✅ Found ${data.competitors.length} competitors via direct API call`);
-      } else {
-        alert('No competitors found for your app idea. Try refining your description.');
-        console.log('⚠️ No competitors found in API response:', data);
-      }
-
-      const data = await response.json();
-      
-      if (data.competitors && data.competitors.length > 0) {
-        // Update the competitors text field
-        const competitorText = data.competitors
-          .map((comp: any) => `${comp.name} (${comp.domain}) - ${comp.tagline}`)
-          .join('\n');
-        
-        updateFormData('competitors', competitorText);
-        
-        // Create structured data for board nodes and pass to parent
-        const updatedFormData = {
-          ...formData,
-          competitors: competitorText,
-          // Add competitor nodes data that can be used by the board
-          competitorData: data.competitors
         };
         
         // Update parent with all the data including nodes

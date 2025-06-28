@@ -138,7 +138,7 @@ async function searchCompetitors(appDescription: string, maxResults: number = 4)
     const timeoutId = setTimeout(() => controller.abort(), 60000); // 60 second timeout for web search
     
     try {
-      const response = await fetch("https://api.openai.com/v1/chat/completions", {
+      const response = await fetch("https://api.openai.com/v1/responses", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -204,7 +204,6 @@ Focus on companies that are currently active and have recent web presence. Inclu
             }
           ],
           tool_choice: "auto" // Let the model decide when to use web search
-          tool_choice: "auto" // Let the model decide when to use web search
         }),
         signal: controller.signal
       });
@@ -235,10 +234,12 @@ Focus on companies that are currently active and have recent web presence. Inclu
       // Check if there were tool calls (web searches)
       if (message.tool_calls && message.tool_calls.length > 0) {
         console.log(`🔧 Web search was performed with ${message.tool_calls.length} tool calls`);
-      const content = message.content;
       }
+      
+      const content = message.content;
+      if (!content) {
         throw new Error("No content returned from OpenAI API response");
-      // Check if there were tool calls (web searches)
+      }
       console.log(`📄 Processing competitor analysis from web search results`);
       
       // Parse and validate the response
