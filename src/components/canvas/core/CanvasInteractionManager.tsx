@@ -137,12 +137,8 @@ export const useCanvasInteractionManager = (
       const deltaX = (e.clientX - interactionState.initialMousePos.x) / scale;
       const deltaY = (e.clientY - interactionState.initialMousePos.y) / scale;
       
-      // Enforce minimum sizes more strictly
-      const minWidth = 100;
-      const minHeight = 50;
-      
-      const newWidth = Math.max(minWidth, interactionState.initialNodeSize.width + deltaX);
-      const newHeight = Math.max(minHeight, interactionState.initialNodeSize.height + deltaY);
+      const newWidth = Math.max(100, interactionState.initialNodeSize.width + deltaX);
+      const newHeight = Math.max(50, interactionState.initialNodeSize.height + deltaY);
       
       onNodeUpdate(interactionState.resizingNode, {
         size: { width: newWidth, height: newHeight }

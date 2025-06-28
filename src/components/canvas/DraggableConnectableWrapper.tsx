@@ -149,9 +149,8 @@ export const DraggableConnectableWrapper: React.FC<DraggableConnectableWrapperPr
       style={{
         x,
         y,
-        width: nodeSize.width < 100 ? 100 : nodeSize.width,
-        minHeight: nodeSize.height < 50 ? 50 : nodeSize.height,
-        minWidth: 100
+        width: nodeSize.width,
+        minHeight: nodeSize.height,
       }}
       onClick={(e) => {
         e.stopPropagation();
@@ -165,7 +164,6 @@ export const DraggableConnectableWrapper: React.FC<DraggableConnectableWrapperPr
       <div className={`
         w-full h-full relative 
         ${isConnecting ? 'ring-2 ring-blue-400 ring-opacity-30' : ''}
-        overflow-hidden
       `}>
         {/* Pulsing Energy Border Layers - Only when selected */}
         {isSelected && (
@@ -237,12 +235,11 @@ export const DraggableConnectableWrapper: React.FC<DraggableConnectableWrapperPr
         {/* Resize Handle */}
         {isSelected && (
           <div
-            className="absolute bottom-0 right-0 w-6 h-6 bg-white border border-gray-300 rounded-bl-sm rounded-tr-sm cursor-nwse-resize hover:bg-gray-100 flex items-center justify-center shadow-sm"
+            className="absolute bottom-0 right-0 w-4 h-4 bg-white border border-gray-300 rounded-bl-sm rounded-tr-sm cursor-nwse-resize hover:bg-gray-100"
             onMouseDown={handleResizeStart}
+            
             onClick={(e) => e.stopPropagation()}
-          >
-            <div className="w-2 h-2 bg-gray-400 rounded-full"></div>
-          </div>
+          />
         )}
       </div>
     </motion.div>
