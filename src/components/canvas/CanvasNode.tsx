@@ -2,7 +2,7 @@
   id: string;
   type: 'concept' | 'feature' | 'ux-flow' | 'wireframe' | 'system' | 'agent-output' | 
         'appName' | 'tagline' | 'coreProblem' | 'mission' | 'userPersona' | 'valueProp' | 'competitor' |
-        'techStack' | 'uiStyle' | 'platform';
+        'techStack' | 'uiStyle' | 'platform' | 'feature-breakdown';
   title: string;
   content: string;
   position: { x: number; y: number };
@@ -12,6 +12,9 @@
   metadata?: any;
   collapsed?: boolean;
   resizable?: boolean;
+  // Feature breakdown specific properties
+  parentFeatureId?: string;
+  breakdownSteps?: string[];
   // Add properties that match the custom nodes from SpatialCanvas
   value?: string;
   editable?: boolean;

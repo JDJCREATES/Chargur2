@@ -9,6 +9,7 @@
 import { CanvasNodeData } from '../../../components/canvas/CanvasNode';
 import { ProcessorState } from '../../../components/canvas/core/CanvasDataProcessor';
 import * as nodeFactory from '../nodeFactory';
+import { v4 as uuidv4 } from 'uuid';
 
 /**
  * Process feature planning stage data
@@ -51,10 +52,49 @@ export function processFeatureData(
       if (existingNode) {
         // Keep the existing node
         updatedFeaturePlanningNodes.push(existingNode);
+        
+        // Check if this feature has subFeatures that need a breakdown node
+        if (pack === 'auth' || pack === 'social' || pack === 'commerce' || pack === 'analytics') {
+          // These feature packs typically have subfeatures
+          const breakdownSteps = getDefaultSubFeatures(pack);
+          
+          // Check if a breakdown node already exists for this feature
+          const existingBreakdownNode = existingFeaturePlanningNodes.find(node => 
+            node.type === 'feature-breakdown' && 
+            node.metadata?.parentFeatureId === existingNode.metadata?.sourceId);
+          
+          if (!existingBreakdownNode && breakdownSteps.length > 0) {
+            // Create a new breakdown node
+            const newBreakdownNode = nodeFactory.createFeatureBreakdownNode(
+              existingNode.id,
+              existingNode.title,
+              breakdownSteps,
+              [...nonFeaturePlanningNodes, ...updatedFeaturePlanningNodes]
+            );
+            updatedFeaturePlanningNodes.push(newBreakdownNode);
+          }
+        }
       } else {
         // Create a new node
         const newNode = nodeFactory.createFeaturePackNode(pack, index, featureX, featureY, [...nonFeaturePlanningNodes, ...updatedFeaturePlanningNodes]);
         updatedFeaturePlanningNodes.push(newNode);
+        
+        // Check if this feature pack should have a breakdown node
+        if (pack === 'auth' || pack === 'social' || pack === 'commerce' || pack === 'analytics') {
+          // These feature packs typically have subfeatures
+          const breakdownSteps = getDefaultSubFeatures(pack);
+          
+          if (breakdownSteps.length > 0) {
+            // Create a new breakdown node
+            const newBreakdownNode = nodeFactory.createFeatureBreakdownNode(
+              newNode.id,
+              newNode.title,
+              breakdownSteps,
+              [...nonFeaturePlanningNodes, ...updatedFeaturePlanningNodes]
+            );
+            updatedFeaturePlanningNodes.push(newBreakdownNode);
+          }
+        }
       }
     });
   }
@@ -76,10 +116,48 @@ export function processFeatureData(
           content: `${feature.description || 'Custom feature'}\n\nPriority: ${feature.priority || 'medium'}\nComplexity: ${feature.complexity || 'medium'}`
         };
         updatedFeaturePlanningNodes.push(updatedNode);
+        
+        // Check if this feature has subFeatures that need a breakdown node
+        if (feature.subFeatures && Array.isArray(feature.subFeatures) && feature.subFeatures.length > 0) {
+          // Check if a breakdown node already exists for this feature
+          const existingBreakdownNode = existingFeaturePlanningNodes.find(node => 
+            node.type === 'feature-breakdown' && 
+            node.metadata?.parentFeatureId === existingNode.id);
+          
+          if (existingBreakdownNode) {
+            // Update existing breakdown node
+            const updatedBreakdownNode = {
+              ...existingBreakdownNode,
+              breakdownSteps: feature.subFeatures
+            };
+            updatedFeaturePlanningNodes.push(updatedBreakdownNode);
+          } else {
+            // Create a new breakdown node
+            const newBreakdownNode = nodeFactory.createFeatureBreakdownNode(
+              existingNode.id,
+              feature.name,
+              feature.subFeatures,
+              [...nonFeaturePlanningNodes, ...updatedFeaturePlanningNodes]
+            );
+            updatedFeaturePlanningNodes.push(newBreakdownNode);
+          }
+        }
       } else {
         // Create a new node
         const newNode = nodeFactory.createCustomFeatureNode(feature, startIndex + index, featureX, featureY, [...nonFeaturePlanningNodes, ...updatedFeaturePlanningNodes]);
         updatedFeaturePlanningNodes.push(newNode);
+        
+        // Check if this feature has subFeatures that need a breakdown node
+        if (feature.subFeatures && Array.isArray(feature.subFeatures) && feature.subFeatures.length > 0) {
+          // Create a new breakdown node
+          const newBreakdownNode = nodeFactory.createFeatureBreakdownNode(
+            newNode.id,
+            feature.name,
+            feature.subFeatures,
+            [...nonFeaturePlanningNodes, ...updatedFeaturePlanningNodes]
+          );
+          updatedFeaturePlanningNodes.push(newBreakdownNode);
+        }
       }
     });
   }
@@ -113,4 +191,62 @@ export function processFeatureData(
   console.log('Processed feature data:', nodes.length - originalNodeCount, 'nodes added/updated');
 
   return nodes;
+}
+
+/**
+ * Get default sub-features for common feature packs
+ */
+function getDefaultSubFeatures(featurePack: string): string[] {
+  switch (featurePack) {
+    case 'auth':
+      return [
+        'User registration with email/password',
+        'Login/logout functionality',
+        'Password reset flow',
+        'User profile management',
+        'Role-based access control'
+      ];
+    case 'social':
+      return [
+        'User profiles and connections',
+        'Content sharing capabilities',
+        'Like/reaction system',
+        'Comment functionality',
+        'Activity feed'
+      ];
+    case 'commerce':
+      return [
+        'Product catalog and browsing',
+        'Shopping cart functionality',
+        'Checkout process',
+        'Payment processing',
+        'Order management'
+      ];
+    case 'analytics':
+      return [
+        'User activity tracking',
+        'Performance metrics dashboard',
+        'Custom report generation',
+        'Data visualization',
+        'Export capabilities'
+      ];
+    case 'media':
+      return [
+        'File upload and storage',
+        'Media playback controls',
+        'Gallery/library management',
+        'Media organization (folders/tags)',
+        'Sharing capabilities'
+      ];
+    case 'communication':
+      return [
+        'Direct messaging',
+        'Group chat functionality',
+        'Notification system',
+        'Message status tracking',
+        'Media sharing in messages'
+      ];
+    default:
+      return [];
+  }
 }

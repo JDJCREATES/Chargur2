@@ -46,6 +46,7 @@ interface Feature {
   complexity: 'low' | 'medium' | 'high';
   category: 'frontend' | 'backend' | 'both' | 'ai-assisted' | 'api-required';
   subFeatures: string[];
+  subFeatures: string[];
   dependencies: string[];
   estimatedEffort: number; // 1-10 scale
 }
@@ -188,6 +189,7 @@ export const FeaturePlanning: React.FC<FeaturePlanningProps> = ({
       complexity: 'medium',
       category: 'frontend',
       subFeatures: [],
+      subFeatures: [],
       dependencies: [],
       estimatedEffort: 5,
     };
@@ -208,14 +210,85 @@ export const FeaturePlanning: React.FC<FeaturePlanningProps> = ({
   const generateAIFeatureBreakdown = (featureName: string) => {
     // Simulate AI feature breakdown
     const commonBreakdowns: { [key: string]: string[] } = {
-      'user profiles': ['view profile', 'edit profile', 'upload avatar', 'set preferences', 'privacy settings'],
-      'real-time chat': ['send message', 'receive message', 'typing indicators', 'message history', 'emoji reactions'],
-      'file upload': ['select files', 'upload progress', 'file validation', 'storage management', 'download files'],
-      'notifications': ['push notifications', 'email notifications', 'in-app notifications', 'notification preferences', 'notification history'],
+      'user profiles': [
+        'View user profile details',
+        'Edit profile information',
+        'Upload and crop profile avatar',
+        'Set user preferences',
+        'Configure privacy settings'
+      ],
+      'real-time chat': [
+        'Send text messages',
+        'Receive messages with delivery status',
+        'Show typing indicators',
+        'Access message history',
+        'Support emoji reactions and attachments'
+      ],
+      'file upload': [
+        'Select multiple files',
+        'Show upload progress',
+        'Validate file types and sizes',
+        'Manage storage quotas',
+        'Download and share uploaded files'
+      ],
+      'notifications': [
+        'Push notifications for mobile',
+        'Email notifications for important events',
+        'In-app notification center',
+        'Notification preference settings',
+        'Read/unread status tracking'
+      ],
+      'authentication': [
+        'Email/password registration',
+        'Social login options',
+        'Password reset flow',
+        'Account verification',
+        'Session management'
+      ],
+      'payment': [
+        'Multiple payment method support',
+        'Secure checkout process',
+        'Payment history tracking',
+        'Subscription management',
+        'Invoice generation'
+      ],
+      'search': [
+        'Full-text search capability',
+        'Filter and sort results',
+        'Search history tracking',
+        'Suggested search terms',
+        'Advanced search options'
+      ],
+      'dashboard': [
+        'Key metrics visualization',
+        'Customizable widgets',
+        'Data filtering options',
+        'Export capabilities',
+        'Real-time updates'
+      ]
     };
     
-    const key = featureName.toLowerCase();
-    return commonBreakdowns[key] || ['sub-feature 1', 'sub-feature 2', 'sub-feature 3'];
+    // Try to find an exact match first
+    const key = featureName.toLowerCase().trim();
+    if (commonBreakdowns[key]) {
+      return commonBreakdowns[key];
+    }
+    
+    // If no exact match, look for partial matches
+    for (const breakdownKey in commonBreakdowns) {
+      if (key.includes(breakdownKey) || breakdownKey.includes(key)) {
+        return commonBreakdowns[breakdownKey];
+      }
+    }
+    
+    // Generate generic breakdown based on feature name
+    return [
+      `${featureName} setup and configuration`,
+      `${featureName} core functionality`,
+      `${featureName} user interface`,
+      `${featureName} settings and customization`,
+      `${featureName} integration with other features`
+    ];
   };
 
   const suggestAIEnhancements = () => {
@@ -470,6 +543,79 @@ ${formData.customFeatures.map((f: Feature) => `- ${f.name} (${f.priority}, ${f.c
                         <option value="medium">Medium</option>
                         <option value="high">High</option>
                       </select>
+                    </div>
+                  </div>
+                </div>
+                
+                {/* Feature Breakdown */}
+                <div className="mt-3 pt-3 border-t border-gray-200">
+                  <div className="flex items-center justify-between mb-2">
+                    <label className="block font-medium text-gray-700 text-xs">Feature Breakdown</label>
+                    <button
+                      onClick={() => {
+                        const breakdown = generateAIFeatureBreakdown(feature.name);
+                        updateFeature(feature.id, { subFeatures: breakdown });
+                      }}
+                      className="flex items-center gap-1 px-2 py-1 text-xs bg-blue-600 text-white rounded-md hover:bg-blue-700"
+                    >
+                      <Sparkles className="w-3 h-3" />
+                      Auto-Generate
+                    </button>
+                  </div>
+                  
+                  <div className="space-y-1">
+                    {feature.subFeatures && feature.subFeatures.map((subFeature, subIndex) => (
+                      <div key={subIndex} className="flex items-center gap-2">
+                        <div className="w-2 h-2 rounded-full bg-blue-400"></div>
+                        <input
+                          type="text"
+                          value={subFeature}
+                          onChange={(e) => {
+                            const newSubFeatures = [...feature.subFeatures];
+                            newSubFeatures[subIndex] = e.target.value;
+                            updateFeature(feature.id, { subFeatures: newSubFeatures });
+                          }}
+                          className="flex-1 text-xs bg-white border border-gray-200 rounded px-2 py-1 focus:outline-none focus:ring-1 focus:ring-blue-500"
+                        />
+                        <button
+                          onClick={() => {
+                            const newSubFeatures = feature.subFeatures.filter((_, i) => i !== subIndex);
+                            updateFeature(feature.id, { subFeatures: newSubFeatures });
+                          }}
+                          className="p-1 text-red-500 hover:bg-red-50 rounded"
+                        >
+                          <Trash2 className="w-3 h-3" />
+                        </button>
+                      </div>
+                    ))}
+                    
+                    <div className="flex items-center gap-2">
+                      <div className="w-2 h-2 rounded-full bg-blue-300"></div>
+                      <input
+                        type="text"
+                        placeholder="Add sub-feature..."
+                        className="flex-1 text-xs bg-white border border-gray-200 rounded px-2 py-1 focus:outline-none focus:ring-1 focus:ring-blue-500"
+                        onKeyDown={(e) => {
+                          if (e.key === 'Enter' && e.currentTarget.value.trim()) {
+                            const newSubFeatures = [...(feature.subFeatures || []), e.currentTarget.value.trim()];
+                            updateFeature(feature.id, { subFeatures: newSubFeatures });
+                            e.currentTarget.value = '';
+                          }
+                        }}
+                      />
+                      <button
+                        onClick={(e) => {
+                          const input = e.currentTarget.previousSibling as HTMLInputElement;
+                          if (input.value.trim()) {
+                            const newSubFeatures = [...(feature.subFeatures || []), input.value.trim()];
+                            updateFeature(feature.id, { subFeatures: newSubFeatures });
+                            input.value = '';
+                          }
+                        }}
+                        className="p-1 text-blue-600 hover:bg-blue-50 rounded"
+                      >
+                        <Plus className="w-3 h-3" />
+                      </button>
                     </div>
                   </div>
                 </div>
