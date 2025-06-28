@@ -115,26 +115,7 @@ userPersonas: [] as UserPersona[],
           errorMessage += ` - ${errorData.error || 'Unknown error'}`;
         } catch (e) {
           errorMessage += ` - ${errorText || 'Unknown error'}`;
-          ...(session?.access_token && {
-            'Authorization': `Bearer ${session.access_token}`
-          })
-        },
-        body: JSON.stringify({
-          appDescription: formData.appIdea,
-          maxResults: 4
-        })
-      });
-
-      if (!response.ok) {
-        const errorText = await response.text();
-        let errorMessage = `API error: ${response.status}`;
-        try {
-          const errorData = JSON.parse(errorText);
-          errorMessage += ` - ${errorData.error || 'Unknown error'}`;
-        } catch (e) {
-          errorMessage += ` - ${errorText || 'Unknown error'}`;
         }
-        throw new Error(errorMessage);
         throw new Error(errorMessage);
       }
 
