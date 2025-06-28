@@ -101,40 +101,9 @@ export const Canvas: React.FC<CanvasProps> = ({
     <motion.div 
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
-      transition={{ duration: 0.3 }}
+      transition={{ duration: 0.3 }}  
       className="h-screen flex flex-col bg-gray-50"
     >
-      {/* Header */}
-      <motion.div
-        initial={{ y: -20, opacity: 0 }}
-        animate={{ y: 0, opacity: 1 }}
-        transition={{ delay: 0.1 }}  
-        className="bg-white border-b border-gray-200 px-4 py-3 flex-shrink-0 flex justify-between items-center"
-      >
-        <div className="flex items-center">
-          <div>
-            <h1 className="text-xl font-semibold text-gray-800">{currentStage.title}   
-              
-            </h1>
-            <p className="text-sm text-gray-600 mt-1">{currentStage.description}</p>
-            <div className="flex items-center mt-2"> {currentStage.completed && (
-            <motion.span
-              initial={{ scale: 0 }}
-              animate={{ scale: 1 }}
-              transition={{ delay: 0.3, type: "spring" }}
-              className="px-2 py-1 pr-5 bg-green-100 text-green-800 text-xs rounded-full"
-            >
-              Completed
-            </motion.span>
-          )}
-        </div> 
-        </div>
-        </div>
-        
-        {/* Logo */}
-        <Logo size="lg" />
-      </motion.div>
-
       {/* Canvas Content - Flexible Height with Chat Overlay */}
       <motion.div
         initial={{ y: 20, opacity: 0 }}
