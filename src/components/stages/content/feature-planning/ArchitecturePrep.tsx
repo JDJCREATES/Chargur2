@@ -8,12 +8,14 @@ interface Component {
   subComponents?: Component[];
 }
 
+// Updated Screen interface to match the new data structure
 interface Screen {
   name: string;
-  type: string;
+  type?: string;
   description?: string;
 }
 
+// Updated ApiRoute interface to match the new data structure
 interface ApiRoute {
   path: string;
   method: string;
@@ -22,9 +24,9 @@ interface ApiRoute {
 
 interface ArchitecturePrepProps {
   architectureData: {
-    screens: Screen[];
-    apiRoutes: ApiRoute[];
-    components: Component[];
+    screens: (Screen | string)[]; // Allow both string and object formats
+    apiRoutes: (ApiRoute | string)[]; // Allow both string and object formats
+    components: (Component | string)[]; // Allow both string and object formats
   };
   onGenerateArchitecturePrep: () => void;
   onSendMessage?: (message: string) => void;
@@ -56,7 +58,10 @@ export const ArchitecturePrep: React.FC<ArchitecturePrepProps> = ({
     }
   };
 
-  const getScreenTypeColor = (type: string) => {
+  // Updated to handle undefined types safely
+  const getScreenTypeColor = (type?: string) => {
+    if (!type) return 'bg-gray-100 text-gray-700 border-gray-200';
+    
     switch (type.toLowerCase()) {
       case 'core': return 'bg-blue-100 text-blue-700 border-blue-200';
       case 'secondary': return 'bg-purple-100 text-purple-700 border-purple-200';
@@ -65,34 +70,42 @@ export const ArchitecturePrep: React.FC<ArchitecturePrepProps> = ({
     }
   };
 
-  const renderComponent = (component: Component, depth = 0) => (
-    <div key={component.name} className="mb-2">
-      <div 
-        className={`p-2 rounded-md border ${getComponentTypeColor(component.type)} ${depth > 0 ? 'ml-4' : ''}`}
-        style={{ marginLeft: `${depth * 16}px` }}
-      >
-        <div className="flex items-center justify-between">
-          <div className="flex items-center gap-2">
-            <Box className="w-3 h-3" />
-            <span className="font-mono text-xs">{`<${component.name} />`}</span>
+  const renderComponent = (component: Component | string, depth = 0) => {
+    // Handle both string and object formats
+    const componentName = typeof component === 'string' ? component : component.name;
+    const componentType = typeof component === 'string' ? 'ui' : component.type;
+    const componentDescription = typeof component === 'string' ? undefined : component.description;
+    const subComponents = typeof component === 'string' ? undefined : component.subComponents;
+
+    return (
+      <div key={componentName} className="mb-2">
+        <div 
+          className={`p-2 rounded-md border ${getComponentTypeColor(componentType)} ${depth > 0 ? 'ml-4' : ''}`}
+          style={{ marginLeft: `${depth * 16}px` }}
+        >
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-2">
+              <Box className="w-3 h-3" />
+              <span className="font-mono text-xs">{`<${componentName} />`}</span>
+            </div>
+            <span className="text-xs px-1.5 py-0.5 rounded-full bg-white bg-opacity-50">
+              {componentType}
+            </span>
           </div>
-          <span className="text-xs px-1.5 py-0.5 rounded-full bg-white bg-opacity-50">
-            {component.type}
-          </span>
-        </div>
-        {component.description && (
-          <div className="text-xs mt-1 opacity-75">{component.description}</div>
-        )}
-      </div>
-      {component.subComponents && component.subComponents.length > 0 && (
-        <div className="pl-4 border-l border-dashed border-indigo-200 ml-4 mt-1">
-          {component.subComponents.map(subComponent => 
-            renderComponent(subComponent, depth + 1)
+          {componentDescription && (
+            <div className="text-xs mt-1 opacity-75">{componentDescription}</div>
           )}
         </div>
-      )}
-    </div>
-  );
+        {subComponents && subComponents.length > 0 && (
+          <div className="pl-4 border-l border-dashed border-indigo-200 ml-4 mt-1">
+            {subComponents.map(subComponent => 
+              renderComponent(subComponent, depth + 1)
+            )}
+          </div>
+        )}
+      </div>
+    );
+  };
 
   return (
     <div className="space-y-4">
@@ -120,22 +133,31 @@ export const ArchitecturePrep: React.FC<ArchitecturePrepProps> = ({
           </div>
           
           <div className="flex flex-wrap gap-2">
-            {architectureData.screens.map((screen, index) => (
-              <div 
-                key={index} 
-                className={`p-2 rounded-md border ${getScreenTypeColor(screen.type)}`}
-              >
-                <div className="flex items-center justify-between mb-1">
-                  <span className="font-medium text-xs">{screen.name}</span>
-                  <span className="text-xs px-1.5 py-0.5 rounded-full bg-white bg-opacity-50">
-                    {screen.type}
-                  </span>
+            {architectureData.screens.map((screen, index) => {
+              // Handle both string and object formats
+              const screenName = typeof screen === 'string' ? screen : screen.name;
+              const screenType = typeof screen === 'string' ? undefined : screen.type;
+              const screenDescription = typeof screen === 'string' ? undefined : screen.description;
+              
+              return (
+                <div 
+                  key={index} 
+                  className={`p-2 rounded-md border ${getScreenTypeColor(screenType)}`}
+                >
+                  <div className="flex items-center justify-between mb-1">
+                    <span className="font-medium text-xs">{screenName}</span>
+                    {screenType && (
+                      <span className="text-xs px-1.5 py-0.5 rounded-full bg-white bg-opacity-50">
+                        {screenType}
+                      </span>
+                    )}
+                  </div>
+                  {screenDescription && (
+                    <div className="text-xs opacity-75">{screenDescription}</div>
+                  )}
                 </div>
-                {screen.description && (
-                  <div className="text-xs opacity-75">{screen.description}</div>
-                )}
-              </div>
-            ))}
+              );
+            })}
           </div>
           
           <div className="flex justify-center mt-2">
@@ -154,22 +176,29 @@ export const ArchitecturePrep: React.FC<ArchitecturePrepProps> = ({
           </div>
           
           <div className="flex flex-wrap gap-2">
-            {architectureData.apiRoutes.map((route, index) => (
-              <div 
-                key={index} 
-                className={`p-2 rounded-md border ${getMethodColor(route.method)}`}
-              >
-                <div className="flex items-center justify-between mb-1">
-                  <span className="font-mono text-xs">{route.path}</span>
-                  <span className="text-xs font-bold px-1.5 py-0.5 rounded-full bg-white bg-opacity-50">
-                    {route.method}
-                  </span>
+            {architectureData.apiRoutes.map((route, index) => {
+              // Handle both string and object formats
+              const routePath = typeof route === 'string' ? route : route.path;
+              const routeMethod = typeof route === 'string' ? 'GET' : route.method;
+              const routeDescription = typeof route === 'string' ? undefined : route.description;
+              
+              return (
+                <div 
+                  key={index} 
+                  className={`p-2 rounded-md border ${getMethodColor(routeMethod)}`}
+                >
+                  <div className="flex items-center justify-between mb-1">
+                    <span className="font-mono text-xs">{routePath}</span>
+                    <span className="text-xs font-bold px-1.5 py-0.5 rounded-full bg-white bg-opacity-50">
+                      {routeMethod}
+                    </span>
+                  </div>
+                  {routeDescription && (
+                    <div className="text-xs opacity-75">{routeDescription}</div>
+                  )}
                 </div>
-                {route.description && (
-                  <div className="text-xs opacity-75">{route.description}</div>
-                )}
-              </div>
-            ))}
+              );
+            })}
           </div>
           
           <div className="flex justify-center mt-2">
@@ -188,8 +217,10 @@ export const ArchitecturePrep: React.FC<ArchitecturePrepProps> = ({
           </div>
           
           <div className="space-y-2">
-            {architectureData.components.map((component) => (
-              renderComponent(component)
+            {architectureData.components.map((component, index) => (
+              <div key={index}>
+                {renderComponent(component)}
+              </div>
             ))}
           </div>
         </div>
