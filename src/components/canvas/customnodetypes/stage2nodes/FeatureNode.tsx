@@ -243,18 +243,19 @@ export const FeatureNode: React.FC<FeatureNodeProps> = ({
         <div className="flex items-center gap-2">
           <Box className="w-4 h-4 text-blue-600" />
           {isEditing ? (
-          <input
-            ref={nameInputRef}
-            type="text"
-            value={editName}
-            onChange={(e) => setEditName(e.target.value)}
-            className="flex-1 px-2 py-1 text-sm font-medium border border-blue-200 rounded focus:outline-none focus:ring-1 focus:ring-blue-500"
-          />
-        ) : (
-          <h3 className="font-medium text-sm text-blue-800 truncate">
-            {node.title || 'Feature'}
-          </h3>
+            <input
+              ref={nameInputRef}
+              type="text"
+              value={editName}
+              onChange={(e) => setEditName(e.target.value)}
+              className="flex-1 px-2 py-1 text-sm font-medium border border-blue-200 rounded focus:outline-none focus:ring-1 focus:ring-blue-500"
+            />
+          ) : (
+            <h3 className="font-medium text-sm text-blue-800 truncate">
+              {node.title || 'Feature'}
+            </h3>
           )}
+        </div>
         
         {!isEditing && (
           <button
