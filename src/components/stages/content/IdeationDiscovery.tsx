@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
+import { useAppStore } from '../../../store/useAppStore';
 import { 
   Lightbulb, 
   Target, 
@@ -233,11 +234,21 @@ const [selectedPersonas, setSelectedPersonas] = useState<string[]>(() => {
   const togglePersona = (persona: string) => {
     const personaData = personas.find(p => p.id === persona);
     if (!personaData) return;
+    const currentStageId = 'ideation-discovery';
     
     if (selectedPersonas.includes(persona)) {
       // Remove persona
       setSelectedPersonas(selectedPersonas.filter(p => p !== persona));
-     updateFormData('userPersonas', formData.userPersonas.filter((p: UserPersona) => p.name !== personaData.label));
+      // Update local state
+      const updatedUserPersonas = formData.userPersonas.filter((p: UserPersona) => p.name !== personaData.label);
+      setFormData(prev => ({
+        ...prev,
+        userPersonas: updatedUserPersonas
+      }));
+      // Update global state immediately
+      useAppStore.getState().updateStageDataImmediate(currentStageId, { userPersonas: updatedUserPersonas });
+      // Also update via the regular callback for consistency
+      onUpdateData({ ...formData, userPersonas: updatedUserPersonas });
     } else {
       // Add persona
       setSelectedPersonas([...selectedPersonas, persona]);
@@ -248,7 +259,16 @@ const [selectedPersonas, setSelectedPersonas] = useState<string[]>(() => {
         emoji: personaData.emoji,
         id: `persona-${personaData.id}`
       };
-      updateFormData('userPersonas', [...formData.userPersonas, newPersona]);
+      // Update local state
+      const updatedUserPersonas = [...formData.userPersonas, newPersona];
+      setFormData(prev => ({
+        ...prev,
+        userPersonas: updatedUserPersonas
+      }));
+      // Update global state immediately
+      useAppStore.getState().updateStageDataImmediate(currentStageId, { userPersonas: updatedUserPersonas });
+      // Also update via the regular callback for consistency
+      onUpdateData({ ...formData, userPersonas: updatedUserPersonas });
     }
   };
 
