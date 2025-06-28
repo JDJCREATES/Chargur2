@@ -360,39 +360,42 @@ export function createCustomFeatureNode(
   index: number, 
   baseX: number, 
   baseY: number,
-  existingNodes: CanvasNodeData[] = []
-): CanvasNodeData {
+  existingNodes: Node[] = []
+): Node {
   const position = { 
     x: baseX + (index % 3) * 200, 
     y: baseY + Math.floor(index / 3) * 120 
   };
+  const finalPosition = getSmartNodePosition(
+    existingNodes,
+    STAGE2_NODE_DEFAULTS.feature.size,
+    'feature',
+    position,
+    'feature-planning'
+  );
   
   return {
     id: uuidv4(),
     type: 'feature',
-    title: feature.name,
-    content: `${feature.description || 'Custom feature'}\n\nPriority: ${feature.priority || 'medium'}\nComplexity: ${feature.complexity || 'medium'}`,
-    position: getSmartNodePosition(
-      existingNodes,
-      STAGE2_NODE_DEFAULTS.feature.size,
-      'feature',
-      position,
-      'feature-planning'
-    ),
-    size: STAGE2_NODE_DEFAULTS.feature.size,
-    color: 'blue',
-    connections: [],
-    metadata: { 
-      stage: 'feature-planning', 
-      custom: true, 
-      sourceId: feature.id,
-      priority: feature.priority || 'should',
-      complexity: feature.complexity || 'medium',
-      category: feature.category || 'both'
-    },
-    subFeatures: feature.subFeatures || [],
-    showBreakdown: false,
-    resizable: true
+    position: finalPosition,
+    data: {
+      title: feature.name,
+      content: `${feature.description || 'Custom feature'}\n\nPriority: ${feature.priority || 'medium'}\nComplexity: ${feature.complexity || 'medium'}`,
+      size: STAGE2_NODE_DEFAULTS.feature.size,
+      color: 'blue',
+      connections: [],
+      metadata: { 
+        stage: 'feature-planning', 
+        custom: true, 
+        sourceId: feature.id,
+        priority: feature.priority || 'should',
+        complexity: feature.complexity || 'medium',
+        category: feature.category || 'both'
+      },
+      subFeatures: feature.subFeatures || [],
+      showBreakdown: false,
+      resizable: true
+    }
   };
 }
 
@@ -401,25 +404,29 @@ export function createCustomFeatureNode(
  */
 export function createNaturalLanguageFeatureNode(
   naturalLanguageFeatures: string,
-  existingNodes: CanvasNodeData[] = []
-): CanvasNodeData {
+  existingNodes: Node[] = []
+): Node {
+  const position = getSmartNodePosition(
+    existingNodes,
+    STAGE2_NODE_DEFAULTS.feature.size,
+    'feature',
+    { x: 700, y: 350 },
+    'feature-planning'
+  );
+  
   return {
     id: uuidv4(),
     type: 'feature',
-    title: 'Feature Description',
-    content: naturalLanguageFeatures,
-    position: getSmartNodePosition(
-      existingNodes,
-      STAGE2_NODE_DEFAULTS.feature.size,
-      'feature',
-      { x: 700, y: 350 },
-      'feature-planning'
-    ),
-    size: STAGE2_NODE_DEFAULTS.feature.size,
-    color: 'blue',
-    connections: [],
-    metadata: { stage: 'feature-planning', type: 'description' },
-    resizable: true
+    position,
+    data: {
+      title: 'Feature Description',
+      content: naturalLanguageFeatures,
+      size: STAGE2_NODE_DEFAULTS.feature.size,
+      color: 'blue',
+      connections: [],
+      metadata: { stage: 'feature-planning', type: 'description' },
+      resizable: true
+    }
   };
 }
 
@@ -428,30 +435,33 @@ export function createNaturalLanguageFeatureNode(
  */
 export function createArchitectureNode(
   architectureData: any,
-  existingNodes: CanvasNodeData[] = []
-): CanvasNodeData {
+  existingNodes: Node[] = []
+): Node {
   const defaults = STAGE2_NODE_DEFAULTS.architecture;
+  const position = getSmartNodePosition(
+    existingNodes,
+    defaults.size,
+    'architecture',
+    defaults.position,
+    'feature-planning'
+  );
   
   return {
     id: uuidv4(),
     type: 'architecture',
-    title: 'Architecture Blueprint',
-    content: `Architecture blueprint with ${architectureData.screens.length} screens, ${architectureData.apiRoutes.length} API routes, and ${architectureData.components.length} components.`,
-    position: getSmartNodePosition(
-      existingNodes,
-      defaults.size,
-      'architecture',
-      defaults.position,
-      'feature-planning'
-    ),
-    size: defaults.size,
-    color: 'indigo',
-    connections: [],
-    metadata: { 
-      stage: 'feature-planning',
-      architectureData
-    },
-    resizable: true
+    position,
+    data: {
+      title: 'Architecture Blueprint',
+      content: `Architecture blueprint with ${architectureData.screens.length} screens, ${architectureData.apiRoutes.length} API routes, and ${architectureData.components.length} components.`,
+      size: defaults.size,
+      color: 'indigo',
+      connections: [],
+      metadata: { 
+        stage: 'feature-planning',
+        architectureData
+      },
+      resizable: true
+    }
   };
 }
 
@@ -463,30 +473,33 @@ export function createScreenNode(
   index: number, 
   baseX: number, 
   baseY: number,
-  existingNodes: CanvasNodeData[] = []
-): CanvasNodeData {
+  existingNodes: Node[] = []
+): Node {
   const position = { 
     x: baseX + (index % 4) * 160, 
     y: baseY 
   };
+  const finalPosition = getSmartNodePosition(
+    existingNodes,
+    { width: 150, height: 100 },
+    'ux-flow',
+    position,
+    'structure-flow'
+  );
   
   return {
     id: uuidv4(),
     type: 'ux-flow',
-    title: screen.name,
-    content: `Screen type: ${screen.type}\n\n${screen.description || 'Core app screen'}`,
-    position: getSmartNodePosition(
-      existingNodes,
-      { width: 150, height: 100 },
-      'ux-flow',
-      position,
-      'structure-flow'
-    ),
-    size: { width: 150, height: 100 },
-    color: 'green',
-    connections: [],
-    metadata: { stage: 'structure-flow', screenType: screen.type, sourceId: screen.id },
-    resizable: true
+    position: finalPosition,
+    data: {
+      title: screen.name,
+      content: `Screen type: ${screen.type}\n\n${screen.description || 'Core app screen'}`,
+      size: { width: 150, height: 100 },
+      color: 'green',
+      connections: [],
+      metadata: { stage: 'structure-flow', screenType: screen.type, sourceId: screen.id },
+      resizable: true
+    }
   };
 }
 
@@ -498,30 +511,33 @@ export function createUserFlowNode(
   index: number, 
   baseX: number, 
   baseY: number,
-  existingNodes: CanvasNodeData[] = []
-): CanvasNodeData {
+  existingNodes: Node[] = []
+): Node {
   const position = { 
     x: baseX + (index % 3) * 220, 
     y: baseY + 120 
   };
+  const finalPosition = getSmartNodePosition(
+    existingNodes,
+    { width: 200, height: 120 },
+    'ux-flow',
+    position,
+    'structure-flow'
+  );
   
   return {
     id: uuidv4(),
     type: 'ux-flow',
-    title: flow.name,
-    content: `User journey:\n${flow.steps?.slice(0, 3).join(' → ') || 'Flow steps'}${flow.steps?.length > 3 ? '...' : ''}`,
-    position: getSmartNodePosition(
-      existingNodes,
-      { width: 200, height: 120 },
-      'ux-flow',
-      position,
-      'structure-flow'
-    ),
-    size: { width: 200, height: 120 },
-    color: 'green',
-    connections: [],
-    metadata: { stage: 'structure-flow', flowType: 'user-journey', sourceId: flow.id },
-    resizable: true
+    position: finalPosition,
+    data: {
+      title: flow.name,
+      content: `User journey:\n${flow.steps?.slice(0, 3).join(' → ') || 'Flow steps'}${flow.steps?.length > 3 ? '...' : ''}`,
+      size: { width: 200, height: 120 },
+      color: 'green',
+      connections: [],
+      metadata: { stage: 'structure-flow', flowType: 'user-journey', sourceId: flow.id },
+      resizable: true
+    }
   };
 }
 
@@ -533,30 +549,33 @@ export function createDatabaseTableNode(
   index: number, 
   baseX: number, 
   baseY: number,
-  existingNodes: CanvasNodeData[] = []
-): CanvasNodeData {
+  existingNodes: Node[] = []
+): Node {
   const position = { 
     x: baseX + (index % 3) * 200, 
     y: baseY 
   };
+  const finalPosition = getSmartNodePosition(
+    existingNodes,
+    { width: 180, height: 100 },
+    'system',
+    position,
+    'architecture-design'
+  );
   
   return {
     id: uuidv4(),
     type: 'system',
-    title: `${table.name} Table`,
-    content: `Database table\n\nFields:\n${table.fields?.slice(0, 4).map((f: any) => `• ${f.name}`).join('\n') || 'No fields defined'}${table.fields?.length > 4 ? '\n...' : ''}`,
-    position: getSmartNodePosition(
-      existingNodes,
-      { width: 180, height: 100 },
-      'system',
-      position,
-      'architecture-design'
-    ),
-    size: { width: 180, height: 100 },
-    color: 'red',
-    connections: [],
-    metadata: { stage: 'architecture-design', tableType: 'database', sourceId: table.id },
-    resizable: true
+    position: finalPosition,
+    data: {
+      title: `${table.name} Table`,
+      content: `Database table\n\nFields:\n${table.fields?.slice(0, 4).map((f: any) => `• ${f.name}`).join('\n') || 'No fields defined'}${table.fields?.length > 4 ? '\n...' : ''}`,
+      size: { width: 180, height: 100 },
+      color: 'red',
+      connections: [],
+      metadata: { stage: 'architecture-design', tableType: 'database', sourceId: table.id },
+      resizable: true
+    }
   };
 }
 
@@ -567,25 +586,29 @@ export function createAPIEndpointsNode(
   apiEndpoints: any[], 
   baseX: number, 
   baseY: number,
-  existingNodes: CanvasNodeData[] = []
-): CanvasNodeData {
+  existingNodes: Node[] = []
+): Node {
+  const position = getSmartNodePosition(
+    existingNodes,
+    { width: 160, height: 80 },
+    'system',
+    { x: baseX + 400, y: baseY },
+    'architecture-design'
+  );
+  
   return {
     id: uuidv4(),
     type: 'system',
-    title: 'API Endpoints',
-    content: `${apiEndpoints.length} endpoints defined\n\nIncludes REST API routes for data operations`,
-    position: getSmartNodePosition(
-      existingNodes,
-      { width: 160, height: 80 },
-      'system',
-      { x: baseX + 400, y: baseY },
-      'architecture-design'
-    ),
-    size: { width: 160, height: 80 },
-    color: 'red',
-    connections: [],
-    metadata: { stage: 'architecture-design', systemType: 'api' },
-    resizable: true
+    position,
+    data: {
+      title: 'API Endpoints',
+      content: `${apiEndpoints.length} endpoints defined\n\nIncludes REST API routes for data operations`,
+      size: { width: 160, height: 80 },
+      color: 'red',
+      connections: [],
+      metadata: { stage: 'architecture-design', systemType: 'api' },
+      resizable: true
+    }
   };
 }
 
@@ -597,30 +620,33 @@ export function createRouteNode(
   index: number, 
   baseX: number, 
   baseY: number,
-  existingNodes: CanvasNodeData[] = []
-): CanvasNodeData {
+  existingNodes: Node[] = []
+): Node {
   const position = { 
     x: baseX + (index % 4) * 150, 
     y: baseY + 120 
   };
+  const finalPosition = getSmartNodePosition(
+    existingNodes,
+    { width: 140, height: 90 },
+    'system',
+    position,
+    'architecture-design'
+  );
   
   return {
     id: uuidv4(),
     type: 'system',
-    title: `${route.path} Route`,
-    content: `Component: ${route.component}\nProtected: ${route.protected ? 'Yes' : 'No'}\n\n${route.description}`,
-    position: getSmartNodePosition(
-      existingNodes,
-      { width: 140, height: 90 },
-      'system',
-      position,
-      'architecture-design'
-    ),
-    size: { width: 140, height: 90 },
-    color: 'red',
-    connections: [],
-    metadata: { stage: 'architecture-design', routeType: 'page', sourceId: route.id },
-    resizable: true
+    position: finalPosition,
+    data: {
+      title: `${route.path} Route`,
+      content: `Component: ${route.component}\nProtected: ${route.protected ? 'Yes' : 'No'}\n\n${route.description}`,
+      size: { width: 140, height: 90 },
+      color: 'red',
+      connections: [],
+      metadata: { stage: 'architecture-design', routeType: 'page', sourceId: route.id },
+      resizable: true
+    }
   };
 }
 
@@ -631,25 +657,29 @@ export function createDesignSystemNode(
   designSystem: string, 
   baseX: number, 
   baseY: number,
-  existingNodes: CanvasNodeData[] = []
-): CanvasNodeData {
+  existingNodes: Node[] = []
+): Node {
+  const position = getSmartNodePosition(
+    existingNodes,
+    { width: 160, height: 80 },
+    'wireframe',
+    { x: baseX, y: baseY },
+    'interface-interaction'
+  );
+  
   return {
     id: uuidv4(),
     type: 'wireframe',
-    title: 'Design System',
-    content: `${designSystem}\n\nComponent library and styling approach`,
-    position: getSmartNodePosition(
-      existingNodes,
-      { width: 160, height: 80 },
-      'wireframe',
-      { x: baseX, y: baseY },
-      'interface-interaction'
-    ),
-    size: { width: 160, height: 80 },
-    color: 'purple',
-    connections: [],
-    metadata: { stage: 'interface-interaction', uiType: 'design-system' },
-    resizable: true
+    position,
+    data: {
+      title: 'Design System',
+      content: `${designSystem}\n\nComponent library and styling approach`,
+      size: { width: 160, height: 80 },
+      color: 'purple',
+      connections: [],
+      metadata: { stage: 'interface-interaction', uiType: 'design-system' },
+      resizable: true
+    }
   };
 }
 
@@ -660,25 +690,29 @@ export function createBrandingNode(
   branding: any, 
   baseX: number, 
   baseY: number,
-  existingNodes: CanvasNodeData[] = []
-): CanvasNodeData {
+  existingNodes: Node[] = []
+): Node {
+  const position = getSmartNodePosition(
+    existingNodes,
+    { width: 140, height: 80 },
+    'wireframe',
+    { x: baseX + 180, y: baseY },
+    'interface-interaction'
+  );
+  
   return {
     id: uuidv4(),
     type: 'wireframe',
-    title: 'Brand Colors',
-    content: `Primary: ${branding.primaryColor}\nSecondary: ${branding.secondaryColor}\nFont: ${branding.fontFamily}`,
-    position: getSmartNodePosition(
-      existingNodes,
-      { width: 140, height: 80 },
-      'wireframe',
-      { x: baseX + 180, y: baseY },
-      'interface-interaction'
-    ),
-    size: { width: 140, height: 80 },
-    color: 'purple',
-    connections: [],
-    metadata: { stage: 'interface-interaction', uiType: 'branding' },
-    resizable: true
+    position,
+    data: {
+      title: 'Brand Colors',
+      content: `Primary: ${branding.primaryColor}\nSecondary: ${branding.secondaryColor}\nFont: ${branding.fontFamily}`,
+      size: { width: 140, height: 80 },
+      color: 'purple',
+      connections: [],
+      metadata: { stage: 'interface-interaction', uiType: 'branding' },
+      resizable: true
+    }
   };
 }
 
@@ -689,25 +723,29 @@ export function createLayoutNode(
   layoutBlocks: any[], 
   baseX: number, 
   baseY: number,
-  existingNodes: CanvasNodeData[] = []
-): CanvasNodeData {
+  existingNodes: Node[] = []
+): Node {
+  const position = getSmartNodePosition(
+    existingNodes,
+    { width: 160, height: 80 },
+    'wireframe',
+    { x: baseX + 340, y: baseY },
+    'interface-interaction'
+  );
+  
   return {
     id: uuidv4(),
     type: 'wireframe',
-    title: 'Layout Structure',
-    content: `${layoutBlocks.length} layout blocks\n\n${layoutBlocks.map((block: any) => block.type).join(', ')}`,
-    position: getSmartNodePosition(
-      existingNodes,
-      { width: 160, height: 80 },
-      'wireframe',
-      { x: baseX + 340, y: baseY },
-      'interface-interaction'
-    ),
-    size: { width: 160, height: 80 },
-    color: 'purple',
-    connections: [],
-    metadata: { stage: 'interface-interaction', uiType: 'layout' },
-    resizable: true
+    position,
+    data: {
+      title: 'Layout Structure',
+      content: `${layoutBlocks.length} layout blocks\n\n${layoutBlocks.map((block: any) => block.type).join(', ')}`,
+      size: { width: 160, height: 80 },
+      color: 'purple',
+      connections: [],
+      metadata: { stage: 'interface-interaction', uiType: 'layout' },
+      resizable: true
+    }
   };
 }
 
@@ -718,25 +756,29 @@ export function createAuthMethodsNode(
   authMethods: any[], 
   baseX: number, 
   baseY: number,
-  existingNodes: CanvasNodeData[] = []
-): CanvasNodeData {
+  existingNodes: Node[] = []
+): Node {
+  const position = getSmartNodePosition(
+    existingNodes,
+    { width: 180, height: 100 },
+    'system',
+    { x: baseX, y: baseY },
+    'user-auth-flow'
+  );
+  
   return {
     id: uuidv4(),
     type: 'system',
-    title: 'Auth Methods',
-    content: `${authMethods.length} methods enabled\n\n${authMethods.map((m: any) => `• ${m.name}`).join('\n')}`,
-    position: getSmartNodePosition(
-      existingNodes,
-      { width: 180, height: 100 },
-      'system',
-      { x: baseX, y: baseY },
-      'user-auth-flow'
-    ),
-    size: { width: 180, height: 100 },
-    color: 'red',
-    connections: [],
-    metadata: { stage: 'user-auth-flow', authType: 'methods' },
-    resizable: true
+    position,
+    data: {
+      title: 'Auth Methods',
+      content: `${authMethods.length} methods enabled\n\n${authMethods.map((m: any) => `• ${m.name}`).join('\n')}`,
+      size: { width: 180, height: 100 },
+      color: 'red',
+      connections: [],
+      metadata: { stage: 'user-auth-flow', authType: 'methods' },
+      resizable: true
+    }
   };
 }
 
@@ -747,33 +789,37 @@ export function createUserRolesNode(
   userRoles: any[], 
   baseX: number, 
   baseY: number,
-  existingNodes: CanvasNodeData[] = []
-): CanvasNodeData {
+  existingNodes: Node[] = []
+): Node {
+  const position = getSmartNodePosition(
+    existingNodes,
+    { width: 180, height: 120 },
+    'system',
+    { x: baseX + 200, y: baseY },
+    'user-auth-flow'
+  );
+  
   return {
     id: uuidv4(),
     type: 'system',
-    title: 'User Roles',
-    content: `${userRoles.length} roles defined\n\n${userRoles.map((r: any) => {
-      const name = r?.name || 'Unnamed Role';
-      const description = r?.description || '';
-      // Add null check before using slice
-      const truncatedDesc = description && typeof description === 'string' 
-        ? description.slice(0, 20) + '...' 
-        : 'No description';
-      return `• ${name}: ${truncatedDesc}`;
-    }).join('\n')}`,
-    position: getSmartNodePosition(
-      existingNodes,
-      { width: 180, height: 120 },
-      'system',
-      { x: baseX + 200, y: baseY },
-      'user-auth-flow'
-    ),
-    size: { width: 180, height: 120 },
-    color: 'red',
-    connections: [],
-    metadata: { stage: 'user-auth-flow', authType: 'roles' },
-    resizable: true
+    position,
+    data: {
+      title: 'User Roles',
+      content: `${userRoles.length} roles defined\n\n${userRoles.map((r: any) => {
+        const name = r?.name || 'Unnamed Role';
+        const description = r?.description || '';
+        // Add null check before using slice
+        const truncatedDesc = description && typeof description === 'string' 
+          ? description.slice(0, 20) + '...' 
+          : 'No description';
+        return `• ${name}: ${truncatedDesc}`;
+      }).join('\n')}`,
+      size: { width: 180, height: 120 },
+      color: 'red',
+      connections: [],
+      metadata: { stage: 'user-auth-flow', authType: 'roles' },
+      resizable: true
+    }
   };
 }
 
@@ -784,25 +830,29 @@ export function createSecurityFeaturesNode(
   securityFeatures: any[], 
   baseX: number, 
   baseY: number,
-  existingNodes: CanvasNodeData[] = []
-): CanvasNodeData {
+  existingNodes: Node[] = []
+): Node {
+  const position = getSmartNodePosition(
+    existingNodes,
+    { width: 200, height: 100 },
+    'system',
+    { x: baseX, y: baseY + 120 },
+    'user-auth-flow'
+  );
+  
   return {
     id: uuidv4(),
     type: 'system',
-    title: 'Security Features',
-    content: `${securityFeatures.length} features enabled\n\n${securityFeatures.slice(0, 4).map((f: any) => `• ${f.name}`).join('\n')}${securityFeatures.length > 4 ? '\n...' : ''}`,
-    position: getSmartNodePosition(
-      existingNodes,
-      { width: 200, height: 100 },
-      'system',
-      { x: baseX, y: baseY + 120 },
-      'user-auth-flow'
-    ),
-    size: { width: 200, height: 100 },
-    color: 'red',
-    connections: [],
-    metadata: { stage: 'user-auth-flow', authType: 'security' },
-    resizable: true
+    position,
+    data: {
+      title: 'Security Features',
+      content: `${securityFeatures.length} features enabled\n\n${securityFeatures.slice(0, 4).map((f: any) => `• ${f.name}`).join('\n')}${securityFeatures.length > 4 ? '\n...' : ''}`,
+      size: { width: 200, height: 100 },
+      color: 'red',
+      connections: [],
+      metadata: { stage: 'user-auth-flow', authType: 'security' },
+      resizable: true
+    }
   };
 }
 
@@ -812,8 +862,8 @@ export function createSecurityFeaturesNode(
 export function createAIAnalysisNode(
   stageData: any, 
   nodeCount: number,
-  existingNodes: CanvasNodeData[] = []
-): CanvasNodeData | null {
+  existingNodes: Node[] = []
+): Node | null {
   if (nodeCount === 0) {
     return null; // Don't create analysis node for empty canvas
   }
@@ -875,28 +925,32 @@ export function createAIAnalysisNode(
   if (!stageData['architecture-design'] || tableCount === 0) {
     content += "• Define your data models\n";
   }
+  
+  const position = getSmartNodePosition(
+    existingNodes,
+    { width: 220, height: 180 },
+    'agent-output',
+    { x: 100 + (nodeCount * 10), y: 100 + (nodeCount * 10) }
+  );
 
   return {
     id: uuidv4(),
     type: 'agent-output',
-    title: 'AI Analysis',
-    content,
-    position: getSmartNodePosition(
-      existingNodes,
-      { width: 220, height: 180 },
-      'agent-output',
-      { x: 100 + (nodeCount * 10), y: 100 + (nodeCount * 10) }
-    ),
-    size: { width: 220, height: 180 },
-    color: 'gray',
-    connections: [],
-    metadata: {
-      generated: true,
-      stagesCompleted: completedStages,
-      totalNodes: nodeCount,
-      timestamp: new Date().toISOString()
-    },
-    resizable: true
+    position,
+    data: {
+      title: 'AI Analysis',
+      content,
+      size: { width: 220, height: 180 },
+      color: 'gray',
+      connections: [],
+      metadata: {
+        generated: true,
+        stagesCompleted: completedStages,
+        totalNodes: nodeCount,
+        timestamp: new Date().toISOString()
+      },
+      resizable: true
+    }
   };
 }
 
