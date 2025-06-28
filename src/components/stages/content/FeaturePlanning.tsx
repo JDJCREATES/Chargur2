@@ -52,8 +52,8 @@ interface Feature {
   subFeatures: string[];
   dependencies: Array<{
     id: string;
-    from: string;
-    to: string;
+    featureId: string;
+    dependsOn: string;
     type: "requires" | "enhances" | "conflicts";
   }>;
   estimatedEffort: number; // 1-10 scale
@@ -68,37 +68,13 @@ interface FeaturePack {
   category:
     | "auth"
     | "crud"
-    | "social"
-    | "commerce"
-    | "analytics"
-    | "ai"
-    | "media"
-    | "communication";
-}
-
-interface TreeNodeBase {
-  id: string;
-  name: string;
-  children: TreeNode[];
-}
-
-interface FeaturePackNode extends TreeNodeBase {
-  isFeaturePack: true;
-  packId: string;
-}
-
-interface CustomFeatureNode extends TreeNodeBase {
-  isCustomFeature: true;
-  priority: string;
-  complexity: string;
-}
-
-interface SubFeatureNode extends TreeNodeBase {
-  isSubFeature: true;
-  parentId: string;
-}
-
-type TreeNode = FeaturePackNode | CustomFeatureNode | SubFeatureNode;
+    | "social" 
+    | "commerce" 
+    | "analytics" 
+    | "ai" 
+    | "media" 
+    | "communication"; 
+} 
 
 export const FeaturePlanning: React.FC<FeaturePlanningProps> = ({
   stage,
@@ -122,11 +98,43 @@ export const FeaturePlanning: React.FC<FeaturePlanningProps> = ({
     ...defaultFormData,
     ...(initialFormData || {}),
   }));
+  
+  const [dependencyMap, setDependencyMap] = useState<Record<string, string[]>>({});
+  
   const updateFormData = (key: string, value: any) => {
     const updated = { ...formData, [key]: value };
     setFormData(updated);
     onUpdateData(updated);
   };
+  
+  // Update dependency map when features change
+  useEffect(() => {
+    const newDependencyMap: Record<string, string[]> = {};
+    
+    // Add feature packs
+    formData.selectedFeaturePacks.forEach((packId: string) => {
+      newDependencyMap[packId] = [];
+    });
+    
+    // Add custom features and their dependencies
+    formData.customFeatures.forEach((feature: Feature) => {
+      newDependencyMap[feature.id] = [];
+      
+      // Add dependencies
+      if (feature.dependencies && feature.dependencies.length > 0) {
+        feature.dependencies.forEach(dep => {
+          if (dep.dependsOn) {
+            if (!newDependencyMap[feature.id]) {
+              newDependencyMap[feature.id] = [];
+            }
+            newDependencyMap[feature.id].push(dep.dependsOn);
+          }
+        });
+      }
+    });
+    
+    setDependencyMap(newDependencyMap);
+  }, [formData.selectedFeaturePacks, formData.customFeatures]);
 
   const featurePacks: FeaturePack[] = [
     {
@@ -311,6 +319,48 @@ export const FeaturePlanning: React.FC<FeaturePlanningProps> = ({
     };
     updateFormData("customFeatures", [...formData.customFeatures, newFeature]);
   };
+  
+  const addDependency = (
+    featureId: string,
+    dependsOnId: string,
+    type: "requires" | "enhances" | "conflicts" = "requires"
+  ) => {
+    const feature = formData.customFeatures.find(
+      (f: Feature) => f.id === featureId
+    );
+    
+    if (feature) {
+      // Check if dependency already exists
+      const existingDep = feature.dependencies.find(
+        d => d.featureId === featureId && d.dependsOn === dependsOnId
+      );
+      
+      if (!existingDep) {
+        const newDependency = {
+          id: `${featureId}-${dependsOnId}`,
+          featureId,
+          dependsOn: dependsOnId,
+          type
+        };
+        
+        const updatedDependencies = [...feature.dependencies, newDependency];
+        updateFeature(featureId, { dependencies: updatedDependencies });
+      }
+    }
+  };
+  
+  const removeDependency = (featureId: string, dependencyId: string) => {
+    const feature = formData.customFeatures.find(
+      (f: Feature) => f.id === featureId
+    );
+    
+    if (feature) {
+      const updatedDependencies = feature.dependencies.filter(
+        d => d.id !== dependencyId
+      );
+      updateFeature(featureId, { dependencies: updatedDependencies });
+    }
+  };
 
   const updateFeature = (featureId: string, updates: Partial<Feature>) => {
     const updated = formData.customFeatures.map((f: Feature) =>
@@ -320,31 +370,23 @@ export const FeaturePlanning: React.FC<FeaturePlanningProps> = ({
   };
 
   const removeFeature = (featureId: string) => {
-    updateFormData(
-      "customFeatures",
-      formData.customFeatures.filter((f: Feature) => f.id !== featureId)
+    // Remove the feature
+    const updatedFeatures = formData.customFeatures.filter(
+      (f: Feature) => f.id !== featureId
     );
-  };
-
-  const addDependency = (
-    fromFeatureId: string,
-    toFeatureId: string,
-    type: "requires" | "enhances" | "conflicts" = "requires"
-  ) => {
-    const fromFeature = formData.customFeatures.find(
-      (f: Feature) => f.id === fromFeatureId
-    );
-    if (fromFeature) {
-      const newDependency = {
-        id: `${fromFeatureId}-${toFeatureId}`,
-        from: fromFeatureId,
-        to: toFeatureId,
-        type,
+    
+    // Remove any dependencies that reference this feature
+    const updatedFeaturesWithCleanDependencies = updatedFeatures.map((feature: Feature) => {
+      const cleanedDependencies = feature.dependencies.filter(
+        dep => dep.dependsOn !== featureId
+      );
+      return {
+        ...feature,
+        dependencies: cleanedDependencies
       };
-      updateFeature(fromFeatureId, {
-        dependencies: [...(fromFeature.dependencies || []), newDependency],
-      });
-    }
+    });
+    
+    updateFormData("customFeatures", updatedFeaturesWithCleanDependencies);
   };
 
   const generateAIFeatureBreakdown = (featureName: string) => {
@@ -446,69 +488,6 @@ export const FeaturePlanning: React.FC<FeaturePlanningProps> = ({
     updateFormData("aiEnhancements", suggestions.slice(0, 4));
   };
 
-  // Prepare data for react-arborist
-  const prepareTreeData = (): TreeNode[] => {
-    const treeData: TreeNode[] = [];
-
-    // Add feature packs
-    formData.selectedFeaturePacks.forEach((pack: string) => {
-      const packName = featurePacks.find((p) => p.id === pack)?.name || pack;
-      const node: FeaturePackNode = {
-        id: `pack-${pack}`,
-        name: packName,
-        isFeaturePack: true,
-        packId: pack,
-        children: [],
-      };
-
-      // Add default sub-features for feature packs
-      const packFeatures =
-        featurePacks.find((p) => p.id === pack)?.features || [];
-      packFeatures.forEach((feature: string, featureIndex: number) => {
-        const subNode: SubFeatureNode = {
-          id: `pack-${pack}-feature-${featureIndex}`,
-          name: feature,
-          isSubFeature: true,
-          parentId: `pack-${pack}`,
-          children: [],
-        };
-        node.children.push(subNode);
-      });
-
-      treeData.push(node);
-    });
-
-    // Add custom features
-    formData.customFeatures.forEach((feature: Feature) => {
-      const node: CustomFeatureNode = {
-        id: feature.id,
-        name: feature.name,
-        isCustomFeature: true,
-        priority: feature.priority,
-        complexity: feature.complexity,
-        children: [],
-      };
-
-      // Add sub-features
-      if (feature.subFeatures && feature.subFeatures.length > 0) {
-        feature.subFeatures.forEach((subFeature: string, subIndex: number) => {
-          const subNode: SubFeatureNode = {
-            id: `${feature.id}-sub-${subIndex}`,
-            name: subFeature,
-            isSubFeature: true,
-            parentId: feature.id,
-            children: [],
-          };
-          node.children.push(subNode);
-        });
-      }
-
-      treeData.push(node);
-    });
-
-    return treeData;
-  };
-
   const generateArchitecturePrep = () => {
     const selectedPacks = featurePacks.filter((pack) =>
       formData.selectedFeaturePacks.includes(pack.id)
@@ -571,6 +550,114 @@ export const FeaturePlanning: React.FC<FeaturePlanningProps> = ({
     updateFormData("architecturePrep", { screens, apiRoutes, components });
   };
 
+  // Get all available features for dependency mapping
+  const getAllFeatures = () => {
+    const features: { id: string, name: string, type: 'pack' | 'custom' }[] = [];
+    
+    // Add feature packs
+    formData.selectedFeaturePacks.forEach((packId: string) => {
+      const pack = featurePacks.find(p => p.id === packId);
+      if (pack) {
+        features.push({
+          id: packId,
+          name: pack.name,
+          type: 'pack'
+        });
+      }
+    });
+    
+    // Add custom features
+    formData.customFeatures.forEach((feature: Feature) => {
+      features.push({
+        id: feature.id,
+        name: feature.name,
+        type: 'custom'
+      });
+    });
+    
+    return features;
+  };
+  
+  // Get dependency type label
+  const getDependencyTypeLabel = (type: string) => {
+    switch (type) {
+      case 'requires': return 'Requires';
+      case 'enhances': return 'Enhances';
+      case 'conflicts': return 'Conflicts with';
+      default: return 'Depends on';
+    }
+  };
+  
+  // Get feature name by ID
+  const getFeatureName = (featureId: string): string => {
+    // Check if it's a feature pack
+    if (formData.selectedFeaturePacks.includes(featureId)) {
+      const pack = featurePacks.find(p => p.id === featureId);
+      return pack ? pack.name : featureId;
+    }
+    
+    // Check if it's a custom feature
+    const customFeature = formData.customFeatures.find(f => f.id === featureId);
+    return customFeature ? customFeature.name : featureId;
+  };
+  
+  // Check if we have enough features for dependency mapping
+  const hasEnoughFeaturesForDependencies = () => {
+    const totalFeatures = formData.selectedFeaturePacks.length + formData.customFeatures.length;
+    return totalFeatures >= 2;
+  };
+  
+  // Get common dependencies based on selected feature packs
+  const getCommonDependencies = () => {
+    const dependencies: { from: string, to: string, type: string, description: string }[] = [];
+    
+    // Check for auth dependencies
+    if (formData.selectedFeaturePacks.includes('social') && 
+        formData.selectedFeaturePacks.includes('auth')) {
+      dependencies.push({
+        from: 'social',
+        to: 'auth',
+        type: 'requires',
+        description: 'Social features require user authentication'
+      });
+    }
+    
+    // Check for media dependencies
+    if (formData.selectedFeaturePacks.includes('media') && 
+        formData.selectedFeaturePacks.includes('auth')) {
+      dependencies.push({
+        from: 'media',
+        to: 'auth',
+        type: 'requires',
+        description: 'Media uploads require user authentication'
+      });
+    }
+    
+    // Check for commerce dependencies
+    if (formData.selectedFeaturePacks.includes('commerce') && 
+        formData.selectedFeaturePacks.includes('auth')) {
+      dependencies.push({
+        from: 'commerce',
+        to: 'auth',
+        type: 'requires',
+        description: 'E-commerce features require user authentication'
+      });
+    }
+    
+    // Check for analytics dependencies
+    if (formData.selectedFeaturePacks.includes('analytics') && 
+        formData.selectedFeaturePacks.includes('auth')) {
+      dependencies.push({
+        from: 'analytics',
+        to: 'auth',
+        type: 'enhances',
+        description: 'User authentication enhances analytics with user-specific data'
+      });
+    }
+    
+    return dependencies;
+  };
+  
   const generateFeatureSummary = () => {
     const selectedPacks = featurePacks.filter((pack) =>
       formData.selectedFeaturePacks.includes(pack.id)
@@ -911,7 +998,7 @@ ${formData.customFeatures
                           )
                         )}
 
-                        <div className="flex items-center gap-2">
+                      <div className="bg-white border border-gray-200 rounded-lg p-3 relative">
                           <div className="w-2 h-2 rounded-full bg-blue-300"></div>
                           <input
                             type="text"
@@ -954,6 +1041,62 @@ ${formData.customFeatures
                           </button>
                         </div>
                       </div>
+                      
+                      {/* Feature Dependencies */}
+                      {hasEnoughFeaturesForDependencies() && (
+                        <div className="bg-purple-50 border border-purple-200 rounded-lg p-3 mt-2">
+                          <div className="flex items-center justify-between mb-2">
+                            <label className="block font-medium text-purple-700 text-xs">
+                              Dependencies
+                            </label>
+                            <button
+                              onClick={() => {
+                                // Show dependency selector
+                                const allFeatures = getAllFeatures();
+                                const otherFeatures = allFeatures.filter(f => f.id !== feature.id);
+                                
+                                if (otherFeatures.length > 0) {
+                                  // Add a dependency to the first available feature
+                                  const dependsOn = otherFeatures[0].id;
+                                  addDependency(feature.id, dependsOn, 'requires');
+                                }
+                              }}
+                              className="flex items-center gap-1 px-2 py-1 text-xs bg-purple-600 text-white rounded-md hover:bg-purple-700"
+                              disabled={getAllFeatures().length < 2}
+                            >
+                              <Plus className="w-3 h-3" />
+                              Add Dependency
+                            </button>
+                          </div>
+                          
+                          <div className="space-y-2">
+                            {feature.dependencies && feature.dependencies.length > 0 ? (
+                              feature.dependencies.map((dep) => (
+                                <div key={dep.id} className="flex items-center justify-between bg-white p-2 rounded border border-purple-200">
+                                  <div className="flex items-center gap-2">
+                                    <span className="text-xs font-medium text-purple-700">
+                                      {getDependencyTypeLabel(dep.type)}:
+                                    </span>
+                                    <span className="text-xs text-purple-800">
+                                      {getFeatureName(dep.dependsOn)}
+                                    </span>
+                                  </div>
+                                  <button
+                                    onClick={() => removeDependency(feature.id, dep.id)}
+                                    className="p-1 text-red-500 hover:bg-red-50 rounded"
+                                  >
+                                    <Trash2 className="w-3 h-3" />
+                                  </button>
+                                </div>
+                              ))
+                            ) : (
+                              <div className="text-xs text-purple-400 italic text-center py-2">
+                                No dependencies defined
+                              </div>
+                            )}
+                          </div>
+                        </div>
+                      )}
                     </div>
                   </div>
                 </React.Fragment>
@@ -976,7 +1119,7 @@ ${formData.customFeatures
         <AccordionDetails>
           <div className="space-y-3">
             <p className="text-sm text-gray-600">
-              Hierarchical view of features and their sub-components
+              Hierarchical view of features and their dependencies
             </p>
 
             {/* Feature Tree */}
@@ -1005,7 +1148,7 @@ ${formData.customFeatures
                           </div>
                         ))}
                       </div>
-                    </div>
+                        {/* Feature Breakdown */}
                   );
                 })}
 
@@ -1034,39 +1177,83 @@ ${formData.customFeatures
                       {feature.subFeatures && feature.subFeatures.length > 0 && (
                         <div className="ml-6 space-y-1">
                           {feature.subFeatures.map((subFeature: string, index: number) => (
-                            <div key={index} className="flex items-center gap-2 text-xs text-gray-600">
-                              <div className="w-2 h-2 rounded-full bg-purple-400"></div>
-                              <span>{subFeature}</span>
+            {hasEnoughFeaturesForDependencies() ? (
+              <>
+                {/* Feature Dependencies Visualization */}
+                <div className="bg-purple-50 rounded-lg p-4">
+                  <h4 className="font-medium text-sm text-purple-800 mb-3">Feature Dependencies</h4>
+                  <div className="space-y-3">
+                    {/* Custom Feature Dependencies */}
+                    {formData.customFeatures.map((feature: Feature) => {
+                      if (!feature.dependencies || feature.dependencies.length === 0) return null;
+                      
+                      return (
+                        <div key={feature.id} className="bg-white p-3 rounded-lg border border-purple-200">
+                          <div className="font-medium text-sm text-purple-800 mb-2">{feature.name}</div>
+                          <div className="space-y-1">
+                            {feature.dependencies.map(dep => (
+                              <div key={dep.id} className="flex items-center gap-2 text-xs">
+                                <GitBranch className="w-3 h-3 text-purple-600" />
+                                <span className="text-purple-700">
+                                  <strong>{getDependencyTypeLabel(dep.type)}:</strong> {getFeatureName(dep.dependsOn)}
+                                </span>
+                              </div>
+                            ))}
+                          </div>
+                        </div>
+                      );
+                    })}
+                    
+                    {/* Common Dependencies Based on Feature Packs */}
+                    {getCommonDependencies().length > 0 && (
+                      <div className="bg-white p-3 rounded-lg border border-purple-200">
+                        <div className="font-medium text-sm text-purple-800 mb-2">Common Dependencies</div>
+                        <div className="space-y-1">
+                          {getCommonDependencies().map((dep, index) => (
+                            <div key={index} className="flex items-center gap-2 text-xs">
+                              <GitBranch className="w-3 h-3 text-purple-600" />
+                              <span className="text-purple-700">
+                                <strong>{getFeatureName(dep.from)}</strong> {getDependencyTypeLabel(dep.type)} <strong>{getFeatureName(dep.to)}</strong>
+                              </span>
                             </div>
                           ))}
                         </div>
-                      )}
-                    </div>
-                  );
-                })}
-
-                {/* Show message if no features */}
-                {formData.selectedFeaturePacks.length === 0 && formData.customFeatures.length === 0 && (
-                  <div className="text-center text-gray-500 text-sm py-8">
-                    No features selected yet. Add feature packs or custom features to see the hierarchy.
+                      </div>
+                    )}
                   </div>
-                )}
+                </div>
+                
+                {/* Dependency Warnings */}
+                <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-3">
+                  <div className="flex items-center gap-2 mb-2">
+                    <Target className="w-4 h-4 text-yellow-600" />
+                    <h4 className="font-medium text-sm text-yellow-800">Dependency Analysis</h4>
+                  </div>
+                  <ul className="text-xs text-yellow-700 space-y-1">
+                    {formData.selectedFeaturePacks.includes('social') && !formData.selectedFeaturePacks.includes('auth') && (
+                      <li>• <strong>Warning:</strong> Social Features typically require User Authentication</li>
+                    )}
+                    {formData.selectedFeaturePacks.includes('media') && (
+                      <li>• <strong>Note:</strong> File Upload requires Storage Configuration</li>
+                    )}
+                    {(formData.selectedFeaturePacks.includes('communication') || formData.selectedFeaturePacks.includes('social')) && (
+                      <li>• <strong>Note:</strong> Real-time features need WebSocket setup</li>
+                    )}
+                    {formData.selectedFeaturePacks.includes('commerce') && !formData.selectedFeaturePacks.includes('auth') && (
+                      <li>• <strong>Warning:</strong> E-commerce features require User Authentication</li>
+                    )}
+                  </ul>
+                </div>
+              </>
+            ) : (
+              <div className="bg-gray-50 rounded-lg p-6 text-center">
+                <GitBranch className="w-8 h-8 text-gray-400 mx-auto mb-2" />
+                <h4 className="font-medium text-sm text-gray-700 mb-1">Not Enough Features</h4>
+                <p className="text-xs text-gray-500">
+                  Add at least two features to enable dependency mapping.
+                </p>
               </div>
-            </div>
-
-            <div className="bg-purple-50 border border-purple-200 rounded-lg p-3">
-              <div className="flex items-center gap-2 mb-2">
-                <GitBranch className="w-4 h-4 text-purple-600" />
-                <h4 className="font-medium text-sm text-purple-800">
-                  Feature Dependencies
-                </h4>
-              </div>
-              <ul className="text-xs text-yellow-700 space-y-1">
-                <li>• Missing User Authentication for Social Features</li>
-                <li>• File Upload requires Storage Configuration</li>
-                <li>• Real-time features need WebSocket setup</li>
-              </ul>
-            </div>
+            )}
           </div>
         </AccordionDetails>
       </Accordion>
