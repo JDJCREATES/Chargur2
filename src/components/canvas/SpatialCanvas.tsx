@@ -214,11 +214,11 @@ export const SpatialCanvas: React.FC<SpatialCanvasProps> = ({
         const nodesWithCallbacks = processedNodes.map(node => ({
           ...node,
           data: {
-            ...node.data,
+            ...(node.data || {}),
             onNodeUpdate: (id: string, updates: any) => {
               setNodes(nds => 
                 nds.map(n => n.id === id 
-                  ? { ...n, data: { ...n.data, ...updates } } 
+                  ? { ...n, data: { ...(n.data || {}), ...updates } } 
                   : n
                 )
               );
@@ -365,7 +365,7 @@ export const SpatialCanvas: React.FC<SpatialCanvasProps> = ({
         onNodeUpdate: (id: string, updates: any) => {
           setNodes(nds => 
             nds.map(node => node.id === id 
-              ? { ...node, data: { ...node.data, ...updates } } 
+              ? { ...node, data: { ...(node.data || {}), ...updates } } 
               : node
             )
           );
@@ -403,7 +403,7 @@ export const SpatialCanvas: React.FC<SpatialCanvasProps> = ({
           onNodeUpdate: (id: string, updates: any) => {
             setNodes(nds => 
               nds.map(node => node.id === id 
-                ? { ...node, data: { ...node.data, ...updates } } 
+                ? { ...node, data: { ...(node.data || {}), ...updates } } 
                 : node
               )
             );
