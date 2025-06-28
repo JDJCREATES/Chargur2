@@ -8,7 +8,7 @@
 
 import { Node } from 'reactflow';
 import { ProcessorState } from '../../../components/canvas/core/CanvasDataProcessor';
-import { STAGE1_NODE_TYPES } from '../../../components/canvas/customnodetypes/stage1nodes';
+import { STAGE1_NODE_TYPES } from '../nodeFactory';
 import * as nodeFactory from '../nodeFactory';
 
 /**

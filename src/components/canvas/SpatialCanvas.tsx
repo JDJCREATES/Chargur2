@@ -37,8 +37,7 @@ import { useAppStore } from '../../store/useAppStore';
 import { CanvasToolbar } from './CanvasToolbar';
 import { v4 as uuidv4 } from 'uuid';
 import * as nodeFactory from '../../lib/canvas/nodeFactory';
-import { STAGE1_NODE_TYPES } from './customnodetypes/stage1nodes';
-import { STAGE2_NODE_TYPES } from './customnodetypes/stage2nodes';
+import { STAGE1_NODE_TYPES, STAGE2_NODE_TYPES } from '../../lib/canvas/nodeFactory';
 import { nodeTypes } from './nodes';
 
 // Import processors directly
