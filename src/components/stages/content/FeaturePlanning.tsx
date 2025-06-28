@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 
 import {
   Lightbulb,
@@ -45,18 +45,13 @@ interface Feature {
   id: string;
   name: string;
   description: string;
-  type: "core" | "admin" | "user" | "optional" | "stretch";
-  priority: "must" | "should" | "could" | "wont";
-  complexity: "low" | "medium" | "high";
-  category: "frontend" | "backend" | "both" | "ai-assisted" | "api-required";
+  type: 'core' | 'admin' | 'user' | 'optional' | 'stretch';
+  priority: 'must' | 'should' | 'could' | 'wont';
+  complexity: 'low' | 'medium' | 'high';
+  category: 'frontend' | 'backend' | 'both' | 'ai-assisted' | 'api-required';
   subFeatures: string[];
-  dependencies: Array<{
-    id: string;
-    featureId: string;
-    dependsOn: string;
-    type: "requires" | "enhances" | "conflicts";
-  }>;
-  estimatedEffort: number; // 1-10 scale
+  dependencies: Dependency[];
+  estimatedEffort: number;
 }
 
 interface FeaturePack {
@@ -75,6 +70,13 @@ interface FeaturePack {
     | "media" 
     | "communication"; 
 } 
+
+interface Dependency {
+  id: string;
+  featureId: string;
+  dependsOn: string;
+  type: "requires" | "enhances" | "conflicts";
+}
 
 export const FeaturePlanning: React.FC<FeaturePlanningProps> = ({
   stage,
@@ -314,7 +316,7 @@ export const FeaturePlanning: React.FC<FeaturePlanningProps> = ({
       complexity: "medium",
       category: "frontend",
       subFeatures: [],
-      dependencies: [],
+      dependencies: [] as Dependency[],
       estimatedEffort: 5,
     };
     updateFormData("customFeatures", [...formData.customFeatures, newFeature]);
@@ -332,7 +334,7 @@ export const FeaturePlanning: React.FC<FeaturePlanningProps> = ({
     if (feature) {
       // Check if dependency already exists
       const existingDep = feature.dependencies.find(
-        d => d.featureId === featureId && d.dependsOn === dependsOnId
+        (d: Dependency) => d.featureId === featureId && d.dependsOn === dependsOnId
       );
       
       if (!existingDep) {
@@ -356,7 +358,7 @@ export const FeaturePlanning: React.FC<FeaturePlanningProps> = ({
     
     if (feature) {
       const updatedDependencies = feature.dependencies.filter(
-        d => d.id !== dependencyId
+        (d: Dependency) => d.id !== dependencyId
       );
       updateFeature(featureId, { dependencies: updatedDependencies });
     }
@@ -597,7 +599,7 @@ export const FeaturePlanning: React.FC<FeaturePlanningProps> = ({
     }
     
     // Check if it's a custom feature
-    const customFeature = formData.customFeatures.find(f => f.id === featureId);
+    const customFeature = formData.customFeatures.find((f: Feature) => f.id === featureId);
     return customFeature ? customFeature.name : featureId;
   };
   
@@ -1148,7 +1150,7 @@ ${formData.customFeatures
                           </div>
                         ))}
                       </div>
-                        {/* Feature Breakdown */}
+                    </div>
                   );
                 })}
 
@@ -1177,6 +1179,26 @@ ${formData.customFeatures
                       {feature.subFeatures && feature.subFeatures.length > 0 && (
                         <div className="ml-6 space-y-1">
                           {feature.subFeatures.map((subFeature: string, index: number) => (
+                            <div key={index} className="flex items-center gap-2 text-xs text-gray-600">
+                              <div className="w-2 h-2 rounded-full bg-purple-400"></div>
+                              <span>{subFeature}</span>
+                            </div>
+                          ))}
+                        </div>
+                      )}
+                    </div>
+                  );
+                })}
+
+                {/* Show message if no features */}
+                {formData.selectedFeaturePacks.length === 0 && formData.customFeatures.length === 0 && (
+                  <div className="text-center text-gray-500 text-sm py-8">
+                    No features selected yet. Add feature packs or custom features to see the hierarchy.
+                  </div>
+                )}
+              </div>
+            </div>
+
             {hasEnoughFeaturesForDependencies() ? (
               <>
                 {/* Feature Dependencies Visualization */}
