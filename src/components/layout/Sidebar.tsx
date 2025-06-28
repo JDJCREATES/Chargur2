@@ -228,11 +228,13 @@ export const Sidebar: React.FC<SidebarProps> = ({
                 <Accordion defaultExpanded>
                   <AccordionSummary expandIcon={<ChevronDown size={16} />}>
                     <div className="flex items-center gap-2">
-                      <Typography className="font-medium text-sm">Current Stage Details</Typography>
+                      <Typography className="font-medium text-sm">{currentStage ? currentStage.title : 'Current Stage Details'}</Typography>
                     </div>
                   </AccordionSummary>
                   <AccordionDetails>
-                    {renderStageForm()}
+                    <div className="space-y-2">
+                      {renderStageForm()}
+                    </div>
                   </AccordionDetails>
                 </Accordion>
               </div>
