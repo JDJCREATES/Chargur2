@@ -39,11 +39,7 @@ export const UXFlowStructure: React.FC<UXFlowStructureProps> = ({
   };
 
   return (
-    <div className="p-4 space-y-4">
-      <div className="mb-4">
-        <h3 className="text-lg font-semibold text-gray-800 mb-2">UX Flow & Structure</h3>
-        <p className="text-sm text-gray-600">Configure your app's navigation and user journey</p>
-      </div>
+    <div className="p-2 space-y-4">
 
       {/* Navigation Style */}
       <div className="bg-white rounded-lg p-4 border border-gray-200">
