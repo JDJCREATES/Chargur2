@@ -40,7 +40,8 @@ import {
 } from '../customnodetypes/stage1nodes';
 import {
   FeatureNode,
-  STAGE2_NODE_TYPES
+  ArchitectureNode,
+  STAGE2_NODE_TYPES,
 } from '../customnodetypes/stage2nodes';
 
 export interface Connection {
@@ -197,6 +198,8 @@ export const CanvasRenderer: React.FC<CanvasRendererProps> = ({
                       return <PlatformNode {...commonProps} />;
                     case STAGE2_NODE_TYPES.FEATURE:
                       return <FeatureNode {...commonProps} onDelete={onNodeDelete} />;
+                    case STAGE2_NODE_TYPES.ARCHITECTURE:
+                      return <ArchitectureNode {...commonProps} onDelete={onNodeDelete} />;
                     default:
                       return <DefaultCanvasNode 
                                 node={node} 

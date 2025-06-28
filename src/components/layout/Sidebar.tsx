@@ -104,6 +104,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
             initialFormData={stageData[currentStage.id]}
             onComplete={() => completeStage(currentStage.id)}
             onUpdateData={(data: any) => updateStageData(currentStage.id, data)}
+            onSendMessage={handleSendMessage}
           />
         );
       case 'structure-flow':

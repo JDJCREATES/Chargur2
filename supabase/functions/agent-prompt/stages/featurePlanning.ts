@@ -7,8 +7,15 @@
 export function generateFeaturePlanningPrompt(context: any) {
   const { currentStageData, allStageData, userMessage } = context;
   const ideationData = allStageData['ideation-discovery'] || {};
+  
+  // Check if the message is specifically about architecture generation
+  const isArchitectureRequest = userMessage.toLowerCase().includes('architecture') || 
+                               userMessage.toLowerCase().includes('blueprint') ||
+                               userMessage.toLowerCase().includes('screens') ||
+                               userMessage.toLowerCase().includes('components') ||
+                               userMessage.toLowerCase().includes('api');
 
-  const systemPrompt = `You are a senior product manager and feature strategist. Your expertise lies in translating app concepts into concrete, prioritized feature sets that align with user needs and business goals.
+  const systemPrompt = `You are a senior product manager and feature strategist${isArchitectureRequest ? ', as well as a software architect' : ''}. Your expertise lies in translating app concepts into concrete, prioritized feature sets that align with user needs and business goals${isArchitectureRequest ? ' and designing comprehensive application architectures' : ''}.
 
 CORE RESPONSIBILITIES:
 - Analyze app concepts to suggest relevant feature packs
@@ -18,6 +25,14 @@ CORE RESPONSIBILITIES:
 - Break down complex features into sub-features
 - Recommend MVP vs. future version features
 - Suggest technical complexity and implementation order
+${isArchitectureRequest ? `
+ARCHITECTURE DESIGN RESPONSIBILITIES:
+- Design comprehensive application structures based on features
+- Create logical screen hierarchies and navigation flows
+- Define API endpoints and data operations
+- Organize component hierarchies with proper parent-child relationships
+- Follow React best practices for component organization
+- Ensure architecture supports all selected features` : ''}
 
 CROSS-STAGE INTELLIGENCE:
 App Concept: "${ideationData.appIdea || 'Not defined'}"
@@ -35,6 +50,39 @@ FEATURE BREAKDOWN PATTERNS:
 - Commerce features → catalog, cart, checkout, payments, orders, inventory
 - Analytics features → tracking, dashboards, reports, visualizations, exports
 - Media features → uploads, storage, processing, playback, organization
+
+${isArchitectureRequest ? `
+ARCHITECTURE BLUEPRINT PATTERNS:
+
+SCREEN ORGANIZATION:
+- Core screens: Main app screens (Dashboard, Home, Landing)
+- Secondary screens: Feature-specific screens (Profile, Settings, Details)
+- Modal screens: Overlays and popups (Confirmation, Preview, Quick Edit)
+
+API ENDPOINT PATTERNS:
+- RESTful routes: GET /resources, POST /resources, GET /resources/:id, etc.
+- Auth routes: /auth/login, /auth/register, /auth/reset-password
+- Feature-specific routes: /api/messages, /api/payments, /api/uploads
+
+COMPONENT HIERARCHY:
+- Layout components: Page layouts, containers, grids
+- UI components: Buttons, inputs, cards, modals
+- Form components: Forms, form fields, validation
+- Display components: Data displays, visualizations, media players
+- Utility components: Helpers, wrappers, context providers
+
+COMPONENT NAMING CONVENTIONS:
+- PascalCase for all components
+- Descriptive, purpose-based names
+- Suffix with component type when helpful (e.g., UserProfileCard, LoginForm)
+- Group related components in folders
+
+ARCHITECTURE MAPPING FROM FEATURES:
+- Auth features → LoginScreen, RegisterScreen, ProfileScreen, AuthContext, LoginForm
+- Social features → FeedScreen, ProfileScreen, PostComponent, CommentList
+- Commerce features → ProductListScreen, ProductDetailScreen, CartScreen, CheckoutFlow
+- Media features → GalleryScreen, MediaPlayer, UploadForm, MediaLibrary
+- Analytics features → DashboardScreen, ReportScreen, ChartComponent, DataTable` : ''}
 
 SUB-FEATURE GENERATION:
 When users ask about breaking down features or want more detail, provide comprehensive sub-features that:
@@ -79,15 +127,53 @@ ${JSON.stringify(currentStageData, null, 2)}`;
 
   const userPrompt = `User message: "${userMessage}"
 
-Based on the app concept and user message, help plan features strategically. Consider the app idea "${ideationData.appIdea}" and target users "${ideationData.targetUsers}".
+${isArchitectureRequest ? `Based on the selected features and app concept, design a comprehensive architecture blueprint. Consider the app idea "${ideationData.appIdea}" and the selected features.
 
-Provide intelligent feature recommendations and help prioritize for MVP success.
+Create a detailed, hierarchical structure that organizes screens, API endpoints, and components in a logical, production-ready manner.` 
+: `Based on the app concept and user message, help plan features strategically. Consider the app idea "${ideationData.appIdea}" and target users "${ideationData.targetUsers}".
+
+Provide intelligent feature recommendations and help prioritize for MVP success.`}
 
 Respond in this exact JSON format:
 {
-  "content": "Your strategic response about feature planning",
-  "suggestions": ["Feature suggestion 1", "Priority guidance", "MVP advice"],
+  "content": "${isArchitectureRequest ? 'Your comprehensive architecture blueprint explanation' : 'Your strategic response about feature planning'}",
+  "suggestions": ["${isArchitectureRequest ? 'Architecture suggestion 1' : 'Feature suggestion 1'}", "${isArchitectureRequest ? 'Component organization tip' : 'Priority guidance'}", "${isArchitectureRequest ? 'API design recommendation' : 'MVP advice'}"],
   "autoFillData": {
+${isArchitectureRequest ? `    "architecturePrep": {
+      "screens": [
+        {
+          "name": "LoginScreen",
+          "type": "core",
+          "description": "User authentication screen"
+        }
+      ],
+      "apiRoutes": [
+        {
+          "path": "/api/auth/login",
+          "method": "POST",
+          "description": "Authenticate user credentials"
+        }
+      ],
+      "components": [
+        {
+          "name": "AuthModule",
+          "type": "layout",
+          "description": "Authentication component container",
+          "subComponents": [
+            {
+              "name": "LoginForm",
+              "type": "form",
+              "description": "User login form with validation"
+            },
+            {
+              "name": "RegisterForm",
+              "type": "form",
+              "description": "New user registration form"
+            }
+          ]
+        }
+      ]
+    },` : ''}
     "selectedFeaturePacks": ["auth", "crud", "social"],
     "customFeatures": [
       {
@@ -115,14 +201,14 @@ Respond in this exact JSON format:
   },
   "stageComplete": false,
   "context": {
-    "featureRationale": "Why these features were suggested"
+    "featureRationale": "${isArchitectureRequest ? 'Architecture design rationale and organization principles' : 'Why these features were suggested'}"
   }
 }`;
 
   return {
     systemPrompt,
     userPrompt,
-    temperature: 0.6,
-    maxTokens: 1200
+    temperature: isArchitectureRequest ? 0.4 : 0.6,
+    maxTokens: isArchitectureRequest ? 1800 : 1200
   };
 }

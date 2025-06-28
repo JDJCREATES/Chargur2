@@ -33,11 +33,38 @@ import { AIEnhancements } from './feature-planning/AIEnhancements';
 import { FeatureSummary } from './feature-planning/FeatureSummary';
 import { Feature, FeaturePack, PriorityBucket, ComplexityLevel } from './feature-planning/types';
 
+// Define the enhanced architecture data types
+interface Screen {
+  name: string;
+  type: string;
+  description?: string;
+}
+
+interface ApiRoute {
+  path: string;
+  method: string;
+  description?: string;
+}
+
+interface Component {
+  name: string;
+  type: string;
+  description?: string;
+  subComponents?: Component[];
+}
+
+interface ArchitectureData {
+  screens: Screen[];
+  apiRoutes: ApiRoute[];
+  components: Component[];
+}
+
 interface FeaturePlanningProps {
   stage: Stage;
   initialFormData?: any;
   onComplete: () => void;
   onUpdateData: (data: any) => void;
+  onSendMessage?: (message: string) => void;
 }
 
 interface Dependency {
@@ -51,7 +78,8 @@ export const FeaturePlanning: React.FC<FeaturePlanningProps> = ({
   stage,
   initialFormData,
   onComplete,
-  onUpdateData,
+  onUpdateData, 
+  onSendMessage
 }) => {
   const defaultFormData = {
     naturalLanguageFeatures: "",
@@ -61,10 +89,10 @@ export const FeaturePlanning: React.FC<FeaturePlanningProps> = ({
     mvpMode: false,
     aiEnhancements: [] as string[],
     architecturePrep: {
-      screens: [] as string[],
-      apiRoutes: [] as string[],
-      components: [] as string[],
-    },
+      screens: [] as Screen[],
+      apiRoutes: [] as ApiRoute[],
+      components: [] as Component[],
+    } as ArchitectureData,
   };
 
   const [formData, setFormData] = useState(() => ({
@@ -463,65 +491,54 @@ export const FeaturePlanning: React.FC<FeaturePlanningProps> = ({
   };
 
   const generateArchitecturePrep = () => {
-    const selectedPacks = featurePacks.filter((pack) =>
-      formData.selectedFeaturePacks.includes(pack.id)
-    );
-    const allFeatures = [
-      ...selectedPacks.flatMap((pack) => pack.features),
-      ...formData.customFeatures.map((f: Feature) => f.name),
-    ];
+    if (onSendMessage) {
+      // Prepare feature data for the prompt
+      const selectedPacks = featurePacks.filter((pack) =>
+        formData.selectedFeaturePacks.includes(pack.id)
+      );
+      
+      const featurePackDetails = selectedPacks.map(pack => ({
+        name: pack.name,
+        features: pack.features
+      }));
+      
+      // Create a detailed prompt for the AI
+      const prompt = `Based on my selected features, please generate a comprehensive architecture blueprint for my application.
 
-    // Generate screens based on features
-    const screens = [
-      "Landing Page",
-      "Dashboard",
-      ...(allFeatures.includes("User Registration")
-        ? ["Login", "Register", "Profile"]
-        : []),
-      ...(allFeatures.includes("Real-time Chat") ? ["Chat", "Messages"] : []),
-      ...(allFeatures.includes("Shopping Cart")
-        ? ["Products", "Cart", "Checkout"]
-        : []),
-      "Settings",
-    ];
+Selected Feature Packs:
+${JSON.stringify(featurePackDetails, null, 2)}
 
-    // Generate API routes
-    const apiRoutes = [
-      "/api/health",
-      ...(allFeatures.includes("User Registration")
-        ? ["/api/auth/login", "/api/auth/register", "/api/users"]
-        : []),
-      ...(allFeatures.includes("Real-time Chat")
-        ? ["/api/messages", "/api/chat/rooms"]
-        : []),
-      ...(allFeatures.includes("File Upload")
-        ? ["/api/upload", "/api/files"]
-        : []),
-      ...formData.customFeatures.map(
-        (f: Feature) => `/api/${f.name.toLowerCase().replace(/\s+/g, "-")}`
-      ),
-    ];
+Custom Features:
+${JSON.stringify(formData.customFeatures, null, 2)}
 
-    // Generate components
-    const components = [
-      "Header",
-      "Sidebar",
-      "Footer",
-      ...(allFeatures.includes("User Registration")
-        ? ["LoginForm", "UserProfile", "AuthGuard"]
-        : []),
-      ...(allFeatures.includes("Real-time Chat")
-        ? ["ChatWindow", "MessageBubble", "ChatInput"]
-        : []),
-      ...(allFeatures.includes("File Upload")
-        ? ["FileUploader", "FilePreview"]
-        : []),
-      ...formData.customFeatures.map(
-        (f: Feature) => `${f.name.replace(/\s+/g, "")}Component`
-      ),
-    ];
+Please organize the architecture into three layers:
+1. Screens Layer - All UI screens the user will interact with
+2. API Layer - All API endpoints needed for data operations
+3. Components Layer - All React components with proper hierarchy (parent components with their subcomponents)
 
-    updateFormData("architecturePrep", { screens, apiRoutes, components });
+For each screen, include:
+- Name
+- Type (core, secondary, modal)
+- Brief description
+
+For each API route, include:
+- Path
+- HTTP method
+- Purpose/description
+
+For each component, include:
+- Name (with proper React naming convention)
+- Type (layout, ui, form, display, utility)
+- Description
+- Subcomponents (if applicable)
+
+Please organize these intelligently based on best practices for React applications. Group related components together and ensure the architecture reflects a production-ready application structure.`;
+
+      // Send the prompt to the AI
+      onSendMessage(prompt);
+    } else {
+      console.warn("onSendMessage not available for architecture generation");
+    }
   };
 
   // Get all available features for dependency mapping
@@ -765,8 +782,9 @@ ${formData.customFeatures
         </AccordionSummary>
         <AccordionDetails>
           <ArchitecturePrep
-            architecturePrep={formData.architecturePrep}
+            architectureData={formData.architecturePrep}
             onGenerateArchitecturePrep={generateArchitecturePrep}
+            onSendMessage={onSendMessage}
           />
         </AccordionDetails>
       </Accordion>

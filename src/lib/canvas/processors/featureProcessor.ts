@@ -9,6 +9,7 @@
 import { CanvasNodeData } from '../../../components/canvas/CanvasNode';
 import { ProcessorState } from '../../../components/canvas/core/CanvasDataProcessor';
 import * as nodeFactory from '../nodeFactory';
+import { v4 as uuidv4 } from 'uuid';
 
 /**
  * Process feature planning stage data
@@ -145,6 +146,48 @@ export function processFeatureData(
         featureData.naturalLanguageFeatures, 
         [...nonFeaturePlanningNodes, ...updatedFeaturePlanningNodes]
       );
+      updatedFeaturePlanningNodes.push(newNode);
+    }
+  }
+  
+  // Process architecture data if available
+  if (featureData.architecturePrep && 
+      (featureData.architecturePrep.screens?.length > 0 || 
+       featureData.architecturePrep.apiRoutes?.length > 0 || 
+       featureData.architecturePrep.components?.length > 0)) {
+    
+    // Check if architecture node already exists
+    const existingArchNode = existingFeaturePlanningNodes.find(node => 
+      node.type === 'architecture');
+    
+    if (existingArchNode) {
+      // Update existing node
+      const updatedNode = {
+        ...existingArchNode,
+        metadata: {
+          ...existingArchNode.metadata,
+          architectureData: featureData.architecturePrep
+        }
+      };
+      updatedFeaturePlanningNodes.push(updatedNode);
+    } else {
+      // Create a new architecture node
+      const newNode: CanvasNodeData = {
+        id: uuidv4(),
+        type: 'architecture',
+        title: 'Architecture Blueprint',
+        content: `Architecture blueprint with ${featureData.architecturePrep.screens.length} screens, ${featureData.architecturePrep.apiRoutes.length} API routes, and ${featureData.architecturePrep.components.length} components.`,
+        position: { x: 700, y: 350 },
+        size: { width: 400, height: 300 },
+        color: 'indigo',
+        connections: [],
+        metadata: { 
+          stage: 'feature-planning',
+          architectureData: featureData.architecturePrep
+        },
+        resizable: true
+      };
+      
       updatedFeaturePlanningNodes.push(newNode);
     }
   }
