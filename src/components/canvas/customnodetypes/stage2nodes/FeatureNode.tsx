@@ -242,7 +242,7 @@ export const FeatureNode: React.FC<FeatureNodeProps> = ({
       <div className="flex items-center justify-between p-2 border-b border-blue-100 bg-blue-50 rounded-t-lg">
         <div className="flex items-center gap-2">
           <Box className="w-4 h-4 text-blue-600" />
-        {isEditing ? (
+          {isEditing ? (
           <input
             ref={nameInputRef}
             type="text"
@@ -254,8 +254,7 @@ export const FeatureNode: React.FC<FeatureNodeProps> = ({
           <h3 className="font-medium text-sm text-blue-800 truncate">
             {node.title || 'Feature'}
           </h3>
-        )}
-        )}
+          )}
         
         {!isEditing && (
           <button
