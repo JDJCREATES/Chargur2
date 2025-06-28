@@ -127,11 +127,7 @@ export const StructureFlow: React.FC<StructureFlowProps> = ({
   };
 
   return (
-    <div className="p-4 space-y-2">
-      <div className="mb-4">
-        <h3 className="text-lg font-semibold text-gray-800 mb-2">Structure & Flow</h3>
-        <p className="text-sm text-gray-600">Design your app's architecture, screens, and user journeys</p>
-      </div>
+    <div className="p-2 space-y-2">
 
       {/* 2.1 Information Architecture */}
       <Accordion>
