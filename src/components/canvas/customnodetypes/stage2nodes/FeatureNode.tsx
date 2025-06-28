@@ -1,6 +1,6 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Edit3, Trash2, ChevronDown, ChevronUp, Plus, X, Sparkles } from 'lucide-react';
+import { Edit3, Trash2, Box, Plus, X, Sparkles } from 'lucide-react';
 import { CanvasNodeData } from '../../CanvasNode';
 
 interface FeatureNodeProps {
@@ -25,7 +25,7 @@ export const FeatureNode: React.FC<FeatureNodeProps> = ({
   const [editDescription, setEditDescription] = useState(node.content || '');
   const [editPriority, setEditPriority] = useState(node.metadata?.priority || 'should');
   const [editComplexity, setEditComplexity] = useState(node.metadata?.complexity || 'medium');
-  const [showBreakdown, setShowBreakdown] = useState(node.showBreakdown || false);
+  const [editCategory, setEditCategory] = useState(node.metadata?.category || 'both');
   const [editSubFeatures, setEditSubFeatures] = useState<string[]>(node.subFeatures || []);
   const [newSubFeature, setNewSubFeature] = useState('');
   
@@ -44,8 +44,9 @@ export const FeatureNode: React.FC<FeatureNodeProps> = ({
       content: editDescription.trim(),
       metadata: {
         ...node.metadata,
-        priority: editPriority,
-        complexity: editComplexity
+        priority: editPriority as string,
+        complexity: editComplexity as string,
+        category: editCategory as string
       },
       subFeatures: editSubFeatures.filter(sf => sf.trim() !== '')
     };
@@ -59,14 +60,9 @@ export const FeatureNode: React.FC<FeatureNodeProps> = ({
     setEditDescription(node.content || '');
     setEditPriority(node.metadata?.priority || 'should');
     setEditComplexity(node.metadata?.complexity || 'medium');
+    setEditCategory(node.metadata?.category || 'both');
     setEditSubFeatures(node.subFeatures || []);
     setIsEditing(false);
-  };
-
-  const toggleBreakdown = () => {
-    const newShowBreakdown = !showBreakdown;
-    setShowBreakdown(newShowBreakdown);
-    onUpdate(node.id, { showBreakdown: newShowBreakdown });
   };
 
   const addSubFeature = () => {
@@ -239,50 +235,48 @@ export const FeatureNode: React.FC<FeatureNodeProps> = ({
   return (
     <div className={`
       relative w-full h-full bg-white 
-      rounded-lg shadow-md border-2 transition-all duration-300
+      rounded-lg shadow-md border transition-all duration-300
       ${isSelected ? 'border-blue-400 shadow-lg' : 'border-blue-200'}
     `}>
       {/* Header */}
-      <div className="flex items-center justify-between p-2 border-b border-blue-100 bg-gradient-to-r from-blue-50 to-indigo-50 rounded-t-lg">
+      <div className="flex items-center justify-between p-2 border-b border-blue-100 bg-blue-50 rounded-t-lg">
+        <div className="flex items-center gap-2">
+          <Box className="w-4 h-4 text-blue-600" />
         {isEditing ? (
           <input
             ref={nameInputRef}
             type="text"
             value={editName}
             onChange={(e) => setEditName(e.target.value)}
-            className="flex-1 px-2 py-1 text-sm font-medium border border-blue-200 rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
+            className="flex-1 px-2 py-1 text-sm font-medium border border-blue-200 rounded focus:outline-none focus:ring-1 focus:ring-blue-500"
           />
         ) : (
-          <h3 className="font-medium text-sm text-blue-800 truncate px-1">
+          <h3 className="font-medium text-sm text-blue-800 truncate">
             {node.title || 'Feature'}
           </h3>
         )}
+        )}
         
         {!isEditing && (
-          <div className="flex items-center gap-1">
-            <button
-              onClick={(e) => {
-                e.stopPropagation();
-                setIsEditing(true);
-              }}
-              className="p-1 hover:bg-blue-100 rounded text-blue-600"
-              title="Edit feature"
-            >
-              <Edit3 className="w-3 h-3" />
-            </button>
-            <button
-              onClick={(e) => {
-                e.stopPropagation();
-                onDelete(node.id);
-              }}
-              className="p-1 hover:bg-red-100 rounded text-red-600"
-              title="Delete feature"
-            >
-              <Trash2 className="w-3 h-3" />
-            </button>
-          </div>
+          <button
+            onClick={(e) => {
+              e.stopPropagation();
+              onDelete(node.id);
+            }}
+            className="p-1 hover:bg-red-100 rounded text-red-600"
+            title="Delete feature"
+          >
+            <Trash2 className="w-3 h-3" />
+          </button>
         )}
       </div>
+
+      {/* Category display (when not editing) */}
+      {!isEditing && node.metadata?.category && (
+        <div className="px-3 pt-2 text-xs text-gray-500 italic">
+          {node.metadata.category.charAt(0).toUpperCase() + node.metadata.category.slice(1)}
+        </div>
+      )}
 
       {/* Main Content */}
       <div className="p-3">
@@ -305,8 +299,8 @@ export const FeatureNode: React.FC<FeatureNodeProps> = ({
               <div>
                 <label className="block text-xs font-medium text-gray-700 mb-1">Priority</label>
                 <select
-                  value={editPriority}
-                  onChange={(e) => setEditPriority(e.target.value)}
+                  value={editPriority as string}
+                  onChange={(e) => setEditPriority(e.target.value as string)}
                   className="w-full text-xs bg-white border border-gray-200 rounded px-2 py-1 focus:outline-none focus:ring-1 focus:ring-blue-500"
                 >
                   <option value="must">Must Have</option>
@@ -318,13 +312,27 @@ export const FeatureNode: React.FC<FeatureNodeProps> = ({
               <div>
                 <label className="block text-xs font-medium text-gray-700 mb-1">Complexity</label>
                 <select
-                  value={editComplexity}
-                  onChange={(e) => setEditComplexity(e.target.value)}
+                  value={editComplexity as string}
+                  onChange={(e) => setEditComplexity(e.target.value as string)}
                   className="w-full text-xs bg-white border border-gray-200 rounded px-2 py-1 focus:outline-none focus:ring-1 focus:ring-blue-500"
                 >
                   <option value="low">Low</option>
                   <option value="medium">Medium</option>
                   <option value="high">High</option>
+                </select>
+              </div>
+              <div>
+                <label className="block text-xs font-medium text-gray-700 mb-1">Category</label>
+                <select
+                  value={editCategory as string}
+                  onChange={(e) => setEditCategory(e.target.value as string)}
+                  className="w-full text-xs bg-white border border-gray-200 rounded px-2 py-1 focus:outline-none focus:ring-1 focus:ring-blue-500"
+                >
+                  <option value="frontend">Frontend</option>
+                  <option value="backend">Backend</option>
+                  <option value="both">Both</option>
+                  <option value="ai-assisted">AI-Assisted</option>
+                  <option value="api-required">API Required</option>
                 </select>
               </div>
             </div>
@@ -371,110 +379,108 @@ export const FeatureNode: React.FC<FeatureNodeProps> = ({
       </div>
 
       {/* Feature Breakdown Section */}
-      <div className="px-3 pb-3">
-        <div 
-          className="flex items-center justify-between cursor-pointer hover:bg-gray-50 rounded p-1 -mx-1"
-          onClick={toggleBreakdown}
-        >
-          <div className="flex items-center gap-1 text-xs font-medium text-blue-700">
-            {showBreakdown ? <ChevronUp className="w-3 h-3" /> : <ChevronDown className="w-3 h-3" />}
+      <div className="px-3 pb-3 mt-2">
+        {/* Feature Breakdown Header - styled like the sidebar */}
+        <div className="flex items-center justify-between mb-2 bg-blue-100 p-2 rounded-t-lg border-b border-blue-200">
+          <div className="flex items-center gap-2 text-xs font-medium text-blue-700">
+            <Box className="w-3 h-3" />
             <span>Feature Breakdown</span>
           </div>
           
-          {!isEditing && (
-            <div className="text-xs text-gray-500">
-              {node.subFeatures?.length || 0} items
-            </div>
+          {isEditing && (
+            <button
+              onClick={generateSubFeatures}
+              className="flex items-center gap-1 px-2 py-1 text-xs bg-blue-600 text-white rounded-md hover:bg-blue-700"
+            >
+              <Sparkles className="w-3 h-3" />
+              Auto-Generate
+            </button>
           )}
         </div>
         
-        <AnimatePresence>
-          {showBreakdown && (
-            <motion.div
-              initial={{ height: 0, opacity: 0 }}
-              animate={{ height: 'auto', opacity: 1 }}
-              exit={{ height: 0, opacity: 0 }}
-              transition={{ duration: 0.2 }}
-              className="overflow-hidden"
-            >
-              <div className="pt-2 mt-1 border-t border-gray-100">
-                {isEditing ? (
-                  <div className="space-y-1">
-                    {/* Editable Sub-features */}
-                    {editSubFeatures.map((subFeature, index) => (
-                      <div key={index} className="flex items-center gap-1">
-                        <div className="w-2 h-2 rounded-full bg-blue-400 flex-shrink-0 mt-1"></div>
-                        <input
-                          type="text"
-                          value={subFeature}
-                          onChange={(e) => updateSubFeature(index, e.target.value)}
-                          className="flex-1 text-xs bg-white border border-gray-200 rounded px-2 py-1 focus:outline-none focus:ring-1 focus:ring-blue-500"
-                        />
-                        <button
-                          onClick={() => removeSubFeature(index)}
-                          className="p-1 text-red-500 hover:bg-red-50 rounded"
-                        >
-                          <X className="w-3 h-3" />
-                        </button>
-                      </div>
-                    ))}
-                    
-                    {/* Add new sub-feature */}
-                    <div className="flex items-center gap-1 mt-2">
-                      <div className="w-2 h-2 rounded-full bg-blue-300 flex-shrink-0 mt-1"></div>
-                      <input
-                        type="text"
-                        value={newSubFeature}
-                        onChange={(e) => setNewSubFeature(e.target.value)}
-                        placeholder="Add new sub-feature..."
-                        className="flex-1 text-xs bg-white border border-gray-200 rounded px-2 py-1 focus:outline-none focus:ring-1 focus:ring-blue-500"
-                        onKeyDown={(e) => {
-                          if (e.key === 'Enter' && newSubFeature.trim()) {
-                            addSubFeature();
-                          }
-                        }}
-                      />
-                      <button
-                        onClick={addSubFeature}
-                        disabled={!newSubFeature.trim()}
-                        className={`p-1 rounded ${
-                          newSubFeature.trim() ? 'text-blue-600 hover:bg-blue-50' : 'text-blue-300 cursor-not-allowed'
-                        }`}
-                      >
-                        <Plus className="w-3 h-3" />
-                      </button>
-                    </div>
-                    
-                    {/* Generate button */}
-                    <button
-                      onClick={generateSubFeatures}
-                      className="mt-2 flex items-center gap-1 px-2 py-1 text-xs bg-indigo-100 text-indigo-700 rounded hover:bg-indigo-200 w-full justify-center"
-                    >
-                      <Sparkles className="w-3 h-3" />
-                      Auto-Generate Sub-features
-                    </button>
-                  </div>
-                ) : (
-                  <div className="space-y-1">
-                    {node.subFeatures && node.subFeatures.length > 0 ? (
-                      node.subFeatures.map((subFeature, index) => (
-                        <div key={index} className="flex items-start gap-2 text-xs text-gray-700">
-                          <div className="w-2 h-2 rounded-full bg-blue-400 flex-shrink-0 mt-1.5"></div>
-                          <div>{subFeature}</div>
-                        </div>
-                      ))
-                    ) : (
-                      <div className="text-xs text-gray-400 italic">
-                        No sub-features defined. Click edit to add.
-                      </div>
-                    )}
-                  </div>
-                )}
+        {/* Sub-features Content */}
+        <div className="space-y-1 bg-blue-50 p-2 rounded-b-lg">
+          {isEditing ? (
+            <div className="space-y-1">
+              {/* Editable Sub-features */}
+              {editSubFeatures.map((subFeature, index) => (
+                <div key={index} className="flex items-center gap-2">
+                  <div className="w-2 h-2 rounded-full bg-blue-400"></div>
+                  <input
+                    type="text"
+                    value={subFeature}
+                    onChange={(e) => updateSubFeature(index, e.target.value)}
+                    className="flex-1 text-xs bg-white border border-blue-200 rounded px-2 py-1 focus:outline-none focus:ring-1 focus:ring-blue-500"
+                  />
+                  <button
+                    onClick={() => removeSubFeature(index)}
+                    className="p-1 text-red-500 hover:bg-red-50 rounded"
+                  >
+                    <X className="w-3 h-3" />
+                  </button>
+                </div>
+              ))}
+              
+              {/* Add new sub-feature */}
+              <div className="flex items-center gap-2">
+                <div className="w-2 h-2 rounded-full bg-blue-300"></div>
+                <input
+                  type="text"
+                  value={newSubFeature}
+                  onChange={(e) => setNewSubFeature(e.target.value)}
+                  placeholder="Add sub-feature..."
+                  className="flex-1 text-xs bg-white border border-blue-200 rounded px-2 py-1 focus:outline-none focus:ring-1 focus:ring-blue-500"
+                  onKeyDown={(e) => {
+                    if (e.key === 'Enter' && newSubFeature.trim()) {
+                      addSubFeature();
+                    }
+                  }}
+                />
+                <button
+                  onClick={addSubFeature}
+                  disabled={!newSubFeature.trim()}
+                  className={`p-1 rounded ${
+                    newSubFeature.trim() ? 'text-blue-600 hover:bg-blue-100' : 'text-blue-300 cursor-not-allowed'
+                  }`}
+                >
+                  <Plus className="w-3 h-3" />
+                </button>
               </div>
-            </motion.div>
+            </div>
+          ) : (
+            <div className="space-y-1">
+              {node.subFeatures && node.subFeatures.length > 0 ? (
+                node.subFeatures.map((subFeature, index) => (
+                  <div key={index} className="flex items-start gap-2 text-xs text-blue-700">
+                    <div className="w-2 h-2 rounded-full bg-blue-400 flex-shrink-0 mt-1.5"></div>
+                    <div>{subFeature}</div>
+                  </div>
+                ))
+              ) : (
+                <div className="text-xs text-blue-400 italic">
+                  No sub-features defined. Click edit to add.
+                </div>
+              )}
+            </div>
           )}
-        </AnimatePresence>
+        </div>
       </div>
+      
+      {/* Edit Button in Footer */}
+      {!isEditing && (
+        <div className="absolute bottom-0 right-0 p-2">
+          <button
+            onClick={(e) => {
+              e.stopPropagation();
+              setIsEditing(true);
+            }}
+            className="flex items-center gap-1 text-xs text-blue-600 hover:text-blue-800 transition-colors"
+          >
+            <Edit3 className="w-3 h-3" />
+            Edit
+          </button>
+        </div>
+      )}
     </div>
   );
 };

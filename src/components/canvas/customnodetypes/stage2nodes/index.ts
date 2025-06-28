@@ -7,7 +7,7 @@
 export { FeatureNode } from './FeatureNode';
 
 // Node type definitions for easy reference
-export const STAGE2_NODE_TYPES = {
+export const STAGE2_NODE_TYPES = { 
   FEATURE: 'feature',
 } as const;
 
