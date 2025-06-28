@@ -23,7 +23,9 @@ import {
   FormData
 } from './structure-flow/types';
 import { InformationArchitecture } from './structure-flow/InformationArchitecture';
+import { UserFlows } from './structure-flow/UserFlows';
 import { StateDataFlow } from './structure-flow/StateDataFlow';
+import { ModularUIComposition } from './structure-flow/ModularUIComposition';
 import { ProjectFileStructure } from './structure-flow/ProjectFileStructure';
 import { StructureSummary } from './structure-flow/StructureSummary';
 
@@ -94,6 +96,7 @@ export const StructureFlow: React.FC<StructureFlowProps> = ({
     const updated = { ...formData, [key]: value };
     setFormData(updated);
     onUpdateData(updated);
+    console.log(`Updated ${key} with:`, value);
   };
 
   // Screen management
@@ -157,6 +160,71 @@ export const StructureFlow: React.FC<StructureFlowProps> = ({
     updateFormData('dataFlow', value);
   };
 
+  // Process autoFill data when it comes from the AI
+  useEffect(() => {
+    // Check if we have new data from AI in initialFormData that's not in current formData
+    if (initialFormData && Object.keys(initialFormData).length > 0) {
+      const updatedData: Partial<FormData> = {};
+      let hasUpdates = false;
+      
+      // Check for screens
+      if (initialFormData.screens && 
+          JSON.stringify(initialFormData.screens) !== JSON.stringify(formData.screens)) {
+        updatedData.screens = initialFormData.screens;
+        hasUpdates = true;
+      }
+      
+      // Check for userFlows
+      if (initialFormData.userFlows && 
+          JSON.stringify(initialFormData.userFlows) !== JSON.stringify(formData.userFlows)) {
+        updatedData.userFlows = initialFormData.userFlows;
+        hasUpdates = true;
+      }
+      
+      // Check for dataModels
+      if (initialFormData.dataModels && 
+          JSON.stringify(initialFormData.dataModels) !== JSON.stringify(formData.dataModels)) {
+        updatedData.dataModels = initialFormData.dataModels;
+        hasUpdates = true;
+      }
+      
+      // Check for components
+      if (initialFormData.components && 
+          JSON.stringify(initialFormData.components) !== JSON.stringify(formData.components)) {
+        updatedData.components = initialFormData.components;
+        hasUpdates = true;
+      }
+      
+      // Check for fileStructure
+      if (initialFormData.fileStructure && 
+          JSON.stringify(initialFormData.fileStructure) !== JSON.stringify(formData.fileStructure)) {
+        updatedData.fileStructure = initialFormData.fileStructure;
+        hasUpdates = true;
+      }
+      
+      // Check for other properties
+      const otherProps = [
+        'navigationStyle', 'stateManagement', 'dataFlow', 
+        'userFlowComplexity', 'screenDepth', 'includeOnboarding',
+        'includeAuth', 'includeSettings'
+      ];
+      
+      otherProps.forEach(prop => {
+        if (initialFormData[prop] !== undefined && initialFormData[prop] !== formData[prop]) {
+          updatedData[prop as keyof FormData] = initialFormData[prop];
+          hasUpdates = true;
+        }
+      });
+      
+      // Update formData if we have changes
+      if (hasUpdates) {
+        console.log('Applying AI autofill data to Structure & Flow:', updatedData);
+        setFormData(prev => ({ ...prev, ...updatedData }));
+        onUpdateData({ ...formData, ...updatedData });
+      }
+    }
+  }, [initialFormData, formData, onUpdateData]);
+
   return (
     <div className="p-2 space-y-2">
       {/* 2.1 Information Architecture */}
@@ -188,32 +256,10 @@ export const StructureFlow: React.FC<StructureFlowProps> = ({
           </div>
         </AccordionSummary>
         <AccordionDetails>
-          <div className="space-y-3">
-            <div className="flex items-center justify-between">
-              <p className="text-sm text-gray-600">Map out key user journeys</p>
-              <button
-                onClick={addUserFlow}
-                className="flex items-center gap-1 px-2 py-1 text-xs bg-purple-600 text-white rounded-md hover:bg-purple-700"
-              >
-                <Plus className="w-3 h-3" />
-                Add Flow
-              </button>
-            </div>
-                  
-            {formData.userFlows.map((flow: UserFlow) => (
-              <div key={flow.id} className="p-3 bg-purple-50 rounded-lg">
-                <h4 className="font-medium text-sm text-purple-800 mb-2">{flow.name}</h4>
-                <div className="flex items-center gap-2 text-xs">
-                  {flow.steps.map((step: string, index: number) => (
-                    <React.Fragment key={index}>
-                      <span className="px-2 py-1 bg-white rounded text-purple-700">{step}</span>
-                      {index < flow.steps.length - 1 && <span className="text-purple-400">→</span>}
-                    </React.Fragment>
-                  ))}
-                </div>
-              </div>
-            ))}
-          </div>
+          <UserFlows 
+            userFlows={formData.userFlows}
+            onAddUserFlow={addUserFlow}
+          />
         </AccordionDetails>
       </Accordion>
 
@@ -258,34 +304,10 @@ export const StructureFlow: React.FC<StructureFlowProps> = ({
           </div>
         </AccordionSummary>
         <AccordionDetails>
-          <div className="space-y-3">
-            <div className="flex items-center justify-between">
-              <p className="text-sm text-gray-600">Reusable component architecture</p>
-              <button
-                onClick={addComponent}
-                className="flex items-center gap-1 px-2 py-1 text-xs bg-teal-600 text-white rounded-md hover:bg-teal-700"
-              >
-                <Plus className="w-3 h-3" />
-                Add Component
-              </button>
-            </div>
-            
-            <div className="grid grid-cols-1 gap-2">
-              {formData.components.map((component: ComponentType) => (
-                <div key={component.id} className="p-2 bg-teal-50 rounded-md">
-                  <div className="flex items-center gap-2 mb-1">
-                    <span className="font-mono text-sm text-teal-800">{`<${component.name} />`}</span>
-                    <span className="text-xs px-1 py-0.5 bg-teal-200 text-teal-700 rounded">
-                      {component.type}
-                    </span>
-                  </div>
-                  <div className="text-xs text-teal-600 ml-2">
-                    Props: {component.props.join(', ')}
-                  </div>
-                </div>
-              ))}
-            </div>
-          </div>
+          <ModularUIComposition
+            components={formData.components}
+            onAddComponent={addComponent}
+          />
         </AccordionDetails>
       </Accordion>
 
