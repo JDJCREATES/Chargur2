@@ -174,11 +174,17 @@ export function processFeatureData(
       // Create a new architecture node
       const newNode: CanvasNodeData = {
         id: uuidv4(),
-        type: 'architecture',
+        type: STAGE2_NODE_TYPES.ARCHITECTURE,
         title: 'Architecture Blueprint',
         content: `Architecture blueprint with ${featureData.architecturePrep.screens.length} screens, ${featureData.architecturePrep.apiRoutes.length} API routes, and ${featureData.architecturePrep.components.length} components.`,
-        position: { x: 700, y: 350 },
-        size: { width: 400, height: 300 },
+        position: getSmartNodePosition(
+          existingNodes,
+          STAGE2_NODE_DEFAULTS.architecture.size,
+          'architecture',
+          STAGE2_NODE_DEFAULTS.architecture.position,
+          'feature-planning'
+        ),
+        size: STAGE2_NODE_DEFAULTS.architecture.size,
         color: 'indigo',
         connections: [],
         metadata: { 

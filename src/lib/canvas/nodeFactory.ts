@@ -9,7 +9,7 @@
 import { v4 as uuidv4 } from 'uuid';
 import { CanvasNodeData } from '../../components/canvas/CanvasNode';
 import { STAGE1_NODE_TYPES, STAGE1_NODE_DEFAULTS } from '../../components/canvas/customnodetypes/stage1nodes';
-import { STAGE2_NODE_TYPES, STAGE2_NODE_DEFAULTS } from '../../components/canvas/customnodetypes/stage2nodes';
+import { STAGE2_NODE_TYPES, STAGE2_NODE_DEFAULTS } from '../../components/canvas/customnodetypes/stage2nodes'; 
 import { getSmartNodePosition } from './nodePlacementUtils';
 
 // Node ID counter for generating unique IDs
@@ -392,6 +392,38 @@ export function createNaturalLanguageFeatureNode(
     color: 'blue',
     connections: [],
     metadata: { stage: 'feature-planning', type: 'description' },
+    resizable: true
+  };
+}
+
+/**
+ * Create an architecture node
+ */
+export function createArchitectureNode(
+  architectureData: any,
+  existingNodes: CanvasNodeData[] = []
+): CanvasNodeData {
+  const defaults = STAGE2_NODE_DEFAULTS.architecture;
+  
+  return {
+    id: uuidv4(),
+    type: 'architecture',
+    title: 'Architecture Blueprint',
+    content: `Architecture blueprint with ${architectureData.screens.length} screens, ${architectureData.apiRoutes.length} API routes, and ${architectureData.components.length} components.`,
+    position: getSmartNodePosition(
+      existingNodes,
+      defaults.size,
+      'architecture',
+      defaults.position,
+      'feature-planning'
+    ),
+    size: defaults.size,
+    color: 'indigo',
+    connections: [],
+    metadata: { 
+      stage: 'feature-planning',
+      architectureData
+    },
     resizable: true
   };
 }
