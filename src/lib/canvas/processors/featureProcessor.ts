@@ -37,11 +37,11 @@ export function processFeatureData(
 
   // Get existing feature planning nodes
   const existingFeaturePlanningNodes = nodes.filter(node => 
-    node.metadata?.stage === 'feature-planning');
+    node.data?.metadata?.stage === 'feature-planning');
   
   // Get non-feature planning nodes
   const nonFeaturePlanningNodes = nodes.filter(node => 
-    !node.metadata?.stage || node.metadata.stage !== 'feature-planning');
+    !node.data?.metadata?.stage || node.data.metadata.stage !== 'feature-planning');
   
   // Create a new array for updated feature planning nodes
   const updatedFeaturePlanningNodes: CanvasNodeData[] = [];
@@ -51,17 +51,17 @@ export function processFeatureData(
     featureData.selectedFeaturePacks.forEach((pack: string, index: number) => {
       // Check if this feature pack already exists
       const existingNode = existingFeaturePlanningNodes.find(node => 
-        node.metadata?.pack === pack && node.type === 'feature');
+        node.data?.metadata?.pack === pack && node.type === 'feature');
       
       if (existingNode) {
         // Keep the existing node
         const updatedNode = { ...existingNode };
         
         // Add default sub-features if none exist
-        if ((!updatedNode.subFeatures || updatedNode.subFeatures.length === 0) && 
+        if ((!updatedNode.data.subFeatures || updatedNode.data.subFeatures.length === 0) && 
             (pack === 'auth' || pack === 'social' || pack === 'commerce' || pack === 'analytics' || 
              pack === 'media' || pack === 'communication')) {
-          updatedNode.subFeatures = getDefaultSubFeatures(pack);
+          updatedNode.data.subFeatures = getDefaultSubFeatures(pack);
         }
         
         updatedFeaturePlanningNodes.push(updatedNode);
@@ -86,26 +86,29 @@ export function processFeatureData(
     featureData.customFeatures.forEach((feature: any, index: number) => {
       // Check if this custom feature already exists by ID
       const existingNode = existingFeaturePlanningNodes.find(node => 
-        node.metadata?.custom === true && 
-        node.metadata?.sourceId === feature.id);
+        node.data?.metadata?.custom === true && 
+        node.data?.metadata?.sourceId === feature.id);
       
       if (existingNode) {
         // Keep the existing node, but update its content if needed
         const updatedNode = {
           ...existingNode,
-          title: feature.name,
-          content: `${feature.description || 'Custom feature'}\n\nPriority: ${feature.priority || 'medium'}\nComplexity: ${feature.complexity || 'medium'}`,
-          metadata: {
-            ...existingNode.metadata,
-            priority: feature.priority || 'should',
-            complexity: feature.complexity || 'medium',
-            category: feature.category || 'both'
+          data: {
+            ...existingNode.data,
+            title: feature.name,
+            content: `${feature.description || 'Custom feature'}\n\nPriority: ${feature.priority || 'medium'}\nComplexity: ${feature.complexity || 'medium'}`,
+            metadata: {
+              ...existingNode.data.metadata,
+              priority: feature.priority || 'should',
+              complexity: feature.complexity || 'medium',
+              category: feature.category || 'both'
+            }
           }
         };
         
         // Update sub-features if they exist in the feature data
         if (feature.subFeatures && Array.isArray(feature.subFeatures)) {
-          updatedNode.subFeatures = feature.subFeatures;
+          updatedNode.data.subFeatures = feature.subFeatures;
         }
         
         updatedFeaturePlanningNodes.push(updatedNode);
@@ -113,17 +116,9 @@ export function processFeatureData(
         // Create a new node
         const newNode = nodeFactory.createCustomFeatureNode(feature, startIndex + index, featureX, featureY, [...nonFeaturePlanningNodes, ...updatedFeaturePlanningNodes]);
         
-        // Add metadata for priority, complexity, and category
-        newNode.metadata = {
-          ...newNode.metadata,
-          priority: feature.priority || 'should',
-          complexity: feature.complexity || 'medium',
-          category: feature.category || 'both'
-        };
-        
         // Add sub-features if they exist in the feature data
         if (feature.subFeatures && Array.isArray(feature.subFeatures)) {
-          newNode.subFeatures = feature.subFeatures;
+          newNode.data.subFeatures = feature.subFeatures;
         }
         
         updatedFeaturePlanningNodes.push(newNode);
@@ -135,13 +130,16 @@ export function processFeatureData(
   if (featureData.naturalLanguageFeatures) {
     // Check if natural language feature node already exists
     const existingNLNode = existingFeaturePlanningNodes.find(node => 
-      node.metadata?.type === 'description');
+      node.data?.metadata?.type === 'description');
     
     if (existingNLNode) {
       // Update the existing node
       const updatedNode = {
         ...existingNLNode,
-        content: featureData.naturalLanguageFeatures
+        data: {
+          ...existingNLNode.data,
+          content: featureData.naturalLanguageFeatures
+        }
       };
       updatedFeaturePlanningNodes.push(updatedNode);
     } else {
@@ -168,9 +166,12 @@ export function processFeatureData(
       // Update existing node
       const updatedNode = {
         ...existingArchNode,
-        metadata: {
-          ...existingArchNode.metadata,
-          architectureData: featureData.architecturePrep
+        data: {
+          ...existingArchNode.data,
+          metadata: {
+            ...existingArchNode.data.metadata,
+            architectureData: featureData.architecturePrep
+          }
         }
       };
       updatedFeaturePlanningNodes.push(updatedNode);
@@ -187,16 +188,18 @@ export function processFeatureData(
           'feature',
           undefined,
           'feature-planning',
-          false
-        ),
-        size: STAGE2_NODE_DEFAULTS.architecture.size,
-        color: 'indigo',
-        connections: [],
-        metadata: { 
-          stage: 'feature-planning',
-          architectureData: featureData.architecturePrep
-        },
-        resizable: true
+        data: {
+          title: 'Architecture Blueprint',
+          content: `Architecture blueprint with ${featureData.architecturePrep.screens.length} screens, ${featureData.architecturePrep.apiRoutes.length} API routes, and ${featureData.architecturePrep.components.length} components.`,
+          size: STAGE2_NODE_DEFAULTS.architecture.size,
+          color: 'indigo',
+          connections: [],
+          metadata: { 
+            stage: 'feature-planning',
+            architectureData: featureData.architecturePrep
+          },
+          resizable: true
+        }
       };
       
       updatedFeaturePlanningNodes.push(newNode);

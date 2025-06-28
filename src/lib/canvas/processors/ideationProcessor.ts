@@ -36,16 +36,19 @@ export function processIdeationData(
   const existingValuePropNode = nodes.find(node => node.id === STAGE1_NODE_TYPES.VALUE_PROPOSITION);
 
   // Create or update singleton nodes (these should replace existing ones)
-  if (ideationData.appName && (!existingAppNameNode || existingAppNameNode.value !== ideationData.appName)) {
+  if (ideationData.appName && (!existingAppNameNode || existingAppNameNode.data?.value !== ideationData.appName)) {
     if (existingAppNameNode) {
       // Update existing node
       const index = nodes.findIndex(node => node.id === STAGE1_NODE_TYPES.APP_NAME);
       if (index !== -1) {
         nodes[index] = {
           ...nodes[index],
-          value: ideationData.appName,
-          nameHistory: [...(nodes[index].nameHistory || []), nodes[index].value]
-            .filter((name): name is string => name !== undefined && name !== null && name.trim() !== '')
+          data: {
+            ...nodes[index].data,
+            value: ideationData.appName,
+            nameHistory: [...(nodes[index].data?.nameHistory || []), nodes[index].data?.value]
+              .filter((name): name is string => name !== undefined && name !== null && name.trim() !== '')
+          }
         };
       }
     } else {
@@ -54,14 +57,17 @@ export function processIdeationData(
     }
   }
 
-  if (ideationData.tagline && (!existingTaglineNode || existingTaglineNode.value !== ideationData.tagline)) {
+  if (ideationData.tagline && (!existingTaglineNode || existingTaglineNode.data?.value !== ideationData.tagline)) {
     if (existingTaglineNode) {
       // Update existing node
       const index = nodes.findIndex(node => node.id === STAGE1_NODE_TYPES.TAGLINE);
       if (index !== -1) {
         nodes[index] = {
           ...nodes[index],
-          value: ideationData.tagline
+          data: {
+            ...nodes[index].data,
+            value: ideationData.tagline
+          }
         };
       }
     } else {
@@ -70,14 +76,17 @@ export function processIdeationData(
     }
   }
 
-  if (ideationData.problemStatement && (!existingCoreProblemNode || existingCoreProblemNode.value !== ideationData.problemStatement)) {
+  if (ideationData.problemStatement && (!existingCoreProblemNode || existingCoreProblemNode.data?.value !== ideationData.problemStatement)) {
     if (existingCoreProblemNode) {
       // Update existing node
       const index = nodes.findIndex(node => node.id === STAGE1_NODE_TYPES.CORE_PROBLEM);
       if (index !== -1) {
         nodes[index] = {
           ...nodes[index],
-          value: ideationData.problemStatement
+          data: {
+            ...nodes[index].data,
+            value: ideationData.problemStatement
+          }
         };
       }
     } else {
@@ -86,14 +95,13 @@ export function processIdeationData(
     }
   }
 
-  if (ideationData.appIdea && (!existingMissionNode || existingMissionNode.value !== ideationData.appIdea)) {
+  if (ideationData.appIdea && (!existingMissionNode || existingMissionNode.data?.value !== ideationData.appIdea)) {
     if (existingMissionNode) {
       // Update existing node
       const index = nodes.findIndex(node => node.id === STAGE1_NODE_TYPES.MISSION);
       if (index !== -1) {
-        const updates: Partial<CanvasNodeData> = { 
-          value: ideationData.appIdea 
-        };
+        const updates: any = {};
+        updates.value = ideationData.appIdea;
 
         // Add mission statement if available
         if (ideationData.missionStatement) {
@@ -102,7 +110,10 @@ export function processIdeationData(
         
         nodes[index] = {
           ...nodes[index],
-          ...updates
+          data: {
+            ...nodes[index].data,
+            ...updates
+          }
         };
       }
     } else {
@@ -111,14 +122,17 @@ export function processIdeationData(
     }
   }
 
-  if (ideationData.valueProposition && (!existingValuePropNode || existingValuePropNode.value !== ideationData.valueProposition)) {
+  if (ideationData.valueProposition && (!existingValuePropNode || existingValuePropNode.data?.value !== ideationData.valueProposition)) {
     if (existingValuePropNode) {
       // Update existing node
       const index = nodes.findIndex(node => node.id === STAGE1_NODE_TYPES.VALUE_PROPOSITION);
       if (index !== -1) {
         nodes[index] = {
           ...nodes[index],
-          value: ideationData.valueProposition
+          data: {
+            ...nodes[index].data,
+            value: ideationData.valueProposition
+          }
         };
       }
     } else {
@@ -130,13 +144,13 @@ export function processIdeationData(
   // For multi-instance nodes like user personas, only add new ones
   if (ideationData.userPersonas && Array.isArray(ideationData.userPersonas)) {
     const existingPersonas = nodes.filter(node => 
-      node.metadata?.stage === 'ideation-discovery' && node.metadata?.nodeType === 'userPersona'
+      node.data?.metadata?.stage === 'ideation-discovery' && node.data?.metadata?.nodeType === 'userPersona'
     );
   
     // Only add personas that don't already exist
     ideationData.userPersonas.forEach((persona: any, index: number) => {
       const personaExists = existingPersonas.some(existing => 
-        existing.name === persona.name && existing.role === persona.role
+        existing.data?.name === persona.name && existing.data?.role === persona.role
       );
     
       if (!personaExists) {
@@ -146,9 +160,9 @@ export function processIdeationData(
   } else if (ideationData.targetUsers && !ideationData.userPersonas) {
     // Check if legacy persona already exists
     const legacyPersonaExists = nodes.some(node => 
-      node.metadata?.stage === 'ideation-discovery' && 
-      node.metadata?.nodeType === 'userPersona' &&
-      node.painPoint === ideationData.targetUsers
+      node.data?.metadata?.stage === 'ideation-discovery' && 
+      node.data?.metadata?.nodeType === 'userPersona' &&
+      node.data?.painPoint === ideationData.targetUsers
     );
   
     if (!legacyPersonaExists) {
@@ -168,14 +182,14 @@ export function processIdeationData(
     
     // Get existing competitor nodes
     const existingCompetitors = nodes.filter(node => 
-      node.metadata?.stage === 'ideation-discovery' && node.type === 'competitor'
+      node.data?.metadata?.stage === 'ideation-discovery' && node.type === 'competitor'
     );
     
     // Add new competitors that don't already exist
     competitorArray.forEach((competitor: any, index: number) => {
       // Check if this competitor already exists by name
       const competitorExists = existingCompetitors.some(existing => 
-        existing.name === competitor.name
+        existing.data?.name === competitor.name
       );
       
       if (!competitorExists && competitor.name) {
@@ -188,16 +202,19 @@ export function processIdeationData(
   if (ideationData.platform) {
     // Check if platform node already exists
     const existingPlatformNode = nodes.find(node => 
-      node.type === 'platform' && node.metadata?.stage === 'ideation-discovery');
+      node.type === 'platform' && node.data?.metadata?.stage === 'ideation-discovery');
     
     if (existingPlatformNode) {
       // Update existing node
       const index = nodes.findIndex(node => 
-        node.type === 'platform' && node.metadata?.stage === 'ideation-discovery');
+        node.type === 'platform' && node.data?.metadata?.stage === 'ideation-discovery');
       if (index !== -1) {
         nodes[index] = {
           ...nodes[index],
-          platform: ideationData.platform
+          data: {
+            ...nodes[index].data,
+            platform: ideationData.platform
+          }
         };
       }
     } else {
@@ -210,16 +227,19 @@ export function processIdeationData(
   if (ideationData.techStack && Array.isArray(ideationData.techStack) && ideationData.techStack.length > 0) {
     // Check if tech stack node already exists
     const existingTechStackNode = nodes.find(node => 
-      node.type === 'techStack' && node.metadata?.stage === 'ideation-discovery');
+      node.type === 'techStack' && node.data?.metadata?.stage === 'ideation-discovery');
     
     if (existingTechStackNode) {
       // Update existing node
       const index = nodes.findIndex(node => 
-        node.type === 'techStack' && node.metadata?.stage === 'ideation-discovery');
+        node.type === 'techStack' && node.data?.metadata?.stage === 'ideation-discovery');
       if (index !== -1) {
         nodes[index] = {
           ...nodes[index],
-          techStack: ideationData.techStack
+          data: {
+            ...nodes[index].data,
+            techStack: ideationData.techStack
+          }
         };
       }
     } else {
@@ -232,16 +252,19 @@ export function processIdeationData(
   if (ideationData.uiStyle) {
     // Check if UI style node already exists
     const existingUIStyleNode = nodes.find(node => 
-      node.type === 'uiStyle' && node.metadata?.stage === 'ideation-discovery');
+      node.type === 'uiStyle' && node.data?.metadata?.stage === 'ideation-discovery');
     
     if (existingUIStyleNode) {
       // Update existing node
       const index = nodes.findIndex(node => 
-        node.type === 'uiStyle' && node.metadata?.stage === 'ideation-discovery');
+        node.type === 'uiStyle' && node.data?.metadata?.stage === 'ideation-discovery');
       if (index !== -1) {
         nodes[index] = {
           ...nodes[index],
-          uiStyle: ideationData.uiStyle
+          data: {
+            ...nodes[index].data,
+            uiStyle: ideationData.uiStyle
+          }
         };
       }
     } else {

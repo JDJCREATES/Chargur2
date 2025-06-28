@@ -32,7 +32,7 @@ export function processStructureData(
 
   // Remove old structure nodes
   nodes = nodes.filter(node => 
-    !node.metadata?.stage || node.metadata.stage !== 'structure-flow');
+    !node.data?.metadata?.stage || node.data.metadata.stage !== 'structure-flow');
 
   // Process screens
   if (structureData.screens) {

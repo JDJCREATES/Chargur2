@@ -32,7 +32,7 @@ export function processInterfaceData(
 
   // Remove old interface nodes
   nodes = nodes.filter(node => 
-    !node.metadata?.stage || node.metadata.stage !== 'interface-interaction');
+    !node.data?.metadata?.stage || node.data.metadata.stage !== 'interface-interaction');
 
   // Process design system
   if (interfaceData.selectedDesignSystem) {

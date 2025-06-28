@@ -32,7 +32,7 @@ export function processArchitectureData(
 
   // Remove old architecture nodes
   nodes = nodes.filter(node => 
-    !node.metadata?.stage || node.metadata.stage !== 'architecture-design');
+    !node.data?.metadata?.stage || node.data.metadata.stage !== 'architecture-design');
 
   // Process database schema
   if (architectureData.databaseSchema) {

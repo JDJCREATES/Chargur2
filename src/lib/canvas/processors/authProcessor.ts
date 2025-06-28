@@ -32,7 +32,7 @@ export function processAuthData(
 
   // Remove old auth nodes
   nodes = nodes.filter(node => 
-    !node.metadata?.stage || node.metadata.stage !== 'user-auth-flow');
+    !node.data?.metadata?.stage || node.data.metadata.stage !== 'user-auth-flow');
 
   // Process authentication methods
   if (authData.authMethods) {
