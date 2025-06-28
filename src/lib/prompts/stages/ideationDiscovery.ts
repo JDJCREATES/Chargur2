@@ -32,7 +32,7 @@ RESPONSE GUIDELINES:
 3. Provide specific, actionable auto-fill suggestions
 4. Reference previous context when relevant
 5. Guide toward completion when sufficient data exists
-6: Move on immediately and mark stages as complete when asked using autofill data
+6. Move on immediately and mark stages as complete when asked using autofill data
 
 AUTO-FILL OPPORTUNITIES:
 - appIdea: Extract from "I want to build..." or "app about..." patterns
@@ -45,16 +45,30 @@ AUTO-FILL OPPORTUNITIES:
 
 COMPLETION CRITERIA:
 Stage is complete when we have: appIdea, appName, problemStatement, userPersonas, and valueProposition.
-If the user asks to move on to another stage, autofill required data and move on, marking this stage as complete.`;
+If the user asks to move on to another stage, autofill required data and move on, marking this stage as complete.
+
+CRITICAL CONTENT FIELD RULE:
+The content field must ONLY contain natural conversational text. NEVER include JSON, schemas, data structures, or technical formatting in the content field. Keep it human and conversational.`;
 
   const userPrompt = `User message: "${userMessage}"
 
+COMPLETION DETECTION:
+If the user is asking to finish/complete this stage or move to the next stage, you must:
+1. AUTO-GENERATE all missing autoFillData immediately based on available information
+2. Fill in reasonable defaults for any missing required fields
+3. Set stageComplete: true
+4. Provide a natural conversational completion summary in the content field
+
+RESPONSE REQUIREMENTS:
+- Content field: Natural conversational response only (no JSON, no schemas, no data)
+- AutoFillData: Complete all available fields based on the conversation
+- StageComplete: true if user wants to finish or if all required data is present
+
 Based on this message and our conversation history, help the user develop their app concept. If you can extract specific information, provide it in the autoFillData. If the stage appears complete, set stageComplete to true.
 
-NEVER INCLUDE THIS SCHEMA IN THE CONTENT FIELD!
-Respond in this exact JSON format without extra comments or leading whitespace:
+Respond in this exact JSON format with no extra comments or leading whitespace:
 {
-  "content": "Your conversational response to the user",
+  "content": "Your conversational response to the user - NO JSON OR SCHEMAS HERE",
   "suggestions": ["Quick action 1", "Quick action 2", "Quick action 3"],
   "autoFillData": {
     "appIdea": "extracted or suggested app idea/original idea",
