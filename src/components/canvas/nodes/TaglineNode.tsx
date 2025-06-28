@@ -9,7 +9,7 @@ const TaglineNode: React.FC<NodeProps> = ({
   isConnectable 
 }) => {
   const [isEditing, setIsEditing] = useState(false);
-  const [editValue, setEditValue] = useState(data.value);
+  const [editValue, setEditValue] = useState(data?.value || '');
   const [showTooltip, setShowTooltip] = useState(false);
   const inputRef = useRef<HTMLInputElement>(null);
 
@@ -22,7 +22,7 @@ const TaglineNode: React.FC<NodeProps> = ({
 
   const handleSave = () => {
     if (editValue.trim() !== data.value) {
-      data.onNodeUpdate(id, { value: editValue.trim() });
+      data?.onNodeUpdate?.(id, { value: editValue.trim() });
     }
     setIsEditing(false);
   };
@@ -32,13 +32,13 @@ const TaglineNode: React.FC<NodeProps> = ({
       handleSave();
     }
     if (e.key === 'Escape') {
-      setEditValue(data.value);
+      setEditValue(data?.value || '');
       setIsEditing(false);
     }
   };
 
-  const displayValue = data.value || "Your app's essence in a few words...";
-  const isPlaceholder = !data.value;
+  const displayValue = data?.value || "Your app's essence in a few words...";
+  const isPlaceholder = !data?.value;
 
   return (
     <>
@@ -94,7 +94,7 @@ const TaglineNode: React.FC<NodeProps> = ({
                 `}>
                   {displayValue}
                 </span>
-                {data.editable && !isEditing && (
+                {data?.editable && !isEditing && (
                   <Edit3 
                     className="w-3 h-3 text-purple-600 opacity-50 hover:opacity-100 transition-opacity"
                     onClick={(e) => {

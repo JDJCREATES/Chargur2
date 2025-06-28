@@ -10,9 +10,9 @@ const UserPersonaNode: React.FC<NodeProps> = ({
 }) => {
   const [isEditing, setIsEditing] = useState(false);
   const [editData, setEditData] = useState({
-    name: data.name,
-    role: data.role,
-    painPoint: data.painPoint,
+    name: data?.name || '',
+    role: data?.role || '',
+    painPoint: data?.painPoint || '',
   });
   const nameInputRef = useRef<HTMLInputElement>(null);
 
@@ -24,7 +24,7 @@ const UserPersonaNode: React.FC<NodeProps> = ({
   }, [isEditing]);
 
   const handleSave = () => {
-    data.onNodeUpdate(id, editData);
+    data?.onNodeUpdate?.(id, editData);
     setIsEditing(false);
   };
 
@@ -34,9 +34,9 @@ const UserPersonaNode: React.FC<NodeProps> = ({
     }
     if (e.key === 'Escape') {
       setEditData({
-        name: data.name,
-        role: data.role,
-        painPoint: data.painPoint,
+        name: data?.name || '',
+        role: data?.role || '',
+        painPoint: data?.painPoint || '',
       });
       setIsEditing(false);
     }
@@ -52,12 +52,12 @@ const UserPersonaNode: React.FC<NodeProps> = ({
       '🧑‍🍳', '🧑‍🔧', '🧑‍🚀', '🧑‍⚖️', '🧑‍🌾', '🧑‍🏭'
     ];
     const randomEmoji = emojis[Math.floor(Math.random() * emojis.length)];
-    data.onNodeUpdate(id, { emoji: randomEmoji });
+    data?.onNodeUpdate?.(id, { emoji: randomEmoji });
   };
 
-  const displayName = data.name || "New Persona";
-  const displayRole = data.role || "Role/Descriptor";
-  const displayPainPoint = data.painPoint || "Pain point or goal...";
+  const displayName = data?.name || "New Persona";
+  const displayRole = data?.role || "Role/Descriptor";
+  const displayPainPoint = data?.painPoint || "Pain point or goal...";
 
   return (
     <>
@@ -96,14 +96,14 @@ const UserPersonaNode: React.FC<NodeProps> = ({
         <div className="flex justify-center -mt-6 mb-2">
           <div className="relative">
             <div className="w-12 h-12 bg-gradient-to-br from-blue-400 to-indigo-500 rounded-full flex items-center justify-center text-white text-xl shadow-lg" style={{ zIndex: 20 }}>
-              {data.avatarUrl ? (
+              {data?.avatarUrl ? (
                 <img 
                   src={data.avatarUrl} 
-                  alt={data.name}
+                  alt={data?.name || 'Avatar'}
                   className="w-full h-full rounded-full object-cover"
                 />
               ) : (
-                <span>{data.emoji || '👤'}</span>
+                <span>{data?.emoji || '👤'}</span>
               )}
             </div>
             
@@ -185,7 +185,7 @@ const UserPersonaNode: React.FC<NodeProps> = ({
               </p>
               
               {/* Edit Button */}
-              {data.editable && (
+              {data?.editable && (
                 <button
                   onClick={(e) => {
                     e.stopPropagation();
@@ -206,7 +206,7 @@ const UserPersonaNode: React.FC<NodeProps> = ({
           <button
             onClick={(e) => {
               e.stopPropagation();
-              data.onNodeDelete(id);
+             data?.onNodeDelete?.(id);
             }}
             className="absolute -top-2 -right-2 w-6 h-6 bg-red-500 text-white rounded-full flex items-center justify-center hover:bg-red-600 transition-colors text-xs"
           >
