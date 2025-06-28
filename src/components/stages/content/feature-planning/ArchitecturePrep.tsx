@@ -1,5 +1,5 @@
 import React from 'react';
-import { Layers, Zap, Monitor, Server, Code, ArrowDown, Globe, Box, Plus } from 'lucide-react';
+import { Layers, Zap, Monitor, Server, Code, ArrowDown, Database, Globe, Box } from 'lucide-react';
 
 interface Component {
   name: string;
@@ -26,7 +26,7 @@ interface ArchitecturePrepProps {
   architectureData: {
     screens: (Screen | string)[]; // Allow both string and object formats
     apiRoutes: (ApiRoute | string)[]; // Allow both string and object formats
-    components: (Component | string)[] | undefined; // Allow both string and object formats
+    components: (Component | string)[]; // Allow both string and object formats
   };
   onGenerateArchitecturePrep: () => void;
   onSendMessage?: (message: string) => void;
@@ -37,9 +37,6 @@ export const ArchitecturePrep: React.FC<ArchitecturePrepProps> = ({
   onGenerateArchitecturePrep,
   onSendMessage
 }) => {
-  // Ensure components is always an array
-  const components = architectureData.components || [];
-  
   const getMethodColor = (method: string) => {
     switch (method.toUpperCase()) {
       case 'GET': return 'bg-green-100 text-green-700 border-green-200';
@@ -174,12 +171,12 @@ export const ArchitecturePrep: React.FC<ArchitecturePrepProps> = ({
             <Globe className="w-4 h-4 text-green-600" />
             <h4 className="font-medium text-sm text-gray-800">API Layer</h4>
             <span className="text-xs px-2 py-0.5 bg-green-100 text-green-700 rounded-full">
-              {architectureData.apiRoutes?.length || 0}
+              {architectureData.apiRoutes.length}
             </span>
           </div>
           
           <div className="flex flex-wrap gap-2">
-            {architectureData.apiRoutes?.map((route, index) => {
+            {architectureData.apiRoutes.map((route, index) => {
               // Handle both string and object formats
               const routePath = typeof route === 'string' ? route : route.path;
               const routeMethod = typeof route === 'string' ? 'GET' : route.method;
@@ -215,12 +212,12 @@ export const ArchitecturePrep: React.FC<ArchitecturePrepProps> = ({
             <Code className="w-4 h-4 text-indigo-600" />
             <h4 className="font-medium text-sm text-gray-800">Components Layer</h4>
             <span className="text-xs px-2 py-0.5 bg-indigo-100 text-indigo-700 rounded-full">
-              {components.length}
+              {architectureData.components.length}
             </span>
           </div>
           
           <div className="space-y-2">
-            {components.map((component, index) => (
+            {architectureData.components.map((component, index) => (
               <div key={index}>
                 {renderComponent(component)}
               </div>
@@ -230,18 +227,12 @@ export const ArchitecturePrep: React.FC<ArchitecturePrepProps> = ({
       </div>
       
       {architectureData.screens.length === 0 && 
-       (architectureData.apiRoutes?.length || 0) === 0 && 
-       (architectureData.components?.length || 0) === 0 && (
+       architectureData.apiRoutes.length === 0 && 
+       architectureData.components.length === 0 && (
         <div className="text-center py-8 bg-gray-50 rounded-lg border border-gray-200">
           <Layers className="w-8 h-8 text-gray-400 mx-auto mb-2" />
           <p className="text-sm text-gray-600 mb-1">No architecture data generated yet</p>
-          <button
-            onClick={onGenerateArchitecturePrep}
-            className="mt-2 flex items-center gap-1 px-3 py-1.5 mx-auto text-xs bg-indigo-600 text-white rounded-md hover:bg-indigo-700 transition-colors"
-          >
-            <Plus className="w-3 h-3" />
-            Generate Blueprint
-          </button>
+          <p className="text-xs text-gray-500">Click Generate to create an architecture blueprint</p>
         </div>
       )}
     </div>

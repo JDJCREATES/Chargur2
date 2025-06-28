@@ -11,7 +11,6 @@ import { CanvasNodeData } from '../../components/canvas/CanvasNode';
 import { STAGE1_NODE_TYPES, STAGE1_NODE_DEFAULTS } from '../../components/canvas/customnodetypes/stage1nodes';
 import { STAGE2_NODE_TYPES, STAGE2_NODE_DEFAULTS } from '../../components/canvas/customnodetypes/stage2nodes';
 import { getSmartNodePosition } from './nodePlacementUtils';
-import { v4 as uuidv4 } from 'uuid';
 
 // Node ID counter for generating unique IDs
 let nodeIdCounter = 1;
@@ -925,38 +924,6 @@ export function createUIStyleNode(
     metadata: { stage: 'ideation-discovery', nodeType: 'uiStyle' },
     uiStyle: uiStyle,
     editable: true,
-    resizable: true
-  };
-}
-
-/**
- * Create an architecture blueprint node
- */
-export function createArchitectureNode(
-  architectureData: any,
-  existingNodes: CanvasNodeData[] = []
-): CanvasNodeData {
-  const defaults = STAGE2_NODE_DEFAULTS.architecture;
-  
-  return {
-    id: uuidv4(),
-    type: 'architecture',
-    title: 'Architecture Blueprint',
-    content: `Architecture blueprint with ${architectureData.screens.length} screens, ${architectureData.apiRoutes.length} API routes, and ${architectureData.components.length} components.`,
-    position: getSmartNodePosition(
-      existingNodes,
-      defaults.size,
-      'architecture',
-      { x: 700, y: 350 },
-      'feature-planning'
-    ),
-    size: defaults.size,
-    color: 'indigo',
-    connections: [],
-    metadata: { 
-      stage: 'feature-planning',
-      architectureData: architectureData
-    },
     resizable: true
   };
 }

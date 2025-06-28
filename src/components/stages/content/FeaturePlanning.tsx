@@ -493,31 +493,23 @@ export const FeaturePlanning: React.FC<FeaturePlanningProps> = ({
   const generateArchitecturePrep = () => {
     if (onSendMessage) {
       // Prepare feature data for the prompt
-      const selectedPacks = formData.selectedFeaturePacks.map(packId => {
-        const pack = featurePacks.find(p => p.id === packId);
-        return pack ? {
-          id: pack.id,
-          name: pack.name,
-          features: pack.features
-        } : null;
-      }).filter(Boolean);
+      const selectedPacks = featurePacks.filter((pack) =>
+        formData.selectedFeaturePacks.includes(pack.id)
+      );
       
-      // Get custom features with their details
-      const customFeatures = formData.customFeatures.map(feature => ({
-        name: feature.name,
-        description: feature.description,
-        priority: feature.priority,
-        subFeatures: feature.subFeatures || []
+      const featurePackDetails = selectedPacks.map(pack => ({
+        name: pack.name,
+        features: pack.features
       }));
       
       // Create a detailed prompt for the AI
       const prompt = `Based on my selected features, please generate a comprehensive architecture blueprint for my application.
 
 Selected Feature Packs:
-${JSON.stringify(selectedPacks, null, 2)}
+${JSON.stringify(featurePackDetails, null, 2)}
 
 Custom Features:
-${JSON.stringify(customFeatures, null, 2)}
+${JSON.stringify(formData.customFeatures, null, 2)}
 
 Please organize the architecture into three layers:
 1. Screens Layer - All UI screens the user will interact with
@@ -540,9 +532,7 @@ For each component, include:
 - Description
 - Subcomponents (if applicable)
 
-Please organize these intelligently based on best practices for React applications. Group related components together and ensure the architecture reflects a production-ready application structure.
-
-Return ONLY the architecture blueprint in a structured format that I can directly use in my application. Do not include explanations or additional text.`;
+Please organize these intelligently based on best practices for React applications. Group related components together and ensure the architecture reflects a production-ready application structure.`;
 
       // Send the prompt to the AI
       onSendMessage(prompt);
