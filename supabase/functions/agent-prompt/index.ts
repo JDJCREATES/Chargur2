@@ -68,7 +68,6 @@ class EdgeLLMClient {
   }
 
   private getApiKey(): string | null {
-    console.log(`🔑 Attempting to get API key for provider: ${this.provider}`)
     const key = this.provider === 'openai' 
       ? Deno.env.get('OPENAI_API_KEY')
       : Deno.env.get('ANTHROPIC_API_KEY')
@@ -109,7 +108,6 @@ class EdgeLLMClient {
       console.log(`🔄 Attempt ${attempt}/${maxRetries}`)
       try {
         const response = await this.makeRequest(systemPrompt, userPrompt, temperature, maxTokens)
-        console.log('✅ Request successful, extracting content...')
         return this.extractContent(response)
       } catch (error) {
         console.error(`❌ Attempt ${attempt} failed:`, error)
@@ -137,7 +135,6 @@ class EdgeLLMClient {
       }
     }
 
-    console.error('❌ All retry attempts failed')
     throw lastError || new Error('All retry attempts failed')
   }
 
@@ -162,7 +159,6 @@ class EdgeLLMClient {
       headers['anthropic-version'] = '2023-06-01'
     }
 
-    console.log('📋 Request headers:', { ...headers, Authorization: '[REDACTED]', 'x-api-key': '[REDACTED]' })
 
     const body = this.provider === 'openai'
       ? {
@@ -199,7 +195,6 @@ class EdgeLLMClient {
       throw new Error(`LLM API error: ${response.status} - ${errorData.error?.message || response.statusText}`)
     }
 
-    console.log('✅ API request successful, parsing JSON...')
     return response.json()
   }
 
@@ -362,12 +357,10 @@ async function processAgentRequest(controller: ReadableStreamDefaultController, 
   const supabaseServiceKey = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')
   
   if (!supabaseUrl || !supabaseServiceKey) {
-    console.error('❌ Missing Supabase configuration for database operations')
     throw new Error('Database configuration missing')
   }
   
   const supabase = createClient(supabaseUrl, supabaseServiceKey)
-  console.log('✅ Supabase client initialized for database operations')
 
   // Get user from JWT token
   const authHeader = req.headers.get('authorization')
@@ -390,7 +383,6 @@ async function processAgentRequest(controller: ReadableStreamDefaultController, 
   // Helper function to safely enqueue data
   const safeEnqueue = (data: any): boolean => {
     if (streamClosed) {
-      console.log('🔌 Stream already closed, skipping enqueue')
       return false
     }
     
@@ -413,13 +405,11 @@ async function processAgentRequest(controller: ReadableStreamDefaultController, 
   // Helper function to safely close stream
   const safeClose = () => {
     if (streamClosed) {
-      console.log('🔌 Stream already closed')
       return
     }
     if (heartbeatInterval !== null) {
       clearInterval(heartbeatInterval)
       heartbeatInterval = null
-      console.log('💓 Heartbeat interval cleared')
     }
     
     try {
@@ -439,8 +429,6 @@ async function processAgentRequest(controller: ReadableStreamDefaultController, 
   // Start heartbeat
   const startHeartbeat = () => {
     if (heartbeatInterval !== null) return
-    
-    console.log('💓 Starting heartbeat to keep connection alive')
     heartbeatInterval = setInterval(() => {
       if (streamClosed) {
         clearInterval(heartbeatInterval!)
@@ -455,7 +443,6 @@ async function processAgentRequest(controller: ReadableStreamDefaultController, 
       }
       
       if (!safeEnqueue(pingData)) {
-        console.log('💓 Heartbeat failed - client disconnected')
         clearInterval(heartbeatInterval!)
         heartbeatInterval = null
       }
@@ -611,7 +598,6 @@ async function processAgentRequest(controller: ReadableStreamDefaultController, 
     console.log('🔄 Suggested primary stage:', suggestedPrimaryStage || 'none')
     
     // STEP 4: Get LLM response
-    console.log('🚀 Calling LLM API...')
     const llmResponse = await llmClient.generateResponse(
       promptData.systemPrompt,
       promptData.userPrompt,
@@ -699,6 +685,8 @@ async function processAgentRequest(controller: ReadableStreamDefaultController, 
         competitorSearchError,
         conversationId
       }
+
+        console.log('📊 AutoFillData being sent:', JSON.stringify(completionData.autoFillData, null, 2));
       
       if (safeEnqueue(completionData)) {
         await saveCompleteResponse(supabase, conversationId!, response, userMessage, userId || null)
