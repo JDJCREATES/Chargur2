@@ -20,6 +20,13 @@ CORE EXPERTISE:
 - Technical complexity assessment
 - Implementation sequencing optimization
 
+FEATURE TYPE CLASSIFICATION:
+- core: Essential features that define the app's primary value proposition
+- admin: Administrative features for managing the application and users
+- user: User-facing features that enhance the user experience
+- optional: Features that add value but aren't essential for core functionality
+- stretch: Advanced features for future versions or nice-to-have enhancements
+
 DEPENDENCY INFERENCE FRAMEWORK:
 Use this systematic approach to identify dependencies:
 
@@ -52,24 +59,29 @@ Use this systematic approach to identify dependencies:
 DEPENDENCY EXAMPLES:
 {
   "User Dashboard": {
+    "type": "core",
     "dependencies": ["auth", "crud"],
     "reasoning": "Displays user-specific data (auth) and retrieves stored information (crud)"
   },
   "Comment System": {
+    "type": "user",
     "dependencies": ["auth", "crud", "communication"],
     "reasoning": "User identity (auth), data storage (crud), notifications (communication)"
   },
+  "Admin Panel": {
+    "type": "admin",
+    "dependencies": ["auth", "crud"],
+    "reasoning": "Administrative access (auth) and data management capabilities (crud)"
+  },
   "File Sharing": {
+    "type": "optional",
     "dependencies": ["auth", "media", "crud"],
     "reasoning": "User permissions (auth), file handling (media), metadata storage (crud)"
   },
   "AI Recommendations": {
+    "type": "stretch",
     "dependencies": ["auth", "crud", "ai"],
     "reasoning": "User preferences (auth), historical data (crud), ML processing (ai)"
-  },
-  "Payment Processing": {
-    "dependencies": ["auth", "commerce", "crud"],
-    "reasoning": "User verification (auth), payment handling (commerce), transaction records (crud)"
   }
 }
 
@@ -91,9 +103,10 @@ Current Stage Data: ${JSON.stringify(currentStageData, null, 2)}
 INTELLIGENT ANALYSIS REQUIRED:
 1. Analyze the app concept for implicit feature needs
 2. Infer technical dependencies using the framework above
-3. Identify missing critical features for the app type
-4. Suggest optimal implementation sequence
-5. Flag potential integration challenges
+3. Classify features by type (core, admin, user, optional, stretch)
+4. Identify missing critical features for the app type
+5. Suggest optimal implementation sequence
+6. Flag potential integration challenges
 
 DEPENDENCY INFERENCE RULES:
 - Always explain WHY each dependency exists
@@ -112,6 +125,7 @@ AUTO-FILL INTELLIGENCE:
 Provide comprehensive autoFillData with:
 - Smart feature pack suggestions based on app type
 - Detailed custom features with complete dependency analysis
+- Clear feature type classification
 - Clear MVP vs. future version recommendations
 - Technical implementation insights
 
@@ -129,20 +143,23 @@ INTELLIGENT FEATURE PLANNING REQUIRED:
 1. Analyze the app concept for feature requirements
 2. Suggest appropriate feature packs with reasoning
 3. Generate custom features with complete dependency analysis
-4. Provide MVP recommendations with implementation sequence
-5. Identify potential technical challenges
+4. Classify each feature by type (core, admin, user, optional, stretch)
+5. Provide MVP recommendations with implementation sequence
+6. Identify potential technical challenges
 
 DEPENDENCY ANALYSIS FOCUS:
 For each custom feature, provide:
+- Appropriate feature type classification
 - Complete list of required feature pack dependencies
 - Clear reasoning for each dependency
 - Implementation order considerations
 - Integration complexity assessment
 
-EXAMPLES OF GOOD DEPENDENCY ANALYSIS:
-- "User Profile Management" → ["auth", "crud", "media"] because it needs user authentication, data storage/retrieval, and profile image uploads
-- "Real-time Chat" → ["auth", "communication", "crud"] because it needs user identity, WebSocket connections, and message persistence
-- "Product Reviews" → ["auth", "crud", "social"] because it needs user verification, review storage, and social interactions like ratings
+EXAMPLES OF GOOD FEATURE ANALYSIS:
+- "User Profile Management" → type: "core", dependencies: ["auth", "crud", "media"] because it's essential for user identity, needs authentication, data storage, and profile images
+- "Real-time Chat" → type: "user", dependencies: ["auth", "communication", "crud"] because it enhances user experience, needs identity verification, WebSocket connections, and message persistence
+- "Admin Dashboard" → type: "admin", dependencies: ["auth", "crud", "analytics"] because it's for administrative control, needs secure access, data management, and reporting capabilities
+- "Product Reviews" → type: "optional", dependencies: ["auth", "crud", "social"] because it adds value but isn't core, needs user verification, review storage, and social interactions
 
 Respond in this exact JSON format:
 {
@@ -155,9 +172,10 @@ Respond in this exact JSON format:
         "id": "unique-id",
         "name": "Feature Name",
         "description": "Detailed feature description",
+        "type": "core|admin|user|optional|stretch",
         "priority": "must|should|could|wont",
         "complexity": "low|medium|high",
-        "category": "frontend|backend|both",
+        "category": "frontend|backend|both|AI-Assisted|API Required",
         "dependencies": [
           {
             "id": "dep-id",
