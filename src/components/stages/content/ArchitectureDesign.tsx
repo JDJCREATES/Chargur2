@@ -287,12 +287,8 @@ ${formData.aiAgentZones.map((zone: string) => `- ${zone}`).join('\n')}
   ];
 
   return (
-    <div className="p-4 space-y-2">
-      <div className="mb-4">
-        <h3 className="text-lg font-semibold text-gray-800 mb-2">Architecture Design</h3>
-        <p className="text-sm text-gray-600">Create a developer-ready project blueprint with technical specifications</p>
-      </div>
-
+    <div className="p-2 space-y-2">
+   
       {/* 5.1 Page & Component Structure */}
       <Accordion>
         <AccordionSummary expandIcon={<ChevronDown size={16} />}>
