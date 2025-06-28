@@ -73,7 +73,15 @@ Respond in this exact JSON format:
         ],
         "priority": "must|should|could|wont",
         "complexity": "low|medium|high",
-        "category": "frontend|backend|both"
+        "category": "frontend|backend|both",
+        "dependencies": [
+          {
+            "id": "dep-1",
+            "from": "feature-id-1",
+            "to": "feature-id-2",
+            "type": "requires"
+          }
+        ]
       }
     ]
   },

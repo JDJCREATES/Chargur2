@@ -3,7 +3,6 @@ import React, { useState } from 'react';
 import { 
   Lightbulb, 
   Package, 
-  ArrowUpDown, 
   GitBranch, 
   Layers, 
   Sparkles,
@@ -28,6 +27,7 @@ import {
 } from 'lucide-react';
 import { Accordion, AccordionSummary, AccordionDetails, Typography } from '@mui/material';
 import { ChevronDown } from 'lucide-react';
+import { Tree } from 'react-arborist';
 import { Stage } from '../../../types';
 
 interface FeaturePlanningProps {
@@ -46,7 +46,12 @@ interface Feature {
   complexity: 'low' | 'medium' | 'high';
   category: 'frontend' | 'backend' | 'both' | 'ai-assisted' | 'api-required';
   subFeatures: string[];
-  dependencies: string[];
+  dependencies: Array<{
+    id: string;
+    from: string;
+    to: string;
+    type: 'requires' | 'enhances' | 'conflicts';
+  }>;
   estimatedEffort: number; // 1-10 scale
 }
 
@@ -69,7 +74,6 @@ export const FeaturePlanning: React.FC<FeaturePlanningProps> = ({
     naturalLanguageFeatures: '',
     selectedFeaturePacks: [] as string[],
     customFeatures: [] as Feature[],
-    mvpMode: false,
     aiEnhancements: [] as string[],
     architecturePrep: {
       screens: [] as string[],
@@ -82,8 +86,6 @@ export const FeaturePlanning: React.FC<FeaturePlanningProps> = ({
     ...defaultFormData,
     ...(initialFormData || {})
   }));
-
-
   const updateFormData = (key: string, value: any) => {
     const updated = { ...formData, [key]: value };
     setFormData(updated);
@@ -204,6 +206,19 @@ export const FeaturePlanning: React.FC<FeaturePlanningProps> = ({
     updateFormData('customFeatures', formData.customFeatures.filter((f: Feature) => f.id !== featureId));
   };
 
+  const addDependency = (fromFeatureId: string, toFeatureId: string, type: 'requires' | 'enhances' | 'conflicts' = 'requires') => {
+    const fromFeature = formData.customFeatures.find(f => f.id === fromFeatureId);
+    if (fromFeature) {
+      const newDependency = {
+        id: `${fromFeatureId}-${toFeatureId}`,
+        from: fromFeatureId,
+        to: toFeatureId,
+        type
+      };
+      updateFeature(fromFeatureId, { dependencies: [...(fromFeature.dependencies || []), newDependency] });
+    }
+  };
+
   const generateAIFeatureBreakdown = (featureName: string) => {
     // Simulate AI feature breakdown
     const commonBreakdowns: { [key: string]: string[] } = {
@@ -303,6 +318,64 @@ export const FeaturePlanning: React.FC<FeaturePlanningProps> = ({
     updateFormData('aiEnhancements', suggestions.slice(0, 4));
   };
 
+  // Prepare data for react-arborist
+  const prepareTreeData = () => {
+    const treeData: any[] = [];
+    
+    // Add feature packs
+    formData.selectedFeaturePacks.forEach((pack, index) => {
+      const packName = featurePacks.find(p => p.id === pack)?.name || pack;
+      const node = {
+        id: `pack-${pack}`,
+        name: packName,
+        isFeaturePack: true,
+        packId: pack,
+        children: []
+      };
+      
+      // Add default sub-features for feature packs
+      const packFeatures = featurePacks.find(p => p.id === pack)?.features || [];
+      packFeatures.forEach((feature, featureIndex) => {
+        node.children.push({
+          id: `pack-${pack}-feature-${featureIndex}`,
+          name: feature,
+          isSubFeature: true,
+          parentId: `pack-${pack}`
+        });
+      });
+      
+      treeData.push(node);
+    });
+    
+    // Add custom features
+    formData.customFeatures.forEach((feature) => {
+      const node = {
+        id: feature.id,
+        name: feature.name,
+        isCustomFeature: true,
+        priority: feature.priority,
+        complexity: feature.complexity,
+        children: []
+      };
+      
+      // Add sub-features
+      if (feature.subFeatures && feature.subFeatures.length > 0) {
+        feature.subFeatures.forEach((subFeature, subIndex) => {
+          node.children.push({
+            id: `${feature.id}-sub-${subIndex}`,
+            name: subFeature,
+            isSubFeature: true,
+            parentId: feature.id
+          });
+        });
+      }
+      
+      treeData.push(node);
+    });
+    
+    return treeData;
+  };
+
   const generateArchitecturePrep = () => {
     const selectedPacks = featurePacks.filter(pack => formData.selectedFeaturePacks.includes(pack.id));
     const allFeatures = [...selectedPacks.flatMap(pack => pack.features), ...formData.customFeatures.map((f: Feature) => f.name)];
@@ -354,7 +427,7 @@ ${selectedPacks.map(pack => `- ${pack.name}: ${pack.features.length} features`).
 
 **Custom Features (${formData.customFeatures.length}):**
 ${formData.customFeatures.map((f: Feature) => `- ${f.name} (${f.priority}, ${f.complexity} complexity)`).join('\n')}
-
+${formData.customFeatures.flatMap(f => f.subFeatures?.map(sub => `  - ${sub}`) || []).join('\n')}
 **Total Features:** ${totalFeatures}
 **MVP Features:** ${mustHaveFeatures}
 **AI Enhancements:** ${formData.aiEnhancements.length}
@@ -753,54 +826,6 @@ ${formData.customFeatures.map((f: Feature) => `- ${f.name} (${f.priority}, ${f.c
         </AccordionDetails>
       </Accordion>
 
-      {/* 2.3 Feature Prioritization */}
-      <Accordion>
-        <AccordionSummary expandIcon={<ChevronDown size={16} />}>
-          <div className="flex items-center gap-2">
-            <ArrowUpDown className="w-4 h-4 text-green-600" />
-            <Typography className="font-medium text-sm">Feature Prioritization (MoSCoW)</Typography>
-          </div>
-        </AccordionSummary>
-        <AccordionDetails>
-          <div className="space-y-4">
-            <div className="flex items-center justify-between">
-              <p className="text-sm text-gray-600">Drag features into priority buckets</p>
-              <label className="flex items-center gap-2 text-sm">
-                <input
-                  type="checkbox"
-                  checked={formData.mvpMode}
-                  onChange={(e) => updateFormData('mvpMode', e.target.checked)}
-                  className="w-4 h-4 text-green-600 rounded focus:ring-green-500"
-                />
-                MVP Mode (Show only "Must Have")
-              </label>
-            </div>
-
-            <div className="grid grid-cols-2 gap-3">
-              {priorityBuckets.map((bucket) => (
-                <div key={bucket.id} className={`bg-${bucket.color}-50 border-2 border-dashed border-${bucket.color}-200 rounded-lg p-3 min-h-32`}>
-                  <div className="flex items-center gap-2 mb-2">
-                    <div className={`w-3 h-3 rounded-full bg-${bucket.color}-500`}></div>
-                    <h4 className={`font-medium text-sm text-${bucket.color}-800`}>{bucket.label}</h4>
-                  </div>
-                  <p className={`text-xs text-${bucket.color}-600 mb-3`}>{bucket.description}</p>
-                  
-                  <div className="space-y-1">
-                    {formData.customFeatures
-                      .filter((f: Feature) => f.priority === bucket.id)
-                      .map((feature: Feature) => (
-                        <div key={feature.id} className={`text-xs p-2 bg-white rounded border border-${bucket.color}-200 text-${bucket.color}-700`}>
-                          {feature.name}
-                        </div>
-                      ))}
-                  </div>
-                </div>
-              ))}
-            </div>
-          </div>
-        </AccordionDetails>
-      </Accordion>
-
       {/* 2.4 Dependency Mapping */}
       <Accordion>
         <AccordionSummary expandIcon={<ChevronDown size={16} />}>
@@ -811,34 +836,73 @@ ${formData.customFeatures.map((f: Feature) => `- ${f.name} (${f.priority}, ${f.c
         </AccordionSummary>
         <AccordionDetails>
           <div className="space-y-3">
-            <p className="text-sm text-gray-600">Visual links between features that depend on each other</p>
+            <p className="text-sm text-gray-600">Hierarchical view of features and their sub-components</p>
             
-            <div className="bg-purple-50 rounded-lg p-4">
-              <h4 className="font-medium text-sm text-purple-800 mb-3">Common Dependencies</h4>
-              <div className="space-y-2 text-xs">
-                <div className="flex items-center gap-2">
-                  <ArrowUpDown className="w-3 h-3 text-purple-600" />
-                  <span className="text-purple-700">Notifications → User Authentication</span>
-                </div>
-                <div className="flex items-center gap-2">
-                  <ArrowUpDown className="w-3 h-3 text-purple-600" />
-                  <span className="text-purple-700">Comments → User Profiles</span>
-                </div>
-                <div className="flex items-center gap-2">
-                  <ArrowUpDown className="w-3 h-3 text-purple-600" />
-                  <span className="text-purple-700">File Upload → Storage Management</span>
-                </div>
-                <div className="flex items-center gap-2">
-                  <ArrowUpDown className="w-3 h-3 text-purple-600" />
-                  <span className="text-purple-700">Real-time Chat → WebSocket Connection</span>
-                </div>
-              </div>
+            {/* Feature Tree */}
+            <div className="bg-white border border-purple-200 rounded-lg p-2" style={{ height: '300px' }}>
+              <Tree
+                data={prepareTreeData()}
+                width="100%"
+                height={280}
+                indent={24}
+                rowHeight={28}
+                overscanCount={5}
+                paddingTop={10}
+                paddingBottom={10}
+                className="feature-dependency-tree"
+              >
+                {({ node, style, dragHandle, tree }) => {
+                  // Determine node styling based on type
+                  let nodeStyle = "flex items-center gap-2 px-2 py-1 rounded-md";
+                  let iconComponent = null;
+                  
+                  if (node.data.isFeaturePack) {
+                    nodeStyle += " bg-blue-50 text-blue-700 font-medium";
+                    iconComponent = <Package className="w-3 h-3 text-blue-600" />;
+                  } else if (node.data.isCustomFeature) {
+                    nodeStyle += " bg-purple-50 text-purple-700 font-medium";
+                    iconComponent = <Box className="w-3 h-3 text-purple-600" />;
+                    
+                    // Add priority and complexity indicators for custom features
+                    if (node.data.priority) {
+                      const priorityColors = {
+                        must: "bg-red-100 text-red-700",
+                        should: "bg-orange-100 text-orange-700",
+                        could: "bg-yellow-100 text-yellow-700",
+                        wont: "bg-gray-100 text-gray-700"
+                      };
+                      const priorityColor = priorityColors[node.data.priority as keyof typeof priorityColors] || "bg-gray-100 text-gray-700";
+                      iconComponent = <div className={`w-3 h-3 rounded-full ${priorityColor.replace("text-", "bg-").replace("100", "600")}`} />;
+                    }
+                  } else if (node.data.isSubFeature) {
+                    nodeStyle += " text-gray-700 pl-2";
+                    iconComponent = <div className="w-2 h-2 rounded-full bg-gray-400" />;
+                  }
+                  
+                  return (
+                    <div className={nodeStyle} style={style} ref={dragHandle}>
+                      {node.isOpen !== undefined && node.children.length > 0 ? (
+                        <button
+                          onClick={() => tree.toggle(node.id)}
+                          className="w-4 h-4 flex items-center justify-center"
+                        >
+                          {node.isOpen ? <ChevronDown className="w-3 h-3" /> : <ChevronDown className="w-3 h-3 transform -rotate-90" />}
+                        </button>
+                      ) : (
+                        <div className="w-4 h-4"></div>
+                      )}
+                      {iconComponent}
+                      <span className="text-xs truncate">{node.data.name}</span>
+                    </div>
+                  );
+                }}
+              </Tree>
             </div>
 
-            <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-3">
+            <div className="bg-purple-50 border border-purple-200 rounded-lg p-3">
               <div className="flex items-center gap-2 mb-2">
-                <Target className="w-4 h-4 text-yellow-600" />
-                <h4 className="font-medium text-sm text-yellow-800">Dependency Warnings</h4>
+                <GitBranch className="w-4 h-4 text-purple-600" />
+                <h4 className="font-medium text-sm text-purple-800">Feature Dependencies</h4>
               </div>
               <ul className="text-xs text-yellow-700 space-y-1">
                 <li>• Missing User Authentication for Social Features</li>
@@ -846,6 +910,19 @@ ${formData.customFeatures.map((f: Feature) => `- ${f.name} (${f.priority}, ${f.c
                 <li>• Real-time features need WebSocket setup</li>
               </ul>
             </div>
+            
+            {/* CSS for the Tree component */}
+            <style jsx>{`
+              .feature-dependency-tree {
+                font-family: inherit;
+                color: inherit;
+              }
+              .feature-dependency-tree:focus {
+                outline: none;
+              }
+              /* Add more custom styling as needed */
+            `}
+            </style>
           </div>
         </AccordionDetails>
       </Accordion>
