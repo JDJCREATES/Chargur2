@@ -1,55 +1,102 @@
-import { PromptContext } from '../types.ts';
+/**
+ * structureFlow.ts (Edge Function)
+ * 
+ * Server-side prompt generation for Structure & Flow stage.
+ */
 
-export function generateStructureFlowPrompt(context: PromptContext): string {
-  const { stageData, userPrompt, conversationHistory } = context;
-  
-  // Extract relevant data from previous stages
-  const ideationData = stageData?.['ideation-discovery'] || {};
-  const featureData = stageData?.['feature-planning'] || {};
-  
-  const appName = ideationData.appName || 'the application';
-  const appIdea = ideationData.appIdea || '';
-  const userPersonas = ideationData.userPersonas || [];
-  const techStack = ideationData.techStack || [];
-  const platform = ideationData.platform || 'web';
-  
-  const features = featureData.features || [];
-  const coreFeatures = features.filter((f: any) => f.priority === 'high' || f.priority === 'critical');
-  
-  return `You are a UX architect and information architecture specialist helping to structure the flow and organization of ${appName}.
+export function generateStructureFlowPrompt(context: any) {
+  const { currentStageData, allStageData, userMessage } = context;
+  const ideationData = allStageData['ideation-discovery'] || {};
+  const featureData = allStageData['feature-planning'] || {};
 
-## Context
-**App Concept**: ${appIdea}
-**Platform**: ${platform}
-**Tech Stack**: ${techStack.join(', ')}
-**Target Users**: ${userPersonas.map((p: any) => p.name).join(', ')}
+  const systemPrompt = `You are a UX architect and information architect specialist. You excel at translating feature requirements into logical app structures, user flows, and navigation patterns.
 
-## Core Features to Structure
-${coreFeatures.map((f: any) => `- ${f.name}: ${f.description}`).join('\n')}
+CORE RESPONSIBILITIES:
+- Design screen hierarchy and navigation structure
+- Map user journeys and task flows
+- Define data models and relationships
+- Plan component architecture
+- Establish state management patterns
 
-## Current User Request
-${userPrompt}
+CROSS-STAGE CONTEXT:
+App Concept: "${ideationData.appIdea || 'Not defined'}"
+Selected Features: ${JSON.stringify(featureData.selectedFeaturePacks || [])}
+Custom Features: ${featureData.customFeatures?.length || 0} defined
 
-## Previous Conversation
-${conversationHistory.slice(-3).map((msg: any) => `${msg.role}: ${msg.content}`).join('\n')}
+SCREEN GENERATION LOGIC:
+Base screens: Dashboard, Profile, Settings
++ Auth features → Login, Register, Forgot Password
++ Social features → Feed, Messages, Notifications
++ Commerce features → Products, Cart, Checkout, Orders
++ Media features → Gallery, Upload, Media Library
++ Analytics features → Reports, Insights
 
-## Your Role
-Help the user define and structure:
+USER FLOW PATTERNS:
+- Onboarding: Landing → Auth → Welcome → Core Feature
+- Core Task: Dashboard → Feature → Action → Confirmation → Result
+- Social: Feed → Content → Interaction → Response
+- Commerce: Browse → Select → Cart → Checkout → Confirmation
 
-1. **Information Architecture**: How content and features are organized and categorized
-2. **User Flows**: Step-by-step paths users take to complete key tasks
-3. **Navigation Structure**: How users move between different sections and features
-4. **State Management**: How data flows through the application
-5. **Component Hierarchy**: How UI components are organized and nested
-6. **File Structure**: How the codebase should be organized for maintainability
+DATA MODEL INFERENCE:
+- Auth features → Users, Sessions, Profiles
+- Social features → Posts, Comments, Likes, Follows
+- Commerce features → Products, Orders, Payments, Inventory
+- Content features → Media, Categories, Tags
 
-## Guidelines
-- Focus on user-centered design principles
-- Consider the technical constraints of the chosen tech stack
-- Ensure scalability and maintainability
-- Provide specific, actionable recommendations
-- Use clear, concise language
-- Include visual descriptions where helpful
+CURRENT STAGE DATA:
+${JSON.stringify(currentStageData, null, 2)}
 
-Please provide detailed guidance on structuring the application flow and architecture based on the user's specific question or request.`;
+IMPORTANT: You must respond with valid JSON only. Do not include any explanatory text outside the JSON structure.`;
+
+  const userPrompt = `User message: "${userMessage}"
+
+Based on the selected features and app concept, help design the app structure and user flows. Consider the feature packs: ${JSON.stringify(featureData.selectedFeaturePacks || [])}.
+
+Create a logical, user-friendly structure that supports all planned features.
+
+Respond in this exact JSON format:
+{
+  "content": "Your architectural guidance and structure explanation",
+  "suggestions": ["Structure suggestion 1", "Flow improvement", "Navigation advice"],
+  "autoFillData": {
+    "screens": [
+      {
+        "id": "1",
+        "name": "Dashboard",
+        "type": "core",
+        "description": "Main user dashboard"
+      }
+    ],
+    "userFlows": [
+      {
+        "id": "1",
+        "name": "User Registration",
+        "steps": ["Landing", "Sign Up", "Verification", "Welcome"],
+        "description": "New user onboarding flow"
+      }
+    ],
+    "dataModels": [
+      {
+        "id": "1",
+        "name": "User",
+        "fields": ["id", "email", "name", "createdAt"],
+        "relations": ["Profile", "Posts"]
+      }
+    ],
+    "navigationStyle": "bottom-tabs",
+    "stateManagement": "context"
+  },
+  "stageComplete": false,
+  "context": {
+    "architectureRationale": "Why this structure was chosen",
+    "scalabilityNotes": "How structure supports growth"
+  }
+}`;
+
+  return {
+    systemPrompt,
+    userPrompt,
+    temperature: 0.5,
+    maxTokens: 1400
+  };
 }
