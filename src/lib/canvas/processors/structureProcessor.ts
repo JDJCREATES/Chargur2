@@ -6,7 +6,7 @@
  * user flows, and navigation patterns.
  */
 
-import { CanvasNodeData } from '../../../components/canvas/CanvasNode';
+import { Node } from 'reactflow';
 import { ProcessorState } from '../../../components/canvas/core/CanvasDataProcessor';
 import * as nodeFactory from '../nodeFactory';
 
@@ -14,10 +14,10 @@ import * as nodeFactory from '../nodeFactory';
  * Process structure and flow stage data
  */
 export function processStructureData(
-  currentNodes: CanvasNodeData[],
+  currentNodes: Node[],
   stageSpecificData: any,
   lastProcessedData: Record<string, any>
-): CanvasNodeData[] {
+): Node[] {
   const structureData = stageSpecificData;
   const lastStructureData = lastProcessedData['structure-flow'] || {};
   let nodes = [...currentNodes];

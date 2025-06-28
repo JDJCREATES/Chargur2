@@ -30,11 +30,11 @@ import {
   GiCircuitry
 } from 'react-icons/gi';
 import { Accordion, AccordionSummary, AccordionDetails, Typography } from '@mui/material';
-import { CanvasNodeData } from './CanvasNode';
+import { Node, Edge } from 'reactflow';
 import { Connection } from '../../types';
 
 interface CanvasToolbarProps {
-  onAddNode: (type: CanvasNodeData['type']) => void;
+  onAddNode: (type: string) => void;
   onZoomIn: () => void;
   onZoomOut: () => void;
   onResetView: () => void;
@@ -43,8 +43,8 @@ interface CanvasToolbarProps {
   onToggleGrid: () => void;
   onScreenshot: () => void;
   onAutoLayout: () => void;
-  nodes?: CanvasNodeData[];
-  connections?: Connection[];
+  nodes?: Node[];
+  connections?: Edge[];
   onClearCanvas?: () => void;
   showGrid: boolean;
   scale: number;

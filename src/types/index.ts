@@ -1,4 +1,4 @@
-import { CanvasNodeData } from '../components/canvas/CanvasNode';
+import { Node, Edge } from 'reactflow';
 
 
 export interface Stage {
@@ -30,8 +30,8 @@ export interface Project {
   user_id: string;
   current_stage_id: string;
   stage_data: StageData;
-  canvas_nodes: CanvasNodeData[];
-  canvas_connections: Connection[];
+  canvas_nodes: Node[];
+  canvas_connections: Edge[];
   created_at: string;
   updated_at: string;
 }

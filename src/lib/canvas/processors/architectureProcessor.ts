@@ -6,7 +6,7 @@
  * API endpoints, and system architecture.
  */
 
-import { CanvasNodeData } from '../../../components/canvas/CanvasNode';
+import { Node } from 'reactflow';
 import { ProcessorState } from '../../../components/canvas/core/CanvasDataProcessor';
 import * as nodeFactory from '../nodeFactory';
 
@@ -14,10 +14,10 @@ import * as nodeFactory from '../nodeFactory';
  * Process architecture design stage data
  */
 export function processArchitectureData(
-  currentNodes: CanvasNodeData[],
+  currentNodes: Node[],
   stageSpecificData: any,
   lastProcessedData: Record<string, any>
-): CanvasNodeData[] {
+): Node[] {
   const architectureData = stageSpecificData;
   const lastArchitectureData = lastProcessedData['architecture-design'] || {};
   let nodes = [...currentNodes];

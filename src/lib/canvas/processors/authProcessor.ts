@@ -6,7 +6,7 @@
  * user roles, and security features.
  */
 
-import { CanvasNodeData } from '../../../components/canvas/CanvasNode';
+import { Node } from 'reactflow';
 import { ProcessorState } from '../../../components/canvas/core/CanvasDataProcessor';
 import * as nodeFactory from '../nodeFactory';
 
@@ -14,10 +14,10 @@ import * as nodeFactory from '../nodeFactory';
  * Process user authentication and authorization stage data
  */
 export function processAuthData(
-  currentNodes: CanvasNodeData[],
+  currentNodes: Node[],
   stageSpecificData: any,
   lastProcessedData: Record<string, any>
-): CanvasNodeData[] {
+): Node[] {
   const authData = stageSpecificData || {};
   const lastAuthData = lastProcessedData['user-auth-flow'] || {};
   let nodes = [...currentNodes];

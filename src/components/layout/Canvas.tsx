@@ -9,10 +9,10 @@ import React, { useState } from 'react';
 import { motion } from 'framer-motion';
 import { Stage, StageData, Connection } from '../../types';
 import { SpatialCanvas } from '../canvas/SpatialCanvas';
+import { Node, Edge } from 'reactflow';
 import { Logo } from './Logo';
 import { useAppStore } from '../../store/useAppStore';
 import { UserChatOverlay } from '../chat/UserChatOverlay';
-import { CanvasNodeData } from '../canvas/CanvasNode';
 
 interface AgentChatProps {
   sendMessage: (message: string) => void;
@@ -30,10 +30,10 @@ interface AgentChatProps {
 interface CanvasProps {
   currentStage?: Stage;
   stageData: StageData;
-  canvasNodes?: CanvasNodeData[];
-  canvasConnections?: Connection[];
-  onUpdateCanvasNodes?: (nodes: CanvasNodeData[]) => void;
-  onUpdateCanvasConnections?: (connections: Connection[]) => void;
+  canvasNodes?: Node[];
+  canvasConnections?: Edge[];
+  onUpdateCanvasNodes?: (nodes: Node[]) => void;
+  onUpdateCanvasConnections?: (connections: Edge[]) => void;
   onOpenSidebar?: () => void;
   agentChat: AgentChatProps;
 }

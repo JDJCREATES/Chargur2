@@ -6,7 +6,7 @@
  * feature packs, and custom features.
  */
 
-import { CanvasNodeData } from '../../../components/canvas/CanvasNode';
+import { Node } from 'reactflow';
 import { ProcessorState } from '../../../components/canvas/core/CanvasDataProcessor';
 import * as nodeFactory from '../nodeFactory';
 import { v4 as uuidv4 } from 'uuid';
@@ -19,10 +19,10 @@ import { getSmartNodePosition } from '../../../lib/canvas/nodePlacementUtils';
  * Process feature planning stage data
  */
 export function processFeatureData(
-  currentNodes: CanvasNodeData[],
+  currentNodes: Node[],
   stageSpecificData: any,
   lastProcessedData: Record<string, any>
-): CanvasNodeData[] {
+): Node[] {
   const featureData = stageSpecificData;
   const lastFeatureData = lastProcessedData['feature-planning'] || {};
   let nodes = [...currentNodes];

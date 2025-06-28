@@ -6,7 +6,7 @@
  * nodes are placed in a visually appealing and logical manner.
  */
 
-import { CanvasNodeData } from '../../components/canvas/CanvasNode';
+import { Node } from 'reactflow';
 
 // Define a position type for clarity
 export interface Position {
@@ -95,12 +95,12 @@ export function checkCollision(rect1: Rectangle, rect2: Rectangle): boolean {
 /**
  * Convert a node to a rectangle for collision detection
  */
-function nodeToRectangle(node: CanvasNodeData): Rectangle {
+function nodeToRectangle(node: Node): Rectangle {
   return {
     x: node.position.x,
     y: node.position.y,
-    width: node.size.width,
-    height: node.size.height
+    width: node.data.size?.width || 180,
+    height: node.data.size?.height || 100
   };
 }
 
@@ -130,7 +130,7 @@ function addRandomOffset(position: Position, maxOffset: number = 20): Position {
  * Get a position near other nodes of the same type
  */
 function getPositionNearSimilarNodes(
-  existingNodes: CanvasNodeData[],
+  existingNodes: Node[],
   nodeType: string,
   size: Size
 ): Position | null {
@@ -195,7 +195,7 @@ function getCategoryBasedPosition(nodeType: string, stageId?: string): Position 
 function findNonCollidingPosition(
   startPosition: Position,
   size: Size,
-  existingNodes: CanvasNodeData[],
+  existingNodes: Node[],
   maxAttempts: number = 50
 ): Position {
   let position = { ...startPosition };
@@ -274,7 +274,7 @@ function findNonCollidingPosition(
  * Get a smart position for a new node based on its type, existing nodes, and other factors
  */
 export function getSmartNodePosition(
-  existingNodes: CanvasNodeData[],
+  existingNodes: Node[],
   nodeSize: Size,
   nodeType: string,
   preferredPosition?: Position,
@@ -329,7 +329,7 @@ export function getSmartNodePosition(
  * Get a position for a group of related nodes
  */
 export function getGroupPosition(
-  existingNodes: CanvasNodeData[],
+  existingNodes: Node[],
   nodeCount: number,
   nodeType: string,
   stageId?: string
@@ -348,7 +348,7 @@ export function getGroupPosition(
  * Calculate positions for a collection of nodes that should be arranged together
  */
 export function arrangeNodesInGroup(
-  existingNodes: CanvasNodeData[],
+  existingNodes: Node[],
   nodesToArrange: { id: string; size: Size }[],
   nodeType: string,
   stageId?: string,

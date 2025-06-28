@@ -1,7 +1,7 @@
 import { create } from 'zustand';
-import { Stage, StageData, Project, Connection } from '../types';
+import { Stage, StageData, Project } from '../types';
 import { supabase } from '../lib/auth/supabase';
-import { CanvasNodeData } from '../components/canvas/CanvasNode';
+import { Node, Edge } from 'reactflow';
 import { debounce } from '../utils/debounce';
 
 const initialStages: Stage[] = [
@@ -78,8 +78,8 @@ interface AppState {
   projectId: string | null;
   currentProject: Project | null;
   projects: Project[];
-  canvasNodes: CanvasNodeData[];
-  canvasConnections: Connection[];
+  canvasNodes: Node[];
+  canvasConnections: Edge[];
   isLoading: boolean;
   error: string | null;
   updateProject: (projectId: string, updates: { name?: string; description?: string }) => Promise<void>;
@@ -97,8 +97,8 @@ interface AppState {
   goToStage: (stageId: string) => void;
   completeStage: (stageId: string) => void;
   updateStageData: (stageId: string, data: any) => void;
-  updateCanvasNodes: (nodes: CanvasNodeData[]) => void;
-  updateCanvasConnections: (connections: Connection[]) => void;
+  updateCanvasNodes: (nodes: Node[]) => void;
+  updateCanvasConnections: (connections: Edge[]) => void;
   clearCanvasData: () => void;
   resetView: () => void;
   setError: (error: string | null) => void;

@@ -6,7 +6,7 @@
  * branding, and layout components.
  */
 
-import { CanvasNodeData } from '../../../components/canvas/CanvasNode';
+import { Node } from 'reactflow';
 import { ProcessorState } from '../../../components/canvas/core/CanvasDataProcessor';
 import * as nodeFactory from '../nodeFactory';
 
@@ -14,10 +14,10 @@ import * as nodeFactory from '../nodeFactory';
  * Process interface and interaction stage data
  */
 export function processInterfaceData(
-  currentNodes: CanvasNodeData[],
+  currentNodes: Node[],
   stageSpecificData: any,
   lastProcessedData: Record<string, any>
-): CanvasNodeData[] {
+): Node[] {
   const interfaceData = stageSpecificData || {};
   const lastInterfaceData = lastProcessedData['interface-interaction'] || {};
   let nodes = [...currentNodes];

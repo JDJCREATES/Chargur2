@@ -7,7 +7,7 @@
  */
 
 import { v4 as uuidv4 } from 'uuid';
-import { CanvasNodeData } from '../../components/canvas/CanvasNode';
+import { Node, Edge } from 'reactflow';
 import { STAGE1_NODE_TYPES, STAGE1_NODE_DEFAULTS } from '../../components/canvas/customnodetypes/stage1nodes';
 import { STAGE2_NODE_TYPES, STAGE2_NODE_DEFAULTS } from '../../components/canvas/customnodetypes/stage2nodes'; 
 import { getSmartNodePosition } from './nodePlacementUtils';
@@ -18,83 +18,92 @@ let nodeIdCounter = 1;
 /**
  * Create an app name node
  */
-export function createAppNameNode(appName: string, existingNodes: CanvasNodeData[] = []): CanvasNodeData {
+export function createAppNameNode(appName: string, existingNodes: Node[] = []): Node {
   const defaults = STAGE1_NODE_DEFAULTS.appName;
+  const position = getSmartNodePosition(
+    existingNodes,
+    defaults.size,
+    'appName',
+    defaults.position
+  );
   
   return {
     id: STAGE1_NODE_TYPES.APP_NAME,
     type: 'appName',
-    title: 'App Name',
-    content: '',
-    position: getSmartNodePosition(
-      existingNodes,
-      defaults.size,
-      'appName',
-      defaults.position
-    ),
-    size: defaults.size,
-    color: 'appName',
-    connections: [],
-    metadata: { stage: 'ideation-discovery', nodeType: 'appName' },
-    value: appName,
-    editable: true,
-    nameHistory: [],
-    resizable: true
+    position,
+    data: {
+      title: 'App Name',
+      content: '',
+      size: defaults.size,
+      color: 'appName',
+      connections: [],
+      metadata: { stage: 'ideation-discovery', nodeType: 'appName' },
+      value: appName,
+      editable: true,
+      nameHistory: [],
+      resizable: true
+    }
   };
 }
 
 /**
  * Create a tagline node
  */
-export function createTaglineNode(tagline: string, existingNodes: CanvasNodeData[] = []): CanvasNodeData {
+export function createTaglineNode(tagline: string, existingNodes: Node[] = []): Node {
   const defaults = STAGE1_NODE_DEFAULTS.tagline;
+  const position = getSmartNodePosition(
+    existingNodes,
+    defaults.size,
+    'tagline',
+    defaults.position
+  );
   
   return {
     id: STAGE1_NODE_TYPES.TAGLINE,
     type: 'tagline',
-    title: 'Tagline',
-    content: '',
-    position: getSmartNodePosition(
-      existingNodes,
-      defaults.size,
-      'tagline',
-      defaults.position
-    ),
-    size: defaults.size,
-    color: 'tagline',
-    connections: [],
-    metadata: { stage: 'ideation-discovery', nodeType: 'tagline' },
-    value: tagline,
-    editable: true,
-    resizable: true
+    position,
+    data: {
+      title: 'Tagline',
+      content: '',
+      size: defaults.size,
+      color: 'tagline',
+      connections: [],
+      metadata: { stage: 'ideation-discovery', nodeType: 'tagline' },
+      value: tagline,
+      editable: true,
+      resizable: true
+    }
   };
 }
 
 /**
  * Create a core problem node
  */
-export function createCoreProblemNode(problemStatement: string, existingNodes: CanvasNodeData[] = []): CanvasNodeData {
+export function createCoreProblemNode(problemStatement: string, existingNodes: Node[] = []): Node {
   const defaults = STAGE1_NODE_DEFAULTS.coreProblem;
+  const position = getSmartNodePosition(
+    existingNodes,
+    defaults.size,
+    'coreProblem',
+    defaults.position
+  );
   
   return {
     id: STAGE1_NODE_TYPES.CORE_PROBLEM,
     type: 'coreProblem',
-    title: 'Core Problem',
-    content: '',
-    position: getSmartNodePosition(
-      existingNodes,
-      defaults.size,
-      'coreProblem',
-      defaults.position
-    ),
-    size: defaults.size,
-    color: 'coreProblem',
-    connections: [],
-    metadata: { stage: 'ideation-discovery', nodeType: 'coreProblem' },
-    value: problemStatement,
-    editable: true,
-    keywords: [],
-    resizable: true
+    position,
+    data: {
+      title: 'Core Problem',
+      content: '',
+      size: defaults.size,
+      color: 'coreProblem',
+      connections: [],
+      metadata: { stage: 'ideation-discovery', nodeType: 'coreProblem' },
+      value: problemStatement,
+      editable: true,
+      keywords: [],
+      resizable: true
+    }
   };
 }
 
@@ -104,57 +113,63 @@ export function createCoreProblemNode(problemStatement: string, existingNodes: C
 export function createMissionNode(
   appIdea: string, 
   missionStatement?: string, 
-  existingNodes: CanvasNodeData[] = []
-): CanvasNodeData {
+  existingNodes: Node[] = []
+): Node {
   const defaults = STAGE1_NODE_DEFAULTS.mission;
+  const position = getSmartNodePosition(
+    existingNodes,
+    defaults.size,
+    'mission',
+    defaults.position
+  );
   
   return {
     id: STAGE1_NODE_TYPES.MISSION,
     type: 'mission',
-    title: 'Mission',
-    content: '',
-    position: getSmartNodePosition(
-      existingNodes,
-      defaults.size,
-      'mission',
-      defaults.position
-    ),
-    size: defaults.size,
-    color: 'mission',
-    connections: [],
-    metadata: { stage: 'ideation-discovery', nodeType: 'mission' },
-    value: appIdea,
-    missionStatement: missionStatement || '',
-    editable: true,
-    resizable: true
+    position,
+    data: {
+      title: 'Mission',
+      content: '',
+      size: defaults.size,
+      color: 'mission',
+      connections: [],
+      metadata: { stage: 'ideation-discovery', nodeType: 'mission' },
+      value: appIdea,
+      missionStatement: missionStatement || '',
+      editable: true,
+      resizable: true
+    }
   };
 }
 
 /**
  * Create a value proposition node
  */
-export function createValuePropNode(valueProposition: string, existingNodes: CanvasNodeData[] = []): CanvasNodeData {
+export function createValuePropNode(valueProposition: string, existingNodes: Node[] = []): Node {
   const defaults = STAGE1_NODE_DEFAULTS.valueProp;
+  const position = getSmartNodePosition(
+    existingNodes,
+    defaults.size,
+    'valueProp',
+    defaults.position
+  );
   
   return {
     id: STAGE1_NODE_TYPES.VALUE_PROPOSITION,
     type: 'valueProp',
-    title: 'Value Proposition',
-    content: '',
-    position: getSmartNodePosition(
-      existingNodes,
-      defaults.size,
-      'valueProp',
-      defaults.position
-    ),
-    size: defaults.size,
-    color: 'valueProp',
-    connections: [],
-    metadata: { stage: 'ideation-discovery', nodeType: 'valueProp' },
-    value: valueProposition,
-    editable: true,
-    bulletPoints: [],
-    resizable: true
+    position,
+    data: {
+      title: 'Value Proposition',
+      content: '',
+      size: defaults.size,
+      color: 'valueProp',
+      connections: [],
+      metadata: { stage: 'ideation-discovery', nodeType: 'valueProp' },
+      value: valueProposition,
+      editable: true,
+      bulletPoints: [],
+      resizable: true
+    }
   };
 }
 
@@ -164,8 +179,8 @@ export function createValuePropNode(valueProposition: string, existingNodes: Can
 export function createUserPersonaNode(
   persona: any, 
   index: number = 0, 
-  existingNodes: CanvasNodeData[] = []
-): CanvasNodeData {
+  existingNodes: Node[] = []
+): Node {
   const defaults = STAGE1_NODE_DEFAULTS.userPersona;
   
   // Calculate position with horizontal offset based on index
@@ -173,28 +188,31 @@ export function createUserPersonaNode(
     x: defaults.position.x + (index * 180),
     y: defaults.position.y
   };
+  const finalPosition = getSmartNodePosition(
+    existingNodes,
+    defaults.size,
+    'userPersona',
+    position
+  );
   
   return {
     id: uuidv4(),
     type: 'userPersona',
-    title: 'User Persona',
-    content: '',
-    position: getSmartNodePosition(
-      existingNodes,
-      defaults.size,
-      'userPersona',
-      position
-    ),
-    size: defaults.size,
-    color: 'userPersona',
-    connections: [],
-    metadata: { stage: 'ideation-discovery', nodeType: 'userPersona' },
-    name: persona.name || 'User Persona',
-    role: persona.role || 'Role',
-    painPoint: persona.painPoint || 'Pain point',
-    emoji: persona.emoji || '👤',
-    editable: true,
-    resizable: true
+    position: finalPosition,
+    data: {
+      title: 'User Persona',
+      content: '',
+      size: defaults.size,
+      color: 'userPersona',
+      connections: [],
+      metadata: { stage: 'ideation-discovery', nodeType: 'userPersona' },
+      name: persona.name || 'User Persona',
+      role: persona.role || 'Role',
+      painPoint: persona.painPoint || 'Pain point',
+      emoji: persona.emoji || '👤',
+      editable: true,
+      resizable: true
+    }
   };
 }
 
@@ -203,31 +221,34 @@ export function createUserPersonaNode(
  */
 export function createLegacyUserPersonaNode(
   targetUsers: string, 
-  existingNodes: CanvasNodeData[] = []
-): CanvasNodeData {
+  existingNodes: Node[] = []
+): Node {
   const defaults = STAGE1_NODE_DEFAULTS.userPersona;
+  const position = getSmartNodePosition(
+    existingNodes,
+    defaults.size,
+    'userPersona',
+    defaults.position
+  );
   
   return {
     id: uuidv4(),
     type: 'userPersona',
-    title: 'User Persona',
-    content: '',
-    position: getSmartNodePosition(
-      existingNodes,
-      defaults.size,
-      'userPersona',
-      defaults.position
-    ),
-    size: defaults.size,
-    color: 'userPersona',
-    connections: [],
-    metadata: { stage: 'ideation-discovery', nodeType: 'userPersona' },
-    name: 'Target User',
-    role: 'Primary User',
-    painPoint: targetUsers,
-    emoji: '👤',
-    editable: true,
-    resizable: true
+    position,
+    data: {
+      title: 'User Persona',
+      content: '',
+      size: defaults.size,
+      color: 'userPersona',
+      connections: [],
+      metadata: { stage: 'ideation-discovery', nodeType: 'userPersona' },
+      name: 'Target User',
+      role: 'Primary User',
+      painPoint: targetUsers,
+      emoji: '👤',
+      editable: true,
+      resizable: true
+    }
   };
 }
 
@@ -237,37 +258,40 @@ export function createLegacyUserPersonaNode(
 export function createCompetitorNode(
   competitor: any, 
   index: number = 0,
-  existingNodes: CanvasNodeData[] = []
-): CanvasNodeData {
+  existingNodes: Node[] = []
+): Node {
   const defaults = STAGE1_NODE_DEFAULTS.competitor;
+  const position = getSmartNodePosition(
+    existingNodes,
+    defaults.size,
+    'competitor',
+    defaults.position
+  );
   
   return {
     id: uuidv4(),
     type: 'competitor',
-    title: 'Competitor',
-    content: '',
-    position: getSmartNodePosition(
-      existingNodes,
-      defaults.size,
-      'competitor',
-      defaults.position
-    ),
-    size: defaults.size,
-    color: 'competitor',
-    connections: [],
-    metadata: { stage: 'ideation-discovery', nodeType: 'competitor' },
-    name: competitor.name || '',
-    notes: competitor.notes || '',
-    link: competitor.link || '',
-    domain: competitor.domain || '',
-    tagline: competitor.tagline || '',
-    features: competitor.features || [],
-    pricingTiers: competitor.pricingTiers || [],
-    marketPositioning: competitor.marketPositioning || '',
-    strengths: competitor.strengths || [],
-    weaknesses: competitor.weaknesses || [],
-    editable: true,
-    resizable: true
+    position,
+    data: {
+      title: 'Competitor',
+      content: '',
+      size: defaults.size,
+      color: 'competitor',
+      connections: [],
+      metadata: { stage: 'ideation-discovery', nodeType: 'competitor' },
+      name: competitor.name || '',
+      notes: competitor.notes || '',
+      link: competitor.link || '',
+      domain: competitor.domain || '',
+      tagline: competitor.tagline || '',
+      features: competitor.features || [],
+      pricingTiers: competitor.pricingTiers || [],
+      marketPositioning: competitor.marketPositioning || '',
+      strengths: competitor.strengths || [],
+      weaknesses: competitor.weaknesses || [],
+      editable: true,
+      resizable: true
+    }
   };
 }
 
@@ -279,8 +303,8 @@ export function createFeaturePackNode(
   index: number, 
   baseX: number, 
   baseY: number,
-  existingNodes: CanvasNodeData[] = []
-): CanvasNodeData {
+  existingNodes: Node[] = []
+): Node {
   const packNames: { [key: string]: string } = {
     'auth': 'Authentication & Users',
     'crud': 'Data Management',
@@ -296,32 +320,35 @@ export function createFeaturePackNode(
     x: baseX + (index % 3) * 200, 
     y: baseY + Math.floor(index / 3) * 120 
   };
+  const finalPosition = getSmartNodePosition(
+    existingNodes,
+    STAGE2_NODE_DEFAULTS.feature.size,
+    'feature',
+    position,
+    'feature-planning'
+  );
   
   return {
     id: uuidv4(),
     type: 'feature',
-    title: packNames[pack] || pack.charAt(0).toUpperCase() + pack.slice(1),
-    content: `Feature pack selected\nIncludes core ${pack} functionality`,
-    position: getSmartNodePosition(
-      existingNodes,
-      STAGE2_NODE_DEFAULTS.feature.size,
-      'feature',
-      position,
-      'feature-planning'
-    ),
-    size: STAGE2_NODE_DEFAULTS.feature.size,
-    color: 'blue',
-    connections: [],
-    metadata: { 
-      stage: 'feature-planning', 
-      pack, 
-      sourceId: pack,
-      priority: 'should',
-      complexity: 'medium'
-    },
-    subFeatures: [],
-    showBreakdown: false,
-    resizable: true
+    position: finalPosition,
+    data: {
+      title: packNames[pack] || pack.charAt(0).toUpperCase() + pack.slice(1),
+      content: `Feature pack selected\nIncludes core ${pack} functionality`,
+      size: STAGE2_NODE_DEFAULTS.feature.size,
+      color: 'blue',
+      connections: [],
+      metadata: { 
+        stage: 'feature-planning', 
+        pack, 
+        sourceId: pack,
+        priority: 'should',
+        complexity: 'medium'
+      },
+      subFeatures: [],
+      showBreakdown: false,
+      resizable: true
+    }
   };
 }
 
@@ -878,27 +905,31 @@ export function createAIAnalysisNode(
  */
 export function createPlatformNode(
   platform: string,
-  existingNodes: CanvasNodeData[] = []
-): CanvasNodeData {
+  existingNodes: Node[] = []
+): Node {
+  const position = getSmartNodePosition(
+    existingNodes,
+    { width: 160, height: 80 },
+    'platform',
+    { x: 400, y: 300 },
+    'ideation-discovery'
+  );
+  
   return {
     id: uuidv4(),
     type: 'platform',
-    title: 'Platform',
-    content: '',
-    position: getSmartNodePosition(
-      existingNodes,
-      { width: 160, height: 80 },
-      'platform',
-      { x: 400, y: 300 },
-      'ideation-discovery'
-    ),
-    size: { width: 160, height: 80 },
-    color: 'blue',
-    connections: [],
-    metadata: { stage: 'ideation-discovery', nodeType: 'platform' },
-    platform: platform,
-    editable: true,
-    resizable: true
+    position,
+    data: {
+      title: 'Platform',
+      content: '',
+      size: { width: 160, height: 80 },
+      color: 'blue',
+      connections: [],
+      metadata: { stage: 'ideation-discovery', nodeType: 'platform' },
+      platform: platform,
+      editable: true,
+      resizable: true
+    }
   };
 }
 
@@ -907,27 +938,31 @@ export function createPlatformNode(
  */
 export function createTechStackNode(
   techStack: string[],
-  existingNodes: CanvasNodeData[] = []
-): CanvasNodeData {
+  existingNodes: Node[] = []
+): Node {
+  const position = getSmartNodePosition(
+    existingNodes,
+    { width: 180, height: 120 },
+    'techStack',
+    { x: 500, y: 400 },
+    'ideation-discovery'
+  );
+  
   return {
     id: uuidv4(),
     type: 'techStack',
-    title: 'Tech Stack',
-    content: '',
-    position: getSmartNodePosition(
-      existingNodes,
-      { width: 180, height: 120 },
-      'techStack',
-      { x: 500, y: 400 },
-      'ideation-discovery'
-    ),
-    size: { width: 180, height: 120 },
-    color: 'indigo',
-    connections: [],
-    metadata: { stage: 'ideation-discovery', nodeType: 'techStack' },
-    techStack: techStack,
-    editable: true,
-    resizable: true
+    position,
+    data: {
+      title: 'Tech Stack',
+      content: '',
+      size: { width: 180, height: 120 },
+      color: 'indigo',
+      connections: [],
+      metadata: { stage: 'ideation-discovery', nodeType: 'techStack' },
+      techStack: techStack,
+      editable: true,
+      resizable: true
+    }
   };
 }
 
@@ -936,27 +971,31 @@ export function createTechStackNode(
  */
 export function createUIStyleNode(
   uiStyle: string,
-  existingNodes: CanvasNodeData[] = []
-): CanvasNodeData {
+  existingNodes: Node[] = []
+): Node {
+  const position = getSmartNodePosition(
+    existingNodes,
+    { width: 180, height: 120 },
+    'uiStyle',
+    { x: 300, y: 400 },
+    'ideation-discovery'
+  );
+  
   return {
     id: uuidv4(),
     type: 'uiStyle',
-    title: 'UI Style',
-    content: '',
-    position: getSmartNodePosition(
-      existingNodes,
-      { width: 180, height: 120 },
-      'uiStyle',
-      { x: 300, y: 400 },
-      'ideation-discovery'
-    ),
-    size: { width: 180, height: 120 },
-    color: 'pink',
-    connections: [],
-    metadata: { stage: 'ideation-discovery', nodeType: 'uiStyle' },
-    uiStyle: uiStyle,
-    editable: true,
-    resizable: true
+    position,
+    data: {
+      title: 'UI Style',
+      content: '',
+      size: { width: 180, height: 120 },
+      color: 'pink',
+      connections: [],
+      metadata: { stage: 'ideation-discovery', nodeType: 'uiStyle' },
+      uiStyle: uiStyle,
+      editable: true,
+      resizable: true
+    }
   };
 }
 

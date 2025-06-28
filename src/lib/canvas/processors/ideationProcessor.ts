@@ -6,7 +6,7 @@
  * problem statement, user personas, etc.
  */
 
-import { CanvasNodeData } from '../../../components/canvas/CanvasNode';
+import { Node } from 'reactflow';
 import { ProcessorState } from '../../../components/canvas/core/CanvasDataProcessor';
 import { STAGE1_NODE_TYPES } from '../../../components/canvas/customnodetypes/stage1nodes';
 import * as nodeFactory from '../nodeFactory';
@@ -15,10 +15,10 @@ import * as nodeFactory from '../nodeFactory';
  * Process ideation and discovery stage data
  */
 export function processIdeationData(
-  currentNodes: CanvasNodeData[],
+  currentNodes: Node[],
   stageSpecificData: any,
   lastProcessedData: Record<string, any>
-): CanvasNodeData[] {
+): Node[] {
   const ideationData = stageSpecificData;
   const lastIdeationData = lastProcessedData['ideation-discovery'] || {};
   let nodes = [...currentNodes];

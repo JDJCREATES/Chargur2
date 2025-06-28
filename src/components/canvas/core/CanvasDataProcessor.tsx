@@ -1,4 +1,4 @@
-import { CanvasNodeData } from '../CanvasNode';
+import { Node, Edge } from 'reactflow';
 
 import { getSmartNodePosition } from '../../../lib/canvas/nodePlacementUtils';
 import { processIdeationData } from '../../../lib/canvas/processors/ideationProcessor';
@@ -9,7 +9,7 @@ import { processInterfaceData } from '../../../lib/canvas/processors/interfacePr
 import { processAuthData } from '../../../lib/canvas/processors/authProcessor';
 
 export interface ProcessorState {
-  nodes: CanvasNodeData[];
+  nodes: Node[];
   connections: any[];
   lastProcessedData: Record<string, any>;
 }
@@ -19,8 +19,8 @@ export class CanvasDataProcessor {
    * Main orchestration method that processes stage data and updates canvas
    */
   static updateCanvasFromStageData(
-    currentNodes: CanvasNodeData[],
-    currentConnections: any[],
+    currentNodes: Node[],
+    currentConnections: Edge[],
     stageId: string,
     stageData: any,
     lastProcessedData: Record<string, any> = {}
@@ -86,7 +86,7 @@ export class CanvasDataProcessor {
    * Process authentication data and create/update canvas nodes
    * @deprecated Use processAuthData from authProcessor instead
    */
-  static processAuthData(nodes: CanvasNodeData[], authData: any): CanvasNodeData[] {
+  static processAuthData(nodes: Node[], authData: any): Node[] {
     console.warn('CanvasDataProcessor.processAuthData is deprecated. Use processAuthData from authProcessor instead.');
     return processAuthData(nodes, authData, {});
   }
