@@ -130,7 +130,7 @@ Provide comprehensive autoFillData with:
 - Technical implementation insights
 
 STAGE COMPLETION:
-Mark complete when you've provided a comprehensive feature plan with accurate dependencies, or when user indicates satisfaction or wants to proceed.`;
+Mark complete when you've provided a comprehensive feature plan with accurate dependencies, or when user indicates satisfaction or wants to proceed. The content field must only contain natural language text and never raw data or JSON!`;
 
   const userPrompt = `User message: "${userMessage}"
 
