@@ -9,11 +9,12 @@
 import { Node } from 'reactflow';
 import { ProcessorState } from '../../../components/canvas/core/CanvasDataProcessor';
 import * as nodeFactory from '../nodeFactory';
-import { v4 as uuidv4 } from 'uuid';
 
-import { STAGE2_NODE_TYPES, STAGE2_NODE_DEFAULTS } from '../../../components/canvas/customnodetypes/stage2nodes';
-import { getSmartNodePosition } from '../../../lib/canvas/nodePlacementUtils';
-
+// Define constants for node types
+const STAGE2_NODE_TYPES = { 
+  FEATURE: 'feature',
+  ARCHITECTURE: 'architecture',
+};
 
 /**
  * Process feature planning stage data
@@ -146,7 +147,7 @@ export function processFeatureData(
       // Create a new node
       const newNode = nodeFactory.createNaturalLanguageFeatureNode(
         featureData.naturalLanguageFeatures, 
-        [...nonFeaturePlanningNodes, ...updatedFeaturePlanningNodes]
+        [...nonFeaturePlanningNodes, ...updatedFeaturePlanningNodes as Node[]]
       );
       updatedFeaturePlanningNodes.push(newNode);
     }
@@ -207,7 +208,7 @@ export function processFeatureData(
   }
 
   // Combine non-feature planning nodes with updated feature planning nodes
-  nodes = [...nonFeaturePlanningNodes, ...updatedFeaturePlanningNodes];
+  nodes = [...nonFeaturePlanningNodes, ...updatedFeaturePlanningNodes as Node[]];
 
   console.log('Processed feature data:', nodes.length - originalNodeCount, 'nodes added/updated');
 

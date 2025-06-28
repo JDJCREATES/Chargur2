@@ -9,8 +9,8 @@ const CoreProblemNode: React.FC<NodeProps> = ({
   isConnectable 
 }) => {
   const [isEditing, setIsEditing] = useState(false);
-  const [editValue, setEditValue] = useState(data?.value || '');
-  const [highlightedText, setHighlightedText] = useState(data?.value || '');
+  const [editValue, setEditValue] = useState(data?.value || data?.content || '');
+  const [highlightedText, setHighlightedText] = useState(data?.value || data?.content || '');
   const textareaRef = useRef<HTMLTextAreaElement>(null);
 
   useEffect(() => {
@@ -21,21 +21,29 @@ const CoreProblemNode: React.FC<NodeProps> = ({
   }, [isEditing]);
 
   useEffect(() => {
+    // Update state when data changes
+    if (data?.value !== undefined) {
+      setEditValue(data.value);
+      setHighlightedText(data.value);
+    }
+  }, [data?.value]);
+
+  useEffect(() => {
     // Auto-highlight keywords when value changes
     if (data?.keywords && data.keywords.length > 0) {
-      let highlighted = data?.value || '';
+      let highlighted = data?.value || data?.content || '';
       data.keywords.forEach(keyword => {
         const regex = new RegExp(`\\b(${keyword})\\b`, 'gi');
         highlighted = highlighted.replace(regex, '<mark class="bg-yellow-200 px-1 rounded">$1</mark>');
       });
       setHighlightedText(highlighted);
     } else {
-      setHighlightedText(data?.value || '');
+      setHighlightedText(data?.value || data?.content || '');
     }
-  }, [data?.value, data?.keywords]);
+  }, [data?.value, data?.content, data?.keywords]);
 
   const handleSave = () => {
-    if (editValue.trim() !== (data?.value || '')) {
+    if (editValue.trim() !== (data?.value || data?.content || '')) {
       data?.onNodeUpdate?.(id, { value: editValue.trim() });
     }
     setIsEditing(false);
@@ -46,16 +54,17 @@ const CoreProblemNode: React.FC<NodeProps> = ({
       handleSave();
     }
     if (e.key === 'Escape') {
-      setEditValue(data?.value || '');
+      setEditValue(data?.value || data?.content || '');
       setIsEditing(false);
     }
   };
 
   const highlightKeywords = () => {
-    if (!data?.value) return;
+    const content = data?.value || data?.content;
+    if (!content) return;
     
     // Simple keyword extraction - split by common words and take meaningful ones
-    const words = data.value.toLowerCase()
+    const words = content.toLowerCase()
       .split(/\s+/)
       .filter(word => word.length > 3 && !['that', 'with', 'they', 'have', 'this', 'from', 'were', 'been'].includes(word))
       .slice(0, 5);
@@ -63,8 +72,8 @@ const CoreProblemNode: React.FC<NodeProps> = ({
     data?.onNodeUpdate?.(id, { keywords: words });
   };
 
-  const displayValue = data?.value || "What core problem does your app solve?";
-  const isPlaceholder = !data?.value;
+  const displayValue = data?.value || data?.content || "What core problem does your app solve?";
+  const isPlaceholder = !data?.value && !data?.content;
 
   return (
     <>
@@ -130,7 +139,7 @@ const CoreProblemNode: React.FC<NodeProps> = ({
                   dangerouslySetInnerHTML={{ __html: highlightedText }}
                 />
                 
-                {!isEditing && data.editable && (
+                {!isEditing && data?.editable && (
                   <div className="flex items-center gap-2 mt-3 pt-2 border-t border-orange-200">
                     <button
                       onClick={(e) => {
@@ -143,7 +152,7 @@ const CoreProblemNode: React.FC<NodeProps> = ({
                       Edit
                     </button>
                     
-                    {data?.value && (
+                    {(data?.value || data?.content) && (
                       <button
                         onClick={(e) => {
                           e.stopPropagation();

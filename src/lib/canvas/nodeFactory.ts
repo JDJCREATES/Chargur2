@@ -8,9 +8,93 @@
 
 import { v4 as uuidv4 } from 'uuid';
 import { Node, Edge } from 'reactflow';
-import { STAGE1_NODE_TYPES, STAGE1_NODE_DEFAULTS } from '../../components/canvas/customnodetypes/stage1nodes';
-import { STAGE2_NODE_TYPES, STAGE2_NODE_DEFAULTS } from '../../components/canvas/customnodetypes/stage2nodes'; 
 import { getSmartNodePosition } from './nodePlacementUtils';
+
+// Define constants for node types
+const STAGE1_NODE_TYPES = {
+  APP_NAME: 'appName',
+  TAGLINE: 'tagline',
+  CORE_PROBLEM: 'coreProblem',
+  MISSION: 'mission',
+  USER_PERSONA: 'userPersona',
+  VALUE_PROPOSITION: 'valueProp',
+  COMPETITOR: 'competitor', 
+  TECH_STACK: 'techStack',
+  UI_STYLE: 'uiStyle',
+  PLATFORM: 'platform'
+};
+
+const STAGE2_NODE_TYPES = { 
+  FEATURE: 'feature',
+  ARCHITECTURE: 'architecture',
+};
+
+// Define default node configurations
+const STAGE1_NODE_DEFAULTS = {
+  appName: {
+    size: { width: 280, height: 80 },
+    position: { x: 400, y: 50 },
+    editable: true,
+  },
+  tagline: {
+    size: { width: 240, height: 40 },
+    position: { x: 420, y: 150 },
+    editable: true,
+  },
+  coreProblem: {
+    size: { width: 220, height: 160 },
+    position: { x: 100, y: 200 },
+    editable: true,
+  },
+  mission: {
+    size: { width: 300, height: 140 },
+    position: { x: 350, y: 220 },
+    editable: true,
+  },
+  userPersona: {
+    size: { width: 160, height: 140 },
+    position: { x: 650, y: 200 },
+    editable: true,
+  },
+  valueProp: {
+    size: { width: 240, height: 180 },
+    position: { x: 100, y: 400 },
+    editable: true,
+  },
+  competitor: {
+    size: { width: 140, height: 100 },
+    position: { x: 700, y: 400 },
+    editable: true,
+  },
+  techStack: {
+    size: { width: 180, height: 120 },
+    position: { x: 500, y: 400 },
+    editable: true,
+  },
+  uiStyle: {
+    size: { width: 180, height: 120 },
+    position: { x: 300, y: 400 },
+    editable: true,
+  },
+  platform: {
+    size: { width: 160, height: 80 },
+    position: { x: 400, y: 300 },
+    editable: true,
+  }
+};
+
+const STAGE2_NODE_DEFAULTS = {
+  'feature': {
+    size: { width: 500, height: 160 },
+    position: { x: 200, y: 350 },
+    editable: true,
+  },
+  'architecture': {
+    size: { width: 400, height: 300 },
+    position: { x: 700, y: 350 },
+    editable: true,
+  },
+};
 
 // Node ID counter for generating unique IDs
 let nodeIdCounter = 1;
@@ -409,7 +493,7 @@ export function createNaturalLanguageFeatureNode(
   const position = getSmartNodePosition(
     existingNodes,
     STAGE2_NODE_DEFAULTS.feature.size,
-    'feature',
+    STAGE2_NODE_TYPES.FEATURE,
     { x: 700, y: 350 },
     'feature-planning'
   );
@@ -441,7 +525,7 @@ export function createArchitectureNode(
   const position = getSmartNodePosition(
     existingNodes,
     defaults.size,
-    'architecture',
+    STAGE2_NODE_TYPES.ARCHITECTURE,
     defaults.position,
     'feature-planning'
   );

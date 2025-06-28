@@ -8,7 +8,7 @@ const UIStyleNode: React.FC<NodeProps> = ({
   selected,
   isConnectable 
 }) => {
-  const uiStyle = data?.uiStyle || '';
+  const uiStyle = data?.uiStyle || data?.value || '';
   const uiStyleLabel = getUIStyleLabel(uiStyle);
   const uiStyleDesc = getUIStyleDescription(uiStyle);
   const isPlaceholder = !uiStyle;
@@ -131,7 +131,13 @@ const UIStyleNode: React.FC<NodeProps> = ({
               onClick={(e) => {
                 e.stopPropagation();
                 // This would open a style selection modal in a real implementation
-                console.log('Edit UI style');
+                if (data?.onNodeUpdate) {
+                  // Toggle between styles for demo purposes
+                  const styles = ['sleek-dark', 'fun-playful', 'clean-minimal', 'professional', 'accessible-first'];
+                  const currentIndex = styles.indexOf(uiStyle);
+                  const nextStyle = styles[(currentIndex + 1) % styles.length];
+                  data.onNodeUpdate(id, { uiStyle: nextStyle });
+                }
               }}
               className={`flex items-center gap-1 text-xs ${colors.text} hover:opacity-80 transition-colors`}
             >

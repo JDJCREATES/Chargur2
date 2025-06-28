@@ -14,6 +14,7 @@ import PlatformNode from './PlatformNode';
 import TechStackNode from './TechStackNode';
 import UIStyleNode from './UIStyleNode';
 import FeatureNode from './FeatureNode';
+import ArchitectureNode from './ArchitectureNode';
 
 // Export all node components
 export {
@@ -28,7 +29,8 @@ export {
   PlatformNode,
   TechStackNode,
   UIStyleNode,
-  FeatureNode
+  FeatureNode,
+  ArchitectureNode
 };
 
 // Define node types mapping for ReactFlow
@@ -45,5 +47,6 @@ export const nodeTypes = {
   techStack: TechStackNode,
   uiStyle: UIStyleNode,
   feature: FeatureNode,
+  architecture: ArchitectureNode,
   // Add more node types as they are implemented
 };
