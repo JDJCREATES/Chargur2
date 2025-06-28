@@ -188,12 +188,22 @@ ${isArchitectureRequest ? `    "architecturePrep": {
         "priority": "must|should|could|wont",
         "complexity": "low|medium|high",
         "category": "frontend|backend|both",
-        "dependencies": [
+         "dependencies": [
+          // IMPORTANT: Infer and list dependencies between features here.
+          // For example, if 'Social Features' requires 'Authentication & Users',
+          // or if 'Payment Processing' requires 'User Profiles'.
+          // Use existing feature IDs or generate new ones if the dependency is to a conceptual feature.
           {
-            "id": "dep-1", 
-            "featureId": "1", 
-            "dependsOn": "2", 
-            "type": "requires|enhances|conflicts"
+            "id": "dep-1", // Unique ID for this dependency
+            "featureId": "1", // ID of the feature that has the dependency (e.g., 'Social Features')
+            "dependsOn": "auth", // ID of the feature it depends on (e.g., 'auth' pack or another custom feature ID)
+            "type": "requires" // "requires" | "enhances" | "conflicts"
+          },
+          {
+            "id": "dep-2",
+            "featureId": "another-feature-id",
+            "dependsOn": "yet-another-feature-id",
+            "type": "enhances"
           }
         ]
       }
