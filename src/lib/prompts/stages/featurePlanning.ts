@@ -161,6 +161,7 @@ EXAMPLES OF GOOD FEATURE ANALYSIS:
 - "Admin Dashboard" → type: "admin", dependencies: ["auth", "crud", "analytics"] because it's for administrative control, needs secure access, data management, and reporting capabilities
 - "Product Reviews" → type: "optional", dependencies: ["auth", "crud", "social"] because it adds value but isn't core, needs user verification, review storage, and social interactions
 
+NEVER PUT JSON IN THE CONTENT FIELD! ENSURE NO LEADING TEXT OR WHITESPACE!
 Respond in this exact JSON format:
 {
   "content": "Your strategic analysis and feature planning recommendations with dependency reasoning",
