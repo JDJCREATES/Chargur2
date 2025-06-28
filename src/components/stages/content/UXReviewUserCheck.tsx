@@ -477,11 +477,7 @@ ${overallProgress >= 80
   const isReadyForExport = overallProgress >= 80 && completionItems.filter(i => i.status === 'missing' && i.priority === 'high').length === 0;
 
   return (
-    <div className="p-4 space-y-2">
-      <div className="mb-4">
-        <h3 className="text-lg font-semibold text-gray-800 mb-2">UX Review & User Check</h3>
-        <p className="text-sm text-gray-600">Final validation and completeness check before export</p>
-      </div>
+    <div className="p-2 space-y-2">
 
       {/* 7.1 Completion Check */}
       <Accordion defaultExpanded>
