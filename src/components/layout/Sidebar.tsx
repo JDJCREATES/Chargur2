@@ -239,7 +239,16 @@ export const Sidebar: React.FC<SidebarProps> = ({
               
               {/* Settings */}
               <div className="border-t border-gray-200">
-                <Settings />
+                <Accordion>
+                  <AccordionSummary expandIcon={<ChevronDown size={16} />}>
+                    <div className="flex items-center gap-2">
+                      <Typography className="font-medium text-sm">Settings</Typography>
+                    </div>
+                  </AccordionSummary>
+                  <AccordionDetails>
+                    <Settings />
+                  </AccordionDetails>
+                </Accordion>
               </div>
             </>
           ) : (
