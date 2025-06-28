@@ -1,317 +1,299 @@
 import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
-import { useAppStore } from '../../../store/useAppStore';
-import { 
-  Lightbulb, 
-  Target, 
-  Users,
-  TrendingUp,  
-  Settings,
-  Smartphone,
-  Monitor,
-  Tablet,
-  Palette,
-  Star,
-  CheckCircle,
-} from 'lucide-react';
+import { ChevronLeft, ChevronRight, Folder, MessageSquare } from 'lucide-react';
+import { GiUnplugged, GiBatteries } from 'react-icons/gi';
 import { Accordion, AccordionSummary, AccordionDetails, Typography } from '@mui/material';
 import { ChevronDown } from 'lucide-react';
-import { Stage } from '../../../types';
-import { useAuth } from '../../../hooks/useAuth';
-import { Chip, Stack } from '@mui/material';
+import { useAppStore } from '../../store/useAppStore';
+import { ChatHistory } from '../ui/ChatHistory';
+import { ChatInterface } from '../chat/ChatInterface';
+import { Settings } from '../ui/Settings';
+import { ProjectManager } from '../ui/ProjectManager';
+import { IdeationDiscovery } from '../stages/content/IdeationDiscovery';
+import { FeaturePlanning } from '../stages/content/FeaturePlanning';
+import { StructureFlow } from '../stages/content/StructureFlow';
+import { InterfaceInteraction } from '../stages/content/InterfaceInteraction';
+import { ArchitectureDesign } from '../stages/content/ArchitectureDesign';
+import { UserAuthFlow } from '../stages/content/UserAuthFlow';
+import { UXReviewUserCheck } from '../stages/content/UXReviewUserCheck';
+import { AutoPromptEngine } from '../stages/content/AutoPromptEngine';
+import { ExportPanel } from '../export/ExportPanel';
+import { Stage, ChatMessage } from '../../types';
 
-interface IdeationDiscoveryProps {
-  stage: Stage;
-  initialFormData?: any;
-  onComplete: () => void;
-  onUpdateData: (data: any) => void;
+
+interface AgentChatProps {
+  sendMessage: (message: string) => void;
+  historyMessages: ChatMessage[];
+  content: string;
+  suggestions: string[];
+  autoFillData: any;
+  isComplete: boolean;
+  isLoading: boolean;
+  error: string | null;
+  retry: () => void;
+  isStreaming: boolean;
 }
 
-interface UserPersona {
-  name: string;
-  role: string;
-  painPoint: string;
-  emoji: string;
-  id?: string;
+interface SidebarProps {
+  isOpen: boolean;
+  onToggle: () => void;
+  agentChat: AgentChatProps;
 }
 
-interface FormData {
-  appIdea: string;
-  appName: string;
-  tagline: string;
-  problemStatement: string;
-  userPersonas: UserPersona[];
-  valueProposition: string;
-  competitors: string;
-  platform: string;
-  techStack: string[];
-  uiStyle: string;
-}
-
-export const IdeationDiscovery: React.FC<IdeationDiscoveryProps> = ({
-  stage,
-  initialFormData,
-  onComplete,
-  onUpdateData,
+export const Sidebar: React.FC<SidebarProps> = ({
+  isOpen,
+  onToggle,
+  agentChat
 }) => {
-  const { session } = useAuth();
-  const defaultFormData = {
-    appIdea: '',
-    appName: '',
-    tagline: '',
-    problemStatement: '',
-    userPersonas: [] as UserPersona[],
-    valueProposition: '',
-    competitors: '',
-    platform: 'web',
-    techStack: [] as string[],
-    uiStyle: 'clean-minimal',
-  };
-  
-  const [formData, setFormData] = useState<FormData>(() => ({
-    ...defaultFormData,
-    ...(initialFormData || {})
-  }));
-  const [isSearchingCompetitors, setIsSearchingCompetitors] = useState(false);
+  // State to control active tab
+  const [activeTab, setActiveTab] = useState<'stages' | 'chat'>('stages');
 
-  const [selectedTags, setSelectedTags] = useState<string[]>([]);
+  // Get data from store instead of props:
+  const { 
+    stages, 
+    currentStageId,
+    projectId,
+    stageData, 
+    getCurrentStage,
+    goToStage,
+    completeStage,
+    updateStageData
+  } = useAppStore();
 
-  const updateFormData = (key: string, value: any) => {
-    const updated = { ...formData, [key]: value };
-    setFormData(updated);
-    onUpdateData(updated);
+  const currentStage = getCurrentStage();
+
+  const handleSendMessage = (content: string) => {
+    agentChat.sendMessage(content);
   };
 
-  // Function to add a competitor
-  const addCompetitor = (competitor: any) => {
-    const competitors = formData.competitors || [];
-    updateFormData('competitors', [...competitors, competitor]);
+  const handleSuggestionClick = (suggestion: string) => {
+    handleSendMessage(suggestion);
   };
 
-  // Function to search for competitors using the Edge Function
-  const searchCompetitors = async () => {
-    if (!formData.appIdea) {
-      alert('Please describe your app idea first.');
-      return;
+  const handleRetry = () => {
+    agentChat.retry();
+  };
+
+  const renderStageForm = () => {
+    if (!currentStage) return null;
+
+    switch (currentStage.id) {
+      case 'ideation-discovery':
+        return (
+          <IdeationDiscovery
+            stage={currentStage}
+            initialFormData={stageData[currentStage.id]}
+            onComplete={() => completeStage(currentStage.id)}
+            onUpdateData={(data: any) => updateStageData(currentStage.id, data)}
+          />
+        );
+      case 'feature-planning':
+        return (
+          <FeaturePlanning
+            stage={currentStage}
+            initialFormData={stageData[currentStage.id]}
+            onComplete={() => completeStage(currentStage.id)}
+            onUpdateData={(data: any) => updateStageData(currentStage.id, data)}
+            onSendMessage={handleSendMessage}
+          />
+        );
+      case 'structure-flow':
+        return (
+          <StructureFlow
+            stage={currentStage}
+            initialFormData={stageData[currentStage.id]}
+            onComplete={() => completeStage(currentStage.id)}
+            onUpdateData={(data: any) => updateStageData(currentStage.id, data)}
+          />
+        );
+      case 'interface-interaction':
+        return (
+          <InterfaceInteraction
+            stage={currentStage}
+            initialFormData={stageData[currentStage.id]}
+            onComplete={() => completeStage(currentStage.id)}
+            onUpdateData={(data: any) => updateStageData(currentStage.id, data)}
+          />
+        );
+      case 'architecture-design':
+        return (
+          <ArchitectureDesign
+            stage={currentStage}
+            initialFormData={stageData[currentStage.id]}
+            onComplete={() => completeStage(currentStage.id)}
+            onUpdateData={(data: any) => updateStageData(currentStage.id, data)}
+          />
+        );
+      case 'user-auth-flow':
+        return (
+          <UserAuthFlow
+            stage={currentStage}
+            initialFormData={stageData[currentStage.id]}
+            onComplete={() => completeStage(currentStage.id)}
+            onUpdateData={(data: any) => updateStageData(currentStage.id, data)}
+          />
+        );
+      case 'ux-review-check':
+        return (
+          <UXReviewUserCheck
+            stage={currentStage}
+            stages={stages}
+            stageData={stageData}
+            initialFormData={stageData[currentStage.id]}
+            onComplete={() => completeStage(currentStage.id)}
+            onUpdateData={(data: any) => updateStageData(currentStage.id, data)}
+            onGoToStage={goToStage}
+          />
+        );
+      case 'auto-prompt-engine':
+        return (
+          <AutoPromptEngine
+            stage={currentStage}
+            stages={stages}
+            stageData={stageData}
+            initialFormData={stageData[currentStage.id]}
+            onComplete={() => completeStage(currentStage.id)}
+            onUpdateData={(data: any) => updateStageData(currentStage.id, data)}
+          />
+        );
+      case 'export-handoff':
+        return (
+          <ExportPanel
+            stages={stages}
+            stageData={stageData}
+          />
+        );
+      default:
+        return null;
     }
-    
-    try {
-      setIsSearchingCompetitors(true);
-
-      // Direct API call to fetch-competitors (bypasses agent-prompt)
-      const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
-      if (!supabaseUrl) {
-        throw new Error('Supabase URL not configured');
-      }
-
-      const response = await fetch(`${supabaseUrl}/functions/v1/fetch-competitors`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          // Add auth header if session is available
-          ...(session?.access_token && {
-            'Authorization': `Bearer ${session.access_token}`
-          })
-        },
-        body: JSON.stringify({
-          appDescription: formData.appIdea,
-          maxResults: 4
-        })
-      });
-
-      if (!response.ok) {
-        const errorText = await response.text();
-        let errorMessage = `API error: ${response.status}`;
-        try {
-          const errorData = JSON.parse(errorText);
-          errorMessage += ` - ${errorData.error || 'Unknown error'}`;
-        } catch (e) {
-          errorMessage += ` - ${errorText || 'Unknown error'}`;
-        }
-        throw new Error(errorMessage);
-      }
-
-      const data = await response.json();
-      
-      if (data.competitors && data.competitors.length > 0) {
-        // Update the competitors text field
-        const competitorText = data.competitors
-          .map((comp: any) => `${comp.name} (${comp.domain}) - ${comp.tagline}`)
-          .join('\n');
-        
-        updateFormData('competitors', competitorText);
-        
-        // Create structured data for board nodes and pass to parent
-        const updatedFormData = {
-          ...formData,
-          competitors: competitorText,
-          // Add competitor nodes data that can be used by the board
-          competitorNodes: data.competitors.map((comp: any, index: number) => ({
-            id: `competitor-${Date.now()}-${index}-${comp.name.toLowerCase().replace(/\s+/g, '-')}`,
-            type: 'competitor',
-            data: {
-              label: comp.name,
-              domain: comp.domain,
-              tagline: comp.tagline,
-              features: comp.features || [],
-              pricing: comp.pricingTiers || [],
-              positioning: comp.marketPositioning || 'mid-market',
-              strengths: comp.strengths || [],
-              weaknesses: comp.weaknesses || [],
-              url: comp.link || ''
-            },
-            position: { 
-              x: 100 + (index * 200), 
-              y: 100 + (Math.floor(index / 3) * 150) 
-            }
-          }))
-        };
-        
-        // Update parent with all the data including nodes
-        onUpdateData(updatedFormData);
-        
-        console.log(`✅ Found ${data.competitors.length} competitors via direct API call`);
-      } else {
-        alert('No competitors found for your app idea. Try refining your description.');
-        console.log('⚠️ No competitors found in API response:', data);
-      }
-    } catch (error) {
-      console.error('❌ Failed to search for competitors:', error);
-      alert(`Failed to search for competitors: ${error instanceof Error ? error.message : 'Unknown error'}`);
-    } finally {
-      setIsSearchingCompetitors(false);
-    }
-  };
-
-  const quickTags = [
-    'E-commerce', 'AI/ML', 'Social', 'Productivity', 'Health', 'Education',
-    'Finance', 'Entertainment', 'Travel', 'Food', 'Fitness', 'Gaming',
-    'SaaS', 'IoT', 'AR/VR', 'Mobile App'
-  ];
-
-  const personas = [
-    { id: 'student', emoji: '🧑‍🎓', label: 'Student', role: 'Student' },
-    { id: 'developer', emoji: '🧑‍💻', label: 'Developer', role: 'Software Developer' },
-    { id: 'manager', emoji: '🧑‍💼', label: 'Manager', role: 'Business Manager' },
-    { id: 'shopper', emoji: '🛍️', label: 'Shopper', role: 'Consumer' },
-    { id: 'creator', emoji: '🎨', label: 'Creator', role: 'Content Creator' },
-    { id: 'entrepreneur', emoji: '🚀', label: 'Entrepreneur', role: 'Business Owner' },
-    { id: 'teacher', emoji: '👨‍🏫', label: 'Teacher', role: 'Educator' },
-    { id: 'doctor', emoji: '👨‍⚕️', label: 'Doctor', role: 'Healthcare Professional' },
-    { id: 'designer', emoji: '👨‍🎨', label: 'Designer', role: 'UX/UI Designer' },
-    { id: 'analyst', emoji: '👨‍💼', label: 'Analyst', role: 'Data Analyst' },
-    { id: 'freelancer', emoji: '💼', label: 'Freelancer', role: 'Independent Worker' },
-    { id: 'parent', emoji: '👨‍👩‍👧‍👦', label: 'Parent', role: 'Family Caregiver' },
-    { id: 'athlete', emoji: '🏃‍♂️', label: 'Athlete', role: 'Sports Professional' },
-    { id: 'chef', emoji: '👨‍🍳', label: 'Chef', role: 'Culinary Professional' },
-    { id: 'traveler', emoji: '🧳', label: 'Traveler', role: 'Travel Enthusiast' },
-    { id: 'gamer', emoji: '🎮', label: 'Gamer', role: 'Gaming Enthusiast' },
-  ];
-
-  const techOptions = [
-    'React', 'TypeScript', 'Tailwind CSS', 'Next.js', 'Supabase',
-    'Firebase', 'Node.js', 'Express', 'PostgreSQL', 'MongoDB', 'React-Native', 'Expo'
-  ];
-
-  const uiStyles = [
-    { id: 'sleek-dark', label: 'Sleek & Dark', desc: 'Modern apps, developer tools, high-tech' },
-    { id: 'fun-playful', label: 'Fun & Playful', desc: 'Consumer apps, kids, games, lifestyle' },
-    { id: 'clean-minimal', label: 'Clean & Minimal', desc: 'Startups, design-focused tools, UX-first apps' },
-    { id: 'professional', label: 'Professional', desc: 'B2B, fintech, healthcare, enterprise' },
-    { id: 'accessible-first', label: 'Accessible-First', desc: 'Inclusive design, education, public services' },
-  ];
-
-  const [selectedPersonas, setSelectedPersonas] = useState<string[]>(() => {
-    if (initialFormData?.userPersonas?.length > 0) {
-      return initialFormData.userPersonas
-        .map((p: UserPersona) => 
-          personas.find(persona => persona.label === p.name)?.id
-        )
-        .filter(Boolean);
-    }
-    return [];
-  });
-
-  const toggleTag = (tag: string) => {
-    const updated = selectedTags.includes(tag)
-      ? selectedTags.filter((t: string) => t !== tag)
-      : [...selectedTags, tag];
-    setSelectedTags(updated);
-  };
-
-  const togglePersona = (persona: string) => {
-    const personaData = personas.find(p => p.id === persona);
-    if (!personaData) return;
-    const currentStageId = 'ideation-discovery';
-    
-    if (selectedPersonas.includes(persona)) {
-      // Remove persona
-      setSelectedPersonas(selectedPersonas.filter(p => p !== persona));
-      // Update local state
-      const updatedUserPersonas = formData.userPersonas.filter((p: UserPersona) => p.name !== personaData.label);
-      setFormData((prev: any) => ({
-        ...prev,
-        userPersonas: updatedUserPersonas
-      }));
-      // Update global state immediately - use the existing method
-      useAppStore.getState().updateStageData(currentStageId, { userPersonas: updatedUserPersonas });
-      // Also update via the regular callback for consistency
-      onUpdateData({ ...formData, userPersonas: updatedUserPersonas });
-    } else {
-      // Add persona
-      setSelectedPersonas([...selectedPersonas, persona]);
-      const newPersona = {
-        name: personaData.label,
-        role: personaData.role,
-        painPoint: `Needs solutions for ${personaData.label.toLowerCase()}-specific challenges`,
-        emoji: personaData.emoji,
-        id: `persona-${personaData.id}`
-      };
-      // Update local state
-      const updatedUserPersonas = [...formData.userPersonas, newPersona];
-      setFormData((prev: any) => ({
-        ...prev,
-        userPersonas: updatedUserPersonas
-      }));
-      // Update global state immediately - use the existing method
-      useAppStore.getState().updateStageData(currentStageId, { userPersonas: updatedUserPersonas });
-      // Also update via the regular callback for consistency
-      onUpdateData({ ...formData, userPersonas: updatedUserPersonas });
-    }
-  };
-
-  const toggleTechStack = (tech: string) => {
-    const updated = formData.techStack.includes(tech)
-      ? formData.techStack.filter((t: string) => t !== tech)
-      : [...formData.techStack, tech];
-    updateFormData('techStack', updated);
-  };
-
-  const generateAISummary = () => {
-    const summary = `
-**${formData.appName || 'Your App'}** ${formData.tagline ? `- "${formData.tagline}"` : ''}
-
-**Mission:** ${formData.appIdea || 'Building something amazing'}
-
-**Problem:** ${formData.problemStatement || 'Solving user pain points'}
-
-**Target Users:** ${formData.userPersonas.map((p: UserPersona) => p.name).join(', ') || 'Various user types'}
-
-**Value Proposition:** ${formData.valueProposition || 'Unique value for users'}
-
-**Platform:** ${formData.platform} | **Style:** ${uiStyles.find(s => s.id === formData.uiStyle)?.label}
-
-**Tech Stack:** ${formData.techStack.join(', ') || 'Modern web technologies'}
-
-**UI Style:** ${uiStyles.find(s => s.id === formData.uiStyle)?.label || 'Clean & Minimal'}
-    `.trim();
-
-    return summary;
   };
 
   return (
-    <div className="space-y-4">
-      {/* Rest of your JSX components */}
+    <div className="fixed right-0 top-0 h-full z-50">
+      <motion.div
+        initial={{ x: 300 }}
+        animate={{ x: isOpen ? 0 : 320 }}
+        transition={{ duration: 0.3, ease: 'easeInOut' }}
+        className="w-80 bg-white border-l border-gray-200 flex flex-col h-full shadow-lg"
+      >
+        {/* Toggle Button */}
+        <button
+          onClick={onToggle}
+          className="absolute -left-12 top-4 w-12 h-12 bg-white border border-gray-200 rounded-l-lg flex items-center justify-center hover:bg-gray-50 transition-colors shadow-md"
+        >
+          {isOpen ? <ChevronRight size={20} /> : <ChevronLeft size={20} />}
+        </button>
+
+        {/* Header */}
+        <div className="border-b border-gray-200">
+          <div className="flex items-center gap-3">
+            <div className={`w-full p-4 transition-opacity duration-200 ${isOpen ? 'opacity-100' : 'opacity-0'} overflow-hidden`}>
+              <ProjectManager />
+            </div>  
+          </div>
+          
+          {/* Tab Navigation */}
+          <div className={`flex border-t border-gray-200 transition-opacity duration-200 ${isOpen ? 'opacity-100' : 'opacity-0'}`}>
+            <button
+              onClick={() => setActiveTab('stages')}
+              className={`flex items-center justify-center gap-2 flex-1 py-3 text-sm font-medium transition-colors ${
+                activeTab === 'stages' 
+                  ? 'text-blue-600 border-b-2 border-blue-600' 
+                  : 'text-gray-500 hover:text-gray-700'
+              }`}
+            >
+              <GiBatteries className="w-4 h-4" />
+              <span>Stages</span>
+            </button>
+            <button
+              onClick={() => setActiveTab('chat')}
+              className={`flex items-center justify-center gap-2 flex-1 py-3 text-sm font-medium transition-colors ${
+                activeTab === 'chat' 
+                  ? 'text-blue-600 border-b-2 border-blue-600' 
+                  : 'text-gray-500 hover:text-gray-700'
+              }`}
+            >
+              <GiUnplugged className="w-4 h-4" />
+              <span>Charg</span>
+            </button>
+          </div>
+        </div>
+
+        {/* Content based on active tab */}
+        <div className={`flex-1 flex flex-col overflow-hidden transition-opacity duration-200 ${isOpen ? 'opacity-100' : 'opacity-0'}`}>
+          {activeTab === 'stages' ? (
+            <>
+              {/* Stage Form */}
+              <div className="flex-1 overflow-y-auto space-y-2">
+                <Accordion defaultExpanded>
+                  <AccordionSummary expandIcon={<ChevronDown size={16} />}>
+                    <div className="flex items-center gap-2">
+                      <Typography className="font-medium text-sm">{currentStage ? currentStage.title : 'Current Stage Details'}</Typography>
+                    </div>
+                  </AccordionSummary>
+                  <AccordionDetails>
+                    <div className="space-y-2">
+                      {renderStageForm()}
+                    </div>
+                  </AccordionDetails>
+                </Accordion>
+              </div>
+              
+              {/* Settings */}
+              <div className="border-t border-gray-200">
+                <Accordion>
+                  <AccordionSummary expandIcon={<ChevronDown size={16} />}>
+                    <div className="flex items-center gap-2">
+                      <Typography className="font-medium text-sm">Settings</Typography>
+                    </div>
+                  </AccordionSummary>
+                  <AccordionDetails>
+                    <Settings />
+                  </AccordionDetails>
+                </Accordion>
+              </div>
+            </>
+          ) : (
+            <>
+              {/* Chat Interface */}
+              <div className="flex flex-col h-full">
+                <div className="flex-1 overflow-y-auto">
+                  <ChatHistory
+                    messages={agentChat.historyMessages || []}
+                    currentResponse={
+                      agentChat.content || agentChat.isLoading
+                        ? {
+                            content: agentChat.content,
+                            isComplete: agentChat.isComplete,
+                            suggestions: agentChat.suggestions,
+                            isStreaming: agentChat.isStreaming,
+                            error: agentChat.error
+                          }
+                        : undefined
+                    }
+                    onSuggestionClick={handleSuggestionClick}
+                    onRetry={handleRetry}
+                  />
+                </div>
+                <div className="border-t border-gray-100">
+                  <ChatInterface
+                    onSendMessage={handleSendMessage}
+                    isLoading={agentChat.isLoading}
+                    error={agentChat.error}
+                    onRetry={handleRetry}
+                    disabled={!currentStage}
+                  />
+                </div>
+              </div>
+            </>
+          )}
+        </div>
+      </motion.div>
+      
+      {/* Collapsed Sidebar - Vertical Stage Bubbles */}
+      {!isOpen && (
+        <></>
+      )}
     </div>
   );
 };
