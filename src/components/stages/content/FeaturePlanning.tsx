@@ -762,14 +762,14 @@ ${formData.customFeatures.flatMap(f => f.subFeatures?.map(sub => `  - ${sub}`) |
 
                       
                       <div className="space-y-1">
-                        {feature.subFeatures && feature.subFeatures.map((subFeature, subIndex) => (
+                        {(feature.subFeatures || []).map((subFeature, subIndex) => (
                           <div key={subIndex} className="flex items-center gap-2">
                             <div className="w-2 h-2 rounded-full bg-blue-400"></div>
                             <input
                               type="text"
                               value={subFeature}
                               onChange={(e) => {
-                                const newSubFeatures = [...feature.subFeatures];
+                                const newSubFeatures = [...(feature.subFeatures || [])];
                                 newSubFeatures[subIndex] = e.target.value;
                                 updateFeature(feature.id, { subFeatures: newSubFeatures });
                               }}
@@ -777,7 +777,7 @@ ${formData.customFeatures.flatMap(f => f.subFeatures?.map(sub => `  - ${sub}`) |
                             />
                             <button
                               onClick={() => {
-                                const newSubFeatures = feature.subFeatures.filter((_, i) => i !== subIndex);
+                                const newSubFeatures = (feature.subFeatures || []).filter((_, i) => i !== subIndex);
                                 updateFeature(feature.id, { subFeatures: newSubFeatures });
                               }}
                               className="p-1 text-red-500 hover:bg-red-50 rounded"
