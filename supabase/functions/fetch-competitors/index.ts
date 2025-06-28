@@ -200,21 +200,7 @@ Focus on companies that are currently active and have recent web presence. Inclu
           // CORRECT web search tool configuration
           tools: [
             {
-              type: "function",
-              function: {
-                name: "web_search",
-                description: "Search the web for current information about competitors",
-                parameters: {
-                  type: "object",
-                  properties: {
-                    query: {
-                      type: "string",
-                      description: "Search query for finding competitors"
-                    }
-                  },
-                  required: ["query"]
-                }
-              }
+              type: "web_search"
             }
           ],
           tool_choice: "auto" // Let the model decide when to use web search
@@ -248,13 +234,6 @@ Focus on companies that are currently active and have recent web presence. Inclu
       // Check if there were tool calls (web searches)
       if (message.tool_calls && message.tool_calls.length > 0) {
         console.log(`🔧 Web search was performed with ${message.tool_calls.length} tool calls`);
-        
-        // Process tool calls if needed (for more advanced implementations)
-        for (const toolCall of message.tool_calls) {
-          if (toolCall.function?.name === 'web_search') {
-            console.log(`🔍 Web search query: ${toolCall.function.arguments}`);
-          }
-        }
       }
       
       const content = message.content;
