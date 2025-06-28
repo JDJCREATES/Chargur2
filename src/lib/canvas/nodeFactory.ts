@@ -9,7 +9,7 @@
 import { v4 as uuidv4 } from 'uuid';
 import { CanvasNodeData } from '../../components/canvas/CanvasNode';
 import { STAGE1_NODE_TYPES, STAGE1_NODE_DEFAULTS } from '../../components/canvas/customnodetypes/stage1nodes';
-import { STAGE2_NODE_TYPES } from '../../components/canvas/customnodetypes/stage2nodes';
+import { STAGE2_NODE_TYPES, STAGE2_NODE_DEFAULTS } from '../../components/canvas/customnodetypes/stage2nodes';
 import { getSmartNodePosition } from './nodePlacementUtils';
 
 // Node ID counter for generating unique IDs
@@ -304,12 +304,12 @@ export function createFeaturePackNode(
     content: `Feature pack selected\nIncludes core ${pack} functionality`,
     position: getSmartNodePosition(
       existingNodes,
-      { width: 180, height: 100 },
+      STAGE2_NODE_DEFAULTS.feature.size,
       'feature',
       position,
       'feature-planning'
     ),
-    size: { width: 180, height: 100 },
+    size: STAGE2_NODE_DEFAULTS.feature.size,
     color: 'blue',
     connections: [],
     metadata: { 
@@ -347,12 +347,12 @@ export function createCustomFeatureNode(
     content: `${feature.description || 'Custom feature'}\n\nPriority: ${feature.priority || 'medium'}\nComplexity: ${feature.complexity || 'medium'}`,
     position: getSmartNodePosition(
       existingNodes,
-      { width: 180, height: 120 },
+      STAGE2_NODE_DEFAULTS.feature.size,
       'feature',
       position,
       'feature-planning'
     ),
-    size: { width: 180, height: 120 },
+    size: STAGE2_NODE_DEFAULTS.feature.size,
     color: 'blue',
     connections: [],
     metadata: { 
@@ -383,12 +383,12 @@ export function createNaturalLanguageFeatureNode(
     content: naturalLanguageFeatures,
     position: getSmartNodePosition(
       existingNodes,
-      { width: 220, height: 140 },
+      STAGE2_NODE_DEFAULTS.feature.size,
       'feature',
       { x: 700, y: 350 },
       'feature-planning'
     ),
-    size: { width: 220, height: 140 },
+    size: STAGE2_NODE_DEFAULTS.feature.size,
     color: 'blue',
     connections: [],
     metadata: { stage: 'feature-planning', type: 'description' },
