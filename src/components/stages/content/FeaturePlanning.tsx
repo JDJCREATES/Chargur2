@@ -326,6 +326,40 @@ export const FeaturePlanning: React.FC<FeaturePlanningProps> = ({
     },
   ];
 
+  const complexityLevels = [
+    { id: "low", label: "Low", color: "green", description: "1-3 days" },
+    {
+      id: "medium",
+      label: "Medium",
+      color: "yellow",
+      description: "1-2 weeks",
+    },
+    { id: "high", label: "High", color: "red", description: "2+ weeks" },
+  ];
+
+  const toggleFeaturePack = (packId: string) => {
+    const updated = formData.selectedFeaturePacks.includes(packId)
+      ? formData.selectedFeaturePacks.filter((id: string) => id !== packId)
+      : [...formData.selectedFeaturePacks, packId];
+    updateFormData("selectedFeaturePacks", updated);
+  };
+
+  const addCustomFeature = () => {
+    const newFeature: Feature = {
+      id: Date.now().toString(),
+      name: "New Feature",
+      description: "Describe this feature...",
+      type: "core",
+      priority: "should",
+      complexity: "medium",
+      category: "frontend",
+      subFeatures: [],
+      dependencies: [],
+      estimatedEffort: 5,
+    };
+    updateFormData("customFeatures", [...formData.customFeatures, newFeature]);
+  };
+  
   const addDependency = (
     featureId: string,
     dependsOnId: string,
