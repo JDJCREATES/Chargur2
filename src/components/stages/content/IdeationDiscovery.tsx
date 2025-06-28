@@ -35,6 +35,19 @@ interface UserPersona {
   id?: string;
 }
 
+// Add this interface after the existing UserPersona interface:
+interface FormData {
+  appIdea: string;
+  appName: string;
+  tagline: string;
+  problemStatement: string;
+  userPersonas: UserPersona[];
+  valueProposition: string;
+  competitors: string;
+  platform: string;
+  techStack: string[];
+  uiStyle: string;
+}
 
 export const IdeationDiscovery: React.FC<IdeationDiscoveryProps> = ({
   stage,
@@ -57,7 +70,7 @@ userPersonas: [] as UserPersona[],
     uiStyle: 'clean-minimal',
   };
   
-  const [formData, setFormData] = useState(() => ({
+  const [formData, setFormData] = useState<FormData>(() => ({
     ...defaultFormData,
     ...(initialFormData || {})
   }));
@@ -77,6 +90,8 @@ userPersonas: [] as UserPersona[],
     updateFormData('competitors', [...competitors, competitor]);
   };
 
+
+ 
   // Function to search for competitors using the Edge Function
   const searchCompetitors = async () => {
     if (!formData.appIdea) {
@@ -241,12 +256,12 @@ const [selectedPersonas, setSelectedPersonas] = useState<string[]>(() => {
       setSelectedPersonas(selectedPersonas.filter(p => p !== persona));
       // Update local state
       const updatedUserPersonas = formData.userPersonas.filter((p: UserPersona) => p.name !== personaData.label);
-      setFormData(prev => ({
+      setFormData((prev: any) => ({
         ...prev,
         userPersonas: updatedUserPersonas
       }));
-      // Update global state immediately
-      useAppStore.getState().updateStageDataImmediate(currentStageId, { userPersonas: updatedUserPersonas });
+      // Update global state immediately - use the existing method
+      useAppStore.getState().updateStageData(currentStageId, { userPersonas: updatedUserPersonas });
       // Also update via the regular callback for consistency
       onUpdateData({ ...formData, userPersonas: updatedUserPersonas });
     } else {
@@ -261,12 +276,12 @@ const [selectedPersonas, setSelectedPersonas] = useState<string[]>(() => {
       };
       // Update local state
       const updatedUserPersonas = [...formData.userPersonas, newPersona];
-      setFormData(prev => ({
+      setFormData((prev: any) => ({
         ...prev,
         userPersonas: updatedUserPersonas
       }));
-      // Update global state immediately
-      useAppStore.getState().updateStageDataImmediate(currentStageId, { userPersonas: updatedUserPersonas });
+      // Update global state immediately - use the existing method
+      useAppStore.getState().updateStageData(currentStageId, { userPersonas: updatedUserPersonas });
       // Also update via the regular callback for consistency
       onUpdateData({ ...formData, userPersonas: updatedUserPersonas });
     }

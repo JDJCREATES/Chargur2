@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { ChevronLeft, ChevronRight, Folder, MessageSquare } from 'lucide-react';
-import { GiUnplugged, GiFolder } from 'react-icons/gi';
+import { GiUnplugged, GiBatteries } from 'react-icons/gi';
 import { Typography } from '@mui/material';
 import { useAppStore } from '../../store/useAppStore';
 import { ChatHistory } from '../ui/ChatHistory';
@@ -201,7 +201,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
                   : 'text-gray-500 hover:text-gray-700'
               }`}
             >
-              <GiFolder className="w-4 h-4" />
+              <GiBatteries className="w-4 h-4" />
               <span>Stages</span>
             </button>
             <button

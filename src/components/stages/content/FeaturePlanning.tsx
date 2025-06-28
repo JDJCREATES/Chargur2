@@ -74,6 +74,19 @@ interface Dependency {
   type: "requires" | "enhances" | "conflicts";
 }
 
+interface FormData {
+  naturalLanguageFeatures: string;
+  selectedFeaturePacks: string[];
+  customFeatures: Feature[];
+  mvpMode: boolean;
+  aiEnhancements: string[];
+  architecturePrep: {
+    screens: string[];
+    apiRoutes: string[];
+    components: string[];
+  };
+}
+
 export const FeaturePlanning: React.FC<FeaturePlanningProps> = ({
   stage,
   initialFormData,
@@ -95,7 +108,7 @@ export const FeaturePlanning: React.FC<FeaturePlanningProps> = ({
     } as ArchitectureData,
   };
 
-  const [formData, setFormData] = useState(() => ({
+  const [formData, setFormData] = useState<FormData>(() => ({
     ...defaultFormData,
     ...(initialFormData || {}),
   }));
