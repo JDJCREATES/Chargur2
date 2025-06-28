@@ -138,7 +138,7 @@ async function searchCompetitors(appDescription: string, maxResults: number = 4)
     const timeoutId = setTimeout(() => controller.abort(), 60000); // 60 second timeout for web search
     
     try {
-      const response = await fetch("https://api.openai.com/v1/chat/completions", {
+      const response = await fetch("https://api.openai.com/v1/responses", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
