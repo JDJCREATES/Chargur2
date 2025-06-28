@@ -41,7 +41,8 @@ function App() {
   useEffect(() => {
     if (!authLoading && user) {
       console.log('Initializing project for user:', user.id);
-      initializeProject(user.id);
+      // Use immediate update to ensure AI sees the changes in subsequent interactions
+      useAppStore.getState().updateStageDataImmediate(currentStageId, data);
     }
   }, [authLoading, user, initializeProject]);
 
