@@ -130,7 +130,6 @@ const CoreProblemNode: React.FC<NodeProps> = ({
                   dangerouslySetInnerHTML={{ __html: highlightedText }}
                 />
                 
-                {!isEditing && data.editable && (
                 {!isEditing && data?.editable && (
                   <div className="flex items-center gap-2 mt-3 pt-2 border-t border-orange-200">
                     <button
@@ -157,7 +156,6 @@ const CoreProblemNode: React.FC<NodeProps> = ({
                       </button>
                     )}
                     
-                    {data?.relatedCompetitors && data.relatedCompetitors.length > 0 && (
                     {data?.relatedCompetitors && data?.relatedCompetitors?.length > 0 && (
                       <button
                         className="flex items-center gap-1 text-xs text-orange-600 hover:text-orange-800 transition-colors"
