@@ -2,7 +2,8 @@ import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { ChevronLeft, ChevronRight, Folder, MessageSquare } from 'lucide-react';
 import { GiUnplugged, GiBatteries } from 'react-icons/gi';
-import { Typography } from '@mui/material';
+import { Accordion, AccordionSummary, AccordionDetails, Typography } from '@mui/material';
+import { ChevronDown } from 'lucide-react';
 import { useAppStore } from '../../store/useAppStore';
 import { ChatHistory } from '../ui/ChatHistory';
 import { ChatInterface } from '../chat/ChatInterface';
@@ -223,15 +224,21 @@ export const Sidebar: React.FC<SidebarProps> = ({
           {activeTab === 'stages' ? (
             <>
               {/* Stage Form */}
-              <div className="flex-1 overflow-y-auto">
-                {renderStageForm()}
+              <div className="flex-1 overflow-y-auto space-y-2">
+                <Accordion defaultExpanded>
+                  <AccordionSummary expandIcon={<ChevronDown size={16} />}>
+                    <div className="flex items-center gap-2">
+                      <Typography className="font-medium text-sm">Current Stage Details</Typography>
+                    </div>
+                  </AccordionSummary>
+                  <AccordionDetails>
+                    {renderStageForm()}
+                  </AccordionDetails>
+                </Accordion>
               </div>
               
               {/* Settings */}
               <div className="border-t border-gray-200">
-                <div className="p-4 border-b border-gray-200">
-                  <Typography className="font-semibold text-gray-800">Settings</Typography>
-                </div>
                 <Settings />
               </div>
             </>
