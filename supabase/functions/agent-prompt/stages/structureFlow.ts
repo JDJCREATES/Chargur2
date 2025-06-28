@@ -45,6 +45,14 @@ DATA MODEL INFERENCE:
 - Commerce features → Products, Orders, Payments, Inventory
 - Content features → Media, Categories, Tags
 
+FEATURE BLUEPRINT GENERATION:
+- Analyze features from feature-planning stage
+- Break down each feature into required components
+- Identify necessary API endpoints for each feature
+- Specify where and how features integrate into the app
+- Categorize features as core, secondary, or optional
+- Provide implementation details for developers
+
 FILE STRUCTURE PATTERNS:
 - React best practices with feature-based organization
 - Separation of concerns (components, hooks, utils, types)
@@ -69,6 +77,10 @@ Based on the selected features and app concept, help design the app structure an
 ${userMessage.toLowerCase().includes('all') || userMessage.toLowerCase().includes('complete') || userMessage.toLowerCase().includes('everything') 
   ? 'Please provide a comprehensive structure for all sections: screens, user flows, data models, components, file structure, and state management.' 
   : 'Focus on the specific aspects mentioned in the user message, but feel free to suggest related structural elements for a cohesive design.'}
+
+${userMessage.toLowerCase().includes('feature') || userMessage.toLowerCase().includes('blueprint') 
+  ? 'Please provide detailed feature blueprints based on the features defined in the feature-planning stage. Include components, APIs, and implementation context for each feature.' 
+  : ''}
 
 Create a logical, user-friendly structure that supports all planned features.
 
@@ -109,6 +121,26 @@ Respond in this exact JSON format:
         "name": "Core Task Flow",
         "steps": ["Dashboard", "Feature Selection", "Task Execution", "Confirmation"],
         "description": "Main user task completion flow"
+      }
+    ],
+    "featureBlueprints": [
+      {
+        "id": "1",
+        "name": "User Authentication",
+        "description": "Complete authentication system with registration, login, and password reset",
+        "components": ["LoginForm", "RegisterForm", "PasswordResetForm", "AuthContext", "ProtectedRoute"],
+        "apis": ["/api/auth/login", "/api/auth/register", "/api/auth/reset-password", "/api/auth/verify"],
+        "context": "Used across the app for user authentication and authorization",
+        "category": "core"
+      },
+      {
+        "id": "2",
+        "name": "Social Sharing",
+        "description": "Allow users to share content on social media platforms",
+        "components": ["ShareButton", "ShareModal", "SocialIcons", "SharePreview"],
+        "apis": ["/api/share", "/api/social/preview"],
+        "context": "Available on content pages and user-generated content",
+        "category": "secondary"
       }
     ],
     "dataModels": [

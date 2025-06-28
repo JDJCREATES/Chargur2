@@ -25,6 +25,7 @@ import {
 import { InformationArchitecture } from './structure-flow/InformationArchitecture';
 import { UserFlows } from './structure-flow/UserFlows';
 import { StateDataFlow } from './structure-flow/StateDataFlow';
+import { FeatureBlueprints } from './structure-flow/FeatureBlueprints';
 import { ModularUIComposition } from './structure-flow/ModularUIComposition';
 import { ProjectFileStructure } from './structure-flow/ProjectFileStructure';
 import { StructureSummary } from './structure-flow/StructureSummary';
@@ -53,6 +54,7 @@ export const StructureFlow: React.FC<StructureFlowProps> = ({
       { id: '1', name: 'User', fields: ['id', 'email', 'name', 'createdAt'] },
       { id: '2', name: 'Project', fields: ['id', 'title', 'description', 'userId'] },
     ],
+    featureBlueprints: [] as FeatureBlueprint[],
     userFlows: [
       { id: '1', name: 'User Registration', steps: ['Landing Page', 'Sign Up Form', 'Email Verification', 'Welcome Dashboard'] },
       { id: '2', name: 'Create Project', steps: ['Dashboard', 'New Project Button', 'Project Form', 'Project Created', 'Project View'] },
@@ -129,6 +131,20 @@ export const StructureFlow: React.FC<StructureFlowProps> = ({
     updateFormData('dataModels', [...formData.dataModels, newModel]);
   };
 
+  // Feature blueprint management
+  const addFeatureBlueprint = () => {
+    const newBlueprint: FeatureBlueprint = {
+      id: uuidv4(),
+      name: 'New Feature Blueprint',
+      description: 'Describe this feature implementation...',
+      components: ['Component1', 'Component2', 'Component3'],
+      apis: ['api/endpoint1', 'api/endpoint2'],
+      context: 'Where this feature appears in the app',
+      category: 'core'
+    };
+    updateFormData('featureBlueprints', [...formData.featureBlueprints, newBlueprint]);
+  };
+
   // User flow management
   const addUserFlow = () => {
     const newFlow: UserFlow = {
@@ -192,6 +208,13 @@ export const StructureFlow: React.FC<StructureFlowProps> = ({
       if (initialFormData.components && 
           JSON.stringify(initialFormData.components) !== JSON.stringify(formData.components)) {
         updatedData.components = initialFormData.components;
+        hasUpdates = true;
+      }
+      
+      // Check for featureBlueprints
+      if (initialFormData.featureBlueprints && 
+          JSON.stringify(initialFormData.featureBlueprints) !== JSON.stringify(formData.featureBlueprints)) {
+        updatedData.featureBlueprints = initialFormData.featureBlueprints;
         hasUpdates = true;
       }
       
@@ -272,26 +295,10 @@ export const StructureFlow: React.FC<StructureFlowProps> = ({
           </div>
         </AccordionSummary>
         <AccordionDetails>
-          <div className="space-y-3">
-            <p className="text-sm text-gray-600">Break down features into components and API needs</p>
-            <div className="bg-orange-50 rounded-lg p-3">
-              <h4 className="font-medium text-sm text-orange-800 mb-2">Real-time Chat Feature</h4>
-              <div className="space-y-2 text-xs">
-                <div>
-                  <span className="font-medium text-orange-700">Components:</span>
-                  <span className="ml-2 text-orange-600">ChatInput, MessageList, MessageBubble</span>
-                </div>
-                <div>
-                  <span className="font-medium text-orange-700">APIs:</span>
-                  <span className="ml-2 text-orange-600">sendMessage(), getMessages(), subscribeToChat()</span>
-                </div>
-                <div>
-                  <span className="font-medium text-orange-700">Context:</span>
-                  <span className="ml-2 text-orange-600">Chat page, embedded in project view</span>
-                </div>
-              </div>
-            </div>
-          </div>
+          <FeatureBlueprints
+            featureBlueprints={formData.featureBlueprints}
+            onAddFeatureBlueprint={addFeatureBlueprint}
+          />
         </AccordionDetails>
       </Accordion>
 

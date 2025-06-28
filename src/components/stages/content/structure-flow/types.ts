@@ -30,6 +30,16 @@ export interface Component {
   description?: string;
 }
 
+export interface FeatureBlueprint {
+  id: string;
+  name: string;
+  description: string;
+  components: string[];
+  apis: string[];
+  context: string;
+  category: 'core' | 'secondary' | 'optional';
+}
+
 export interface FileStructure {
   [key: string]: FileStructure | string[];
 }
@@ -39,6 +49,7 @@ export interface FormData {
   dataModels: DataModel[];
   userFlows: UserFlow[];
   components: Component[];
+  featureBlueprints: FeatureBlueprint[];
   fileStructure: FileStructure;
   stateManagement: string;
   dataFlow: string;
