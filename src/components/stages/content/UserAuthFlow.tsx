@@ -362,11 +362,7 @@ ${formData.authMethods.some(m => m.type === 'oauth') ? '- GOOGLE_CLIENT_ID\n- GO
   };
 
   return (
-    <div className="p-4 space-y-2">
-      <div className="mb-4">
-        <h3 className="text-lg font-semibold text-gray-800 mb-2">User & Auth Flow</h3>
-        <p className="text-sm text-gray-600">Define authentication, authorization, and user management with security best practices</p>
-      </div>
+    <div className="p-2 space-y-2">
 
       {/* 6.1 Sign-up / Login Methods */}
       <Accordion>
