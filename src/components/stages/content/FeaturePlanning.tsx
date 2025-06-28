@@ -534,7 +534,6 @@ For each component, include:
 
 Please organize these intelligently based on best practices for React applications. Group related components together and ensure the architecture reflects a production-ready application structure.
 
-The content field must only contain natural language text and never raw data or JSON!
 `;
 
       // Send the prompt to the AI
