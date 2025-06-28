@@ -204,6 +204,7 @@ Focus on companies that are currently active and have recent web presence. Inclu
             }
           ],
           tool_choice: "auto" // Let the model decide when to use web search
+          tool_choice: "auto" // Let the model decide when to use web search
         }),
         signal: controller.signal
       });
