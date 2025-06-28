@@ -73,7 +73,7 @@ export const SpatialCanvas: React.FC<SpatialCanvasProps> = ({
     updateCanvasConnections 
   } = useAppStore();
 
-  const [isToolbarCollapsed, setIsToolbarCollapsed] = useState(false);
+  const [isToolbarCollapsed, setIsToolbarCollapsed] = useState(true);
 
   // Use store data as fallback when props aren't provided
   const effectiveNodes = canvasNodes || storeCanvasNodes;

@@ -231,12 +231,8 @@ export const useCanvasInteractionManager = (
 
   const updateNodePosition = useCallback((nodeId: string, position: { x: number; y: number }) => {
     // Ensure position is within bounds
-    const boundedPosition = {
-      x: Math.max(0, position.x),
-      y: Math.max(0, position.y)
-    };
-    
-    onNodeUpdate(nodeId, { position: boundedPosition });
+    // Remove bounds restriction to allow nodes in negative coordinates
+    onNodeUpdate(nodeId, { position });
   }, [onNodeUpdate]);
 
   const endNodeDrag = useCallback(() => {

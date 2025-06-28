@@ -29,14 +29,14 @@ interface Rectangle {
 }
 
 // Minimum spacing between nodes
-const MIN_SPACING = 20;
+const MIN_SPACING = 30;
 
 // Default canvas boundaries
 const CANVAS_BOUNDS = {
-  minX: 0,
-  minY: 0,
-  maxX: 2000,
-  maxY: 2000
+  minX: -2000,
+  minY: -2000,
+  maxX: 4000,
+  maxY: 4000
 };
 
 // Category-based positioning zones
@@ -68,13 +68,16 @@ const CATEGORY_ZONES = {
 
 // Stage-based positioning zones
 const STAGE_ZONES = {
-  'ideation-discovery': { x: 400, y: 200, radius: 300 },
-  'feature-planning': { x: 400, y: 400, radius: 200 },
-  'structure-flow': { x: 400, y: 600, radius: 200 },
-  'interface-interaction': { x: 400, y: 800, radius: 200 },
-  'architecture-design': { x: 400, y: 1000, radius: 200 },
-  'user-auth-flow': { x: 400, y: 1200, radius: 200 },
-  'default': { x: 400, y: 400, radius: 300 }
+  'ideation-discovery': { x: -800, y: -600, radius: 400 },
+  'feature-planning': { x: 800, y: -600, radius: 400 },
+  'structure-flow': { x: -800, y: 600, radius: 400 },
+  'interface-interaction': { x: 800, y: 600, radius: 400 },
+  'architecture-design': { x: 0, y: -800, radius: 400 },
+  'user-auth-flow': { x: 0, y: 800, radius: 400 },
+  'ux-review-check': { x: -1200, y: 0, radius: 400 },
+  'auto-prompt-engine': { x: 1200, y: 0, radius: 400 },
+  'export-handoff': { x: 0, y: 0, radius: 400 },
+  'default': { x: 0, y: 0, radius: 400 }
 };
 
 /**
