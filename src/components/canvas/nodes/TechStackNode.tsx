@@ -8,7 +8,7 @@ const TechStackNode: React.FC<NodeProps> = ({
   selected,
   isConnectable 
 }) => {
-  const techStack = data.techStack || [];
+  const techStack = data?.techStack || [];
   const isPlaceholder = !techStack.length;
 
   return (
@@ -72,7 +72,7 @@ const TechStackNode: React.FC<NodeProps> = ({
         </div>
 
         {/* Footer */}
-        {data.editable && (
+        {data?.editable && (
           <div className="absolute bottom-2 right-2">
             <button
               onClick={(e) => {

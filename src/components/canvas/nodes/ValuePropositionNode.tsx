@@ -9,8 +9,8 @@ const ValuePropositionNode: React.FC<NodeProps> = ({
   isConnectable 
 }) => {
   const [isEditing, setIsEditing] = useState(false);
-  const [editValue, setEditValue] = useState(data.value);
-  const [editBullets, setEditBullets] = useState(data.bulletPoints || []);
+  const [editValue, setEditValue] = useState(data?.value || '');
+  const [editBullets, setEditBullets] = useState(data?.bulletPoints || []);
   const [newBullet, setNewBullet] = useState('');
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const newBulletRef = useRef<HTMLInputElement>(null);
@@ -25,16 +25,16 @@ const ValuePropositionNode: React.FC<NodeProps> = ({
   const handleSave = () => {
     const updates: any = {};
     
-    if (editValue.trim() !== data.value) {
+    if (editValue.trim() !== (data?.value || '')) {
       updates.value = editValue.trim();
     }
     
-    if (JSON.stringify(editBullets) !== JSON.stringify(data.bulletPoints)) {
+    if (JSON.stringify(editBullets) !== JSON.stringify(data?.bulletPoints)) {
       updates.bulletPoints = editBullets.filter(bullet => bullet.trim());
     }
     
     if (Object.keys(updates).length > 0) {
-      data.onNodeUpdate(id, updates);
+      data?.onNodeUpdate?.(id, updates);
     }
     
     setIsEditing(false);
@@ -45,8 +45,8 @@ const ValuePropositionNode: React.FC<NodeProps> = ({
       handleSave();
     }
     if (e.key === 'Escape') {
-      setEditValue(data.value);
-      setEditBullets(data.bulletPoints || []);
+      setEditValue(data?.value || '');
+      setEditBullets(data?.bulletPoints || []);
       setIsEditing(false);
     }
   };
@@ -66,15 +66,15 @@ const ValuePropositionNode: React.FC<NodeProps> = ({
   };
 
   const rewriteWithAI = async () => {
-    if (!data.value) return;
+    if (!data?.value) return;
     
     // Simulate AI rewrite - in real app, this would call your AI service
     const rewritten = `${data.value} Our solution delivers measurable results through innovative technology and user-centered design.`;
-    data.onNodeUpdate(id, { value: rewritten });
+    data?.onNodeUpdate?.(id, { value: rewritten });
   };
 
-  const displayValue = data.value || "What unique value does your app provide?";
-  const isPlaceholder = !data.value;
+  const displayValue = data?.value || "What unique value does your app provide?";
+  const isPlaceholder = !data?.value;
 
   return (
     <>
@@ -204,7 +204,7 @@ const ValuePropositionNode: React.FC<NodeProps> = ({
                 </div>
                 
                 {/* Bullet Points */}
-                {data.bulletPoints && data.bulletPoints.length > 0 && (
+                {data?.bulletPoints && data.bulletPoints.length > 0 && (
                   <div className="space-y-1">
                     {data.bulletPoints.map((bullet, index) => (
                       <div key={index} className="flex items-start gap-2">
@@ -232,7 +232,7 @@ const ValuePropositionNode: React.FC<NodeProps> = ({
                 Edit
               </button>
               
-              {data.value && (
+              {data?.value && (
                 <button
                   onClick={(e) => {
                     e.stopPropagation();

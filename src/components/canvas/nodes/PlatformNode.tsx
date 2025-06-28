@@ -8,7 +8,7 @@ const PlatformNode: React.FC<NodeProps> = ({
   selected,
   isConnectable 
 }) => {
-  const platform = data.platform || '';
+  const platform = data?.platform || '';
   const isPlaceholder = !platform;
 
   // Get platform icon and label
@@ -97,7 +97,7 @@ const PlatformNode: React.FC<NodeProps> = ({
           </p>
           
           {/* Edit Button */}
-          {data.editable && (
+          {data?.editable && (
             <div className="mt-auto pt-2 flex justify-end">
               <button
                 onClick={(e) => {

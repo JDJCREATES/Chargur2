@@ -11,16 +11,16 @@ const CompetitorNode: React.FC<NodeProps> = ({
   const [isEditing, setIsEditing] = useState(false);
   const [showNotes, setShowNotes] = useState(false);
   const [editData, setEditData] = useState({
-    name: data.name,
-    notes: data.notes,
-    link: data.link || '',
-    domain: data.domain || '',
-    tagline: data.tagline || '',
-    features: data.features || [],
-    pricingTiers: data.pricingTiers || [],
-    marketPositioning: data.marketPositioning || '',
-    strengths: data.strengths || [],
-    weaknesses: data.weaknesses || [],
+    name: data?.name || '',
+    notes: data?.notes || '',
+    link: data?.link || '',
+    domain: data?.domain || '',
+    tagline: data?.tagline || '',
+    features: data?.features || [],
+    pricingTiers: data?.pricingTiers || [],
+    marketPositioning: data?.marketPositioning || '',
+    strengths: data?.strengths || [],
+    weaknesses: data?.weaknesses || [],
   });
   const [activeTab, setActiveTab] = useState<'basic' | 'features' | 'positioning' | 'swot'>('basic');
   const nameInputRef = useRef<HTMLInputElement>(null);
@@ -33,7 +33,7 @@ const CompetitorNode: React.FC<NodeProps> = ({
   }, [isEditing]);
 
   const handleSave = () => {
-    data.onNodeUpdate(id, {
+    data?.onNodeUpdate?.(id, {
       name: editData.name.trim(),
       notes: editData.notes.trim(),
       link: editData.link.trim() || undefined,
@@ -54,36 +54,36 @@ const CompetitorNode: React.FC<NodeProps> = ({
     }
     if (e.key === 'Escape') {
       setEditData({
-        name: data.name,
-        notes: data.notes,
-        link: data.link || '',
-        domain: data.domain || '',
-        tagline: data.tagline || '',
-        features: data.features || [],
-        pricingTiers: data.pricingTiers || [],
-        marketPositioning: data.marketPositioning || '',
-        strengths: data.strengths || [],
-        weaknesses: data.weaknesses || [],
+        name: data?.name || '',
+        notes: data?.notes || '',
+        link: data?.link || '',
+        domain: data?.domain || '',
+        tagline: data?.tagline || '',
+        features: data?.features || [],
+        pricingTiers: data?.pricingTiers || [],
+        marketPositioning: data?.marketPositioning || '',
+        strengths: data?.strengths || [],
+        weaknesses: data?.weaknesses || [],
       });
       setIsEditing(false);
     }
   };
 
   const openLink = () => {
-    if (data.link) {
+    if (data?.link) {
       window.open(data.link.startsWith('http') ? data.link : `https://${data.link}`, '_blank');
     }
   };
 
-  const displayName = data.name || "Competitor Name";
-  const hasNotes = data.notes && data.notes.trim().length > 0;
-  const hasDomain = data.domain && data.domain.trim().length > 0;
-  const hasTagline = data.tagline && data.tagline.trim().length > 0;
-  const hasFeatures = data.features && data.features.length > 0;
-  const hasPricingTiers = data.pricingTiers && data.pricingTiers.length > 0;
-  const hasMarketPositioning = data.marketPositioning && data.marketPositioning.trim().length > 0;
-  const hasStrengths = data.strengths && data.strengths.length > 0;
-  const hasWeaknesses = data.weaknesses && data.weaknesses.length > 0;
+  const displayName = data?.name || "Competitor Name";
+  const hasNotes = data?.notes && data.notes.trim().length > 0;
+  const hasDomain = data?.domain && data.domain.trim().length > 0;
+  const hasTagline = data?.tagline && data.tagline.trim().length > 0;
+  const hasFeatures = data?.features && data.features.length > 0;
+  const hasPricingTiers = data?.pricingTiers && data.pricingTiers.length > 0;
+  const hasMarketPositioning = data?.marketPositioning && data.marketPositioning.trim().length > 0;
+  const hasStrengths = data?.strengths && data.strengths.length > 0;
+  const hasWeaknesses = data?.weaknesses && data.weaknesses.length > 0;
 
   // Helper function to add items to arrays
   const addArrayItem = (field: keyof typeof editData, value: string) => {
@@ -474,10 +474,10 @@ const CompetitorNode: React.FC<NodeProps> = ({
                       {hasDomain && (
                         <div className="text-xs text-red-700 flex items-center gap-1">
                           <span className="font-medium">Domain:</span>
-                          <span className="font-mono">{data.domain}</span>
+                          <span className="font-mono">{data?.domain}</span>
                         </div>
                       )}
-                      {data.link && (
+                      {data?.link && (
                         <div className="text-xs text-red-700 flex items-center gap-1">
                           <span className="font-medium">Website:</span>
                           <button 
@@ -487,14 +487,14 @@ const CompetitorNode: React.FC<NodeProps> = ({
                             }}
                             className="font-mono text-red-600 hover:text-red-800 hover:underline flex items-center gap-1"
                           >
-                            <span className="truncate max-w-24">{data.link}</span>
+                            <span className="truncate max-w-24">{data?.link}</span>
                             <ExternalLink className="w-3 h-3" />
                           </button>
                         </div>
                       )}
                       {hasTagline && (
                         <div className="text-xs text-red-700 italic">
-                          "{data.tagline}"
+                          "{data?.tagline}"
                         </div>
                       )}
                     </div>
@@ -509,11 +509,11 @@ const CompetitorNode: React.FC<NodeProps> = ({
                       <span>Core Features:</span>
                     </div>
                     <ul className="text-xs text-red-600 list-disc list-inside space-y-0.5">
-                      {data.features?.slice(0, 3).map((feature, index) => (
+                      {data?.features?.slice(0, 3).map((feature, index) => (
                         <li key={index} className="truncate">{feature}</li>
                       ))}
-                      {(data.features?.length || 0) > 3 && (
-                        <li className="text-red-400">+{(data.features?.length || 0) - 3} more...</li>
+                      {(data?.features?.length || 0) > 3 && (
+                        <li className="text-red-400">+{(data?.features?.length || 0) - 3} more...</li>
                       )}
                     </ul>
                   </div>
@@ -529,20 +529,20 @@ const CompetitorNode: React.FC<NodeProps> = ({
                     
                     {hasMarketPositioning && (
                       <div className="text-xs text-red-600 mb-1">
-                        <span className="font-medium">Market:</span> {data.marketPositioning}
+                        <span className="font-medium">Market:</span> {data?.marketPositioning}
                       </div>
                     )}
                     
                     {hasPricingTiers && (
                       <div className="flex flex-wrap gap-1">
-                        {data.pricingTiers?.slice(0, 2).map((tier, index) => (
+                        {data?.pricingTiers?.slice(0, 2).map((tier, index) => (
                           <span key={index} className="text-xs px-1.5 py-0.5 bg-red-100 text-red-700 rounded-full flex items-center gap-0.5">
                             <DollarSign className="w-2.5 h-2.5" />
                             {tier}
                           </span>
                         ))}
-                        {(data.pricingTiers?.length || 0) > 2 && (
-                          <span className="text-xs text-red-400">+{(data.pricingTiers?.length || 0) - 2} more</span>
+                        {(data?.pricingTiers?.length || 0) > 2 && (
+                          <span className="text-xs text-red-400">+{(data?.pricingTiers?.length || 0) - 2} more</span>
                         )}
                       </div>
                     )}
@@ -561,9 +561,9 @@ const CompetitorNode: React.FC<NodeProps> = ({
                           <span className="font-medium">Strengths:</span>
                         </div>
                         <div className="text-xs text-green-600 ml-4">
-                          {data.strengths?.[0] || ''}
-                          {(data.strengths?.length || 0) > 1 && (
-                            <span className="text-green-400"> +{(data.strengths?.length || 0) - 1} more</span>
+                          {data?.strengths?.[0] || ''}
+                          {(data?.strengths?.length || 0) > 1 && (
+                            <span className="text-green-400"> +{(data?.strengths?.length || 0) - 1} more</span>
                           )}
                         </div>
                       </div>
@@ -576,9 +576,9 @@ const CompetitorNode: React.FC<NodeProps> = ({
                           <span className="font-medium">Weaknesses:</span>
                         </div>
                         <div className="text-xs text-red-600 ml-4">
-                          {data.weaknesses?.[0] || ''}
-                          {(data.weaknesses?.length || 0) > 1 && (
-                            <span className="text-red-400"> +{(data.weaknesses?.length || 0) - 1} more</span>
+                          {data?.weaknesses?.[0] || ''}
+                          {(data?.weaknesses?.length || 0) > 1 && (
+                            <span className="text-red-400"> +{(data?.weaknesses?.length || 0) - 1} more</span>
                           )}
                         </div>
                       </div>
@@ -588,7 +588,7 @@ const CompetitorNode: React.FC<NodeProps> = ({
                 
                 {/* Action Buttons */}
                 <div className="flex items-center gap-2 mt-2 pt-2 border-t border-red-100">
-                  {data.link && (
+                  {data?.link && (
                     <button
                       onClick={(e) => {
                         e.stopPropagation();
@@ -615,7 +615,7 @@ const CompetitorNode: React.FC<NodeProps> = ({
                     </button>
                   )}
                   
-                  {data.editable && (
+                  {data?.editable && (
                     <button
                       onClick={(e) => {
                         e.stopPropagation();
@@ -637,7 +637,7 @@ const CompetitorNode: React.FC<NodeProps> = ({
             <div className="absolute top-full left-0 mt-2 bg-white rounded-lg shadow-lg p-3 min-w-48 max-w-64 z-60 border border-red-200">
               <h4 className="font-medium text-red-800 mb-2 text-sm">Notes</h4>
               <p className="text-xs text-gray-600 leading-relaxed">
-                {data.notes}
+                {data?.notes}
               </p>
               <button
                 onClick={() => setShowNotes(false)}
@@ -653,7 +653,7 @@ const CompetitorNode: React.FC<NodeProps> = ({
             <button
               onClick={(e) => {
                 e.stopPropagation();
-                data.onNodeDelete(id);
+                data?.onNodeDelete?.(id);
               }}
               className="absolute -top-2 -right-2 w-6 h-6 bg-red-500 text-white rounded-full flex items-center justify-center hover:bg-red-600 transition-colors text-xs"
             >

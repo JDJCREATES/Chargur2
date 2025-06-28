@@ -30,7 +30,7 @@ const DefaultNode: React.FC<NodeProps> = ({
   isConnectable 
 }) => {
   const [isEditing, setIsEditing] = useState(false);
-  const [editContent, setEditContent] = useState(data.content);
+  const [editContent, setEditContent] = useState(data?.content || '');
   const inputRef = useRef<HTMLTextAreaElement>(null);
 
   useEffect(() => {
@@ -41,7 +41,7 @@ const DefaultNode: React.FC<NodeProps> = ({
   }, [isEditing]);
 
   const handleSaveEdit = () => {
-    data.onNodeUpdate(id, { content: editContent });
+    data?.onNodeUpdate?.(id, { content: editContent });
     setIsEditing(false);
   };
 
@@ -51,13 +51,13 @@ const DefaultNode: React.FC<NodeProps> = ({
       handleSaveEdit();
     }
     if (e.key === 'Escape') {
-      setEditContent(data.content);
+      setEditContent(data?.content || '');
       setIsEditing(false);
     }
   };
 
   const getNodeIcon = () => {
-    switch (data.type) {
+    switch (data?.type) {
       case 'concept': return <GiLightBulb className="w-4 h-4" />;
       case 'feature': return <GiEnergise className="w-4 h-4" />;
       case 'ux-flow': return <GiPerson className="w-4 h-4" />;
@@ -91,7 +91,7 @@ const DefaultNode: React.FC<NodeProps> = ({
       valueProp: 'bg-emerald-100 border-emerald-300 text-emerald-800',
       competitor: 'bg-red-100 border-red-300 text-red-800',
     };
-    return colors[data.type] || colors['agent-output'];
+    return colors[data?.type] || colors['agent-output'];
   };
 
   return (
@@ -131,15 +131,15 @@ const DefaultNode: React.FC<NodeProps> = ({
         <div className="flex items-center justify-between p-2 border-b border-current border-opacity-20">
           <div className="flex items-center gap-2">
             {getNodeIcon()}
-            <span className="font-medium text-sm truncate">{data.title}</span>
+            <span className="font-medium text-sm truncate">{data?.title}</span>
           </div>
           
           <div className="flex items-center gap-1">
-            {data.collapsed && (
+            {data?.collapsed && (
               <button
                 onClick={(e) => {
                   e.stopPropagation();
-                  data.onNodeUpdate(id, { collapsed: false });
+                  data?.onNodeUpdate?.(id, { collapsed: false });
                 }}
                 className="p-1 hover:bg-black hover:bg-opacity-10 rounded"
               >
@@ -150,7 +150,7 @@ const DefaultNode: React.FC<NodeProps> = ({
             <button
               onClick={(e) => {
                 e.stopPropagation();
-                data.onStartConnection(id);
+                data?.onStartConnection?.(id);
               }}
               className="p-1 hover:bg-black hover:bg-opacity-10 rounded"
               title="Connect to another node"
@@ -181,7 +181,7 @@ const DefaultNode: React.FC<NodeProps> = ({
         </div>
 
         {/* Node Content */}
-        {!data.collapsed && (
+        {!data?.collapsed && (
           <div className="p-3 flex-1 overflow-auto">
             {isEditing ? (
               <textarea
@@ -197,12 +197,12 @@ const DefaultNode: React.FC<NodeProps> = ({
               />
             ) : (
               <div className="text-xs leading-relaxed h-full overflow-auto">
-                {data.content || 'Click edit to add content...'}
+                {data?.content || 'Click edit to add content...'}
               </div>
             )}
             
             {/* Metadata Display */}
-            {data.metadata && (
+            {data?.metadata && (
               <div className="mt-2 pt-2 border-t border-current border-opacity-20">
                 <div className="text-xs opacity-75">
                   {Object.entries(data.metadata)
@@ -221,11 +221,11 @@ const DefaultNode: React.FC<NodeProps> = ({
         )}
 
         {/* Collapse Toggle */}
-        {!data.collapsed && (
+        {!data?.collapsed && (
           <button
             onClick={(e) => {
               e.stopPropagation();
-              data.onNodeUpdate(id, { collapsed: true });
+              data?.onNodeUpdate?.(id, { collapsed: true });
             }}
             className="absolute -top-2 -right-2 w-6 h-6 bg-white border border-current border-opacity-30 rounded-full flex items-center justify-center hover:bg-opacity-80"
           >

@@ -9,8 +9,8 @@ const CoreProblemNode: React.FC<NodeProps> = ({
   isConnectable 
 }) => {
   const [isEditing, setIsEditing] = useState(false);
-  const [editValue, setEditValue] = useState(data.value);
-  const [highlightedText, setHighlightedText] = useState(data.value);
+  const [editValue, setEditValue] = useState(data?.value || '');
+  const [highlightedText, setHighlightedText] = useState(data?.value || '');
   const textareaRef = useRef<HTMLTextAreaElement>(null);
 
   useEffect(() => {
@@ -22,21 +22,21 @@ const CoreProblemNode: React.FC<NodeProps> = ({
 
   useEffect(() => {
     // Auto-highlight keywords when value changes
-    if (data.keywords && data.keywords.length > 0) {
-      let highlighted = data.value;
+    if (data?.keywords && data.keywords.length > 0) {
+      let highlighted = data?.value || '';
       data.keywords.forEach(keyword => {
         const regex = new RegExp(`\\b(${keyword})\\b`, 'gi');
         highlighted = highlighted.replace(regex, '<mark class="bg-yellow-200 px-1 rounded">$1</mark>');
       });
       setHighlightedText(highlighted);
     } else {
-      setHighlightedText(data.value);
+      setHighlightedText(data?.value || '');
     }
-  }, [data.value, data.keywords]);
+  }, [data?.value, data?.keywords]);
 
   const handleSave = () => {
-    if (editValue.trim() !== data.value) {
-      data.onNodeUpdate(id, { value: editValue.trim() });
+    if (editValue.trim() !== (data?.value || '')) {
+      data?.onNodeUpdate?.(id, { value: editValue.trim() });
     }
     setIsEditing(false);
   };
@@ -46,13 +46,13 @@ const CoreProblemNode: React.FC<NodeProps> = ({
       handleSave();
     }
     if (e.key === 'Escape') {
-      setEditValue(data.value);
+      setEditValue(data?.value || '');
       setIsEditing(false);
     }
   };
 
   const highlightKeywords = () => {
-    if (!data.value) return;
+    if (!data?.value) return;
     
     // Simple keyword extraction - split by common words and take meaningful ones
     const words = data.value.toLowerCase()
@@ -60,11 +60,11 @@ const CoreProblemNode: React.FC<NodeProps> = ({
       .filter(word => word.length > 3 && !['that', 'with', 'they', 'have', 'this', 'from', 'were', 'been'].includes(word))
       .slice(0, 5);
     
-    data.onNodeUpdate(id, { keywords: words });
+    data?.onNodeUpdate?.(id, { keywords: words });
   };
 
-  const displayValue = data.value || "What core problem does your app solve?";
-  const isPlaceholder = !data.value;
+  const displayValue = data?.value || "What core problem does your app solve?";
+  const isPlaceholder = !data?.value;
 
   return (
     <>
@@ -143,7 +143,7 @@ const CoreProblemNode: React.FC<NodeProps> = ({
                       Edit
                     </button>
                     
-                    {data.value && (
+                    {data?.value && (
                       <button
                         onClick={(e) => {
                           e.stopPropagation();
@@ -156,7 +156,7 @@ const CoreProblemNode: React.FC<NodeProps> = ({
                       </button>
                     )}
                     
-                    {data.relatedCompetitors && data.relatedCompetitors.length > 0 && (
+                    {data?.relatedCompetitors && data.relatedCompetitors.length > 0 && (
                       <button
                         className="flex items-center gap-1 text-xs text-orange-600 hover:text-orange-800 transition-colors"
                         title="View related competitors"
@@ -172,7 +172,7 @@ const CoreProblemNode: React.FC<NodeProps> = ({
           </div>
 
           {/* Keywords Display */}
-          {data.keywords && data.keywords.length > 0 && !isEditing && (
+          {data?.keywords && data.keywords.length > 0 && !isEditing && (
             <div className="absolute bottom-2 right-2">
               <div className="flex flex-wrap gap-1">
                 {data.keywords.slice(0, 3).map((keyword, index) => (

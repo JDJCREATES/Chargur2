@@ -8,7 +8,7 @@ const UIStyleNode: React.FC<NodeProps> = ({
   selected,
   isConnectable 
 }) => {
-  const uiStyle = data.uiStyle || '';
+  const uiStyle = data?.uiStyle || '';
   const uiStyleLabel = getUIStyleLabel(uiStyle);
   const uiStyleDesc = getUIStyleDescription(uiStyle);
   const isPlaceholder = !uiStyle;
@@ -125,7 +125,7 @@ const UIStyleNode: React.FC<NodeProps> = ({
         </div>
 
         {/* Footer */}
-        {data.editable && (
+        {data?.editable && (
           <div className="absolute bottom-2 right-2">
             <button
               onClick={(e) => {
