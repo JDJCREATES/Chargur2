@@ -1,8 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
-import { ChevronLeft, ChevronRight, ChevronDown } from 'lucide-react';
-import { GiUnplugged } from 'react-icons/gi';
-import { Accordion, AccordionSummary, AccordionDetails, Typography } from '@mui/material';
+import { ChevronLeft, ChevronRight, Folder, MessageSquare } from 'lucide-react';
+import { GiUnplugged, GiFolder } from 'react-icons/gi';
+import { Typography } from '@mui/material';
 import { useAppStore } from '../../store/useAppStore';
 import { ChatHistory } from '../ui/ChatHistory';
 import { ChatInterface } from '../chat/ChatInterface';
@@ -44,8 +44,8 @@ export const Sidebar: React.FC<SidebarProps> = ({
   onToggle,
   agentChat
 }) => {
-  // State to control chat accordion expansion
-  const [isChatAccordionExpanded, setIsChatAccordionExpanded] = useState(false);
+  // State to control active tab
+  const [activeTab, setActiveTab] = useState<'stages' | 'chat'>('stages');
 
   // Get data from store instead of props:
   const { 
@@ -68,17 +68,6 @@ export const Sidebar: React.FC<SidebarProps> = ({
   const handleSuggestionClick = (suggestion: string) => {
     handleSendMessage(suggestion);
   };
-
-  // Effect to automatically expand chat accordion when messages are sent or received
-  useEffect(() => {
-    // Only expand if the sidebar is open and there's activity in the chat
-    if (isOpen && (agentChat.isLoading || agentChat.isStreaming)) {
-      // Expand the chat accordion
-      setIsChatAccordionExpanded(true);
-    }
-  }, [
-    isOpen, agentChat.isLoading, agentChat.isStreaming
-  ]);
 
   const handleRetry = () => {
     agentChat.retry();
@@ -182,7 +171,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
     <div className="fixed right-0 top-0 h-full z-50">
       <motion.div
         initial={{ x: 300 }}
-        animate={{ x: isOpen ? 0 : 268 }}
+        animate={{ x: isOpen ? 0 : 320 }}
         transition={{ duration: 0.3, ease: 'easeInOut' }}
         className="w-80 bg-white border-l border-gray-200 flex flex-col h-full shadow-lg"
       >
@@ -195,54 +184,79 @@ export const Sidebar: React.FC<SidebarProps> = ({
         </button>
 
         {/* Header */}
-        <div className="p-4 border-b border-gray-200">
+        <div className="border-b border-gray-200">
           <div className="flex items-center gap-3">
-            <div className={`w-full transition-opacity duration-200 ${isOpen ? 'opacity-100' : 'opacity-0'} overflow-hidden`}>
+            <div className={`w-full p-4 transition-opacity duration-200 ${isOpen ? 'opacity-100' : 'opacity-0'} overflow-hidden`}>
               <ProjectManager />
             </div>  
           </div>
-        </div>
-
-        {/* Stage Form */}
-        <div className={`flex-1 overflow-y-auto transition-opacity duration-200 ${isOpen ? 'opacity-100' : 'opacity-0'}`}>
-          {renderStageForm()}
-        </div>
-
-        {/* AI Assistant */}
-        <div className={`transition-opacity duration-200 ${isOpen ? 'opacity-100' : 'opacity-0'}`}>
-          <Accordion 
-            expanded={isChatAccordionExpanded}
-            onChange={(_, expanded) => setIsChatAccordionExpanded(expanded)}
-          >
-            <AccordionSummary
-              expandIcon={<ChevronDown size={20} />}
-              aria-controls="ai-assistant-content"
-              id="ai-assistant-header"
-              className="border-t border-gray-200"
+          
+          {/* Tab Navigation */}
+          <div className={`flex border-t border-gray-200 transition-opacity duration-200 ${isOpen ? 'opacity-100' : 'opacity-0'}`}>
+            <button
+              onClick={() => setActiveTab('stages')}
+              className={`flex items-center justify-center gap-2 flex-1 py-3 text-sm font-medium transition-colors ${
+                activeTab === 'stages' 
+                  ? 'text-blue-600 border-b-2 border-blue-600' 
+                  : 'text-gray-500 hover:text-gray-700'
+              }`}
             >
-              <div className="flex items-center gap-2">
-                <GiUnplugged className="w-5 h-5 text-teal-500" />
-                <Typography className="font-semibold text-gray-800 font-nova-round">Charg</Typography>
+              <GiFolder className="w-4 h-4" />
+              <span>Stages</span>
+            </button>
+            <button
+              onClick={() => setActiveTab('chat')}
+              className={`flex items-center justify-center gap-2 flex-1 py-3 text-sm font-medium transition-colors ${
+                activeTab === 'chat' 
+                  ? 'text-blue-600 border-b-2 border-blue-600' 
+                  : 'text-gray-500 hover:text-gray-700'
+              }`}
+            >
+              <GiUnplugged className="w-4 h-4" />
+              <span>Charg</span>
+            </button>
+          </div>
+        </div>
+
+        {/* Content based on active tab */}
+        <div className={`flex-1 flex flex-col overflow-hidden transition-opacity duration-200 ${isOpen ? 'opacity-100' : 'opacity-0'}`}>
+          {activeTab === 'stages' ? (
+            <>
+              {/* Stage Form */}
+              <div className="flex-1 overflow-y-auto">
+                {renderStageForm()}
               </div>
-            </AccordionSummary>
-            <AccordionDetails className="p-0">
-              <div className="flex flex-col max-h-[400px] bg-gray-25">
-                <ChatHistory
-                  messages={agentChat.historyMessages || []}
-                  currentResponse={
-                    agentChat.content || agentChat.isLoading
-                      ? {
-                          content: agentChat.content,
-                          isComplete: agentChat.isComplete,
-                          suggestions: agentChat.suggestions,
-                          isStreaming: agentChat.isStreaming,
-                          error: agentChat.error
-                        }
-                      : undefined
-                  }
-                  onSuggestionClick={handleSuggestionClick}
-                  onRetry={handleRetry}
-                />
+              
+              {/* Settings */}
+              <div className="border-t border-gray-200">
+                <div className="p-4 border-b border-gray-200">
+                  <Typography className="font-semibold text-gray-800">Settings</Typography>
+                </div>
+                <Settings />
+              </div>
+            </>
+          ) : (
+            <>
+              {/* Chat Interface */}
+              <div className="flex flex-col h-full">
+                <div className="flex-1 overflow-y-auto">
+                  <ChatHistory
+                    messages={agentChat.historyMessages || []}
+                    currentResponse={
+                      agentChat.content || agentChat.isLoading
+                        ? {
+                            content: agentChat.content,
+                            isComplete: agentChat.isComplete,
+                            suggestions: agentChat.suggestions,
+                            isStreaming: agentChat.isStreaming,
+                            error: agentChat.error
+                          }
+                        : undefined
+                    }
+                    onSuggestionClick={handleSuggestionClick}
+                    onRetry={handleRetry}
+                  />
+                </div>
                 <div className="border-t border-gray-100">
                   <ChatInterface
                     onSendMessage={handleSendMessage}
@@ -253,25 +267,8 @@ export const Sidebar: React.FC<SidebarProps> = ({
                   />
                 </div>
               </div>
-            </AccordionDetails>
-          </Accordion>
-        </div>
-
-        {/* Settings */}
-        <div className={`transition-opacity duration-200 ${isOpen ? 'opacity-100' : 'opacity-0'}`}>
-          <Accordion>
-            <AccordionSummary
-              expandIcon={<ChevronDown size={20} />}
-              aria-controls="settings-content"
-              id="settings-header"
-              className="border-t border-gray-200"
-            >
-              <Typography className="font-semibold text-gray-800">Settings</Typography>
-            </AccordionSummary>
-            <AccordionDetails className="p-0">
-              <Settings />
-            </AccordionDetails>
-          </Accordion>
+            </>
+          )}
         </div>
       </motion.div>
       
