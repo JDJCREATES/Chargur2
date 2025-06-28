@@ -10,7 +10,7 @@ const AppNameNode: React.FC<NodeProps> = ({
   isConnectable 
 }) => {
   const [isEditing, setIsEditing] = useState(false);
-  const [editValue, setEditValue] = useState(data.value);
+  const [editValue, setEditValue] = useState(data?.value || '');
   const [showHistory, setShowHistory] = useState(false);
   const inputRef = useRef<HTMLInputElement>(null);
 
@@ -22,15 +22,15 @@ const AppNameNode: React.FC<NodeProps> = ({
   }, [isEditing]);
 
   const handleDoubleClick = () => {
-    if (data.editable) {
+    if (data?.editable) {
       setIsEditing(true);
     }
   };
 
   const handleSave = () => {
-    if (editValue.trim() && editValue !== data.value) {
-      const newHistory = [...(data.nameHistory || []), data.value].filter(Boolean);
-      data.onNodeUpdate(id, { 
+    if (editValue.trim() && editValue !== data?.value) {
+      const newHistory = [...(data?.nameHistory || []), data?.value].filter(Boolean);
+      data?.onNodeUpdate?.(id, { 
         value: editValue.trim(),
         nameHistory: newHistory
       });
@@ -43,13 +43,13 @@ const AppNameNode: React.FC<NodeProps> = ({
       handleSave();
     }
     if (e.key === 'Escape') {
-      setEditValue(data.value);
+      setEditValue(data?.value || '');
       setIsEditing(false);
     }
   };
 
-  const displayValue = data.value || "Name your app...";
-  const isPlaceholder = !data.value;
+  const displayValue = data?.value || "Name your app...";
+  const isPlaceholder = !data?.value;
 
   return (
     <>
@@ -119,7 +119,7 @@ const AppNameNode: React.FC<NodeProps> = ({
           </div>
 
           {/* History Button */}
-          {data.nameHistory && data.nameHistory.length > 0 && (
+          {data?.nameHistory && data?.nameHistory.length > 0 && (
             <button
               onClick={(e) => {
                 e.stopPropagation();
@@ -133,7 +133,7 @@ const AppNameNode: React.FC<NodeProps> = ({
           )}
 
           {/* History Tooltip */}
-          {showHistory && data.nameHistory && (
+          {showHistory && data?.nameHistory && (
             <motion.div
               initial={{ opacity: 0, y: -10 }}
               animate={{ opacity: 1, y: 0 }}
@@ -141,10 +141,10 @@ const AppNameNode: React.FC<NodeProps> = ({
             >
               <h4 className="font-medium text-sm text-gray-800 mb-2">Name History</h4>
               <div className="space-y-1">
-                {data.nameHistory.map((name, index) => (
+                {data?.nameHistory?.map((name, index) => (
                   <div key={index} className="text-xs text-gray-600 p-1 hover:bg-gray-50 rounded cursor-pointer"
                        onClick={() => {
-                         data.onNodeUpdate(id, { value: name });
+                         data?.onNodeUpdate?.(id, { value: name });
                          setShowHistory(false);
                        }}>
                     {name}

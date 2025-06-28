@@ -10,12 +10,12 @@ const FeatureNode: React.FC<NodeProps> = ({
   isConnectable 
 }) => {
   const [isEditing, setIsEditing] = useState(false);
-  const [editName, setEditName] = useState(data.title || '');
-  const [editDescription, setEditDescription] = useState(data.content || '');
-  const [editPriority, setEditPriority] = useState(data.metadata?.priority || 'should');
-  const [editComplexity, setEditComplexity] = useState(data.metadata?.complexity || 'medium');
-  const [editCategory, setEditCategory] = useState(data.metadata?.category || 'both');
-  const [editSubFeatures, setEditSubFeatures] = useState<string[]>(data.subFeatures || []);
+  const [editName, setEditName] = useState(data?.title || '');
+  const [editDescription, setEditDescription] = useState(data?.content || '');
+  const [editPriority, setEditPriority] = useState(data?.metadata?.priority || 'should');
+  const [editComplexity, setEditComplexity] = useState(data?.metadata?.complexity || 'medium');
+  const [editCategory, setEditCategory] = useState(data?.metadata?.category || 'both');
+  const [editSubFeatures, setEditSubFeatures] = useState<string[]>(data?.subFeatures || []);
   const [newSubFeature, setNewSubFeature] = useState('');
   
   const nameInputRef = useRef<HTMLInputElement>(null);
@@ -32,7 +32,7 @@ const FeatureNode: React.FC<NodeProps> = ({
       title: editName.trim(),
       content: editDescription.trim(),
       metadata: {
-        ...data.metadata,
+        ...data?.metadata,
         priority: editPriority,
         complexity: editComplexity,
         category: editCategory
@@ -40,17 +40,17 @@ const FeatureNode: React.FC<NodeProps> = ({
       subFeatures: editSubFeatures.filter(sf => sf.trim() !== '')
     };
     
-    data.onNodeUpdate(id, updates);
+    data?.onNodeUpdate?.(id, updates);
     setIsEditing(false);
   };
 
   const handleCancel = () => {
-    setEditName(data.title || '');
-    setEditDescription(data.content || '');
-    setEditPriority(data.metadata?.priority || 'should');
-    setEditComplexity(data.metadata?.complexity || 'medium');
-    setEditCategory(data.metadata?.category || 'both');
-    setEditSubFeatures(data.subFeatures || []);
+    setEditName(data?.title || '');
+    setEditDescription(data?.content || '');
+    setEditPriority(data?.metadata?.priority || 'should');
+    setEditComplexity(data?.metadata?.complexity || 'medium');
+    setEditCategory(data?.metadata?.category || 'both');
+    setEditSubFeatures(data?.subFeatures || []);
     setIsEditing(false);
   };
 
@@ -75,7 +75,7 @@ const FeatureNode: React.FC<NodeProps> = ({
   const generateSubFeatures = () => {
     // This would call the AI to generate sub-features
     // For now, we'll use a simple algorithm based on the feature name
-    const featureName = data.title || '';
+    const featureName = data?.title || '';
     
     // Common feature breakdowns
     const commonBreakdowns: { [key: string]: string[] } = {
@@ -184,11 +184,11 @@ const FeatureNode: React.FC<NodeProps> = ({
 
   // Extract priority and complexity from node metadata or content
   const extractPriorityAndComplexity = () => {
-    let priority = data.metadata?.priority || 'should';
-    let complexity = data.metadata?.complexity || 'medium';
+    let priority = data?.metadata?.priority || 'should';
+    let complexity = data?.metadata?.complexity || 'medium';
     
     // If not in metadata, try to extract from content
-    if (data.content) {
+    if (data?.content) {
       const priorityMatch = data.content.match(/Priority:\s*(\w+)/i);
       const complexityMatch = data.content.match(/Complexity:\s*(\w+)/i);
       
@@ -210,7 +210,7 @@ const FeatureNode: React.FC<NodeProps> = ({
 
   // Get description from content
   const getDescription = () => {
-    if (!data.content) return '';
+    if (!data?.content) return '';
     
     // Remove priority and complexity lines
     return data.content
@@ -268,7 +268,7 @@ const FeatureNode: React.FC<NodeProps> = ({
               />
             ) : (
               <h3 className="font-medium text-sm text-blue-800 truncate">
-                {data.title || 'Feature'}
+                {data?.title || 'Feature'}
               </h3>
             )}
           </div>
@@ -277,7 +277,7 @@ const FeatureNode: React.FC<NodeProps> = ({
             <button
               onClick={(e) => {
                 e.stopPropagation();
-                data.onNodeDelete(id);
+                data?.onNodeDelete?.(id);
               }}
               className="p-1 hover:bg-red-100 rounded text-red-600"
               title="Delete feature"
@@ -288,7 +288,7 @@ const FeatureNode: React.FC<NodeProps> = ({
         </div>
 
         {/* Category display (when not editing) */}
-        {!isEditing && data.metadata?.category && (
+        {!isEditing && data?.metadata?.category && (
           <div className="px-3 pt-2 text-xs text-gray-500 italic">
             {data.metadata.category.charAt(0).toUpperCase() + data.metadata.category.slice(1)}
           </div>
@@ -384,7 +384,7 @@ const FeatureNode: React.FC<NodeProps> = ({
                 <div className={`text-xs px-2 py-0.5 rounded-full border ${complexityColor}`}>
                   {complexity.charAt(0).toUpperCase() + complexity.slice(1)} complexity
                 </div>
-                {data.metadata?.category && (
+                {data?.metadata?.category && (
                   <div className="text-xs px-2 py-0.5 rounded-full bg-gray-100 text-gray-700 border border-gray-200">
                     {data.metadata.category.charAt(0).toUpperCase() + data.metadata.category.slice(1)}
                   </div>
@@ -465,7 +465,7 @@ const FeatureNode: React.FC<NodeProps> = ({
               </div>
             ) : (
               <div className="space-y-1">
-                {data.subFeatures && data.subFeatures.length > 0 ? (
+                {data?.subFeatures && data.subFeatures.length > 0 ? (
                   data.subFeatures.map((subFeature, index) => (
                     <div key={index} className="flex items-start gap-2 text-xs text-blue-700">
                       <div className="w-2 h-2 rounded-full bg-blue-400 flex-shrink-0 mt-1.5"></div>
