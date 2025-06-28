@@ -46,7 +46,6 @@ interface Feature {
   complexity: 'low' | 'medium' | 'high';
   category: 'frontend' | 'backend' | 'both' | 'ai-assisted' | 'api-required';
   subFeatures: string[];
-  subFeatures: string[];
   dependencies: string[];
   estimatedEffort: number; // 1-10 scale
 }
@@ -84,7 +83,6 @@ export const FeaturePlanning: React.FC<FeaturePlanningProps> = ({
     ...(initialFormData || {})
   }));
 
-  const [draggedFeature, setDraggedFeature] = useState<string | null>(null);
 
   const updateFormData = (key: string, value: any) => {
     const updated = { ...formData, [key]: value };
@@ -188,7 +186,6 @@ export const FeaturePlanning: React.FC<FeaturePlanningProps> = ({
       priority: 'should',
       complexity: 'medium',
       category: 'frontend',
-      subFeatures: [],
       subFeatures: [],
       dependencies: [],
       estimatedEffort: 5,
@@ -479,146 +476,277 @@ ${formData.customFeatures.map((f: Feature) => `- ${f.name} (${f.priority}, ${f.c
             {/* Custom Features */}
             <div className="space-y-2">
               {formData.customFeatures.map((feature: Feature) => (
-                <div key={feature.id} className="bg-white border border-gray-200 rounded-lg p-3">
-                  <div className="flex items-center justify-between mb-2">
-                    <input
-                      type="text"
-                      value={feature.name}
-                      onChange={(e) => updateFeature(feature.id, { name: e.target.value })}
-                      className="font-medium text-sm bg-transparent border-none focus:outline-none focus:ring-1 focus:ring-blue-500 rounded px-1"
-                    />
-                    <button
-                      onClick={() => removeFeature(feature.id)}
-                      className="p-1 text-red-600 hover:bg-red-50 rounded"
-                    >
-                      <Trash2 className="w-3 h-3" />
-                    </button>
-                  </div>
-                  
-                  <textarea
-                    value={feature.description}
-                    onChange={(e) => updateFeature(feature.id, { description: e.target.value })}
-                    placeholder="Describe this feature..."
-                    rows={2}
-                    className="w-full p-2 text-xs border border-gray-200 rounded focus:outline-none focus:ring-1 focus:ring-blue-500 mb-2"
-                  />
 
-                  <div className="grid grid-cols-3 gap-2 text-xs">
-                    <div>
-                      <label className="block font-medium text-gray-700 mb-1">Type</label>
-                      <select
-                        value={feature.type}
-                        onChange={(e) => updateFeature(feature.id, { type: e.target.value as Feature['type'] })}
-                        className="w-full px-2 py-1 border border-gray-200 rounded focus:outline-none focus:ring-1 focus:ring-blue-500"
-                      >
-                        <option value="core">Core</option>
-                        <option value="admin">Admin</option>
-                        <option value="user">User</option>
-                        <option value="optional">Optional</option>
-                        <option value="stretch">Stretch</option>
-                      </select>
-                    </div>
-                    <div>
-                      <label className="block font-medium text-gray-700 mb-1">Category</label>
-                      <select
-                        value={feature.category}
-                        onChange={(e) => updateFeature(feature.id, { category: e.target.value as Feature['category'] })}
-                        className="w-full px-2 py-1 border border-gray-200 rounded focus:outline-none focus:ring-1 focus:ring-blue-500"
-                      >
-                        <option value="frontend">Frontend</option>
-                        <option value="backend">Backend</option>
-                        <option value="both">Both</option>
-                        <option value="ai-assisted">AI-Assisted</option>
-                        <option value="api-required">API Required</option>
-                      </select>
-                    </div>
-                    <div>
-                      <label className="block font-medium text-gray-700 mb-1">Complexity</label>
-                      <select
-                        value={feature.complexity}
-                        onChange={(e) => updateFeature(feature.id, { complexity: e.target.value as Feature['complexity'] })}
-                        className="w-full px-2 py-1 border border-gray-200 rounded focus:outline-none focus:ring-1 focus:ring-blue-500"
-                      >
-                        <option value="low">Low</option>
-                        <option value="medium">Medium</option>
-                        <option value="high">High</option>
-                      </select>
-                    </div>
-                  </div>
-                </div>
-                
-                {/* Feature Breakdown */}
-                <div className="mt-3 pt-3 border-t border-gray-200">
-                  <div className="flex items-center justify-between mb-2">
-                    <label className="block font-medium text-gray-700 text-xs">Feature Breakdown</label>
-                    <button
-                      onClick={() => {
-                        const breakdown = generateAIFeatureBreakdown(feature.name);
-                        updateFeature(feature.id, { subFeatures: breakdown });
-                      }}
-                      className="flex items-center gap-1 px-2 py-1 text-xs bg-blue-600 text-white rounded-md hover:bg-blue-700"
-                    >
-                      <Sparkles className="w-3 h-3" />
-                      Auto-Generate
-                    </button>
-                  </div>
-                  
-                  <div className="space-y-1">
-                    {feature.subFeatures && feature.subFeatures.map((subFeature, subIndex) => (
-                      <div key={subIndex} className="flex items-center gap-2">
-                        <div className="w-2 h-2 rounded-full bg-blue-400"></div>
-                        <input
-                          type="text"
-                          value={subFeature}
-                          onChange={(e) => {
-                            const newSubFeatures = [...feature.subFeatures];
-                            newSubFeatures[subIndex] = e.target.value;
-                            updateFeature(feature.id, { subFeatures: newSubFeatures });
-                          }}
-                          className="flex-1 text-xs bg-white border border-gray-200 rounded px-2 py-1 focus:outline-none focus:ring-1 focus:ring-blue-500"
-                        />
-                        <button
-                          onClick={() => {
-                            const newSubFeatures = feature.subFeatures.filter((_, i) => i !== subIndex);
-                            updateFeature(feature.id, { subFeatures: newSubFeatures });
-                          }}
-                          className="p-1 text-red-500 hover:bg-red-50 rounded"
-                        >
-                          <Trash2 className="w-3 h-3" />
-                        </button>
-                      </div>
-                    ))}
-                    
-                    <div className="flex items-center gap-2">
-                      <div className="w-2 h-2 rounded-full bg-blue-300"></div>
+
+
+
+
+
+
+                <React.Fragment key={feature.id}>
+                  <div className="bg-white border border-gray-200 rounded-lg p-3">
+                    <div className="flex items-center justify-between mb-2">
                       <input
                         type="text"
-                        placeholder="Add sub-feature..."
-                        className="flex-1 text-xs bg-white border border-gray-200 rounded px-2 py-1 focus:outline-none focus:ring-1 focus:ring-blue-500"
-                        onKeyDown={(e) => {
-                          if (e.key === 'Enter' && e.currentTarget.value.trim()) {
-                            const newSubFeatures = [...(feature.subFeatures || []), e.currentTarget.value.trim()];
-                            updateFeature(feature.id, { subFeatures: newSubFeatures });
-                            e.currentTarget.value = '';
-                          }
-                        }}
+                        value={feature.name}
+                        onChange={(e) => updateFeature(feature.id, { name: e.target.value })}
+                        className="font-medium text-sm bg-transparent border-none focus:outline-none focus:ring-1 focus:ring-blue-500 rounded px-1"
                       />
                       <button
-                        onClick={(e) => {
-                          const input = e.currentTarget.previousSibling as HTMLInputElement;
-                          if (input.value.trim()) {
-                            const newSubFeatures = [...(feature.subFeatures || []), input.value.trim()];
-                            updateFeature(feature.id, { subFeatures: newSubFeatures });
-                            input.value = '';
-                          }
-                        }}
-                        className="p-1 text-blue-600 hover:bg-blue-50 rounded"
+                        onClick={() => removeFeature(feature.id)}
+                        className="p-1 text-red-600 hover:bg-red-50 rounded"
                       >
-                        <Plus className="w-3 h-3" />
+                        <Trash2 className="w-3 h-3" />
                       </button>
                     </div>
+                    
+                    <textarea
+                      value={feature.description}
+                      onChange={(e) => updateFeature(feature.id, { description: e.target.value })}
+                      placeholder="Describe this feature..."
+                      rows={2}
+                      className="w-full p-2 text-xs border border-gray-200 rounded focus:outline-none focus:ring-1 focus:ring-blue-500 mb-2"
+                    />
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+                    <div className="grid grid-cols-3 gap-2 text-xs">
+                      <div>
+                        <label className="block font-medium text-gray-700 mb-1">Type</label>
+                        <select
+                          value={feature.type}
+                          onChange={(e) => updateFeature(feature.id, { type: e.target.value as Feature['type'] })}
+                          className="w-full px-2 py-1 border border-gray-200 rounded focus:outline-none focus:ring-1 focus:ring-blue-500"
+                        >
+                          <option value="core">Core</option>
+                          <option value="admin">Admin</option>
+                          <option value="user">User</option>
+                          <option value="optional">Optional</option>
+                          <option value="stretch">Stretch</option>
+                        </select>
+                      </div>
+                      <div>
+                        <label className="block font-medium text-gray-700 mb-1">Category</label>
+                        <select
+                          value={feature.category}
+                          onChange={(e) => updateFeature(feature.id, { category: e.target.value as Feature['category'] })}
+                          className="w-full px-2 py-1 border border-gray-200 rounded focus:outline-none focus:ring-1 focus:ring-blue-500"
+                        >
+                          <option value="frontend">Frontend</option>
+                          <option value="backend">Backend</option>
+                          <option value="both">Both</option>
+                          <option value="ai-assisted">AI-Assisted</option>
+                          <option value="api-required">API Required</option>
+                        </select>
+                      </div>
+                      <div>
+                        <label className="block font-medium text-gray-700 mb-1">Complexity</label>
+                        <select
+                          value={feature.complexity}
+                          onChange={(e) => updateFeature(feature.id, { complexity: e.target.value as Feature['complexity'] })}
+                          className="w-full px-2 py-1 border border-gray-200 rounded focus:outline-none focus:ring-1 focus:ring-blue-500"
+                        >
+                          <option value="low">Low</option>
+                          <option value="medium">Medium</option>
+                          <option value="high">High</option>
+                        </select>
+                      </div>
+                    </div>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+                    {/* Feature Breakdown - moved inside the main feature div */}
+                    <div className="mt-3 pt-3 border-t border-gray-200">
+                      <div className="flex items-center justify-between mb-2">
+                        <label className="block font-medium text-gray-700 text-xs">Feature Breakdown</label>
+                        <button
+                          onClick={() => {
+
+
+                            const breakdown = generateAIFeatureBreakdown(feature.name);
+                            updateFeature(feature.id, { subFeatures: breakdown });
+                          }}
+
+                          className="flex items-center gap-1 px-2 py-1 text-xs bg-blue-600 text-white rounded-md hover:bg-blue-700"
+                        >
+
+                          <Sparkles className="w-3 h-3" />
+                          Auto-Generate
+                        </button>
+                      </div>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+                      
+                      <div className="space-y-1">
+                        {feature.subFeatures && feature.subFeatures.map((subFeature, subIndex) => (
+                          <div key={subIndex} className="flex items-center gap-2">
+                            <div className="w-2 h-2 rounded-full bg-blue-400"></div>
+                            <input
+                              type="text"
+                              value={subFeature}
+                              onChange={(e) => {
+                                const newSubFeatures = [...feature.subFeatures];
+                                newSubFeatures[subIndex] = e.target.value;
+                                updateFeature(feature.id, { subFeatures: newSubFeatures });
+                              }}
+                              className="flex-1 text-xs bg-white border border-gray-200 rounded px-2 py-1 focus:outline-none focus:ring-1 focus:ring-blue-500"
+                            />
+                            <button
+                              onClick={() => {
+                                const newSubFeatures = feature.subFeatures.filter((_, i) => i !== subIndex);
+                                updateFeature(feature.id, { subFeatures: newSubFeatures });
+                              }}
+                              className="p-1 text-red-500 hover:bg-red-50 rounded"
+                            >
+                              <Trash2 className="w-3 h-3" />
+                            </button>
+                          </div>
+                        ))}
+                        
+                        <div className="flex items-center gap-2">
+                          <div className="w-2 h-2 rounded-full bg-blue-300"></div>
+                          <input
+                            type="text"
+                            placeholder="Add sub-feature..."
+                            className="flex-1 text-xs bg-white border border-gray-200 rounded px-2 py-1 focus:outline-none focus:ring-1 focus:ring-blue-500"
+                            onKeyDown={(e) => {
+                              if (e.key === 'Enter' && e.currentTarget.value.trim()) {
+                                const newSubFeatures = [...(feature.subFeatures || []), e.currentTarget.value.trim()];
+                                updateFeature(feature.id, { subFeatures: newSubFeatures });
+                                e.currentTarget.value = '';
+                              }
+                            }}
+                          />
+                          <button
+                            onClick={(e) => {
+                              const input = e.currentTarget.previousSibling as HTMLInputElement;
+                              if (input.value.trim()) {
+                                const newSubFeatures = [...(feature.subFeatures || []), input.value.trim()];
+                                updateFeature(feature.id, { subFeatures: newSubFeatures });
+                                input.value = '';
+                              }
+                            }}
+                            className="p-1 text-blue-600 hover:bg-blue-50 rounded"
+                          >
+                            <Plus className="w-3 h-3" />
+                          </button>
+                        </div>
+                      </div>
+                    </div>
                   </div>
-                </div>
+
+                </React.Fragment>
               ))}
             </div>
           </div>
