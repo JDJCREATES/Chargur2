@@ -317,11 +317,7 @@ const [selectedPersonas, setSelectedPersonas] = useState<string[]>(() => {
   };
 
   return (
-    <div className="p-4 space-y-2">
-      <div className="mb-4">
-        <h3 className="text-lg font-semibold text-gray-800 mb-2">Ideation & Discovery</h3>
-        <p className="text-sm text-gray-600">Let's understand your vision and build the foundation</p>
-      </div>
+    <div className="p-2 space-y-2">
 
       {/* 1.1 App Idea Overview */}
       <Accordion>
