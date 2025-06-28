@@ -14,8 +14,8 @@ export const STAGE2_NODE_TYPES = {
 // Default node configurations
 export const STAGE2_NODE_DEFAULTS = {
   'feature': {
-    size: { width: 280, height: 160 },
-    position: { x: 400, y: 350 },
+    size: { width: 350, height: 160 },
+    position: { x: 200, y: 350 },
     editable: true,
   },
 };
