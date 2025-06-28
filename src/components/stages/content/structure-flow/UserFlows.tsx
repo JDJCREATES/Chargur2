@@ -27,7 +27,7 @@ export const UserFlows: React.FC<UserFlowsProps> = ({
       {userFlows.map((flow: UserFlow) => (
         <div key={flow.id} className="p-3 bg-purple-50 rounded-lg">
           <h4 className="font-medium text-sm text-purple-800 mb-2">{flow.name}</h4>
-          <div className="flex items-center gap-2 text-xs">
+          <div className="flex items-center gap-2 text-xs flex-wrap max-h-48 overflow-y-auto">
             {flow.steps.map((step: string, index: number) => (
               <React.Fragment key={index}>
                 <span className="px-2 py-1 bg-white rounded text-purple-700">{step}</span>

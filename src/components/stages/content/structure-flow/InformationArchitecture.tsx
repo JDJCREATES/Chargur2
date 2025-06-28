@@ -33,7 +33,7 @@ export const InformationArchitecture: React.FC<InformationArchitectureProps> = (
             Add Screen
           </button>
         </div>
-        <div className="space-y-2">
+        <div className="space-y-2 max-h-48 overflow-y-auto pr-2">
           {screens.map((s: Screen) => (
             <div key={s.id} className="flex items-center gap-2 p-2 bg-gray-50 rounded-md">
               <input
@@ -74,7 +74,7 @@ export const InformationArchitecture: React.FC<InformationArchitectureProps> = (
             Add Model
           </button>
         </div>
-        <div className="space-y-2">
+        <div className="space-y-2 max-h-48 overflow-y-auto pr-2">
           {dataModels.map((model: DataModel) => (
             <div key={model.id} className="p-2 bg-green-50 rounded-md">
               <div className="flex items-center gap-2 mb-1">

@@ -3,11 +3,9 @@ import { motion } from 'framer-motion';
 import { 
   Layers,
   Workflow,
-  Component,
   FolderTree,
   GitBranch,
   CheckCircle,
-  Code,
 } from 'lucide-react';
 import { Accordion, AccordionSummary, AccordionDetails, Typography } from '@mui/material';
 import { ChevronDown } from 'lucide-react';
@@ -15,7 +13,6 @@ import { Stage } from '../../../types';
 import { FormData, Screen, DataModel, UserFlow, Component as UIComponent } from './structure-flow/types';
 import { InformationArchitecture } from './structure-flow/InformationArchitecture';
 import { UserFlows } from './structure-flow/UserFlows';
-import { ModularUIComposition } from './structure-flow/ModularUIComposition';
 import { ProjectFileStructure } from './structure-flow/ProjectFileStructure';
 import { StateDataFlow } from './structure-flow/StateDataFlow';
 import { StructureSummary } from './structure-flow/StructureSummary';
@@ -168,22 +165,6 @@ export const StructureFlow: React.FC<StructureFlowProps> = ({
           <UserFlows
             userFlows={formData.userFlows}
             onAddUserFlow={addUserFlow}
-          />
-        </AccordionDetails>
-      </Accordion>
-
-      {/* 2.4 Modular UI Composition */}
-      <Accordion>
-        <AccordionSummary expandIcon={<ChevronDown size={16} />}>
-          <div className="flex items-center gap-2">
-            <Code className="w-4 h-4 text-teal-600" />
-            <Typography className="font-medium text-sm">Modular UI Composition</Typography>
-          </div>
-        </AccordionSummary>
-        <AccordionDetails>
-          <ModularUIComposition
-            components={formData.components}
-            onAddComponent={addComponent}
           />
         </AccordionDetails>
       </Accordion>
