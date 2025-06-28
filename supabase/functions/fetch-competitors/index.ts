@@ -258,6 +258,9 @@ Focus on companies that are currently active and have recent web presence. Inclu
       }
       
       const content = message.content;
+      if (!content) {
+        throw new Error("No content returned from OpenAI API response");
+      }
       console.log(`📄 Processing competitor analysis from web search results`);
       
       // Parse and validate the response
