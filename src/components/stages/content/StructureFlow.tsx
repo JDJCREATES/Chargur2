@@ -7,6 +7,7 @@ import {
   FolderTree,
   GitBranch,
   CheckCircle,
+  Code,
 } from 'lucide-react';
 import { Accordion, AccordionSummary, AccordionDetails, Typography } from '@mui/material';
 import { ChevronDown } from 'lucide-react';
