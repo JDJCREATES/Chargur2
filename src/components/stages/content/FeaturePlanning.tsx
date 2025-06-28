@@ -41,13 +41,6 @@ interface FeaturePlanningProps {
   onUpdateData: (data: any) => void;
 }
 
-interface FeatureDependency {
-  id: string;
-  featureId: string;
-  dependsOn: string;
-  type: 'requires' | 'enhances' | 'conflicts';
-}
-
 interface Feature {
   id: string;
   name: string;
@@ -57,7 +50,7 @@ interface Feature {
   complexity: 'low' | 'medium' | 'high';
   category: 'frontend' | 'backend' | 'both' | 'ai-assisted' | 'api-required';
   subFeatures: string[];
-  dependencies: FeatureDependency[];
+  dependencies: Dependency[];
   estimatedEffort: number;
 }
 
@@ -119,37 +112,6 @@ export const FeaturePlanning: React.FC<FeaturePlanningProps> = ({
   // Update dependency map when features change
   useEffect(() => {
     const newDependencyMap: Record<string, string[]> = {};
-    
-    // Process AI-generated dependencies if they exist
-    if (initialFormData?.customFeatures) {
-      const features = initialFormData.customFeatures;
-      
-      // Check if any features have AI-generated dependencies
-      features.forEach((feature: Feature) => {
-        if (feature.dependencies && Array.isArray(feature.dependencies)) {
-          // Ensure dependencies have proper structure
-          const validDependencies = feature.dependencies.map((dep: any) => {
-            // If it's already in the correct format, keep it
-            if (dep.id && dep.featureId && dep.dependsOn && dep.type) {
-              return dep;
-            }
-            
-            // Otherwise, convert to proper format
-            return {
-              id: dep.id || `dep-${Date.now()}-${Math.random().toString(36).substr(2, 5)}`,
-              featureId: feature.id,
-              dependsOn: dep.dependsOn || dep.targetId || dep.target || '',
-              type: dep.type || 'requires'
-            };
-          }).filter((dep: FeatureDependency) => dep.dependsOn);
-          
-          // Update the feature with valid dependencies
-          if (validDependencies.length > 0) {
-            updateFeature(feature.id, { dependencies: validDependencies });
-          }
-        }
-      });
-    }
     
     // Add feature packs
     formData.selectedFeaturePacks.forEach((packId: string) => {
@@ -354,7 +316,7 @@ export const FeaturePlanning: React.FC<FeaturePlanningProps> = ({
       complexity: "medium",
       category: "frontend",
       subFeatures: [],
-      dependencies: [],
+      dependencies: [] as Dependency[],
       estimatedEffort: 5,
     };
     updateFormData("customFeatures", [...formData.customFeatures, newFeature]);
@@ -427,40 +389,6 @@ export const FeaturePlanning: React.FC<FeaturePlanningProps> = ({
     });
     
     updateFormData("customFeatures", updatedFeaturesWithCleanDependencies);
-  };
-
-  const addDependency = (featureId: string, dependsOn: string, type: 'requires' | 'enhances' | 'conflicts') => {
-    const updatedFeatures = formData.customFeatures.map((f: Feature) => {
-      if (f.id === featureId) {
-        const newDependency: FeatureDependency = {
-          id: `dep-${Date.now()}`,
-          featureId,
-          dependsOn,
-          type
-        };
-        return {
-          ...f,
-          dependencies: [...(f.dependencies || []), newDependency]
-        };
-      }
-      return f;
-    });
-    
-    updateFormData('customFeatures', updatedFeatures);
-  };
-
-  const removeDependency = (featureId: string, dependencyId: string) => {
-    const updatedFeatures = formData.customFeatures.map((f: Feature) => {
-      if (f.id === featureId) {
-        return {
-          ...f,
-          dependencies: f.dependencies.filter(d => d.id !== dependencyId)
-        };
-      }
-      return f;
-    });
-    
-    updateFormData('customFeatures', updatedFeatures);
   };
 
   const generateAIFeatureBreakdown = (featureName: string) => {
@@ -742,8 +670,6 @@ export const FeaturePlanning: React.FC<FeaturePlanningProps> = ({
     const mustHaveFeatures = formData.customFeatures.filter(
       (f: Feature) => f.priority === "must"
     ).length;
-    const totalDependencies = formData.customFeatures.reduce((acc: number, feature: Feature) => 
-      acc + (feature.dependencies?.length || 0), 0);
 
     return `
 **Feature Planning Summary**
@@ -767,7 +693,6 @@ ${formData.customFeatures
   .join("\n")}
 **Total Features:** ${totalFeatures}
 **MVP Features:** ${mustHaveFeatures}
-**Feature Dependencies:** ${totalDependencies}
 **AI Enhancements:** ${formData.aiEnhancements.length}
 
 **Architecture Prep:**
@@ -1184,7 +1109,7 @@ ${formData.customFeatures
       </Accordion>
 
       {/* 2.4 Dependency Mapping */}
-      <Accordion defaultExpanded>
+      <Accordion>
         <AccordionSummary expandIcon={<ChevronDown size={16} />}>
           <div className="flex items-center gap-2">
             <GitBranch className="w-4 h-4 text-purple-600" />
@@ -1192,139 +1117,43 @@ ${formData.customFeatures
               Dependency Mapping
             </Typography>
           </div>
-          <div className="space-y-4">
-            <p className="text-sm text-gray-600">Define dependencies between features to visualize relationships</p>
-            
-            {formData.customFeatures.length < 2 ? (
-              <div className="bg-purple-50 rounded-lg p-4 text-center">
-                <h4 className="font-medium text-sm text-purple-800 mb-2">Add at least two features</h4>
-                <p className="text-xs text-purple-600">
-                  You need at least two features to create dependencies between them.
-                </p>
-              </div>
-            ) : (
+        </AccordionSummary>
+        <AccordionDetails>
+          <div className="space-y-3">
+            <p className="text-sm text-gray-600">
+              Hierarchical view of features and their dependencies
+            </p>
+
+            {/* Feature Tree */}
+            <div className="bg-white border border-purple-200 rounded-lg p-3" style={{ maxHeight: '300px', overflowY: 'auto' }}>
+              <h4 className="font-medium text-sm text-purple-800 mb-3">Feature Hierarchy</h4>
               <div className="space-y-3">
-                {/* Feature Dependencies */}
-                {formData.customFeatures.map((feature: Feature) => (
-                  <div key={feature.id} className="bg-purple-50 rounded-lg p-3">
-                    <h4 className="font-medium text-sm text-purple-800 mb-2">{feature.name}</h4>
-                    
-                    {/* Existing Dependencies */}
-                    {feature.dependencies && feature.dependencies.length > 0 ? (
-                      <div className="space-y-2 mb-3">
-                        {feature.dependencies.map((dependency: FeatureDependency) => {
-                          const dependsOnFeature = formData.customFeatures.find((f: Feature) => f.id === dependency.dependsOn);
-                          if (!dependsOnFeature) return null;
-                          
-                          return (
-                            <div key={dependency.id} className="flex items-center justify-between p-2 bg-white rounded border border-purple-200">
-                              <div className="flex items-center gap-2">
-                                <ArrowUpDown className="w-3 h-3 text-purple-600" />
-                                <span className="text-xs text-purple-700">
-                                  <span className="font-medium">{dependency.type}</span>
-                                  {' '}{dependsOnFeature.name}
-                                </span>
-                              </div>
-                              <button
-                                onClick={() => removeDependency(feature.id, dependency.id)}
-                                className="p-1 text-red-500 hover:bg-red-50 rounded"
-                              >
-                                <X className="w-3 h-3" />
-                              </button>
-                            </div>
-                          );
-                        })}
+                {/* Feature Packs */}
+                {formData.selectedFeaturePacks.map((packId: string) => {
+                  const pack = featurePacks.find(p => p.id === packId);
+                  if (!pack) return null;
+                  
+                  return (
+                    <div key={packId} className="space-y-2">
+                      <div className="flex items-center gap-2 p-2 bg-blue-50 rounded-md">
+                        <Package className="w-4 h-4 text-blue-600" />
+                        <span className="font-medium text-sm text-blue-800">{pack.name}</span>
+                        <span className="text-xs text-blue-600 bg-blue-100 px-2 py-1 rounded">
+                          {pack.features.length} features
+                        </span>
                       </div>
-                    ) : (
-                      <div className="text-xs text-purple-500 italic mb-3">No dependencies defined</div>
-                    )}
-                    
-                    {/* Add New Dependency */}
-                    <div className="flex items-center gap-2">
-                      <select
-                        className="flex-1 text-xs bg-white border border-purple-200 rounded px-2 py-1 focus:outline-none focus:ring-1 focus:ring-purple-500"
-                        defaultValue=""
-                        onChange={(e) => {
-                          const [dependsOn, type] = e.target.value.split('|');
-                          if (dependsOn && type) {
-                            addDependency(feature.id, dependsOn, type as 'requires' | 'enhances' | 'conflicts');
-                            e.target.value = ""; // Reset select after adding
-                          }
-                        }}
-                      >
-                        <option value="" disabled>Add dependency...</option>
-                        <optgroup label="Requires">
-                          {formData.customFeatures
-                            .filter((f: Feature) => f.id !== feature.id)
-                            .map((f: Feature) => (
-                              <option key={`req-${f.id}`} value={`${f.id}|requires`}>
-                                Requires: {f.name}
-                              </option>
-                            ))}
-                        </optgroup>
-                        <optgroup label="Enhances">
-                          {formData.customFeatures
-                            .filter((f: Feature) => f.id !== feature.id)
-                            .map((f: Feature) => (
-                              <option key={`enh-${f.id}`} value={`${f.id}|enhances`}>
-                                Enhances: {f.name}
-                              </option>
-                            ))}
-                        </optgroup>
-                        <optgroup label="Conflicts">
-                          {formData.customFeatures
-                            .filter((f: Feature) => f.id !== feature.id)
-                            .map((f: Feature) => (
-                              <option key={`con-${f.id}`} value={`${f.id}|conflicts`}>
-                                Conflicts: {f.name}
-                              </option>
-                            ))}
-                        </optgroup>
-                      </select>
+                      <div className="ml-6 space-y-1">
+                        {pack.features.map((feature: string, index: number) => (
+                          <div key={index} className="flex items-center gap-2 text-xs text-gray-600">
+                            <div className="w-2 h-2 rounded-full bg-blue-400"></div>
+                            <span>{feature}</span>
+                          </div>
+                        ))}
+                      </div>
                     </div>
-                  </div>
-                ))}
-                
-                {/* Dependency Legend */}
-                <div className="bg-white border border-purple-200 rounded-lg p-3">
-                  <h4 className="font-medium text-xs text-purple-800 mb-2">Dependency Types</h4>
-                  <div className="space-y-1 text-xs">
-                    <div className="flex items-center gap-2">
-                      <div className="w-2 h-2 rounded-full bg-green-500"></div>
-                      <span className="text-gray-700"><b>Requires</b>: Feature A cannot function without Feature B</span>
-                    </div>
-                    <div className="flex items-center gap-2">
-                      <div className="w-2 h-2 rounded-full bg-blue-500"></div>
-                      <span className="text-gray-700"><b>Enhances</b>: Feature A works better with Feature B but isn't required</span>
-                    </div>
-                    <div className="flex items-center gap-2">
-                      <div className="w-2 h-2 rounded-full bg-red-500"></div>
-                      <span className="text-gray-700"><b>Conflicts</b>: Feature A has issues when Feature B is present</span>
-                    </div>
-                  </div>
-                </div>
-                
-                {/* AI-Generated Dependency Warnings */}
-                {formData.customFeatures.some((f: Feature) => 
-                  f.name.toLowerCase().includes('social') && 
-                  !formData.customFeatures.some((other: Feature) => 
-                    other.name.toLowerCase().includes('auth') || 
-                    other.name.toLowerCase().includes('user')
-                  )
-                ) && (
-                  <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-3">
-                    <div className="flex items-center gap-2 mb-2">
-                      <Target className="w-4 h-4 text-yellow-600" />
-                      <h4 className="font-medium text-sm text-yellow-800">Dependency Warnings</h4>
-                    </div>
-                    <ul className="text-xs text-yellow-700 space-y-1">
-                      <li>• Missing User Authentication for Social Features</li>
-                    </ul>
-                  </div>
-                )}
-              </div>
-            )}
-          </div>
+                  );
+                })}
+
                 {/* Custom Features */}
                 {formData.customFeatures.map((feature: Feature) => {
                   const priorityColors = {
