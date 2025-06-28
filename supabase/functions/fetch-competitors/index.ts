@@ -309,7 +309,7 @@ function extractAndValidateCompetitors(content: string, maxResults: number): Com
     // Validate and clean up each competitor
     const validatedCompetitors: Competitor[] = [];
     
-    for (let index = 0; index < Math.min(parsed.length, maxResults); index++) {
+    for (let index = 0; index < Math.min(parsed.length || 0, maxResults); index++) {
       const competitor: unknown = parsed[index];
       
       // Type guard to ensure competitor is an object
@@ -329,22 +329,22 @@ function extractAndValidateCompetitors(content: string, maxResults: number): Com
       // Create a properly typed competitor object
       const validCompetitor: Competitor = {
         name: String(rawCompetitor.name).trim(),
-        domain: extractDomain(rawCompetitor.link || rawCompetitor.domain || ''),
-        link: String(rawCompetitor.link || '').trim(),
-        tagline: String(rawCompetitor.tagline || '').trim(),
+        domain: extractDomain((rawCompetitor.link ?? rawCompetitor.domain ?? '')),
+        link: String(rawCompetitor.link ?? '').trim(),
+        tagline: String(rawCompetitor.tagline ?? '').trim(),
         features: Array.isArray(rawCompetitor.features) ? 
-          rawCompetitor.features.map((f: unknown) => String(f).trim()).filter(Boolean).slice(0, 5) : [],
+          rawCompetitor.features.map((f: unknown) => (f ?? '').toString().trim()).filter(Boolean).slice(0, 5) : [],
         pricingTiers: Array.isArray(rawCompetitor.pricingTiers) ? 
-          rawCompetitor.pricingTiers.map((p: unknown) => String(p).trim()).filter(Boolean) : 
+          rawCompetitor.pricingTiers.map((p: unknown) => (p ?? '').toString().trim()).filter(Boolean) : 
           (Array.isArray(rawCompetitor.pricing) ? 
-            rawCompetitor.pricing.map((p: unknown) => String(p).trim()).filter(Boolean) : []),
+            rawCompetitor.pricing.map((p: unknown) => (p ?? '').toString().trim()).filter(Boolean) : []),
         marketPositioning: validateMarketPositioning(rawCompetitor.marketPositioning || rawCompetitor.market_positioning),
         strengths: Array.isArray(rawCompetitor.strengths) ? 
-          rawCompetitor.strengths.map((s: unknown) => String(s).trim()).filter(Boolean).slice(0, 3) : [],
+          rawCompetitor.strengths.map((s: unknown) => (s ?? '').toString().trim()).filter(Boolean).slice(0, 3) : [],
         weaknesses: Array.isArray(rawCompetitor.weaknesses) ? 
-          rawCompetitor.weaknesses.map((w: unknown) => String(w).trim()).filter(Boolean).slice(0, 3) : [],
-        notes: String(rawCompetitor.notes || '').trim(),
-        sourceUrl: String(rawCompetitor.sourceUrl || rawCompetitor.link || '').trim()
+          rawCompetitor.weaknesses.map((w: unknown) => (w ?? '').toString().trim()).filter(Boolean).slice(0, 3) : [],
+        notes: String(rawCompetitor.notes ?? '').trim(),
+        sourceUrl: String(rawCompetitor.sourceUrl ?? rawCompetitor.link ?? '').trim()
       };
       
       validatedCompetitors.push(validCompetitor);
