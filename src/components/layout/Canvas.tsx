@@ -7,6 +7,7 @@
 
 import React, { useState } from 'react';
 import { motion } from 'framer-motion';
+import { ReactFlowProvider } from 'reactflow';
 import { Stage, StageData, Connection } from '../../types';
 import { SpatialCanvas } from '../canvas/SpatialCanvas';
 import { Node, Edge } from 'reactflow';
@@ -118,16 +119,18 @@ export const Canvas: React.FC<CanvasProps> = ({
           transition={{ delay: 0.3, duration: 0.4 }}
           className="flex-1 min-h-0 bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden"
         >
-          <SpatialCanvas
-            currentStage={currentStage}
-            stageData={stageData}
-            projectId={projectId}
-            canvasNodes={effectiveCanvasNodes}
-            canvasConnections={effectiveCanvasConnections}
-            onUpdateCanvasNodes={onUpdateCanvasNodes}
-            onUpdateCanvasConnections={onUpdateCanvasConnections}
-            onSendMessage={agentChat.sendMessage}
-          />
+          <ReactFlowProvider>
+            <SpatialCanvas
+              currentStage={currentStage}
+              stageData={stageData}
+              projectId={projectId}
+              canvasNodes={effectiveCanvasNodes}
+              canvasConnections={effectiveCanvasConnections}
+              onUpdateCanvasNodes={onUpdateCanvasNodes}
+              onUpdateCanvasConnections={onUpdateCanvasConnections}
+              onSendMessage={agentChat.sendMessage}
+            />
+          </ReactFlowProvider>
         </motion.div>
 
         {/* User Chat Input Overlay */}
