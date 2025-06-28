@@ -129,6 +129,16 @@ Provide comprehensive autoFillData with:
 - Clear MVP vs. future version recommendations
 - Technical implementation insights
 
+STAGE COMPLETION CRITERIA:
+When user indicates they want to finish/complete the stage OR when they have features but missing other data:
+1. IMMEDIATELY auto-generate ALL missing data
+2. Infer dependencies for ALL custom features
+3. Generate complete architecture prep (screens, API routes, components)
+4. Classify all features by type
+5. Create MVP vs future feature recommendations
+6. Mark stageComplete: true
+7. Provide comprehensive autoFillData
+
 STAGE COMPLETION:
 Mark complete when you've provided a comprehensive feature plan with accurate dependencies, or when user indicates satisfaction or wants to proceed. The content field must only contain natural language text and never raw data or JSON!`;
 
@@ -138,6 +148,14 @@ CONTEXT ANALYSIS:
 App Idea: "${ideationData.appIdea}"
 Target Users: "${ideationData.targetUsers}"
 Problem: "${ideationData.problemStatement}"
+
+COMPLETION DETECTION:
+If the user is asking to finish/complete the stage, or if they have features selected but missing dependencies/architecture data, you must:
+1. AUTO-GENERATE all missing autoFillData immediately
+2. Infer complete dependencies for every custom feature
+3. Generate full architecture prep (screens, API routes, components)
+4. Set stageComplete: true
+5. Provide a comprehensive completion summary
 
 INTELLIGENT FEATURE PLANNING REQUIRED:
 1. Analyze the app concept for feature requirements
@@ -160,6 +178,12 @@ EXAMPLES OF GOOD FEATURE ANALYSIS:
 - "Real-time Chat" → type: "user", dependencies: ["auth", "communication", "crud"] because it enhances user experience, needs identity verification, WebSocket connections, and message persistence
 - "Admin Dashboard" → type: "admin", dependencies: ["auth", "crud", "analytics"] because it's for administrative control, needs secure access, data management, and reporting capabilities
 - "Product Reviews" → type: "optional", dependencies: ["auth", "crud", "social"] because it adds value but isn't core, needs user verification, review storage, and social interactions
+
+ARCHITECTURE GENERATION:
+When completing the stage, generate comprehensive architecture prep:
+- Screens: Based on selected features and user flows
+- API Routes: RESTful endpoints for each feature with proper HTTP methods
+- Components: React components needed for each feature
 
 NEVER PUT JSON IN THE CONTENT FIELD! ENSURE NO LEADING TEXT OR WHITESPACE!
 Respond in this exact JSON format:
@@ -197,6 +221,29 @@ Respond in this exact JSON format:
       "criticalPath": ["Ordered list of features by dependency requirements"],
       "potentialConflicts": ["Any identified integration challenges"],
       "implementationSequence": ["Recommended development order"]
+    },
+    "architecturePrep": {
+      "screens": [
+        {
+          "name": "Screen Name",
+          "type": "core|secondary|modal",
+          "description": "Screen purpose and functionality"
+        }
+      ],
+      "apiRoutes": [
+        {
+          "path": "/api/endpoint",
+          "method": "GET|POST|PUT|DELETE",
+          "description": "Endpoint purpose and functionality"
+        }
+      ],
+      "components": [
+        {
+          "name": "ComponentName",
+          "type": "layout|ui|form|display|utility",
+          "description": "Component purpose and functionality"
+        }
+      ]
     }
   },
   "stageComplete": boolean,
@@ -219,7 +266,8 @@ Respond in this exact JSON format:
         customFeatures: "Feature[]",
         mvpFeatures: "string[]",
         futureFeatures: "string[]",
-        dependencyAnalysis: "object"
+        dependencyAnalysis: "object",
+        architecturePrep: "object"
       },
       stageComplete: "boolean",
       context: "object"
