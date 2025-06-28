@@ -132,7 +132,13 @@ export const CanvasRenderer: React.FC<CanvasRendererProps> = ({
           const path = getConnectionPath(connection);
           if (!path) return null;
           
-          return (
+          // Check if it's a custom node from any stage
+          const isCustomNode = isCustomIdeationNode || 
+                              (node.metadata?.stage === 'feature-planning' && 
+                               (node.type === STAGE2_NODE_TYPES.FEATURE || 
+                                node.type === STAGE2_NODE_TYPES.ARCHITECTURE));
+          
+          return isCustomNode ? (
             <CanvasConnection
               key={connection.id}
               from={path.from}
