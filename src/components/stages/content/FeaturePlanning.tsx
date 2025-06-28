@@ -707,12 +707,8 @@ ${formData.customFeatures
   };
 
   return (
-    <div className="p-4 space-y-2">
-      <div className="mb-4">
-        <h3 className="text-lg font-semibold text-gray-800 mb-2">Feature Planning</h3>
-        <p className="text-sm text-gray-600">Define what your app does - core features, priorities, and architecture prep</p>
-      </div>
-
+    <div className="p-2 space-y-2">
+  
       {/* 2.1 Feature Collection */}
       <Accordion>
         <AccordionSummary expandIcon={<ChevronDown size={16} />}>
