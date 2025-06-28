@@ -14,6 +14,7 @@ import {
   Brain,
   Code,
   Server,
+  Database
 } from "lucide-react";
 import {
   Accordion,
