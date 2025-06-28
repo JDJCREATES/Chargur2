@@ -1,4 +1,4 @@
-import { ReactComponentType } from 'lucide-react';
+import { Component as ReactComponentType } from 'lucide-react';
 
 export interface Feature {
   id: string;
