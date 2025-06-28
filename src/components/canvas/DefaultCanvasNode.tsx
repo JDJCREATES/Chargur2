@@ -192,7 +192,7 @@ export const DefaultCanvasNode: React.FC<DefaultCanvasNodeProps> = ({
               className="w-full h-full p-2 text-xs bg-white bg-opacity-50 border border-current border-opacity-30 rounded resize-none focus:outline-none focus:ring-1 focus:ring-current"
               autoFocus
               placeholder="Enter content..."
-              style={{ minHeight: '20px', height: node.size.height - 60 }}
+              style={{ minHeight: '20px', height: Math.max(20, node.size.height - 60) }}
             />
           ) : (
             <div className="text-xs leading-relaxed h-full overflow-auto">
