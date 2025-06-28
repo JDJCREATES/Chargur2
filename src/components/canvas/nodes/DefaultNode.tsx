@@ -171,7 +171,7 @@ const DefaultNode: React.FC<NodeProps> = ({
             <button
               onClick={(e) => {
                 e.stopPropagation();
-                data?.onNodeDelete?.(id);
+                data.onNodeDelete(id);
               }}
               className="p-1 hover:bg-red-500 hover:bg-opacity-20 rounded"
             >
