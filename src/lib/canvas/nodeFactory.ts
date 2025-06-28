@@ -11,7 +11,7 @@ import { Node, Edge } from 'reactflow';
 import { getSmartNodePosition } from './nodePlacementUtils';
 
 // Define constants for node types
-const STAGE1_NODE_TYPES = {
+export const STAGE1_NODE_TYPES = {
   APP_NAME: 'appName',
   TAGLINE: 'tagline',
   CORE_PROBLEM: 'coreProblem',
@@ -24,7 +24,7 @@ const STAGE1_NODE_TYPES = {
   PLATFORM: 'platform'
 };
 
-const STAGE2_NODE_TYPES = { 
+export const STAGE2_NODE_TYPES = { 
   FEATURE: 'feature',
   ARCHITECTURE: 'architecture',
 };
