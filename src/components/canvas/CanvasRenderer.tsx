@@ -21,10 +21,10 @@
 
 import React from 'react';
 import { motion } from 'framer-motion';
-import { CanvasNodeData } from '../CanvasNode';
-import { DefaultCanvasNode } from '../DefaultCanvasNode';
-import { DraggableConnectableWrapper } from '../DraggableConnectableWrapper';
-import { CanvasConnection } from '../CanvasConnection';
+import { CanvasNodeData } from './CanvasNode';
+import { DefaultCanvasNode } from '../canvas/DefaultCanvasNode';
+import { DraggableConnectableWrapper } from '../canvas/DraggableConnectableWrapper';
+import { CanvasConnection } from '../canvas/CanvasConnection';
 import { 
   AppNameNode, 
   TaglineNode, 
@@ -34,7 +34,7 @@ import {
   ValuePropositionNode, 
   CompetitorNode,
   STAGE1_NODE_TYPES 
-} from '../customnodetypes/stage1nodes';
+} from '../canvas/customnodetypes/stage1nodes';
 
 export interface Connection {
   id: string;
