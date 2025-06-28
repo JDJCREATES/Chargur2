@@ -9,8 +9,8 @@ const MissionNode: React.FC<NodeProps> = ({
   isConnectable 
 }) => {
   const [isEditing, setIsEditing] = useState(false);
-  const [editValue, setEditValue] = useState(data.value || '');
-  const [editMissionStatement, setEditMissionStatement] = useState(data.missionStatement || '');
+  const [editValue, setEditValue] = useState(data?.value || '');
+  const [editMissionStatement, setEditMissionStatement] = useState(data?.missionStatement || '');
   const [isRefining, setIsRefining] = useState(false);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const missionStatementRef = useRef<HTMLTextAreaElement>(null);
@@ -25,16 +25,16 @@ const MissionNode: React.FC<NodeProps> = ({
   const handleSave = () => {
     const updates: any = {};
     
-    if (editValue.trim() !== (data.value || '')) {
+    if (editValue.trim() !== (data?.value || '')) {
       updates.value = editValue.trim();
     }
     
-    if (editMissionStatement.trim() !== (data.missionStatement || '')) {
+    if (editMissionStatement.trim() !== (data?.missionStatement || '')) {
       updates.missionStatement = editMissionStatement.trim();
     }
     
     if (Object.keys(updates).length > 0) {
-      data.onNodeUpdate(id, updates);
+      data?.onNodeUpdate?.(id, updates);
     }
     
     setIsEditing(false);
@@ -45,38 +45,38 @@ const MissionNode: React.FC<NodeProps> = ({
       handleSave();
     }
     if (e.key === 'Escape') {
-      setEditValue(data.value || '');
-      setEditMissionStatement(data.missionStatement || '');
+      setEditValue(data?.value || '');
+      setEditMissionStatement(data?.missionStatement || '');
       setIsEditing(false);
     }
   };
 
   const refineWithAI = async () => {
-    if (!data.value) return;
+    if (!data?.value) return;
     
-    if (data.onSendMessage) {
+    if (data?.onSendMessage) {
       setIsRefining(true);
-      data.onSendMessage(`Please refine this app purpose description to be more clear and professional: "${data.value}"`);
+      data.onSendMessage(`Please refine this app purpose description to be more clear and professional: "${data?.value}"`);
       // Note: The actual update will happen via the onAutoFill callback in App.tsx
       // when the AI response comes back with updated data
     }
   };
 
-  const displayValue = data.value || "Describe your app's mission and purpose...";
-  const displayMissionStatement = data.missionStatement || "";
+  const displayValue = data?.value || "Describe your app's mission and purpose...";
+  const displayMissionStatement = data?.missionStatement || "";
   const hasMissionStatement = !!displayMissionStatement;
   
   const refineMissionStatement = () => {
-    if (!data.value) return;
+    if (!data?.value) return;
     
-    if (data.onSendMessage) {
+    if (data?.onSendMessage) {
       setIsRefining(true);
-      data.onSendMessage(`Based on this app purpose: "${data.value}", please generate a formal mission statement that captures the app's core values and goals.`);
+      data.onSendMessage(`Based on this app purpose: "${data?.value}", please generate a formal mission statement that captures the app's core values and goals.`);
       // Note: The actual update will happen via the onAutoFill callback in App.tsx
       // when the AI response comes back with updated data
     }
   };
-  const isPlaceholder = !data.value;
+  const isPlaceholder = !data?.value;
 
   return (
     <>
@@ -182,7 +182,7 @@ const MissionNode: React.FC<NodeProps> = ({
                 Edit
               </button>
               
-              {data.value && !hasMissionStatement && (
+              {data?.value && !hasMissionStatement && (
                 <button
                   onClick={(e) => {
                     e.stopPropagation();
@@ -202,7 +202,7 @@ const MissionNode: React.FC<NodeProps> = ({
                 </button>
               )}
               
-              {data.value && (
+              {data?.value && (
                 <button
                   onClick={(e) => {
                     e.stopPropagation();
