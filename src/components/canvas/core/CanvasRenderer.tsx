@@ -144,8 +144,10 @@ export const CanvasRenderer: React.FC<CanvasRendererProps> = ({
 
         {/* Render Nodes */}
         {nodes.map((node) => {
-          const isCustomIdeationNode = node.metadata?.stage === 'ideation-discovery' && 
-                                      Object.values(STAGE1_NODE_TYPES).includes(node.type as any);
+          const isCustomIdeationNode = (node.metadata?.stage === 'ideation-discovery' && 
+                                      Object.values(STAGE1_NODE_TYPES).includes(node.type as any)) ||
+                                      (node.metadata?.stage === 'feature-planning' && 
+                                      node.type === STAGE2_NODE_TYPES.FEATURE);
 
           return (
             <DraggableConnectableWrapper
@@ -193,7 +195,7 @@ export const CanvasRenderer: React.FC<CanvasRendererProps> = ({
                       return <UIStyleNode {...commonProps} />;
                     case 'platform':
                       return <PlatformNode {...commonProps} />;
-                    case 'feature':
+                    case STAGE2_NODE_TYPES.FEATURE:
                       return <FeatureNode {...commonProps} onDelete={onNodeDelete} />;
                     default:
                       return <DefaultCanvasNode 
