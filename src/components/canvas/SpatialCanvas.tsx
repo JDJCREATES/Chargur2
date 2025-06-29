@@ -142,47 +142,27 @@ export const SpatialCanvas: React.FC<SpatialCanvasProps> = ({
     }
 
     if (processingRef.current) {
-      console.log('Processing already in progress, skipping...');
       return;
     }
 
-    {/*console.log('🤖 AI stageData changed, processing...', Object.keys(stageData));*/}
+    processingRef.current = true;
     
-    // Debounce the processing to prevent rapid fire updates
     const timeoutId = setTimeout(async () => {
-      // Check processing flag again inside timeout
-      if (processingRef.current) {
-        console.log('Processing started by another instance, skipping...');
-        return;
-      }
-      
-      // Set processing flag at the start of actual processing
-      processingRef.current = true;
-      
       try {
-        // Get current stage ID from the app store
         const currentStageId = useAppStore.getState().currentStageId;
-        
-        // Get fresh node and edge data from store at processing time
         const currentState = useAppStore.getState();
-        const currentNodes = canvasNodes.length > 0 ? canvasNodes : currentState.canvasNodes;
-        const currentEdges = canvasConnections.length > 0 ? canvasConnections : currentState.canvasConnections;
         
-        console.log('Calling CanvasDataProcessor with:', {
-          currentStageId,
-          stageDataKeys: Object.keys(stageData),
-          nodeCount: currentNodes.length
-        });
-
-        // Get stage-specific data
+        // Get current nodes/edges from store at processing time, not from dependencies
+        const currentNodes = currentState.canvasNodes;
+        const currentEdges = currentState.canvasConnections;
+        
         const stageSpecificData = stageData[currentStageId];
         
-        if (!stageSpecificData) {
-          console.log('No data for current stage:', currentStageId);
+        if (!stageSpecificData || Object.keys(stageSpecificData).length === 0) {
           return;
         }
 
-        // Process the data based on the stage type
+        // Process nodes...
         let processedNodes: Node[] = [];
         
         switch (currentStageId) {
@@ -205,11 +185,10 @@ export const SpatialCanvas: React.FC<SpatialCanvasProps> = ({
             processedNodes = processAuthData(currentNodes, stageSpecificData, {});
             break;
           default:
-            console.warn('Unknown stage type:', currentStageId);
             processedNodes = currentNodes;
         }
         
-        // Add callback functions to all processed nodes
+        // Add callbacks and update
         const nodesWithCallbacks = processedNodes.map(node => ({
           ...node,
           data: {
@@ -236,27 +215,20 @@ export const SpatialCanvas: React.FC<SpatialCanvasProps> = ({
           }
         }));
         
-        // Update nodes directly through store
         handleUpdateNodes(nodesWithCallbacks);
-        
-        // Update last processed data reference
         lastProcessedStageDataRef.current = stageDataString;
-        
-        console.log('Canvas data processed, node count:', nodesWithCallbacks.length);
         
       } catch (error) {
         console.error('Error processing stage data:', error);
       } finally {
-        // ALWAYS reset processing flag
         processingRef.current = false;
-        console.log('Processing flag reset to false');
       }
-    }, 100); // Increased debounce time slightly
+    }, 200);
     
     return () => {
       clearTimeout(timeoutId);
     };
-  }, [stageData, canvasNodes, canvasConnections, handleUpdateNodes, handleUpdateConnections, onSendMessage]);
+  }, [stageData, onSendMessage]); // ONLY stageData and onSendMessage - no node/edge dependencies!
 
   // Reset view when canvas nodes change significantly (indicating project change)
   useEffect(() => {
