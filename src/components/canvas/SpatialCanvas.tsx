@@ -103,7 +103,7 @@ export const SpatialCanvas: React.FC<SpatialCanvasProps> = ({
   const reactFlowInstance = useReactFlow();
   
   // Get updateStageData and other methods from the store
-  const { updateStageData, currentStageId } = useAppStore();
+  const { updateStageData } = useAppStore();
 
 
   // Use store data as fallback when props aren't provided - MEMOIZED
