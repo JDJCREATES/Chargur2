@@ -61,14 +61,37 @@ export const Canvas: React.FC<CanvasProps> = ({
   const handleAddLofiLayoutNode = useCallback(() => {
     // Import nodeFactory and use it to create a new lo-fi layout node
     import('../../lib/canvas/nodeFactory').then(({ createLofiLayoutNode }) => {
-      // Get current canvas nodes from the store
-      const currentNodes = useAppStore.getState().canvasNodes;
+      // Get current state from the store
+      const appStore = useAppStore.getState();
+      const currentNodes = appStore.canvasNodes;
+      const currentStageData = appStore.stageData['interface-interaction'] || {};
+      
+      // Create a unique layout ID
+      const layoutId = `layout-${Date.now()}`;
+      
+      // Create layout data
+      const layoutData = {
+        layoutId,
+        templateName: 'Dashboard Layout',
+        description: 'Main dashboard with sidebar navigation',
+        viewMode: 'desktop',
+        layoutBlocks: [
+          { id: 'header', type: 'header', label: 'Header', position: { x: 0, y: 0 }, size: { width: 100, height: 10 }, locked: true },
+          { id: 'sidebar', type: 'sidebar', label: 'Sidebar', position: { x: 0, y: 10 }, size: { width: 20, height: 80 }, locked: true },
+          { id: 'content', type: 'content', label: 'Content Area', position: { x: 20, y: 10 }, size: { width: 80, height: 80 }, locked: true },
+          { id: 'footer', type: 'footer', label: 'Footer', position: { x: 0, y: 90 }, size: { width: 100, height: 10 }, locked: true }
+        ]
+      };
       
       // Create a new lo-fi layout node
-      const newNode = createLofiLayoutNode({}, currentNodes);
+      const newNode = createLofiLayoutNode(layoutData, currentNodes);
       
-      // Update the canvas nodes in the store
-      useAppStore.getState().updateCanvasNodes([...currentNodes, newNode]);
+      // Add the new node to canvas
+      appStore.updateCanvasNodes([...currentNodes, newNode]);
+      
+      // Also update the stage data to include this layout
+      const lofiLayouts = [...(currentStageData.lofiLayouts || []), layoutData];
+      appStore.updateStageData('interface-interaction', { lofiLayouts });
       
       console.log('Lo-fi layout node added to canvas');
     });

@@ -97,6 +97,7 @@ export const InterfaceInteraction: React.FC<InterfaceInteractionProps> = ({
       modalTriggers: ['settings', 'profile', 'help'],
       tabLogic: 'wizard-steps',
     },
+    lofiLayouts: [],
     copywriting: [
       { id: '1', type: 'button' as const, context: 'Primary CTA', text: 'Get Started', tone: 'professional' as const },
       { id: '2', type: 'button' as const, context: 'Secondary Action', text: 'Learn More', tone: 'professional' as const },
@@ -203,6 +204,10 @@ export const InterfaceInteraction: React.FC<InterfaceInteractionProps> = ({
   const updateCustomBranding = (updates: Partial<typeof formData.customBranding>) => {
     updateFormData('customBranding', { ...formData.customBranding, ...updates });
   };
+  
+  const updateLofiLayouts = (layouts: any[]) => {
+    updateFormData('lofiLayouts', layouts);
+  };
 
   // Add branding node to canvas
   const addBrandingNode = () => {
@@ -269,7 +274,9 @@ export const InterfaceInteraction: React.FC<InterfaceInteractionProps> = ({
           <LayoutBlueprintingSection
             previewMode={formData.previewMode}
             layoutBlocks={formData.layoutBlocks || []}
+            lofiLayouts={formData.lofiLayouts || []}
             onUpdatePreviewMode={(mode) => updateFormData('previewMode', mode)}
+            onUpdateLofiLayouts={updateLofiLayouts}
             onAddLofiLayoutNode={onAddLofiLayoutNode}
           />
         </AccordionDetails>

@@ -5,7 +5,9 @@ import { LayoutBlock } from '../../../../types';
 interface LayoutBlueprintingSectionProps {
   previewMode: string;
   layoutBlocks: LayoutBlock[];
+  lofiLayouts?: any[];
   onUpdatePreviewMode: (mode: string) => void;
+  onUpdateLofiLayouts?: (layouts: any[]) => void;
   onAddLayoutBlock?: () => void;
   onAddLofiLayoutNode?: () => void;
 }
@@ -13,7 +15,9 @@ interface LayoutBlueprintingSectionProps {
 export const LayoutBlueprintingSection: React.FC<LayoutBlueprintingSectionProps> = ({
   previewMode,
   layoutBlocks,
+  lofiLayouts = [],
   onUpdatePreviewMode,
+  onUpdateLofiLayouts,
   onAddLayoutBlock,
   onAddLofiLayoutNode
 }) => {
@@ -61,6 +65,34 @@ export const LayoutBlueprintingSection: React.FC<LayoutBlueprintingSectionProps>
             </button>
           </div>
         </div>
+        
+        {/* Lo-fi Layouts List */}
+        {lofiLayouts.length > 0 && (
+          <div className="mt-4 space-y-2">
+            <h4 className="text-sm font-medium text-gray-700">Existing Lo-fi Layouts</h4>
+            <div className="space-y-2">
+              {lofiLayouts.map((layout, index) => (
+                <div key={layout.layoutId || index} className="p-2 bg-blue-50 rounded-lg border border-blue-200">
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-2">
+                      <div className="w-6 h-6 bg-blue-100 rounded-full flex items-center justify-center">
+                        <span className="text-xs text-blue-600">{index + 1}</span>
+                      </div>
+                      <div>
+                        <div className="text-sm font-medium text-blue-700">{layout.templateName}</div>
+                        <div className="text-xs text-blue-600">{layout.description}</div>
+                      </div>
+                    </div>
+                    <div className="text-xs text-blue-500">
+                      {layout.viewMode === 'desktop' ? 'Desktop' : 
+                       layout.viewMode === 'tablet' ? 'Tablet' : 'Mobile'}
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
         
         {/* Information about Lo-fi Layouts */}
         <div className="bg-blue-50 rounded-lg p-4 border border-blue-200">
