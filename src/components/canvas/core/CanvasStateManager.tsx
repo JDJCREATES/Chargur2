@@ -54,9 +54,6 @@ export const useCanvasStateManager = (
   // Get resetView action from the store
   const storeResetView = useAppStore(state => state.resetView);
   
-  // Get resetView action from the store
-  const storeResetView = useAppStore(state => state.resetView);
-  
   const updateState = useCallback((updates: Partial<CanvasState>) => {
     setState(prev => ({ ...prev, ...updates }));
   }, []);
