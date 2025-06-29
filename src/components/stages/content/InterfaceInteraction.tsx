@@ -11,13 +11,13 @@ import {
 import { Accordion, AccordionSummary, AccordionDetails, Typography } from '@mui/material';
 import { ChevronDown } from 'lucide-react';
 import { Stage } from '../../../types';
-import { 
-  LayoutBlock, 
+import {  
   InteractionRule, 
   CopywritingItem, 
   CustomBranding, 
   FormData as InterfaceFormData
 } from './interface-interaction/types';
+import { LayoutBlock } from '../../../types';
 import { LayoutBlueprintingSection } from './interface-interaction/LayoutBlueprintingSection';
 import { ComponentStylingSection } from './interface-interaction/ComponentStylingSection';
 import { InteractionMappingSection } from './interface-interaction/InteractionMappingSection';
@@ -26,6 +26,7 @@ import { UXCopywritingSection } from './interface-interaction/UXCopywritingSecti
 import { InteractionPreviewSection } from './interface-interaction/InteractionPreviewSection';
 import { InterfaceSummarySection } from './interface-interaction/InterfaceSummarySection';
 import { useAppStore } from '../../../store/useAppStore';
+import { getSmartNodePosition } from '../../../lib/canvas/nodePlacementUtils';
 
 interface InterfaceInteractionProps {
   stage: Stage;
@@ -51,10 +52,38 @@ export const InterfaceInteraction: React.FC<InterfaceInteractionProps> = ({
       borderRadius: 'medium',
     },
     layoutBlocks: [
-      { id: '1', type: 'header' as const, position: { x: 0, y: 0 }, size: { width: 100, height: 10 }, locked: false },
-      { id: '2', type: 'sidebar' as const, position: { x: 0, y: 10 }, size: { width: 20, height: 80 }, locked: false },
-      { id: '3', type: 'content' as const, position: { x: 20, y: 10 }, size: { width: 80, height: 80 }, locked: false },
-      { id: '4', type: 'footer' as const, position: { x: 0, y: 90 }, size: { width: 100, height: 10 }, locked: false },
+      { 
+        id: '1', 
+        type: 'header' as const, 
+        label: 'Header',
+        position: { x: 0, y: 0 }, 
+        size: { width: 100, height: 10 }, 
+        locked: false 
+      },
+      { 
+        id: '2', 
+        type: 'sidebar' as const, 
+        label: 'Sidebar',
+        position: { x: 0, y: 10 }, 
+        size: { width: 20, height: 80 }, 
+        locked: false 
+      },
+      { 
+        id: '3', 
+        type: 'content' as const, 
+        label: 'Main Content',
+        position: { x: 20, y: 10 }, 
+        size: { width: 80, height: 80 }, 
+        locked: false 
+      },
+      { 
+        id: '4', 
+        type: 'footer' as const, 
+        label: 'Footer',
+        position: { x: 0, y: 90 }, 
+        size: { width: 100, height: 10 }, 
+        locked: false 
+      },
     ],
     interactionRules: [
       { id: '1', component: 'Button', trigger: 'click', action: 'navigate', animation: 'scale' },
@@ -99,13 +128,37 @@ export const InterfaceInteraction: React.FC<InterfaceInteractionProps> = ({
   ];
 
   const addLayoutBlock = () => {
+    const blockSize = { width: 30, height: 20 };
+    
+    // Convert existing layout blocks to a format compatible with nodePlacementUtils
+    const existingNodes = formData.layoutBlocks.map(block => ({
+      id: block.id,
+      type: block.type,
+      position: block.position,
+      data: {
+        size: block.size
+      }
+    }));
+    
+    // Get smart position for the new block
+    const smartPosition = getSmartNodePosition(
+      existingNodes,
+      blockSize,
+      'card', // nodeType
+      undefined, // preferredPosition
+      'interface-interaction', // stageId
+      true // isUserCreated
+    );
+    
     const newBlock: LayoutBlock = {
       id: Date.now().toString(),
       type: 'card',
-      position: { x: 50, y: 50 },
-      size: { width: 30, height: 20 },
+      label: 'New Card', // Add the missing label
+      position: smartPosition,
+      size: blockSize,
       locked: false,
     };
+    
     updateFormData('layoutBlocks', [...formData.layoutBlocks, newBlock]);
   };
 

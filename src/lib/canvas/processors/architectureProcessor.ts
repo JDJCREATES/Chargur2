@@ -7,7 +7,6 @@
  */
 
 import { Node } from 'reactflow';
-import { ProcessorState } from '../../../components/canvas/core/CanvasDataProcessor';
 import * as nodeFactory from '../nodeFactory';
 
 /**
