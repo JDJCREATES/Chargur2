@@ -126,7 +126,7 @@ export const useAppStore = create<AppState>((set, get) => {
         [stageId]: { ...state.stageData[stageId], ...data }
       }
     }));
-  }, 300);
+  }, 100); // Reduced from 300ms to 100ms for faster updates
 
   // Create debounced save function for project updates
   const debouncedSave = debounce(async () => {
@@ -422,7 +422,15 @@ export const useAppStore = create<AppState>((set, get) => {
     
     updateStageData: (stageId: string, data: any) => {
       // Use the debounced function
-      debouncedUpdateStageData(stageId, data);
+      // First update immediately for UI responsiveness
+      set(state => ({
+        stageData: {
+          ...state.stageData,
+          [stageId]: { ...state.stageData[stageId], ...data }
+        }
+      }));
+      
+      // Then use debounced save to prevent too many writes
       // Trigger save after stage data update
       debouncedSave();
     },

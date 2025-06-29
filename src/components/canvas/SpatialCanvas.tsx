@@ -18,8 +18,6 @@ import ReactFlow, {
   Controls,
   MiniMap,
   Panel,
-  addEdge,
-  Connection as ReactFlowConnection,
   Edge,
   Node,
   NodeChange,
@@ -28,6 +26,8 @@ import ReactFlow, {
   useReactFlow,
   MarkerType,
   ConnectionLineType,
+  BackgroundVariant,
+  applyNodeChanges,
   BackgroundVariant,
   applyNodeChanges,
   applyEdgeChanges
@@ -99,8 +99,8 @@ export const SpatialCanvas: React.FC<SpatialCanvasProps> = ({
   const handleUpdateNodes = onUpdateCanvasNodes || updateCanvasNodes;
   const handleUpdateConnections = onUpdateCanvasConnections || updateCanvasConnections;
 
-  const reactFlowInstance = useReactFlow();
-
+  const onNodesChange = useCallback((changes: NodeChange[]) => {
+    const newNodes = applyNodeChanges(changes, effectiveNodes);
   // Handle node changes - apply changes and update store directly
   const onNodesChange = useCallback((changes: NodeChange[]) => {
     const newNodes = applyNodeChanges(changes, effectiveNodes);
@@ -112,25 +112,12 @@ export const SpatialCanvas: React.FC<SpatialCanvasProps> = ({
     const newEdges = applyEdgeChanges(changes, effectiveEdges);
     handleUpdateConnections(newEdges);
   }, [effectiveEdges, handleUpdateConnections]);
-
-  // Handle new connections
-  const onConnect = useCallback((connection: ReactFlowConnection) => {
-    // Add null checks before creating the edge
-    if (!connection.source || !connection.target) {
-      console.warn('Cannot create connection: source or target is null');
-      return;
-    }
-
-    const newEdge = {
-      id: `${connection.source}-${connection.target}-${Date.now()}`,
-      source: connection.source,  // Now guaranteed to be string
-      target: connection.target,  // Now guaranteed to be string
-      type: 'smoothstep',
       animated: false,
       style: { stroke: '#9CA3AF', strokeWidth: 2 },
       markerEnd: { type: MarkerType.Arrow }
     };
     const newEdges = addEdge(newEdge, effectiveEdges);
+    handleUpdateConnections(newEdges);
     handleUpdateConnections(newEdges);
   }, [effectiveEdges, handleUpdateConnections]);
 
@@ -213,10 +200,10 @@ export const SpatialCanvas: React.FC<SpatialCanvasProps> = ({
               const updatedNodes = effectiveNodes.map(n => n.id === id 
                 ? { ...n, data: { ...(n.data || {}), ...updates } } 
                 : n
-              );
-              handleUpdateNodes(updatedNodes);
             },
             onNodeDelete: (id: string) => {
+              const filteredNodes = effectiveNodes.filter(n => n.id !== id);
+              const filteredEdges = effectiveEdges.filter(edge => 
               const filteredNodes = effectiveNodes.filter(n => n.id !== id);
               const filteredEdges = effectiveEdges.filter(edge => 
                 edge.source !== id && edge.target !== id
@@ -231,6 +218,7 @@ export const SpatialCanvas: React.FC<SpatialCanvasProps> = ({
           }
         }));
         
+        // Update nodes directly through store
         // Update nodes directly through store
         handleUpdateNodes(nodesWithCallbacks);
         
@@ -357,6 +345,13 @@ export const SpatialCanvas: React.FC<SpatialCanvasProps> = ({
       // Add common callback functions to the node data
       newNode.data = {
         ...newNode.data,
+        onNodeUpdate: (id: string, updates: any) => {
+          const updatedNodes = effectiveNodes.map(node => node.id === id 
+            ? { ...node, data: { ...(node.data || {}), ...updates } } 
+            : node
+          );
+          handleUpdateNodes(updatedNodes);
+        },
         onNodeUpdate: (id: string, updates: any) => {
           const updatedNodes = effectiveNodes.map(node => node.id === id 
             ? { ...node, data: { ...(node.data || {}), ...updates } } 
