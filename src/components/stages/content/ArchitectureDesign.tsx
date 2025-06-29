@@ -8,7 +8,6 @@ import {
   FileText, 
   CheckCircle,
   Plus,
-  Building2,
   Copy,
   Download,
   GitBranch,
