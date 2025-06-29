@@ -123,22 +123,10 @@ export function getSmartNodePosition(
   // For nodes that will be laid out by ELK.js, don't use fixed preferred positions
   // unless they're explicitly user-created or singletons
   if (preferredPosition) {
-    // Check if this node should be dynamically laid out
-    const shouldUseELK = !['appName', 'tagline', 'coreProblem', 'mission', 'valueProp'].includes(nodeType);
-    
-    if (shouldUseELK) {
-      // For ELK-managed nodes, use a more flexible initial position
-      // This allows ELK to have more freedom in positioning
-      const elkPosition = {
-        x: preferredPosition.x + Math.random() * 50 - 25, // Add some randomness
-        y: preferredPosition.y + Math.random() * 50 - 25
-      };
-      console.log(`Using flexible position for ELK-managed ${nodeType}: (${elkPosition.x}, ${elkPosition.y})`);
-      return elkPosition;
-    } else {
-      console.log(`Using preferred position for ${nodeType}: (${preferredPosition.x}, ${preferredPosition.y})`);
-      return preferredPosition;
-    }
+    // Use the exact preferred position without random offsets
+    // This gives ELK.js a consistent starting point
+    console.log(`Using preferred position for ${nodeType}: (${preferredPosition.x}, ${preferredPosition.y})`);
+    return preferredPosition;
   }
   
   // Fallback to semantic zone

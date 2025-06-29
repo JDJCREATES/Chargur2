@@ -551,6 +551,8 @@ export const SpatialCanvas: React.FC<SpatialCanvasProps> = ({
     if (window.confirm('Are you sure you want to clear the canvas? This action cannot be undone.')) {
       
       try {
+        // Reset layout type to default when clearing canvas
+        setSelectedLayoutType('stage');
         handleUpdateNodes([]);
         handleUpdateConnections([]);
       } catch (error) {
@@ -653,11 +655,11 @@ export const SpatialCanvas: React.FC<SpatialCanvasProps> = ({
   // Apply saved layout on initial load
   useEffect(() => {
     // Only apply layout if we have nodes to layout
-    if (effectiveNodes.length > 0) {
+    if (effectiveNodes.length > 2) {
       // Use a small delay to ensure the canvas is fully rendered
       const timer = setTimeout(() => {
         handleAutoLayout(selectedLayoutType);
-      }, 500);
+      }, 800);
       return () => clearTimeout(timer);
     }
   }, [projectId]); // Only run when project changes

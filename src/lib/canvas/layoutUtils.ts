@@ -15,9 +15,9 @@ const elk = new ELK();
 // Default layout options
 const DEFAULT_LAYOUT_OPTIONS = {
   'algorithm': 'layered',
-  'elk.direction': 'DOWN', 
-  'elk.spacing.nodeNode': '80',
-  'elk.layered.spacing.nodeNodeBetweenLayers': '100',
+  'elk.direction': 'DOWN',
+  'elk.spacing.nodeNode': '120',
+  'elk.layered.spacing.nodeNodeBetweenLayers': '150',
   'elk.edgeRouting': 'ORTHOGONAL',
   'elk.layered.nodePlacement.strategy': 'NETWORK_SIMPLEX'
 };
@@ -26,36 +26,36 @@ const DEFAULT_LAYOUT_OPTIONS = {
 const STAGE_LAYOUT_OPTIONS: Record<string, any> = {
   'ideation-discovery': {
     'algorithm': 'force',
-    'elk.padding': '[top=50, left=50, bottom=50, right=50]',
-    'elk.force.repulsion': '2.5',
+    'elk.padding': '[top=100, left=100, bottom=100, right=100]',
+    'elk.force.repulsion': '4.0',
     'elk.force.attraction': '0.1',
-    'elk.force.iterations': '300'
+    'elk.force.iterations': '500'
   },
   'feature-planning': {
     'algorithm': 'layered',
     'elk.direction': 'RIGHT',
-    'elk.spacing.nodeNode': '100'
+    'elk.spacing.nodeNode': '150'
   },
   'structure-flow': {
     'algorithm': 'layered',
     'elk.direction': 'DOWN',
-    'elk.spacing.nodeNode': '80'
+    'elk.spacing.nodeNode': '120'
   },
   'interface-interaction': {
     'algorithm': 'force',
-    'elk.force.repulsion': '2',
+    'elk.force.repulsion': '3.5',
     'elk.force.attraction': '0.1',
-    'elk.force.iterations': '300'
+    'elk.force.iterations': '500'
   },
   'architecture-design': {
     'algorithm': 'layered',
     'elk.direction': 'DOWN',
-    'elk.spacing.nodeNode': '100'
+    'elk.spacing.nodeNode': '150'
   },
   'user-auth-flow': {
     'algorithm': 'layered',
     'elk.direction': 'RIGHT',
-    'elk.spacing.nodeNode': '80'
+    'elk.spacing.nodeNode': '120'
   }
 };
 
@@ -295,7 +295,7 @@ export async function applyRadialLayout(
 ): Promise<{ nodes: Node[]; edges: Edge[] }> {
   const radialOptions = {
     'algorithm': 'radial',
-    'elk.radial.radius': '400',
+    'elk.radial.radius': '500',
     ...options
   };
   
