@@ -1,6 +1,7 @@
 /**
- * Production-ready node placement system
- * Uses fixed grid-based positioning with semantic grouping
+ * Node placement utilities for the SpatialCanvas system.
+ * Provides semantic zones for initial node placement.
+ * For auto-layout of existing nodes, see layoutUtils.ts.
  */
 
 import { Node } from 'reactflow';
@@ -16,12 +17,12 @@ export interface Size {
 }
 
 // Fixed grid system - no more size-based calculations
-const GRID_SIZE = 50; // Base grid unit
-const NODE_SPACING = 80; // Fixed spacing between nodes
-const GROUP_SPACING = 200; // Spacing between different groups
+export const GRID_SIZE = 50; // Base grid unit
+export const NODE_SPACING = 80; // Fixed spacing between nodes
+export const GROUP_SPACING = 200; // Spacing between different groups
 
 // Semantic positioning zones - fixed coordinates
-const SEMANTIC_ZONES = {
+export const SEMANTIC_ZONES = {
   // Stage 1 - Ideation & Discovery (Left side, organized vertically)
   'appName': { x: 100, y: 100 },
   'tagline': { x: 100, y: 160 },
@@ -59,7 +60,7 @@ const SEMANTIC_ZONES = {
 };
 
 // Grid-based positioning for multiple nodes of same type
-const GRID_LAYOUTS = {
+export const GRID_LAYOUTS = {
   'userPersona': {
     baseX: 450,
     baseY: 150,
@@ -93,7 +94,7 @@ const GRID_LAYOUTS = {
 /**
  * Get the exact position for a node based on semantic rules
  */
-export function getSmartNodePosition(
+export function getSmartNodePosition( 
   existingNodes: Node[],
   nodeSize: Size,
   nodeType: string,
@@ -101,20 +102,12 @@ export function getSmartNodePosition(
   stageId?: string,
   isUserCreated: boolean = false
 ): Position {
-  console.log(`Positioning ${nodeType} node`);
-  
   // Handle singleton nodes (only one should exist)
   if (['appName', 'tagline', 'coreProblem', 'mission', 'valueProp'].includes(nodeType)) {
     const position = SEMANTIC_ZONES[nodeType as keyof typeof SEMANTIC_ZONES];
     if (position) {
-      console.log(`Singleton ${nodeType} positioned at:`, position);
       return position;
     }
-  }
-  
-  // Handle multi-instance nodes with grid layout
-  if (['userPersona', 'competitor', 'feature'].includes(nodeType)) {
-    return getGridPosition(existingNodes, nodeType);
   }
   
   // Handle user-created nodes
@@ -124,39 +117,14 @@ export function getSmartNodePosition(
   
   // Handle preferred position with collision avoidance
   if (preferredPosition) {
-    return findNearestFreePosition(preferredPosition, existingNodes);
+    return preferredPosition;
   }
   
   // Fallback to semantic zone
   const semanticPosition = SEMANTIC_ZONES[nodeType as keyof typeof SEMANTIC_ZONES] 
     || SEMANTIC_ZONES.default;
   
-  return findNearestFreePosition(semanticPosition, existingNodes);
-}
-
-/**
- * Grid-based positioning for multi-instance nodes
- */
-function getGridPosition(existingNodes: Node[], nodeType: string): Position {
-  const layout = GRID_LAYOUTS[nodeType as keyof typeof GRID_LAYOUTS];
-  if (!layout) {
-    return SEMANTIC_ZONES.default;
-  }
-  
-  // Count existing nodes of this type
-  const existingCount = existingNodes.filter(node => node.type === nodeType).length;
-  
-  // Calculate grid position
-  const row = Math.floor(existingCount / layout.columns);
-  const col = existingCount % layout.columns;
-  
-  const position = {
-    x: layout.baseX + (col * layout.colSpacing),
-    y: layout.baseY + (row * layout.rowSpacing)
-  };
-  
-  console.log(`Grid position for ${nodeType} #${existingCount}:`, position);
-  return position;
+  return semanticPosition;
 }
 
 /**
@@ -164,72 +132,7 @@ function getGridPosition(existingNodes: Node[], nodeType: string): Position {
  */
 function findUserCreatedPosition(existingNodes: Node[]): Position {
   const centerArea = { x: 600, y: 300 };
-  return findNearestFreePosition(centerArea, existingNodes);
-}
-
-/**
- * Find the nearest free position to avoid overlaps
- */
-function findNearestFreePosition(targetPosition: Position, existingNodes: Node[]): Position {
-  const COLLISION_RADIUS = 120; // Minimum distance between nodes
-  
-  // Check if target position is free
-  if (isPositionFree(targetPosition, existingNodes, COLLISION_RADIUS)) {
-    return targetPosition;
-  }
-  
-  // Spiral search for free position
-  const maxAttempts = 20;
-  const spiralStep = 60;
-  
-  for (let attempt = 1; attempt <= maxAttempts; attempt++) {
-    const radius = attempt * spiralStep;
-    const positions = getCircularPositions(targetPosition, radius, 8); // 8 positions per circle
-    
-    for (const position of positions) {
-      if (isPositionFree(position, existingNodes, COLLISION_RADIUS)) {
-        console.log(`Found free position after ${attempt} attempts:`, position);
-        return position;
-      }
-    }
-  }
-  
-  // Fallback: add random offset
-  return {
-    x: targetPosition.x + Math.random() * 200 - 100,
-    y: targetPosition.y + Math.random() * 200 - 100
-  };
-}
-
-/**
- * Check if a position is free of collisions
- */
-function isPositionFree(position: Position, existingNodes: Node[], minDistance: number): boolean {
-  return !existingNodes.some(node => {
-    const distance = Math.sqrt(
-      Math.pow(node.position.x - position.x, 2) + 
-      Math.pow(node.position.y - position.y, 2)
-    );
-    return distance < minDistance;
-  });
-}
-
-/**
- * Get positions in a circle around a center point
- */
-function getCircularPositions(center: Position, radius: number, count: number): Position[] {
-  const positions: Position[] = [];
-  const angleStep = (2 * Math.PI) / count;
-  
-  for (let i = 0; i < count; i++) {
-    const angle = i * angleStep;
-    positions.push({
-      x: center.x + Math.cos(angle) * radius,
-      y: center.y + Math.sin(angle) * radius
-    });
-  }
-  
-  return positions;
+  return centerArea;
 }
 
 /**
@@ -242,36 +145,16 @@ export function arrangeNodesInGroup(
   stageId?: string,
   arrangement: 'grid' | 'circle' | 'horizontal' | 'vertical' = 'grid'
 ): Record<string, Position> {
-  const positions: Record<string, Position> = {};
-  
-  if (GRID_LAYOUTS[nodeType as keyof typeof GRID_LAYOUTS]) {
-    // Use grid layout for supported types
-    const layout = GRID_LAYOUTS[nodeType as keyof typeof GRID_LAYOUTS];
-    const startIndex = existingNodes.filter(n => n.type === nodeType).length;
-    
-    nodesToArrange.forEach((node, index) => {
-      const totalIndex = startIndex + index;
-      const row = Math.floor(totalIndex / layout.columns);
-      const col = totalIndex % layout.columns;
-      
-      positions[node.id] = {
-        x: layout.baseX + (col * layout.colSpacing),
-        y: layout.baseY + (row * layout.rowSpacing)
-      };
-    });
-  } else {
-    // Fallback to simple arrangement
+  // This function is now deprecated in favor of ELK-based layout
+  // For backward compatibility, return simple positions
+  return nodesToArrange.reduce((acc, node, index) => {
     const basePosition = SEMANTIC_ZONES[nodeType as keyof typeof SEMANTIC_ZONES] || SEMANTIC_ZONES.default;
-    
-    nodesToArrange.forEach((node, index) => {
-      positions[node.id] = {
-        x: basePosition.x + (index * NODE_SPACING),
-        y: basePosition.y
-      };
-    });
-  }
-  
-  return positions;
+    acc[node.id] = {
+      x: basePosition.x + (index * NODE_SPACING),
+      y: basePosition.y
+    };
+    return acc;
+  }, {} as Record<string, Position>);
 }
 
 /**
