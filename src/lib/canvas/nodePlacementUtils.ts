@@ -56,6 +56,7 @@ const CATEGORY_ZONES = {
   'userPersona': { x: 650, y: 200, radius: 200 }, // Increased radius for better spacing
   'valueProp': { x: 100, y: 500, radius: 150 }, // Adjusted Y and increased radius
   'competitor': { x: 700, y: 400, radius: 200 }, // Increased radius for better spacing
+  'lofiLayout': { x: 0, y: 0, radius: 400 }, // Centered position with large radius for better placement
   
   // Feature Planning nodes
   'feature': { x: 400, y: 350, radius: 250 }, // Increased radius for better spacing
