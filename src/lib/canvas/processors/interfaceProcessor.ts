@@ -89,7 +89,7 @@ export function processInterfaceData(
       }
     } else {
       // Create a new node
-      const newNode = nodeFactory.createDesignSystemNode(interfaceData.selectedDesignSystem, uiX, uiY, newNodes);
+      const newNode = nodeFactory.createDesignSystemNode(interfaceData.selectedDesignSystem, newNodes);
       newNodes.push(newNode);
       nodesChanged = true;
     }
@@ -177,7 +177,7 @@ export function processInterfaceData(
       }
     } else {
       // Create a new node
-      const newNode = nodeFactory.createLayoutNode(interfaceData.layoutBlocks, uiX, uiY, newNodes);
+      const newNode = nodeFactory.createLayoutNode(interfaceData.layoutBlocks, newNodes);
       newNodes.push(newNode);
       nodesChanged = true;
     }

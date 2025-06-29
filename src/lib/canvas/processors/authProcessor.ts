@@ -105,7 +105,7 @@ export function processAuthData(
         }
       } else {
         // Create a new node
-        const newNode = nodeFactory.createAuthMethodsNode(enabledMethods, authX, authY, newNodes);
+        const newNode = nodeFactory.createAuthMethodsNode(enabledMethods, newNodes);
         newNodes.push(newNode);
         nodesChanged = true;
       }
@@ -152,7 +152,7 @@ export function processAuthData(
       }
     } else {
       // Create a new node
-      const newNode = nodeFactory.createUserRolesNode(authData.userRoles, authX, authY, newNodes);
+      const newNode = nodeFactory.createSecurityFeaturesNode(enabledSecurity, newNodes);
       newNodes.push(newNode);
       nodesChanged = true;
     }

@@ -102,7 +102,7 @@ export function getSmartNodePosition(
   stageId?: string,
   isUserCreated: boolean = false
 ): Position {
-  console.log(`Getting smart position for ${nodeType} node, isUserCreated: ${isUserCreated}`);
+  console.log(`Getting smart position for ${nodeType} node, isUserCreated: ${isUserCreated}, stageId: ${stageId || 'none'}`);
   
   // Handle singleton nodes (only one should exist)
   if (['appName', 'tagline', 'coreProblem', 'mission', 'valueProp'].includes(nodeType)) {
@@ -113,20 +113,19 @@ export function getSmartNodePosition(
     }
   }
   
+  // Handle multi-instance nodes with grid layout
+  // Only use grid layout for non-user-created nodes
+  if (!isUserCreated && ['userPersona', 'competitor', 'feature', 'markdownCode'].includes(nodeType)) {
+    const gridPosition = getGridPosition(existingNodes, nodeType);
+    console.log(`Using grid position for ${nodeType}: (${gridPosition.x}, ${gridPosition.y})`);
+    return gridPosition;
+  }
+  
   // Handle user-created nodes
   if (isUserCreated) {
     const userPosition = findUserCreatedPosition(existingNodes);
     console.log(`Using user-created position: (${userPosition.x}, ${userPosition.y})`);
     return userPosition;
-  }
-  
-  // For nodes that will be laid out by ELK.js, don't use fixed preferred positions
-  // unless they're explicitly user-created or singletons
-  if (preferredPosition) {
-    // Use the exact preferred position without random offsets
-    // This gives ELK.js a consistent starting point
-    console.log(`Using preferred position for ${nodeType}: (${preferredPosition.x}, ${preferredPosition.y})`);
-    return preferredPosition;
   }
   
   // Fallback to semantic zone
@@ -138,13 +137,38 @@ export function getSmartNodePosition(
 }
 
 /**
+ * Grid-based positioning for multi-instance nodes
+ */
+function getGridPosition(existingNodes: Node[], nodeType: string): Position {
+  const layout = GRID_LAYOUTS[nodeType as keyof typeof GRID_LAYOUTS];
+  if (!layout) {
+    return SEMANTIC_ZONES.default;
+  }
+  
+  // Count existing nodes of this type
+  const existingCount = existingNodes.filter(node => node.type === nodeType).length;
+  
+  // Calculate grid position
+  const row = Math.floor(existingCount / layout.columns);
+  const col = existingCount % layout.columns;
+  
+  const position = {
+    x: layout.baseX + (col * layout.colSpacing),
+    y: layout.baseY + (row * layout.rowSpacing)
+  };
+  
+  console.log(`Grid position for ${nodeType} #${existingCount}:`, position);
+  return position;
+}
+
+/**
  * Find position for user-created nodes (center area)
  */
 function findUserCreatedPosition(existingNodes: Node[]): Position {
-  // Add some randomness to prevent exact overlaps
+  // Add more randomness to prevent exact overlaps and give ELK more freedom
   return { 
-    x: 600 + Math.random() * 100 - 50,
-    y: 300 + Math.random() * 100 - 50
+    x: 600 + Math.random() * 200 - 100,
+    y: 300 + Math.random() * 200 - 100
   };
 }
 

@@ -98,7 +98,7 @@ export function processFeatureData(
         newNodes.push(updatedNode);
       } else {
         // Create a new node
-        const newNode = nodeFactory.createFeaturePackNode(pack, index, featureX, featureY, newNodes);
+        const newNode = nodeFactory.createFeaturePackNode(pack, newNodes);
         
         // Add default sub-features for common feature packs
         if (pack === 'auth' || pack === 'social' || pack === 'commerce' || pack === 'analytics' || 
@@ -166,7 +166,7 @@ export function processFeatureData(
         }
       } else {
         // Create a new node
-        const newNode = nodeFactory.createCustomFeatureNode(feature, startIndex + index, featureX, featureY, newNodes);
+        const newNode = nodeFactory.createCustomFeatureNode(feature, newNodes);
         
         // Add sub-features if they exist in the feature data
         if (feature.subFeatures && Array.isArray(feature.subFeatures)) {

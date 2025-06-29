@@ -311,7 +311,6 @@ export function createValuePropNode(valueProposition: string, existingNodes: Nod
  */
 export function createUserPersonaNode(
   persona: any, 
-  index: number = 0, 
   existingNodes: Node[] = [],
   isUserCreated: boolean = false
 ): Node {
@@ -389,7 +388,6 @@ export function createLegacyUserPersonaNode(
  */
 export function createCompetitorNode(
   competitor: any, 
-  index: number = 0,
   existingNodes: Node[] = [],
   isUserCreated: boolean = false
 ): Node {
@@ -435,9 +433,6 @@ export function createCompetitorNode(
  */
 export function createFeaturePackNode(
   pack: string, 
-  index: number, 
-  baseX: number, 
-  baseY: number,
   existingNodes: Node[] = [],
   isUserCreated: boolean = false
 ): Node {
@@ -491,9 +486,6 @@ export function createFeaturePackNode(
  */
 export function createCustomFeatureNode(
   feature: any, 
-  index: number, 
-  baseX: number, 
-  baseY: number,
   existingNodes: Node[] = [],
   isUserCreated: boolean = false
 ): Node {
@@ -792,20 +784,13 @@ export function createMarkdownCodeNode(
  */
 export function createScreenNode(
   screen: any, 
-  index: number, 
-  baseX: number, 
-  baseY: number,
   existingNodes: Node[] = []
 ): Node {
-  const position = { 
-    x: baseX + (index % 4) * 160, 
-    y: baseY 
-  };
   const finalPosition = getSmartNodePosition(
     existingNodes,
     { width: 150, height: 100 },
     'ux-flow',
-    position,
+    undefined,
     'structure-flow'
   );
   
@@ -830,20 +815,13 @@ export function createScreenNode(
  */
 export function createUserFlowNode(
   flow: any, 
-  index: number, 
-  baseX: number, 
-  baseY: number,
   existingNodes: Node[] = []
 ): Node {
-  const position = { 
-    x: baseX + (index % 3) * 220, 
-    y: baseY + 120 
-  };
   const finalPosition = getSmartNodePosition(
     existingNodes,
     { width: 200, height: 120 },
     'ux-flow',
-    position,
+    undefined,
     'structure-flow'
   );
   
@@ -868,20 +846,13 @@ export function createUserFlowNode(
  */
 export function createDatabaseTableNode(
   table: any, 
-  index: number, 
-  baseX: number, 
-  baseY: number,
   existingNodes: Node[] = []
 ): Node {
-  const position = { 
-    x: baseX + (index % 3) * 200, 
-    y: baseY 
-  };
   const finalPosition = getSmartNodePosition(
     existingNodes,
     { width: 180, height: 100 },
     'system',
-    position,
+    undefined,
     'architecture-design'
   );
   
@@ -906,15 +877,13 @@ export function createDatabaseTableNode(
  */
 export function createAPIEndpointsNode(
   apiEndpoints: any[], 
-  baseX: number, 
-  baseY: number,
   existingNodes: Node[] = []
 ): Node {
   const position = getSmartNodePosition(
     existingNodes,
     { width: 160, height: 80 },
     'system',
-    { x: baseX + 400, y: baseY },
+    undefined,
     'architecture-design'
   );
   
@@ -939,20 +908,13 @@ export function createAPIEndpointsNode(
  */
 export function createRouteNode(
   route: any, 
-  index: number, 
-  baseX: number, 
-  baseY: number,
   existingNodes: Node[] = []
 ): Node {
-  const position = { 
-    x: baseX + (index % 4) * 150, 
-    y: baseY + 120 
-  };
   const finalPosition = getSmartNodePosition(
     existingNodes,
     { width: 140, height: 90 },
     'system',
-    position,
+    undefined,
     'architecture-design'
   );
   
@@ -977,15 +939,13 @@ export function createRouteNode(
  */
 export function createDesignSystemNode(
   designSystem: string, 
-  baseX: number, 
-  baseY: number,
   existingNodes: Node[] = []
 ): Node {
   const position = getSmartNodePosition(
     existingNodes,
     { width: 160, height: 80 },
     'wireframe',
-    { x: baseX, y: baseY },
+    undefined,
     'interface-interaction'
   );
   
@@ -1058,15 +1018,13 @@ export function createBrandingNode(
  */
 export function createLayoutNode(
   layoutBlocks: any[], 
-  baseX: number, 
-  baseY: number,
   existingNodes: Node[] = []
 ): Node {
   const position = getSmartNodePosition(
     existingNodes,
     { width: 160, height: 80 },
     'wireframe',
-    { x: baseX + 340, y: baseY },
+    undefined,
     'interface-interaction'
   );
   
@@ -1091,15 +1049,13 @@ export function createLayoutNode(
  */
 export function createAuthMethodsNode(
   authMethods: any[], 
-  baseX: number, 
-  baseY: number,
   existingNodes: Node[] = []
 ): Node {
   const position = getSmartNodePosition(
     existingNodes,
     { width: 180, height: 100 },
     'system',
-    { x: baseX, y: baseY },
+    undefined,
     'user-auth-flow'
   );
   
@@ -1124,15 +1080,13 @@ export function createAuthMethodsNode(
  */
 export function createUserRolesNode(
   userRoles: any[], 
-  baseX: number, 
-  baseY: number,
   existingNodes: Node[] = []
 ): Node {
   const position = getSmartNodePosition(
     existingNodes,
     { width: 180, height: 120 },
     'system',
-    { x: baseX + 200, y: baseY },
+    undefined,
     'user-auth-flow'
   );
   
@@ -1165,15 +1119,13 @@ export function createUserRolesNode(
  */
 export function createSecurityFeaturesNode(
   securityFeatures: any[], 
-  baseX: number, 
-  baseY: number,
   existingNodes: Node[] = []
 ): Node {
   const position = getSmartNodePosition(
     existingNodes,
     { width: 200, height: 100 },
     'system',
-    { x: baseX, y: baseY + 120 },
+    undefined,
     'user-auth-flow'
   );
   

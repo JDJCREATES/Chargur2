@@ -16,8 +16,8 @@ const elk = new ELK();
 const DEFAULT_LAYOUT_OPTIONS = {
   'algorithm': 'layered',
   'elk.direction': 'DOWN',
-  'elk.spacing.nodeNode': '120',
-  'elk.layered.spacing.nodeNodeBetweenLayers': '150',
+  'elk.spacing.nodeNode': '150',
+  'elk.layered.spacing.nodeNodeBetweenLayers': '200',
   'elk.edgeRouting': 'ORTHOGONAL',
   'elk.layered.nodePlacement.strategy': 'NETWORK_SIMPLEX'
 };
@@ -26,15 +26,15 @@ const DEFAULT_LAYOUT_OPTIONS = {
 const STAGE_LAYOUT_OPTIONS: Record<string, any> = {
   'ideation-discovery': {
     'algorithm': 'force',
-    'elk.padding': '[top=100, left=100, bottom=100, right=100]',
-    'elk.force.repulsion': '4.0',
-    'elk.force.attraction': '0.1',
+    'elk.padding': '[top=150, left=150, bottom=150, right=150]',
+    'elk.force.repulsion': '5.0',
+    'elk.force.attraction': '0.2',
     'elk.force.iterations': '500'
   },
   'feature-planning': {
     'algorithm': 'layered',
     'elk.direction': 'RIGHT',
-    'elk.spacing.nodeNode': '150'
+    'elk.spacing.nodeNode': '180'
   },
   'structure-flow': {
     'algorithm': 'layered',
@@ -95,7 +95,8 @@ export async function getLayoutedElements(
   nodes: Node[],
   edges: Edge[],
   stageId?: string,
-  options: Record<string, any> = {}
+  options: Record<string, any> = {},
+  groupNodesByStage: boolean = true
 ): Promise<{ nodes: Node[]; edges: Edge[] }> {
   if (nodes.length === 0) {
     return { nodes, edges };
@@ -113,16 +114,6 @@ export async function getLayoutedElements(
     
     console.log(`📊 Using layout options:`, layoutOptions);
 
-    // Group nodes by stage for better organization
-    const nodesByStage: Record<string, Node[]> = {};
-    nodes.forEach(node => {
-      const stage = node.data?.metadata?.stage || 'unknown';
-      if (!nodesByStage[stage]) {
-        nodesByStage[stage] = [];
-      }
-      nodesByStage[stage].push(node);
-    });
-
     // Create ELK graph with children for each stage
     const elkGraph: ElkNode = {
       id: 'root',
@@ -131,17 +122,32 @@ export async function getLayoutedElements(
       edges: toElkEdges(edges)
     };
 
-    // Add nodes grouped by stage
-    Object.entries(nodesByStage).forEach(([stage, stageNodes]) => {
-      elkGraph.children!.push({
-        id: `stage-${stage}`,
-        layoutOptions: {
-          'algorithm': STAGE_LAYOUT_OPTIONS[stage]?.algorithm || layoutOptions.algorithm,
-          'padding': '50'
-        },
-        children: toElkNodes(stageNodes)
+    if (groupNodesByStage) {
+      // Group nodes by stage for better organization
+      const nodesByStage: Record<string, Node[]> = {};
+      nodes.forEach(node => {
+        const stage = node.data?.metadata?.stage || 'unknown';
+        if (!nodesByStage[stage]) {
+          nodesByStage[stage] = [];
+        }
+        nodesByStage[stage].push(node);
       });
-    });
+      
+      // Add nodes grouped by stage
+      Object.entries(nodesByStage).forEach(([stage, stageNodes]) => {
+        elkGraph.children!.push({
+          id: `stage-${stage}`,
+          layoutOptions: {
+            'algorithm': STAGE_LAYOUT_OPTIONS[stage]?.algorithm || layoutOptions.algorithm,
+            'padding': '50'
+          },
+          children: toElkNodes(stageNodes)
+        });
+      });
+    } else {
+      // Add all nodes directly to the root graph
+      elkGraph.children = toElkNodes(nodes);
+    }
 
     // Calculate layout
     const layoutedGraph = await elk.layout(elkGraph);
@@ -169,9 +175,52 @@ export async function getLayoutedElements(
     
     // Process the layout results
     if (layoutedGraph.children) {
-      layoutedGraph.children.forEach(stageGroup => {
-        if (stageGroup.children) {
-          stageGroup.children.forEach(elkNode => {
+      if (groupNodesByStage) {
+        // Process nodes grouped by stage
+        layoutedGraph.children.forEach(stageGroup => {
+          if (stageGroup.children) {
+            stageGroup.children.forEach(elkNode => {
+              const nodeIndex = layoutedNodes.findIndex(n => n.id === elkNode.id);
+              if (nodeIndex !== -1 && elkNode.x !== undefined && elkNode.y !== undefined) {
+                // Update node position
+                layoutedNodes[nodeIndex] = {
+                  ...layoutedNodes[nodeIndex],
+                  position: {
+                    x: elkNode.x,
+                    y: elkNode.y
+                  }
+                };
+              }
+            });
+          }
+        });
+      } else {
+        // Process nodes directly under root
+        layoutedGraph.children.forEach(elkNode => {
+          const nodeIndex = layoutedNodes.findIndex(n => n.id === elkNode.id);
+          if (nodeIndex !== -1 && elkNode.x !== undefined && elkNode.y !== undefined) {
+            // Update node position
+            layoutedNodes[nodeIndex] = {
+              ...layoutedNodes[nodeIndex],
+              position: {
+                x: elkNode.x,
+                y: elkNode.y
+              }
+            };
+          }
+        });
+      }
+    }
+
+    console.log(`✅ ELK layout completed successfully`);
+    return { nodes: layoutedNodes, edges };
+  } catch (error) {
+    console.error('❌ Error applying ELK layout:', error);
+    
+    // Fallback to simple grid layout if ELK fails
+    return applyFallbackLayout(nodes, edges);
+  }
+}
             const nodeIndex = layoutedNodes.findIndex(n => n.id === elkNode.id);
             if (nodeIndex !== -1 && elkNode.x !== undefined && elkNode.y !== undefined) {
               // Update node position
@@ -257,12 +306,12 @@ export async function applyForceDirectedLayout(
   const forceOptions = {
     'algorithm': 'force',
     'elk.force.iterations': '500',
-    'elk.force.repulsion': '2',
+    'elk.force.repulsion': '3.5',
     'elk.force.attraction': '0.1',
     ...options
   };
   
-  return getLayoutedElements(nodes, edges, undefined, forceOptions);
+  return getLayoutedElements(nodes, edges, undefined, forceOptions, false);
 }
 
 /**
@@ -277,12 +326,12 @@ export async function applyHierarchicalLayout(
   const hierarchicalOptions = {
     'algorithm': 'layered',
     'elk.direction': direction,
-    'elk.spacing.nodeNode': '80',
-    'elk.layered.spacing.nodeNodeBetweenLayers': '100',
+    'elk.spacing.nodeNode': '150',
+    'elk.layered.spacing.nodeNodeBetweenLayers': '200',
     ...options
   };
   
-  return getLayoutedElements(nodes, edges, undefined, hierarchicalOptions);
+  return getLayoutedElements(nodes, edges, undefined, hierarchicalOptions, false);
 }
 
 /**
@@ -299,7 +348,7 @@ export async function applyRadialLayout(
     ...options
   };
   
-  return getLayoutedElements(nodes, edges, undefined, radialOptions);
+  return getLayoutedElements(nodes, edges, undefined, radialOptions, false);
 }
 
 /**

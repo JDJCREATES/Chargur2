@@ -184,7 +184,7 @@ export function processArchitectureData(
         processedTableIds.add(existingNode.id);
       } else {
         // Create a new node
-        const newNode = nodeFactory.createDatabaseTableNode(table, index, systemX, systemY, newNodes);
+        const newNode = nodeFactory.createDatabaseTableNode(table, newNodes);
         newNodes.push(newNode);
         nodesChanged = true;
       }
@@ -226,7 +226,7 @@ export function processArchitectureData(
       }
     } else {
       // Create a new node
-      const newNode = nodeFactory.createAPIEndpointsNode(architectureData.apiEndpoints, systemX, systemY, newNodes);
+      const newNode = nodeFactory.createAPIEndpointsNode(architectureData.apiEndpoints, newNodes);
       newNodes.push(newNode);
       nodesChanged = true;
     }
@@ -278,7 +278,7 @@ export function processArchitectureData(
         processedRouteIds.add(existingNode.id);
       } else {
         // Create a new node
-        const newNode = nodeFactory.createRouteNode(route, index, systemX, systemY, newNodes);
+        const newNode = nodeFactory.createRouteNode(route, newNodes);
         newNodes.push(newNode);
         nodesChanged = true;
       }

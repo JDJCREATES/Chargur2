@@ -218,7 +218,7 @@ export function processIdeationData(
         );
         if (existingPersona) {
           newNodes.push(existingPersona);
-          processedPersonaIds.add(existingPersona.id);
+          newNodes.push(nodeFactory.createUserPersonaNode(persona, newNodes));
         }
       }
     });
@@ -286,7 +286,7 @@ export function processIdeationData(
         );
         if (existingCompetitor) {
           newNodes.push(existingCompetitor);
-          processedCompetitorIds.add(existingCompetitor.id);
+          newNodes.push(nodeFactory.createCompetitorNode(competitor, newNodes));
         }
       }
     });
