@@ -70,6 +70,7 @@ export function processStructureData(
   // Track if we've processed the special nodes
   let processedInfoArchNode = false;
   let processedUserJourneyNode = false;
+  let processedStateDataFlowNode = false;
   
   // Process information architecture (screens and data models together)
   if (structureData.screens || structureData.dataModels) {
@@ -153,12 +154,55 @@ export function processStructureData(
     }
   }
 
+  // Process state data flow
+  if (structureData.stateManagement || structureData.dataFlow) {
+    const stateManagement = structureData.stateManagement || '';
+    const dataFlow = structureData.dataFlow || '';
+    
+    // Check if state data flow node already exists
+    const existingNode = existingStructureNodes.find(node => 
+      node.type === 'stateDataFlow'
+    );
+    
+    if (existingNode) {
+      processedStateDataFlowNode = true;
+      
+      // Check if state management or data flow have changed
+      const hasChanged = 
+        existingNode.data?.stateManagement !== stateManagement ||
+        existingNode.data?.dataFlow !== dataFlow;
+      
+      if (hasChanged) {
+        // Update the existing node
+        const updatedNode = {
+          ...existingNode,
+          data: {
+            ...existingNode.data,
+            stateManagement,
+            dataFlow,
+            content: `State management: ${stateManagement}\nData flow: ${dataFlow}`
+          }
+        };
+        newNodes.push(updatedNode);
+        nodesChanged = true;
+      } else {
+        // Keep existing node unchanged
+        newNodes.push(existingNode);
+      }
+    } else {
+      // Create a new node
+      const newNode = nodeFactory.createStateDataFlowNode(stateManagement, dataFlow, newNodes);
+      newNodes.push(newNode);
+      nodesChanged = true;
+    }
+  }
 
   // Add any remaining structure nodes that weren't processed
   existingStructureNodes.forEach(node => {
     // Skip nodes we've already processed
     if ((node.type === 'informationArchitecture' && processedInfoArchNode) ||
-        (node.type === 'userJourney' && processedUserJourneyNode)) {
+        (node.type === 'userJourney' && processedUserJourneyNode) ||
+        (node.type === 'stateDataFlow' && processedStateDataFlowNode)) {
       return;
     }
     

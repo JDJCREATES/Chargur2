@@ -32,6 +32,7 @@ export const STAGE2_NODE_TYPES = {
 export const STAGE3_NODE_TYPES = {
   INFORMATION_ARCHITECTURE: 'informationArchitecture',
   USER_JOURNEY: 'userJourney',
+  STATE_DATA_FLOW: 'stateDataFlow',
 };
 // Define default node configurations
 const STAGE1_NODE_DEFAULTS = {
@@ -109,6 +110,11 @@ export const STAGE3_NODE_DEFAULTS = {
   'userJourney': {
     size: { width: 400, height: 300 },
     position: { x: 800, y: 200 },
+    editable: true,
+  },
+  'stateDataFlow': {
+    size: { width: 350, height: 300 },
+    position: { x: 600, y: 500 },
     editable: true,
   },
 };
@@ -635,6 +641,44 @@ export function createUserJourneyNode(
         nodeType: 'userJourney'
       },
       userFlows,
+      resizable: true
+    }
+  };
+}
+
+/**
+ * Create a state data flow node
+ */
+export function createStateDataFlowNode(
+  stateManagement: string,
+  dataFlow: string,
+  existingNodes: Node[] = []
+): Node {
+  const defaults = STAGE3_NODE_DEFAULTS.stateDataFlow;
+  const position = getSmartNodePosition(
+    existingNodes,
+    defaults.size,
+    STAGE3_NODE_TYPES.STATE_DATA_FLOW,
+    defaults.position,
+    'structure-flow'
+  );
+  
+  return {
+    id: 'state-data-flow',
+    type: 'stateDataFlow',
+    position,
+    data: {
+      title: 'State & Data Flow',
+      content: `State management: ${stateManagement}\nData flow: ${dataFlow}`,
+      size: defaults.size,
+      color: 'red',
+      connections: [],
+      metadata: { 
+        stage: 'structure-flow',
+        nodeType: 'stateDataFlow'
+      },
+      stateManagement,
+      dataFlow,
       resizable: true
     }
   };
