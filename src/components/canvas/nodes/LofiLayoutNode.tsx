@@ -544,7 +544,7 @@ const LofiLayoutNodeComponent: React.FC<NodeProps<LofiLayoutNodeData>> = ({
         {/* Layout Canvas */}
         <div 
           ref={canvasRef}
-          className="p-3 h-[calc(100%-60px)] overflow-hidden"
+          className="p-3 h-[calc(100%-60px)] overflow-visible"
           onMouseMove={handleCardDrag}
           onMouseUp={handleCardDragEnd}
         >
