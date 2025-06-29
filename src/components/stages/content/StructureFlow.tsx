@@ -24,7 +24,6 @@ import {
 } from './structure-flow/types';
 import { InformationArchitecture } from './structure-flow/InformationArchitecture';
 import { UserFlows } from './structure-flow/UserFlows';
-import { ModularUIComposition } from './structure-flow/ModularUIComposition';
 import { ProjectFileStructure } from './structure-flow/ProjectFileStructure';
 import { StructureSummary } from './structure-flow/StructureSummary';
 import { StateDataFlow } from './structure-flow/StateDataFlow';
@@ -56,6 +55,13 @@ export const StructureFlow: React.FC<StructureFlowProps> = ({
     userFlows: [
       { id: '1', name: 'User Registration', steps: ['Landing Page', 'Sign Up Form', 'Email Verification', 'Welcome Dashboard'] },
       { id: '2', name: 'Create Project', steps: ['Dashboard', 'New Project Button', 'Project Form', 'Project Created', 'Project View'] },
+    ],
+    components: [
+      { id: '1', name: 'Header', type: 'layout' },
+      { id: '2', name: 'Sidebar', type: 'navigation' },
+      { id: '3', name: 'Card', type: 'ui' },
+      { id: '4', name: 'Button', type: 'ui' },
+      { id: '5', name: 'Modal', type: 'overlay' },
     ],
     fileStructure: {
       '/src': {
