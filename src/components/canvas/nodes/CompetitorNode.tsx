@@ -168,7 +168,6 @@ const CompetitorNode: React.FC<NodeProps> = ({
         rounded-lg shadow-md border-2 transition-all duration-300
         ${selected ? 'border-red-400 shadow-lg' : 'border-red-200'}
       `}>
-          style={{ width: data.size?.width, height: data.size?.height }}
           {/* Main Content */}
           <div className="p-3">
             {isEditing ? (

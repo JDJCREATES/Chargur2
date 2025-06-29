@@ -126,7 +126,6 @@ const BrandingNode: React.FC<NodeProps> = ({
         rounded-lg shadow-md border-2 transition-all duration-300
         ${selected ? 'border-purple-400 shadow-lg' : 'border-purple-200'}
       `}>
-        style={{ width: data.size?.width, height: data.size?.height }}
         {/* Header */}
         <div className="flex items-center justify-between p-3 border-b border-purple-200 bg-purple-50 rounded-t-lg">
           <div className="flex items-center gap-2">

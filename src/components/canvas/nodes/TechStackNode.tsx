@@ -45,7 +45,6 @@ const TechStackNode: React.FC<NodeProps> = ({
         ${selected ? 'border-indigo-400 shadow-lg' : 'border-indigo-200'}
         ${isPlaceholder ? 'opacity-70' : 'opacity-100'}
       `}>
-        style={{ width: data.size?.width, height: data.size?.height }}
         {/* Header */}
         <div className="flex items-center gap-2 p-3 border-b border-indigo-200">
           <Code className="w-4 h-4 text-indigo-600" />

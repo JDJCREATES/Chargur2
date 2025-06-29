@@ -104,7 +104,6 @@ const MarkdownCodeNode: React.FC<NodeProps<MarkdownCodeNodeData>> = ({
         rounded-lg shadow-md border-2 transition-all duration-300
         ${selected ? 'border-green-400 shadow-lg' : 'border-green-200'}
       `}>
-        style={{ width: data.size?.width, height: data.size?.height }}
         {/* Header */}
         <div className="flex items-center justify-between p-2 border-b border-gray-700">
           <div className="flex items-center gap-2">

@@ -88,7 +88,6 @@ const RouteApiMappingNode: React.FC<NodeProps> = ({
         rounded-lg shadow-md border-2 transition-all duration-300
         ${selected ? 'border-cyan-400 shadow-lg' : 'border-cyan-200'}
       `}>
-        style={{ width: data.size?.width, height: data.size?.height }}
         {/* Header */}
         <div className="bg-gradient-to-r from-cyan-50 to-blue-50 p-3 border-b border-cyan-100 rounded-t-lg flex items-center justify-between">
           <div className="flex items-center gap-2">

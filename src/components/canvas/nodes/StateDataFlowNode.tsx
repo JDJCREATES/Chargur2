@@ -94,7 +94,6 @@ const StateDataFlowNode: React.FC<StateDataFlowNodeProps> = ({
         rounded-lg shadow-md border-2 transition-all duration-300 overflow-hidden
         ${selected ? 'border-red-400 shadow-lg' : 'border-red-200'}
       `}>
-        style={{ width: data.size?.width, height: data.size?.height }}
         {/* Header */}
         <div className="bg-gradient-to-r from-red-50 to-orange-50 p-3 border-b border-red-100">
           <div className="flex items-center gap-2">

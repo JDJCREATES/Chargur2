@@ -54,7 +54,6 @@ const UserJourneyNode: React.FC<NodeProps> = ({
         rounded-lg shadow-md border-2 transition-all duration-300 overflow-hidden
         ${selected ? 'border-purple-400 shadow-lg' : 'border-purple-200'}
       `}>
-        style={{ width: data.size?.width, height: data.size?.height }}
         {/* Header */}
         <div className="bg-gradient-to-r from-purple-50 to-indigo-50 p-3 border-b border-purple-100">
           <div className="flex items-center gap-2">

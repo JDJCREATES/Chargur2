@@ -109,7 +109,6 @@ const CoreProblemNode: React.FC<NodeProps> = ({
         ${selected ? 'border-orange-400 shadow-lg rotate-0' : 'border-orange-200'}
         ${isPlaceholder ? 'opacity-70' : 'opacity-100'}
       `}>
-          style={{ width: data.size?.width, height: data.size?.height }}
           {/* Sticky Note Header */}
           <div className="absolute top-0 left-1/2 transform -translate-x-1/2 -translate-y-1 w-8 h-3 bg-orange-300 rounded-t-sm"></div>
           

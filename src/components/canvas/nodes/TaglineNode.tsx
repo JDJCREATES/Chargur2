@@ -74,7 +74,6 @@ const TaglineNode: React.FC<NodeProps> = ({
         ${selected ? 'border-purple-400 shadow-lg' : 'border-purple-200'}
         ${isPlaceholder ? 'opacity-70' : 'opacity-100'}
       `}>
-          style={{ width: data.size?.width, height: data.size?.height }}
           <div className="px-6 py-3 flex items-center justify-center h-full">
             {isEditing ? (
               <input

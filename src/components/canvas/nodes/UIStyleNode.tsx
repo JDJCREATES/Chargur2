@@ -97,7 +97,6 @@ const UIStyleNode: React.FC<NodeProps> = ({
         ${selected ? 'shadow-lg' : ''}
         ${isPlaceholder ? 'opacity-70' : 'opacity-100'}
       `}>
-        style={{ width: data.size?.width, height: data.size?.height }}
         {/* Header */}
         <div className={`flex items-center gap-2 p-3 border-b ${colors.border}`}>
           <Palette className={`w-4 h-4 ${colors.text}`} />

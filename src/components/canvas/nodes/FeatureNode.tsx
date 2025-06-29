@@ -254,7 +254,6 @@ const FeatureNode: React.FC<NodeProps> = ({
         rounded-lg shadow-md border transition-all duration-300
         ${selected ? 'border-blue-400 shadow-lg' : 'border-blue-200'}
       `}>
-        style={{ width: data.size?.width, height: data.size?.height }}
         {/* Header */}
         <div className="flex items-center justify-between p-2 border-b border-blue-100 bg-blue-50 rounded-t-lg">
           <div className="flex items-center gap-2">

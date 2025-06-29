@@ -451,7 +451,6 @@ const LofiLayoutNodeComponent: React.FC<NodeProps<LofiLayoutNodeData>> = ({
         rounded-lg shadow-md border-2 transition-all duration-300
         ${selected ? 'border-blue-400 shadow-lg' : 'border-blue-200'}
       `}>
-        style={{ width: data.size?.width, height: data.size?.height }}
         {/* Header */}
         <div className="bg-blue-50 p-3 border-b border-blue-100 flex items-center justify-between">
           <div className="flex items-center gap-2">

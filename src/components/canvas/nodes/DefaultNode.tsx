@@ -140,7 +140,6 @@ const DefaultNode: React.FC<NodeProps> = ({
         ${getNodeColors()}
         ${selected ? 'shadow-lg' : 'shadow-sm'}
       `}>
-        style={{ width: data.size?.width, height: data.size?.height }}
         {/* Node Header */}
         <div className="flex items-center justify-between p-2 border-b border-current border-opacity-20">
           <div className="flex items-center gap-2">
