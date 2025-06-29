@@ -10,6 +10,32 @@ import { Node } from 'reactflow';
 import { ProcessorState } from '../../../components/canvas/core/CanvasDataProcessor';
 import * as nodeFactory from '../nodeFactory';
 
+/**
+ * Convert file structure object to string representation
+ */
+function fileStructureToString(structure: any, indent: number = 0): string {
+  if (!structure) return '';
+  
+  let result = '';
+  const indentStr = ' '.repeat(indent);
+  
+  Object.entries(structure).forEach(([key, value]) => {
+    result += `${indentStr}${key}\n`;
+    
+    if (Array.isArray(value)) {
+      // Files
+      value.forEach((file: string) => {
+        result += `${indentStr}  ${file}\n`;
+      });
+    } else if (typeof value === 'object') {
+      // Subdirectories
+      result += fileStructureToString(value, indent + 2);
+    }
+  });
+  
+  return result;
+}
+
 // Helper function to check if arrays are equal
 function areArraysEqual(arr1: any[] | undefined, arr2: any[] | undefined): boolean {
   if (!arr1 && !arr2) return true;
@@ -71,6 +97,7 @@ export function processStructureData(
   let processedInfoArchNode = false;
   let processedUserJourneyNode = false;
   let processedStateDataFlowNode = false;
+  let processedFileStructureNode = false;
   
   // Process information architecture (screens and data models together)
   if (structureData.screens || structureData.dataModels) {
@@ -197,12 +224,54 @@ export function processStructureData(
     }
   }
 
+  // Process file structure
+  if (structureData.fileStructure && Object.keys(structureData.fileStructure).length > 0) {
+    const fileStructureString = fileStructureToString(structureData.fileStructure);
+    
+    // Check if file structure node already exists
+    const existingNode = existingStructureNodes.find(node => 
+      node.type === 'markdownCode' && node.data?.title === 'Project File Structure'
+    );
+    
+    if (existingNode) {
+      processedFileStructureNode = true;
+      
+      // Check if file structure has changed
+      if (existingNode.data?.content !== fileStructureString) {
+        // Update the existing node
+        const updatedNode = {
+          ...existingNode,
+          data: {
+            ...existingNode.data,
+            content: fileStructureString
+          }
+        };
+        newNodes.push(updatedNode);
+        nodesChanged = true;
+      } else {
+        // Keep existing node unchanged
+        newNodes.push(existingNode);
+      }
+    } else {
+      // Create a new node
+      const newNode = nodeFactory.createMarkdownCodeNode(
+        fileStructureString,
+        'Project File Structure',
+        'Structure & Flow',
+        newNodes
+      );
+      newNodes.push(newNode);
+      nodesChanged = true;
+    }
+  }
+
   // Add any remaining structure nodes that weren't processed
   existingStructureNodes.forEach(node => {
     // Skip nodes we've already processed
     if ((node.type === 'informationArchitecture' && processedInfoArchNode) ||
         (node.type === 'userJourney' && processedUserJourneyNode) ||
-        (node.type === 'stateDataFlow' && processedStateDataFlowNode)) {
+        (node.type === 'stateDataFlow' && processedStateDataFlowNode) ||
+        (node.type === 'markdownCode' && node.data?.title === 'Project File Structure' && processedFileStructureNode)) {
       return;
     }
     

@@ -10,6 +10,32 @@ import { Node } from 'reactflow';
 import { ProcessorState } from '../../../components/canvas/core/CanvasDataProcessor';
 import * as nodeFactory from '../nodeFactory';
 
+/**
+ * Convert folder structure object to string representation
+ */
+function folderStructureToString(structure: any, indent: number = 0): string {
+  if (!structure) return '';
+  
+  let result = '';
+  const indentStr = ' '.repeat(indent);
+  
+  Object.entries(structure).forEach(([key, value]) => {
+    result += `${indentStr}${key}\n`;
+    
+    if (Array.isArray(value)) {
+      // Files
+      value.forEach((file: string) => {
+        result += `${indentStr}  ${file}\n`;
+      });
+    } else if (typeof value === 'object') {
+      // Subdirectories
+      result += folderStructureToString(value, indent + 2);
+    }
+  });
+  
+  return result;
+}
+
 // Helper function to check if objects are equal
 function areObjectsEqual(obj1: any, obj2: any): boolean {
   if (!obj1 && !obj2) return true;
@@ -111,6 +137,7 @@ export function processArchitectureData(
   // Track if we've processed the API endpoints node
   let processedAPINode = false;
 
+  let processedFolderStructureNode = false;
   // Process API endpoints
   if (architectureData.apiEndpoints) {
     // Check if API endpoints node already exists
@@ -198,12 +225,54 @@ export function processArchitectureData(
     });
   }
 
+  // Process folder structure
+  if (architectureData.folderStructure && Object.keys(architectureData.folderStructure).length > 0) {
+    const folderStructureString = folderStructureToString(architectureData.folderStructure);
+    
+    // Check if folder structure node already exists
+    const existingNode = existingArchitectureNodes.find(node => 
+      node.type === 'markdownCode' && node.data?.title === 'Folder Structure'
+    );
+    
+    if (existingNode) {
+      processedFolderStructureNode = true;
+      
+      // Check if folder structure has changed
+      if (existingNode.data?.content !== folderStructureString) {
+        // Update the existing node
+        const updatedNode = {
+          ...existingNode,
+          data: {
+            ...existingNode.data,
+            content: folderStructureString
+          }
+        };
+        newNodes.push(updatedNode);
+        nodesChanged = true;
+      } else {
+        // Keep existing node unchanged
+        newNodes.push(existingNode);
+      }
+    } else {
+      // Create a new node
+      const newNode = nodeFactory.createMarkdownCodeNode(
+        folderStructureString,
+        'Folder Structure',
+        'Architecture Design',
+        newNodes
+      );
+      newNodes.push(newNode);
+      nodesChanged = true;
+    }
+  }
+
   // Add any remaining architecture nodes that weren't processed
   existingArchitectureNodes.forEach(node => {
     // Skip nodes we've already processed
     if ((node.data?.metadata?.tableType === 'database' && processedTableIds.has(node.id)) ||
         (node.data?.metadata?.systemType === 'api' && processedAPINode) ||
-        (node.data?.metadata?.routeType === 'page' && processedRouteIds.has(node.id))) {
+        (node.data?.metadata?.routeType === 'page' && processedRouteIds.has(node.id)) ||
+        (node.type === 'markdownCode' && node.data?.title === 'Folder Structure' && processedFolderStructureNode)) {
       return;
     }
     

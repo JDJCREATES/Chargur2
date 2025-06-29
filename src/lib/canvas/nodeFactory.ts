@@ -32,7 +32,8 @@ export const STAGE2_NODE_TYPES = {
 export const STAGE3_NODE_TYPES = {
   INFORMATION_ARCHITECTURE: 'informationArchitecture',
   USER_JOURNEY: 'userJourney',
-  STATE_DATA_FLOW: 'stateDataFlow',
+  STATE_DATA_FLOW: 'stateDataFlow', 
+  MARKDOWN_CODE: 'markdownCode',
 };
 // Define default node configurations
 const STAGE1_NODE_DEFAULTS = {
@@ -115,7 +116,12 @@ export const STAGE3_NODE_DEFAULTS = {
   'stateDataFlow': {
     size: { width: 350, height: 300 },
     position: { x: 600, y: 500 },
-    editable: true,
+    editable: true, 
+  },
+  'markdownCode': {
+    size: { width: 400, height: 300 },
+    position: { x: 400, y: 400 },
+    editable: true, 
   },
 };
 
@@ -679,6 +685,45 @@ export function createStateDataFlowNode(
       },
       stateManagement,
       dataFlow,
+      resizable: true
+    }
+  };
+}
+
+/**
+ * Create a markdown code node
+ */
+export function createMarkdownCodeNode(
+  content: string,
+  title: string,
+  source: string,
+  existingNodes: Node[] = []
+): Node {
+  const defaults = STAGE3_NODE_DEFAULTS.markdownCode;
+  const position = getSmartNodePosition(
+    existingNodes,
+    defaults.size,
+    STAGE3_NODE_TYPES.MARKDOWN_CODE,
+    defaults.position,
+    'structure-flow'
+  );
+  
+  return {
+    id: `markdown-code-${Date.now()}`,
+    type: 'markdownCode',
+    position,
+    data: {
+      title,
+      content,
+      source,
+      editable: true,
+      size: defaults.size,
+      color: 'green',
+      connections: [],
+      metadata: { 
+        stage: 'structure-flow',
+        nodeType: 'markdownCode'
+      },
       resizable: true
     }
   };
