@@ -38,61 +38,63 @@ export const STAGE3_NODE_TYPES = {
   MARKDOWN_CODE: 'markdownCode',
   LOFI_LAYOUT: 'lofiLayout',
 };
+
 // Define default node configurations
 const STAGE1_NODE_DEFAULTS = {
   appName: {
     size: { width: 275, height: 80 },
-    position: { x: 400, y: 50 },
+    position: { x: 100, y: 100 }, // Match SEMANTIC_ZONES
     editable: true,
   },
   tagline: {
     size: { width: 240, height: 40 },
-    position: { x: 420, y: 150 },
+    position: { x: 100, y: 160 }, // Match SEMANTIC_ZONES (moved up)
     editable: true,
   },
   coreProblem: {
     size: { width: 110, height: 160 },
-    position: { x: 100, y: 200 },
+    position: { x: 100, y: 280 }, // Match SEMANTIC_ZONES (more spacing)
     editable: true,
   },
   mission: {
     size: { width: 175, height: 140 },
-    position: { x: 350, y: 220 },
-    editable: true,
-  },
-  userPersona: {
-    size: { width: 95, height: 140 },
-    position: { x: 650, y: 200 },
+    position: { x: 100, y: 420 }, // Match SEMANTIC_ZONES (more spacing)
     editable: true,
   },
   valueProp: {
     size: { width: 120, height: 180 },
-    position: { x: 100, y: 400 },
+    position: { x: 100, y: 560 }, // Match SEMANTIC_ZONES (more spacing)
+    editable: true,
+  },
+  userPersona: {
+    size: { width: 95, height: 140 },
+    position: { x: 450, y: 150 }, // Match SEMANTIC_ZONES (grid base)
     editable: true,
   },
   competitor: {
     size: { width: 140, height: 100 },
-    position: { x: 700, y: 400 },
+    position: { x: 450, y: 400 }, // Match SEMANTIC_ZONES (grid base)
+    editable: true,
+  },
+  // Technical specs - bottom area
+  platform: {
+    size: { width: 160, height: 80 },
+    position: { x: 100, y: 700 }, // Match SEMANTIC_ZONES
     editable: true,
   },
   techStack: {
     size: { width: 75, height: 120 },
-    position: { x: 500, y: 400 },
+    position: { x: 300, y: 700 }, // Match SEMANTIC_ZONES
     editable: true,
   },
   uiStyle: {
     size: { width: 115, height: 120 },
-    position: { x: 300, y: 400 },
-    editable: true,
-  },
-  platform: {
-    size: { width: 160, height: 80 },
-    position: { x: 400, y: 300 },
+    position: { x: 500, y: 700 }, // Match SEMANTIC_ZONES
     editable: true,
   },
   branding: {
     size: { width: 280, height: 240 },
-    position: { x: 500, y: 200 },
+    position: { x: 700, y: 100 }, // Separate area for branding
     editable: true,
   }
 };
@@ -100,17 +102,17 @@ const STAGE1_NODE_DEFAULTS = {
 export const STAGE2_NODE_DEFAULTS = {
   'feature': {
     size: { width: 500, height: 160 },
-    position: { x: 200, y: 350 },
+    position: { x: 800, y: 150 }, // Match SEMANTIC_ZONES (much further right)
     editable: true
   },
   'architecture': {
     size: { width: 400, height: 300 },
-    position: { x: 700, y: 350 },
+    position: { x: 1200, y: 400 }, // Match SEMANTIC_ZONES system area
     editable: true
   },
   'routeApiMapping': {
     size: { width: 350, height: 300 },
-    position: { x: 450, y: 350 },
+    position: { x: 1200, y: 200 }, // Match SEMANTIC_ZONES system area
     editable: true
   },
 };
@@ -118,27 +120,27 @@ export const STAGE2_NODE_DEFAULTS = {
 export const STAGE3_NODE_DEFAULTS = {
   'informationArchitecture': {
     size: { width: 350, height: 300 },
-    position: { x: 400, y: 200 },
+    position: { x: 1200, y: 200 }, // Match SEMANTIC_ZONES ux-flow area
     editable: true,
   },
   'userJourney': {
     size: { width: 400, height: 300 },
-    position: { x: 800, y: 200 },
+    position: { x: 1200, y: 400 }, // Match SEMANTIC_ZONES system area
     editable: true,
   },
   'stateDataFlow': {
     size: { width: 350, height: 300 },
-    position: { x: 600, y: 500 },
-    editable: true, 
+    position: { x: 1200, y: 600 }, // Match SEMANTIC_ZONES wireframe area
+    editable: true,   
   },
   'markdownCode': {
     size: { width: 400, height: 300 },
-    position: { x: 400, y: 400 },
-    editable: true, 
+    position: { x: 1400, y: 200 }, // Further right for code blocks
+    editable: true,   
   },
   'lofiLayout': {
     size: { width: 400, height: 300 },
-    position: { x: 400, y: 200 },
+    position: { x: 800, y: 500 }, // Match SEMANTIC_ZONES lofiLayout
     editable: true,
   },
 };
