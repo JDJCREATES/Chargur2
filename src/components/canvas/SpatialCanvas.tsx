@@ -135,7 +135,7 @@ export const SpatialCanvas: React.FC<SpatialCanvasProps> = ({
 
   // SEPARATE: StageData processing (should ONLY happen on AI responses)
   // COMPLETELY COMMENT OUT the entire stageData processing useEffect
-  /*
+
   useEffect(() => {
     const stageDataString = JSON.stringify(stageData);
     
@@ -231,7 +231,7 @@ export const SpatialCanvas: React.FC<SpatialCanvasProps> = ({
       clearTimeout(timeoutId);
     };
   }, [stageData, onSendMessage]); // ONLY stageData and onSendMessage - no node/edge dependencies!
-  */
+ 
   // Reset view when canvas nodes change significantly (indicating project change)
   useEffect(() => {
     if (!projectId) {
