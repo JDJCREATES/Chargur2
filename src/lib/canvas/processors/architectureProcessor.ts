@@ -292,7 +292,7 @@ export function processArchitectureData(
     
     architectureData.sitemap.forEach((route: any) => {
       // Find API endpoints related to this route
-      const relatedApiEndpoints = architectureData.apiEndpoints.filter((endpoint: any) => 
+      const relatedApiEndpoints = (architectureData.apiEndpoints || []).filter((endpoint: any) => 
         isApiEndpointRelatedToRoute(endpoint, route)
       );
       
