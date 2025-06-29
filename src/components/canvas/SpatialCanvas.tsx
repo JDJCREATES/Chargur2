@@ -147,6 +147,7 @@ export const SpatialCanvas: React.FC<SpatialCanvasProps> = ({
     
     // Set processing flag and update reference immediately
     processingRef.current = true;
+    lastProcessedStageDataRef.current = stageDataString;
   
     
     // Debounce the processing to prevent rapid fire updates
@@ -154,7 +155,6 @@ export const SpatialCanvas: React.FC<SpatialCanvasProps> = ({
       try {
         // Get current stage ID from the app store
         const currentStageId = useAppStore.getState().currentStageId;
-          lastProcessedStageDataRef.current = stageDataString;
         console.log('Calling CanvasDataProcessor with:', {
           currentStageId,
           stageDataKeys: Object.keys(stageData),
@@ -166,10 +166,11 @@ export const SpatialCanvas: React.FC<SpatialCanvasProps> = ({
         
         if (!stageSpecificData) {
           console.log('No data for current stage:', currentStageId);
-          processingRef.current = false;
+          processingRef.current = false; // Reset processing flag
           return;
         }
 
+        try {
         // Process the data based on the stage type
         let processedNodes: Node[] = [];
         
@@ -230,9 +231,12 @@ export const SpatialCanvas: React.FC<SpatialCanvasProps> = ({
         lastProcessedStageDataRef.current = stageDataString;
         
         console.log('Canvas data processed, node count:', nodesWithCallbacks.length);
-        
-        // Reset processing flag after completion
-        processingRef.current = false;
+        } catch (processingError) {
+          console.error('Error processing stage data:', processingError);
+        } finally {
+          // Always reset processing flag, even if an error occurs
+          processingRef.current = false;
+        }
       } catch (error) {
         console.error('Error processing stage data:', error);
         processingRef.current = false;
