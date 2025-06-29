@@ -13,6 +13,7 @@ import CompetitorNode from './CompetitorNode';
 import PlatformNode from './PlatformNode';
 import TechStackNode from './TechStackNode';
 import UIStyleNode from './UIStyleNode';
+import BrandingNode from './BrandingNode';
 import FeatureNode from './FeatureNode';
 import ArchitectureNode from './ArchitectureNode';
 import InformationArchitectureNode from './InformationArchitectureNode';
@@ -34,6 +35,7 @@ export {
   PlatformNode,
   TechStackNode,
   UIStyleNode,
+  BrandingNode,
   FeatureNode,
   ArchitectureNode,
   InformationArchitectureNode,
@@ -56,6 +58,7 @@ export const nodeTypes = {
   platform: PlatformNode,
   techStack: TechStackNode,
   uiStyle: UIStyleNode,
+  branding: BrandingNode,
   feature: FeatureNode,
   architecture: ArchitectureNode,
   informationArchitecture: InformationArchitectureNode,

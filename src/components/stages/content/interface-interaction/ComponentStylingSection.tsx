@@ -7,6 +7,7 @@ interface ComponentStylingSectionProps {
   customBranding: CustomBranding;
   onUpdateDesignSystem: (system: string) => void;
   onUpdateCustomBranding: (updates: Partial<CustomBranding>) => void;
+  onAddBrandingNode?: () => void;
 }
 
 export const ComponentStylingSection: React.FC<ComponentStylingSectionProps> = ({
@@ -14,6 +15,7 @@ export const ComponentStylingSection: React.FC<ComponentStylingSectionProps> = (
   customBranding,
   onUpdateDesignSystem,
   onUpdateCustomBranding
+  onAddBrandingNode
 }) => {
   const designSystems = [
     { id: 'shadcn', name: 'ShadCN/UI', desc: 'Modern, accessible components' },
@@ -85,6 +87,23 @@ export const ComponentStylingSection: React.FC<ComponentStylingSectionProps> = (
             </div>
           </div>
           <div>
+            <label className="block text-xs font-medium text-purple-700 mb-1">Accent Color</label>
+            <div className="flex items-center gap-2">
+              <input
+                type="color"
+                value={customBranding.accentColor || '#F59E0B'}
+                onChange={(e) => onUpdateCustomBranding({ accentColor: e.target.value })}
+                className="w-8 h-8 rounded border border-purple-200"
+              />
+              <input
+                type="text"
+                value={customBranding.accentColor || '#F59E0B'}
+                onChange={(e) => onUpdateCustomBranding({ accentColor: e.target.value })}
+                className="flex-1 px-2 py-1 text-xs border border-purple-200 rounded focus:outline-none focus:ring-1 focus:ring-purple-500"
+              />
+            </div>
+          </div>
+          <div>
             <label className="block text-xs font-medium text-purple-700 mb-1">Font Family</label>
             <select
               value={customBranding.fontFamily}
@@ -95,6 +114,25 @@ export const ComponentStylingSection: React.FC<ComponentStylingSectionProps> = (
               <option value="Roboto">Roboto</option>
               <option value="Poppins">Poppins</option>
               <option value="Open Sans">Open Sans</option>
+              <option value="Montserrat">Montserrat</option>
+              <option value="Lato">Lato</option>
+              <option value="Raleway">Raleway</option>
+            </select>
+          </div>
+          <div>
+            <label className="block text-xs font-medium text-purple-700 mb-1">Body Font</label>
+            <select
+              value={customBranding.bodyFont || 'Roboto'}
+              onChange={(e) => onUpdateCustomBranding({ bodyFont: e.target.value })}
+              className="w-full px-2 py-1 text-xs border border-purple-200 rounded focus:outline-none focus:ring-1 focus:ring-purple-500"
+            >
+              <option value="Inter">Inter</option>
+              <option value="Roboto">Roboto</option>
+              <option value="Poppins">Poppins</option>
+              <option value="Open Sans">Open Sans</option>
+              <option value="Montserrat">Montserrat</option>
+              <option value="Lato">Lato</option>
+              <option value="Raleway">Raleway</option>
             </select>
           </div>
           <div>
@@ -109,6 +147,16 @@ export const ComponentStylingSection: React.FC<ComponentStylingSectionProps> = (
               <option value="medium">Medium</option>
               <option value="large">Large</option>
             </select>
+          </div>
+          <div className="flex items-end">
+            {onAddBrandingNode && (
+              <button
+                onClick={onAddBrandingNode}
+                className="px-3 py-1 text-xs bg-purple-600 text-white rounded hover:bg-purple-700 transition-colors"
+              >
+                Add to Canvas
+              </button>
+            )}
           </div>
         </div>
       </div>

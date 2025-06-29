@@ -32,7 +32,9 @@ export interface CopywritingItem {
 export interface CustomBranding {
   primaryColor: string;
   secondaryColor: string;
+  accentColor?: string;
   fontFamily: string;
+  bodyFont?: string;
   borderRadius: string;
 }
 

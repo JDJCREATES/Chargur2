@@ -62,6 +62,7 @@ export function processInterfaceData(
   const processedDesignSystemNode = false;
   const processedBrandingNode = false;
   const processedLayoutNode = false;
+  let processedLofiLayoutNodes: string[] = [];
 
   // Process design system
   if (interfaceData.selectedDesignSystem) {
@@ -128,6 +129,61 @@ export function processInterfaceData(
     }
   }
 
+  // Process branding node with new BrandingNode component
+  if (interfaceData.customBranding) {
+    // Check if branding node already exists
+    const existingBrandingNode = existingInterfaceNodes.find(node => 
+      node.type === 'branding'
+    );
+    
+    if (existingBrandingNode) {
+      // Check if branding data has changed
+      const hasChanged = 
+        existingBrandingNode.data?.primaryColor !== interfaceData.customBranding.primaryColor ||
+        existingBrandingNode.data?.secondaryColor !== interfaceData.customBranding.secondaryColor ||
+        existingBrandingNode.data?.fontFamily !== interfaceData.customBranding.fontFamily ||
+        existingBrandingNode.data?.borderRadius !== interfaceData.customBranding.borderRadius ||
+        existingBrandingNode.data?.designSystem !== interfaceData.selectedDesignSystem;
+      
+      if (hasChanged) {
+        // Update the existing node
+        const updatedNode = {
+          ...existingBrandingNode,
+          data: {
+            ...existingBrandingNode.data,
+            primaryColor: interfaceData.customBranding.primaryColor,
+            secondaryColor: interfaceData.customBranding.secondaryColor,
+            accentColor: interfaceData.customBranding.accentColor || '#F59E0B',
+            fontFamily: interfaceData.customBranding.fontFamily,
+            bodyFont: interfaceData.customBranding.bodyFont || 'Roboto',
+            borderRadius: interfaceData.customBranding.borderRadius,
+            designSystem: interfaceData.selectedDesignSystem
+          }
+        };
+        newNodes.push(updatedNode);
+        nodesChanged = true;
+      } else {
+        // Keep existing node unchanged
+        newNodes.push(existingBrandingNode);
+      }
+    } else {
+      // Create a new branding node
+      const brandingData = {
+        primaryColor: interfaceData.customBranding.primaryColor,
+        secondaryColor: interfaceData.customBranding.secondaryColor,
+        accentColor: interfaceData.customBranding.accentColor || '#F59E0B',
+        fontFamily: interfaceData.customBranding.fontFamily,
+        bodyFont: interfaceData.customBranding.bodyFont || 'Roboto',
+        borderRadius: interfaceData.customBranding.borderRadius,
+        designSystem: interfaceData.selectedDesignSystem
+      };
+      
+      const newNode = nodeFactory.createBrandingNode(brandingData, newNodes);
+      newNodes.push(newNode);
+      nodesChanged = true;
+    }
+  }
+
   // Process layout blocks
   if (interfaceData.layoutBlocks && interfaceData.layoutBlocks.length > 0) {
     // Check if layout node already exists
@@ -161,12 +217,70 @@ export function processInterfaceData(
     }
   }
 
+  // Process lofi layouts
+  if (interfaceData.lofiLayouts && Array.isArray(interfaceData.lofiLayouts) && interfaceData.lofiLayouts.length > 0) {
+    // Find existing lofi layout nodes
+    const existingLofiNodes = existingInterfaceNodes.filter(node => 
+      node.type === 'lofiLayout'
+    );
+    
+    // Process each lofi layout
+    interfaceData.lofiLayouts.forEach((layout: any) => {
+      if (!layout.layoutId) {
+        console.warn('Skipping lofi layout without layoutId');
+        return;
+      }
+      
+      // Check if this layout already exists
+      const existingNode = existingLofiNodes.find(node => 
+        node.data?.layoutId === layout.layoutId
+      );
+      
+      if (existingNode) {
+        // Track that we've processed this node
+        processedLofiLayoutNodes.push(existingNode.id);
+        
+        // Check if layout data has changed
+        const hasChanged = 
+          existingNode.data?.templateName !== layout.templateName ||
+          !areObjectsEqual(existingNode.data?.layoutBlocks, layout.layoutBlocks) ||
+          existingNode.data?.viewMode !== layout.viewMode;
+        
+        if (hasChanged) {
+          // Update the existing node
+          const updatedNode = {
+            ...existingNode,
+            data: {
+              ...existingNode.data,
+              templateName: layout.templateName,
+              layoutBlocks: layout.layoutBlocks,
+              description: layout.description,
+              viewMode: layout.viewMode
+            }
+          };
+          newNodes.push(updatedNode);
+          nodesChanged = true;
+        } else {
+          // Keep existing node unchanged
+          newNodes.push(existingNode);
+        }
+      } else {
+        // Create a new lofi layout node
+        const newNode = nodeFactory.createLofiLayoutNode(layout, newNodes);
+        newNodes.push(newNode);
+        nodesChanged = true;
+      }
+    });
+  }
+
   // Add any remaining interface nodes that weren't processed
   existingInterfaceNodes.forEach(node => {
     // Skip nodes we've already processed
     if ((node.data?.metadata?.uiType === 'design-system' && processedDesignSystemNode) ||
         (node.data?.metadata?.uiType === 'branding' && processedBrandingNode) ||
-        (node.data?.metadata?.uiType === 'layout' && processedLayoutNode)) {
+        (node.data?.metadata?.uiType === 'layout' && processedLayoutNode) ||
+        (node.type === 'lofiLayout' && processedLofiLayoutNodes.includes(node.id)) ||
+        (node.type === 'branding')) {
       return;
     }
     

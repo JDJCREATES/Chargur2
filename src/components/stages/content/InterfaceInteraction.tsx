@@ -48,7 +48,9 @@ export const InterfaceInteraction: React.FC<InterfaceInteractionProps> = ({
     customBranding: {
       primaryColor: '#3B82F6',
       secondaryColor: '#10B981',
+      accentColor: '#F59E0B',
       fontFamily: 'Inter',
+      bodyFont: 'Roboto',
       borderRadius: 'medium',
     },
     layoutBlocks: [
@@ -202,6 +204,33 @@ export const InterfaceInteraction: React.FC<InterfaceInteractionProps> = ({
     updateFormData('customBranding', { ...formData.customBranding, ...updates });
   };
 
+  // Add branding node to canvas
+  const addBrandingNode = () => {
+    // Get current nodes from store
+    const currentNodes = useAppStore.getState().canvasNodes;
+    
+    // Create branding data from form data
+    const brandingData = {
+      primaryColor: formData.customBranding.primaryColor,
+      secondaryColor: formData.customBranding.secondaryColor,
+      accentColor: formData.customBranding.accentColor || '#F59E0B',
+      fontFamily: formData.customBranding.fontFamily,
+      bodyFont: formData.customBranding.bodyFont || 'Roboto',
+      borderRadius: formData.customBranding.borderRadius,
+      designSystem: formData.selectedDesignSystem
+    };
+    
+    // Import nodeFactory and create a new branding node
+    import('../../../lib/canvas/nodeFactory').then(({ createBrandingNode }) => {
+      const newNode = createBrandingNode(brandingData, currentNodes);
+      
+      // Update canvas nodes in store
+      useAppStore.getState().updateCanvasNodes([...currentNodes, newNode]);
+      
+      console.log('Branding node added to canvas');
+    });
+  };
+
   const generateDesignSummary = () => {
     return `
 **Interface & Interaction Design Summary**
@@ -260,6 +289,7 @@ export const InterfaceInteraction: React.FC<InterfaceInteractionProps> = ({
             customBranding={formData.customBranding}
             onUpdateDesignSystem={(system) => updateFormData('selectedDesignSystem', system)}
             onUpdateCustomBranding={updateCustomBranding}
+            onAddBrandingNode={addBrandingNode}
           />
         </AccordionDetails>
       </Accordion>

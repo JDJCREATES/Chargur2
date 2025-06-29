@@ -21,7 +21,8 @@ export const STAGE1_NODE_TYPES = {
   COMPETITOR: 'competitor', 
   TECH_STACK: 'techStack',
   UI_STYLE: 'uiStyle',
-  PLATFORM: 'platform'
+  PLATFORM: 'platform',
+  BRANDING: 'branding'
 };
 
 export const STAGE2_NODE_TYPES = { 
@@ -86,6 +87,11 @@ const STAGE1_NODE_DEFAULTS = {
   platform: {
     size: { width: 160, height: 80 },
     position: { x: 400, y: 300 },
+    editable: true,
+  },
+  branding: {
+    size: { width: 280, height: 240 },
+    position: { x: 500, y: 200 },
     editable: true,
   }
 };
@@ -957,30 +963,45 @@ export function createDesignSystemNode(
  * Create a branding node
  */
 export function createBrandingNode(
-  branding: any, 
-  baseX: number, 
-  baseY: number,
+  brandingData: {
+    primaryColor?: string;
+    secondaryColor?: string;
+    accentColor?: string;
+    fontFamily?: string;
+    bodyFont?: string;
+    borderRadius?: string;
+    designSystem?: string;
+  },
   existingNodes: Node[] = []
 ): Node {
+  const defaults = STAGE1_NODE_DEFAULTS.branding;
   const position = getSmartNodePosition(
     existingNodes,
-    { width: 140, height: 80 },
-    'wireframe',
-    { x: baseX + 180, y: baseY },
+    defaults.size,
+    'branding',
+    defaults.position,
     'interface-interaction'
   );
   
   return {
     id: uuidv4(),
-    type: 'wireframe',
+    type: 'branding',
     position,
     data: {
-      title: 'Brand Colors',
-      content: `Primary: ${branding.primaryColor}\nSecondary: ${branding.secondaryColor}\nFont: ${branding.fontFamily}`,
-      size: { width: 140, height: 80 },
+      title: 'Brand Identity',
+      content: '',
+      size: defaults.size,
       color: 'purple',
       connections: [],
-      metadata: { stage: 'interface-interaction', uiType: 'branding' },
+      metadata: { stage: 'interface-interaction', nodeType: 'branding' },
+      primaryColor: brandingData.primaryColor || '#3B82F6',
+      secondaryColor: brandingData.secondaryColor || '#10B981',
+      accentColor: brandingData.accentColor || '#F59E0B',
+      fontFamily: brandingData.fontFamily || 'Inter',
+      bodyFont: brandingData.bodyFont || 'Roboto',
+      borderRadius: brandingData.borderRadius || 'medium',
+      designSystem: brandingData.designSystem || 'shadcn',
+      editable: true,
       resizable: true
     }
   };
