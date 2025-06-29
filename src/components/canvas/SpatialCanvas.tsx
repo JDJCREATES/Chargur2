@@ -613,30 +613,6 @@ export const SpatialCanvas: React.FC<SpatialCanvasProps> = ({
     setTimeout(() => notification.remove(), 2000);
   }, []);
 
-  const handleExport = useCallback(() => {
-    try {
-      const exportData = {
-        nodes: effectiveNodes,
-        edges: effectiveEdges,
-        metadata: {
-          exportedAt: new Date().toISOString(),
-          version: '1.0',
-          nodeCount: effectiveNodes.length,
-          edgeCount: effectiveEdges.length
-        }
-      };
-      console.log('Exporting canvas data');
-      const blob = new Blob([JSON.stringify(exportData, null, 2)], { type: 'application/json' });
-      const url = URL.createObjectURL(blob);
-      const a = document.createElement('a');
-      a.href = url;
-      a.download = 'canvas-export.json';
-      a.click();
-      URL.revokeObjectURL(url);
-    } catch (error) {
-      console.error('Error exporting canvas data:', error);
-    }
-  }, [effectiveNodes, effectiveEdges]);
 
   const handleScreenshot = useCallback(() => {
     // Get the React Flow wrapper element
