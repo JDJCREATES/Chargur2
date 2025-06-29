@@ -1,4 +1,5 @@
 import { Node, Edge } from 'reactflow';
+import { UXReviewFormData } from './uxReview';
 
 // Add a proper interface for your custom node data
 export interface CustomNodeData {
@@ -83,3 +84,5 @@ export interface StreamingChatResponse {
   error?: string | null;
 }
 
+// Re-export UX Review types
+export { CompletionItem, AIFeedback, UserTestScenario } from './uxReview';

@@ -3,6 +3,7 @@ import { Stage, StageData, Project } from '../types';
 import { supabase } from '../lib/auth/supabase';
 import { Node, Edge } from 'reactflow';
 import { debounce } from '../utils/debounce';
+import { processUXReviewData } from '../lib/uxReview/uxReviewProcessor';
 
 const initialStages: Stage[] = [
   {
@@ -423,16 +424,47 @@ export const useAppStore = create<AppState>((set, get) => {
     updateStageData: (stageId: string, data: any) => {
       // Use the debounced function
       // First update immediately for UI responsiveness
-      set(state => ({
-        stageData: {
+      const newState = set(state => {
+        const updatedStageData = {
           ...state.stageData,
           [stageId]: { ...state.stageData[stageId], ...data }
+        };
+        
+        // Process UX review data if needed
+        let processedUXReviewData = updatedStageData['ux-review-check'] || {};
+        
+        // Check if we should update UX review data
+        const shouldUpdateUXReview = 
+          // If we're updating the UX review stage directly, don't reprocess
+          stageId !== 'ux-review-check' || 
+          // If we're updating UX review but only user-editable fields, don't reprocess
+          (stageId === 'ux-review-check' && 
+           Object.keys(data).some(key => !['reviewNotes', 'showIncompleteOnly', 'reviewMode'].includes(key)));
+        
+        if (shouldUpdateUXReview) {
+          try {
+            // Process UX review data based on all stage data
+            processedUXReviewData = processUXReviewData(
+              state.stages,
+              updatedStageData,
+              updatedStageData['ux-review-check']
+            );
+            
+            // Update the UX review stage data
+            updatedStageData['ux-review-check'] = processedUXReviewData;
+          } catch (error) {
+            console.error('Error processing UX review data:', error);
+          }
         }
-      }));
+          stageData: updatedStageData
+        };
+      });
       
       // Then use debounced save to prevent too many writes
       // Trigger save after stage data update
       debouncedSave();
+      
+      return newState;
     },
     
     updateCanvasNodes: (nodes: Node[]) => {
