@@ -32,6 +32,8 @@ import ReactFlow, {
   addEdge
 } from 'reactflow';
 import 'reactflow/dist/style.css';
+  // Import addEdge from reactflow
+  import { addEdge } from 'reactflow';
 
 import { motion } from 'framer-motion';
 import { useAppStore } from '../../store/useAppStore';
@@ -126,8 +128,6 @@ export const SpatialCanvas: React.FC<SpatialCanvasProps> = ({
     handleUpdateConnections(newEdges);
   }, [effectiveEdges, handleUpdateConnections]);
 
-  // Import addEdge from reactflow
-  import { addEdge } from 'reactflow';
 
   // Add useEffect to process stageData changes
   useEffect(() => {
