@@ -241,7 +241,7 @@ export const ArchitectureDesign: React.FC<ArchitectureDesignProps> = ({
     }
     
     return formData.databaseSchema.map((table: DatabaseTable) => {
-      const fields = table.fields.map((field: DatabaseField) => {
+      const fields = (table.fields || []).map((field: DatabaseField) => {
         const constraints = [];
         if (field.required) constraints.push('NOT NULL');
         if (field.unique) constraints.push('UNIQUE');
@@ -514,7 +514,7 @@ ${Array.isArray(formData.aiAgentZones) ? formData.aiAgentZones.map((zone: string
                     <div className="font-medium text-orange-700">Required</div>
                     <div className="font-medium text-orange-700">Unique</div>
                     
-                    {table.fields.map((field: DatabaseField, index: number) => (
+                    {(table.fields || []).map((field: DatabaseField, index: number) => (
                       <React.Fragment key={index}>
                         <div className="text-orange-600 font-mono">{field.name}</div>
                         <div className="text-orange-600">{field.type}</div>
@@ -524,10 +524,10 @@ ${Array.isArray(formData.aiAgentZones) ? formData.aiAgentZones.map((zone: string
                     ))}
                   </div>
 
-                  {table.relations.length > 0 && (
+                  {table.relations && table.relations.length > 0 && (
                     <div className="mt-2 pt-2 border-t border-orange-200">
                       <span className="text-xs font-medium text-orange-700">Relations: </span>
-                      <span className="text-xs text-orange-600">{table.relations.join(', ')}</span>
+                      <span className="text-xs text-orange-600">{(table.relations || []).join(', ')}</span>
                     </div>
                   )}
                 </div>
