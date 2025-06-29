@@ -69,6 +69,7 @@ export const CanvasToolbar: React.FC<CanvasToolbarProps> = ({
   isCollapsed = false,
   onToggleCollapse,
 }) => {
+  // Reduce the size of node types array to make the toolbar more compact
   const nodeTypes = [
     // Context nodes
     { type: 'appName' as const, label: 'App Name', icon: GiCrown, color: 'text-blue-600', category: 'context' },
@@ -114,20 +115,20 @@ export const CanvasToolbar: React.FC<CanvasToolbarProps> = ({
       initial={{ y: 100, opacity: 0 }}
       animate={{ y: 0, opacity: 1 }}
       transition={{ type: "spring", stiffness: 300, damping: 30 }}
-      className="absolute bottom-2 left-4 z-20"
+      className="absolute bottom-2 left-4 z-20 scale-90 origin-bottom-left"
     >
       {/* Toggle Button - Always Visible */}
       <motion.button
         onClick={onToggleCollapse}
         whileHover={{ scale: 1.05 }}
         whileTap={{ scale: 0.95 }}
-        className={`w-12 h-12 ${
+        className={`w-10 h-10 ${
           isCollapsed 
             ? 'bg-transparent hover:bg-white hover:bg-opacity-20' 
             : 'bg-white bg-opacity-95 backdrop-blur-sm hover:bg-gray-50'
         } border ${
           isCollapsed ? 'border-transparent' : 'border-gray-200'
-        } rounded-full flex items-center justify-center transition-colors shadow-lg mb-2`}
+        } rounded-full flex items-center justify-center transition-colors shadow-md mb-2`}
       >
         <AnimatePresence mode="wait">
           <motion.div
@@ -138,9 +139,9 @@ export const CanvasToolbar: React.FC<CanvasToolbarProps> = ({
             transition={{ duration: 0.2 }}
           >
             {isCollapsed ? (
-              <ChevronUp className="w-5 h-5 text-gray-700" />
+              <ChevronUp className="w-4 h-4 text-gray-700" />
             ) : (
-              <ChevronDown className="w-5 h-5 text-gray-600" />
+              <ChevronDown className="w-4 h-4 text-gray-600" />
             )}
           </motion.div>
         </AnimatePresence>
@@ -159,7 +160,7 @@ export const CanvasToolbar: React.FC<CanvasToolbarProps> = ({
               damping: 25,
               staggerChildren: 0.05
             }}
-            className="bg-white bg-opacity-95 backdrop-blur-sm rounded-xl shadow-lg border border-gray-200 p-3 space-y-4 min-w-64"
+            className="bg-white bg-opacity-95 backdrop-blur-sm rounded-lg shadow-md border border-gray-200 p-2 space-y-3 min-w-56"
           >
             {/* Add Node Section - Context Nodes */}
             <motion.div
@@ -195,7 +196,7 @@ export const CanvasToolbar: React.FC<CanvasToolbarProps> = ({
                             whileTap={{ scale: 0.95 }}
                             onClick={() => handleToolAction(() => onAddNode(nodeType.type), `Add ${nodeType.label}`)}
                             className={`
-                              flex items-center gap-1 px-2 py-1.5 text-xs rounded-md hover:bg-gray-50 transition-all duration-200
+                              flex items-center gap-1 px-2 py-1 text-xs rounded-md hover:bg-gray-50 transition-all duration-200
                               ${nodeType.color} hover:shadow-sm
                             `}
                             title={`Add ${nodeType.label} node`}
@@ -244,7 +245,7 @@ export const CanvasToolbar: React.FC<CanvasToolbarProps> = ({
                             whileTap={{ scale: 0.95 }}
                             onClick={() => handleToolAction(() => onAddNode(nodeType.type), `Add ${nodeType.label}`)}
                             className={`
-                              flex items-center gap-1 px-2 py-1.5 text-xs rounded-md hover:bg-gray-50 transition-all duration-200
+                              flex items-center gap-1 px-2 py-1 text-xs rounded-md hover:bg-gray-50 transition-all duration-200
                               ${nodeType.color} hover:shadow-sm
                             `}
                             title={`Add ${nodeType.label} node`}
@@ -293,7 +294,7 @@ export const CanvasToolbar: React.FC<CanvasToolbarProps> = ({
                             whileTap={{ scale: 0.95 }}
                             onClick={() => handleToolAction(() => onAddNode(nodeType.type), `Add ${nodeType.label}`)}
                             className={`
-                              flex items-center gap-1 px-2 py-1.5 text-xs rounded-md hover:bg-gray-50 transition-all duration-200
+                              flex items-center gap-1 px-2 py-1 text-xs rounded-md hover:bg-gray-50 transition-all duration-200
                               ${nodeType.color} hover:shadow-sm
                             `}
                             title={`Add ${nodeType.label} node`}
@@ -313,7 +314,7 @@ export const CanvasToolbar: React.FC<CanvasToolbarProps> = ({
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.2 }}
-              className="border-b border-gray-200 border-opacity-50 pb-3"
+              className="border-b border-gray-200 border-opacity-50 pb-2"
             >
               <div className="text-xs font-medium text-gray-700 mb-2 flex items-center gap-2">
                 <Eye className="w-3 h-3" />
@@ -324,25 +325,25 @@ export const CanvasToolbar: React.FC<CanvasToolbarProps> = ({
                   whileHover={{ scale: 1.1 }}
                   whileTap={{ scale: 0.9 }}
                   onClick={() => handleToolAction(onZoomIn, 'Zoom In')}
-                  className="p-1.5 hover:bg-gray-100 rounded-md transition-colors"
+                  className="p-1 hover:bg-gray-100 rounded-md transition-colors"
                   title="Zoom In"
                 >
-                  <ZoomIn className="w-4 h-4 text-gray-600" />
+                  <ZoomIn className="w-3.5 h-3.5 text-gray-600" />
                 </motion.button>
                 <motion.button
                   whileHover={{ scale: 1.1 }}
                   whileTap={{ scale: 0.9 }}
                   onClick={() => handleToolAction(onZoomOut, 'Zoom Out')}
-                  className="p-1.5 hover:bg-gray-100 rounded-md transition-colors"
+                  className="p-1 hover:bg-gray-100 rounded-md transition-colors"
                   title="Zoom Out"
                 >
-                  <ZoomOut className="w-4 h-4 text-gray-600" />
+                  <ZoomOut className="w-3.5 h-3.5 text-gray-600" />
                 </motion.button>
                 <motion.div
                   initial={{ scale: 0 }}
                   animate={{ scale: 1 }}
                   transition={{ delay: 0.3, type: "spring" }}
-                  className="px-2 py-1 text-xs text-gray-600 bg-gray-50 rounded-md font-mono min-w-12 text-center"
+                  className="px-2 py-0.5 text-xs text-gray-600 bg-gray-50 rounded-md font-mono min-w-10 text-center"
                 >
                   {Math.round(scale * 100)}%
                 </motion.div>
@@ -354,7 +355,7 @@ export const CanvasToolbar: React.FC<CanvasToolbarProps> = ({
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.3 }}
-              className="border-b border-gray-200 border-opacity-50 pb-3"
+              className="border-b border-gray-200 border-opacity-50 pb-2"
             >
               <div className="text-xs font-medium text-gray-700 mb-2 flex items-center gap-2">
                 <GiAtom className="w-3 h-3" />
@@ -379,7 +380,7 @@ export const CanvasToolbar: React.FC<CanvasToolbarProps> = ({
                       }`}
                       title={tool.label}
                     >
-                      <Icon className="w-4 h-4" />
+                      <Icon className="w-3.5 h-3.5" />
                     </motion.button>
                   );
                 })}
@@ -416,7 +417,7 @@ export const CanvasToolbar: React.FC<CanvasToolbarProps> = ({
                       }`}
                       title={tool.label}
                     >
-                      <Icon className="w-4 h-4" />
+                      <Icon className="w-3.5 h-3.5" />
                     </motion.button>
                   );
                 })}
@@ -433,7 +434,7 @@ export const CanvasToolbar: React.FC<CanvasToolbarProps> = ({
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.2, duration: 0.3 }}
 
-          className="flex items-center gap-2"
+          className="flex items-center gap-1.5"
         >
           {actionTools.map((tool, index) => {
             const Icon = tool.icon;
@@ -447,10 +448,10 @@ export const CanvasToolbar: React.FC<CanvasToolbarProps> = ({
                 whileTap={{ scale: 0.9 }}
                 onClick={() => handleToolAction(tool.action, tool.label)}
 
-                className="w-10 h-10 bg-white bg-opacity-90 backdrop-blur-sm border border-gray-200 rounded-full flex items-center justify-center text-gray-600 hover:text-gray-800 hover:bg-gray-50 transition-colors shadow-md"
+                className="w-8 h-8 bg-white bg-opacity-90 backdrop-blur-sm border border-gray-200 rounded-full flex items-center justify-center text-gray-600 hover:text-gray-800 hover:bg-gray-50 transition-colors shadow-md"
                 title={tool.label}
               >
-                <Icon className="w-4 h-4" />
+                <Icon className="w-3.5 h-3.5" />
               </motion.button>
             );
           })}

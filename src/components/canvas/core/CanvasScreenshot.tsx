@@ -20,7 +20,7 @@ export const useCanvasScreenshot = () => {
   const takeScreenshot = useCallback(async (elementRef: React.RefObject<HTMLDivElement>) => {
     if (!elementRef.current) {
       console.error('Canvas element not found');
-      alert('Canvas element not found. Please try again.');
+      return;
       return;
     }
 
@@ -56,8 +56,20 @@ export const useCanvasScreenshot = () => {
       const image = canvas.toDataURL('image/png');
       const link = document.createElement('a');
       link.href = image;
-      link.download = `canvas-screenshot-${new Date().toISOString().slice(0, 10)}.png`;
+      link.download = `chargur-canvas-${new Date().toISOString().slice(0, 10)}.png`;
       link.click();
+      
+      // Show success notification
+      const successNotification = document.createElement('div');
+      successNotification.className = 'fixed top-4 right-4 bg-green-100 text-green-800 px-4 py-2 rounded-lg shadow-md z-50';
+      successNotification.textContent = 'Screenshot saved successfully';
+      document.body.appendChild(successNotification);
+      
+      setTimeout(() => {
+        successNotification.remove();
+      }, 3000);
+      
+      return image;
     } catch (error) {
       console.log('Screenshot downloaded successfully');
       console.error('Error taking screenshot:', error);

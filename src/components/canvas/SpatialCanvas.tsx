@@ -15,7 +15,6 @@
 import React, { useEffect, useCallback, useState, useRef, useMemo } from 'react';
 import ReactFlow, {
   Background,
-  Controls,
   MiniMap,
   Panel,
   Edge,
@@ -36,6 +35,7 @@ import 'reactflow/dist/style.css';
 import { motion } from 'framer-motion';
 import { useAppStore } from '../../store/useAppStore';
 import { CanvasToolbar } from './CanvasToolbar';
+import { useCanvasScreenshot } from './core/CanvasScreenshot';
 import { v4 as uuidv4 } from 'uuid';
 import * as nodeFactory from '../../lib/canvas/nodeFactory';
 import { STAGE1_NODE_TYPES, STAGE2_NODE_TYPES } from '../../lib/canvas/nodeFactory';
@@ -49,6 +49,7 @@ import {
   createEdge
 } from '../../lib/canvas/connectionUtilities';
 import { nodeTypes } from './nodes';
+import { CanvasExportModal } from './CanvasExportModal';
 
 // Import processors directly
 import { processIdeationData } from '../../lib/canvas/processors/ideationProcessor';
@@ -98,6 +99,10 @@ export const SpatialCanvas: React.FC<SpatialCanvasProps> = ({
   const [isToolbarCollapsed, setIsToolbarCollapsed] = useState(true);
   const [showGrid, setShowGrid] = useState(true);
   const [selectedNodeId, setSelectedNodeId] = useState<string | null>(null);
+  const [isExportModalOpen, setIsExportModalOpen] = useState(false);
+
+  // Get screenshot functionality
+  const { takeScreenshot, canvasRef } = useCanvasScreenshot();
 
   // Get the ReactFlow instance
   const reactFlowInstance = useReactFlow();
@@ -638,20 +643,12 @@ export const SpatialCanvas: React.FC<SpatialCanvasProps> = ({
     const reactFlowWrapper = document.querySelector('.react-flow');
     
     if (reactFlowWrapper) {
-      // Use the browser's built-in screenshot API if available
-      if ('html2canvas' in window) {
-        // If you have html2canvas available
-        (window as any).html2canvas(reactFlowWrapper).then((canvas: HTMLCanvasElement) => {
-          const link = document.createElement('a');
-          link.href = canvas.toDataURL('image/png');
-          link.download = `canvas-screenshot-${new Date().toISOString().slice(0, 10)}.png`;
-          link.click();
-        });
-      } else {
-        // Fallback: Simple alert or notification
-        alert('Screenshot functionality requires additional setup. Please use browser screenshot tools.');
-      }
+      takeScreenshot({ current: reactFlowWrapper as HTMLDivElement });
     }
+  }, [takeScreenshot]);
+
+  const handleExport = useCallback(() => {
+    setIsExportModalOpen(true);
   }, []);
 
   return (
@@ -662,7 +659,7 @@ export const SpatialCanvas: React.FC<SpatialCanvasProps> = ({
         onZoomIn={() => reactFlowInstance.zoomIn()}
         onZoomOut={() => reactFlowInstance.zoomOut()}
         onResetView={() => reactFlowInstance.fitView()}
-        onSave={handleSave} 
+        onSave={handleSave}
         onExport={handleExport}
         onToggleGrid={() => setShowGrid(!showGrid)} 
         onScreenshot={handleScreenshot}
@@ -709,7 +706,6 @@ export const SpatialCanvas: React.FC<SpatialCanvasProps> = ({
           }}
         >
           <Background color="#e5e7eb" gap={20} size={1} variant={showGrid ? BackgroundVariant.Dots : undefined} />
-          <Controls />
           <MiniMap 
             nodeColor={(node) => {
               switch (node.type) {
@@ -737,6 +733,13 @@ export const SpatialCanvas: React.FC<SpatialCanvasProps> = ({
           </Panel>
         </ReactFlow>
       </div>
+      
+      {/* Export Modal */}
+      <CanvasExportModal
+        isOpen={isExportModalOpen}
+        onClose={() => setIsExportModalOpen(false)}
+        onExportPNG={handleScreenshot}
+      />
     </div>
   );
 };
