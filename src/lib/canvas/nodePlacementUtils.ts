@@ -31,6 +31,13 @@ interface Rectangle {
 // Minimum spacing between nodes
 const MIN_SPACING = 30;
 
+// Number of nodes per row for grid layouts
+const NODES_PER_ROW = {
+  userPersona: 5,  // 5 user personas per row
+  competitor: 4,   // 4 competitors per row
+  feature: 3       // 3 features per row
+};
+
 // Default canvas boundaries
 const CANVAS_BOUNDS = {
   minX: -2000,
@@ -42,16 +49,16 @@ const CANVAS_BOUNDS = {
 // Category-based positioning zones
 const CATEGORY_ZONES = {
   // Ideation & Discovery nodes
-  'appName': { x: 400, y: 50, radius: 100 },
-  'tagline': { x: 420, y: 150, radius: 100 },
-  'coreProblem': { x: 100, y: 200, radius: 100 },
-  'mission': { x: 350, y: 300, radius: 100 }, // Adjusted Y
-  'userPersona': { x: 650, y: 200, radius: 150 },
-  'valueProp': { x: 100, y: 500, radius: 100 }, // Adjusted Y
-  'competitor': { x: 700, y: 400, radius: 100 },
+  'appName': { x: 400, y: 50, radius: 120 },
+  'tagline': { x: 420, y: 150, radius: 120 },
+  'coreProblem': { x: 100, y: 200, radius: 120 },
+  'mission': { x: 350, y: 300, radius: 150 }, // Adjusted Y and increased radius
+  'userPersona': { x: 650, y: 200, radius: 200 }, // Increased radius for better spacing
+  'valueProp': { x: 100, y: 500, radius: 150 }, // Adjusted Y and increased radius
+  'competitor': { x: 700, y: 400, radius: 200 }, // Increased radius for better spacing
   
   // Feature Planning nodes
-  'feature': { x: 400, y: 350, radius: 200 },
+  'feature': { x: 400, y: 350, radius: 250 }, // Increased radius for better spacing
   
   // Structure & Flow nodes
   'ux-flow': { x: 400, y: 600, radius: 200 },
@@ -191,12 +198,13 @@ function getCategoryBasedPosition(nodeType: string, stageId?: string): Position 
 
 /**
  * Get a position relative to a related node.
- * This function implements the specific placement logic requested by the user.
+ * This function implements grid-based placement for related nodes.
  */
 function getRelatedNodePosition(
   existingNodes: Node[],
   newNodeType: string,
-  newNodeSize: Size
+  newNodeSize: Size,
+  stageId?: string
 ): Position | null {
   switch (newNodeType) {
     case 'mission': {
@@ -205,6 +213,16 @@ function getRelatedNodePosition(
         return {
           x: appNameNode.position.x,
           y: appNameNode.position.y + (appNameNode.data.size?.height || 80) + MIN_SPACING * 2
+        };
+      }
+      break;
+    }
+    case 'tagline': {
+      const appNameNode = existingNodes.find(node => node.type === 'appName');
+      if (appNameNode) {
+        return {
+          x: appNameNode.position.x + 20, // Slight offset for visual interest
+          y: appNameNode.position.y + (appNameNode.data.size?.height || 80) + MIN_SPACING
         };
       }
       break;
@@ -220,34 +238,92 @@ function getRelatedNodePosition(
       break;
     }
     case 'feature': {
-      const featureNodes = existingNodes.filter(node => node.type === 'feature');
+      const featureNodes = existingNodes.filter(node => 
+        node.type === 'feature' && 
+        node.data?.metadata?.stage === 'feature-planning'
+      );
+      
       if (featureNodes.length > 0) {
-        // Find the feature node with the maximum Y coordinate
-        const lowestFeatureNode = featureNodes.reduce((prev, current) => 
-          (prev.position.y + (prev.data.size?.height || 160)) > (current.position.y + (current.data.size?.height || 160)) ? prev : current
-        );
+        // Grid-based placement for features
+        const nodesPerRow = NODES_PER_ROW.feature;
+        const row = Math.floor(featureNodes.length / nodesPerRow);
+        const col = featureNodes.length % nodesPerRow;
+        
+        const baseFeatureX = CATEGORY_ZONES.feature.x - ((nodesPerRow - 1) * (newNodeSize.width + MIN_SPACING) / 2);
+        const baseFeatureY = CATEGORY_ZONES.feature.y;
+        
         return {
-          x: lowestFeatureNode.position.x,
-          y: lowestFeatureNode.position.y + (lowestFeatureNode.data.size?.height || 160) + MIN_SPACING
+          x: baseFeatureX + col * (newNodeSize.width + MIN_SPACING * 2),
+          y: baseFeatureY + row * (newNodeSize.height + MIN_SPACING * 2)
         };
       }
       break;
     }
     case 'userPersona': {
-      const personaNodes = existingNodes.filter(node => node.type === 'userPersona');
+      const personaNodes = existingNodes.filter(node => 
+        node.type === 'userPersona' && 
+        node.data?.metadata?.stage === 'ideation-discovery'
+      );
+      
       const personaCount = personaNodes.length;
-      const nodesPerRow = 5; // User requested 5 per row
+      const nodesPerRow = NODES_PER_ROW.userPersona;
       const row = Math.floor(personaCount / nodesPerRow);
       const col = personaCount % nodesPerRow;
 
-      const basePersonaX = CATEGORY_ZONES.userPersona.x;
+      // Center the grid around the category zone
+      const basePersonaX = CATEGORY_ZONES.userPersona.x - ((nodesPerRow - 1) * (newNodeSize.width + MIN_SPACING) / 2);
       const basePersonaY = CATEGORY_ZONES.userPersona.y;
       const personaWidth = newNodeSize.width || 160;
       const personaHeight = newNodeSize.height || 140;
 
       return {
-        x: basePersonaX + col * (personaWidth + MIN_SPACING),
-        y: basePersonaY + row * (personaHeight + MIN_SPACING)
+        x: basePersonaX + col * (personaWidth + MIN_SPACING * 2),
+        y: basePersonaY + row * (personaHeight + MIN_SPACING * 2)
+      };
+    }
+    case 'competitor': {
+      const competitorNodes = existingNodes.filter(node => 
+        node.type === 'competitor' && 
+        node.data?.metadata?.stage === 'ideation-discovery'
+      );
+      
+      const competitorCount = competitorNodes.length;
+      const nodesPerRow = NODES_PER_ROW.competitor;
+      const row = Math.floor(competitorCount / nodesPerRow);
+      const col = competitorCount % nodesPerRow;
+
+      // Center the grid around the category zone
+      const baseCompetitorX = CATEGORY_ZONES.competitor.x - ((nodesPerRow - 1) * (newNodeSize.width + MIN_SPACING) / 2);
+      const baseCompetitorY = CATEGORY_ZONES.competitor.y;
+      const competitorWidth = newNodeSize.width || 140;
+      const competitorHeight = newNodeSize.height || 100;
+
+      return {
+        x: baseCompetitorX + col * (competitorWidth + MIN_SPACING * 2),
+        y: baseCompetitorY + row * (competitorHeight + MIN_SPACING * 2)
+      };
+    }
+    case 'system': {
+      if (stageId === 'architecture-design') {
+        const systemNodes = existingNodes.filter(node => 
+          node.type === 'system' && 
+          node.data?.metadata?.stage === 'architecture-design'
+        );
+        
+        if (systemNodes.length > 0) {
+          // Grid-based placement for system nodes
+          const nodesPerRow = 3;
+          const row = Math.floor(systemNodes.length / nodesPerRow);
+          const col = systemNodes.length % nodesPerRow;
+          
+          const baseSystemX = CATEGORY_ZONES.system.x - ((nodesPerRow - 1) * (newNodeSize.width + MIN_SPACING) / 2);
+          const baseSystemY = CATEGORY_ZONES.system.y;
+          
+          return {
+            x: baseSystemX + col * (newNodeSize.width + MIN_SPACING * 2),
+            y: baseSystemY + row * (newNodeSize.height + MIN_SPACING * 2)
+          };
+        }
       };
     }
   }
@@ -348,7 +424,7 @@ export function getSmartNodePosition(
 ): Position {
   // If a preferred position is provided, try to use it first
   // First check if we have a related node position
-  const relatedPosition = getRelatedNodePosition(existingNodes, nodeType, nodeSize);
+  const relatedPosition = getRelatedNodePosition(existingNodes, nodeType, nodeSize, stageId);
   
   if (relatedPosition) {
     // Check if the related position would cause a collision
@@ -420,17 +496,34 @@ export function getSmartNodePosition(
 export function getGroupPosition(
   existingNodes: Node[],
   nodeCount: number,
-  nodeType: string,
+  nodeType: string, 
   stageId?: string
 ): Position {
   // Get a base position for the group
   const basePosition = getCategoryBasedPosition(nodeType, stageId);
   
-  // Adjust based on the number of nodes in the group
-  return {
-    x: basePosition.x - (nodeCount * 20),
-    y: basePosition.y - (nodeCount * 10)
-  };
+  // For certain node types, use grid-based positioning
+  if (nodeType === 'userPersona' || nodeType === 'competitor' || nodeType === 'feature') {
+    const nodesPerRow = NODES_PER_ROW[nodeType as keyof typeof NODES_PER_ROW] || 3;
+    
+    // Calculate the width of the entire grid
+    let nodeWidth = 160; // Default width
+    if (nodeType === 'competitor') nodeWidth = 140;
+    if (nodeType === 'feature') nodeWidth = 300;
+    
+    const gridWidth = Math.min(nodeCount, nodesPerRow) * (nodeWidth + MIN_SPACING * 2);
+    
+    return {
+      x: basePosition.x - (gridWidth / 2) + (nodeWidth / 2),
+      y: basePosition.y
+    };
+  } else {
+    // Default behavior for other node types
+    return {
+      x: basePosition.x - (nodeCount * 20),
+      y: basePosition.y - (nodeCount * 10)
+    };
+  }
 }
 
 /**
@@ -443,8 +536,8 @@ export function arrangeNodesInGroup(
   stageId?: string,
   arrangement: 'grid' | 'circle' | 'horizontal' | 'vertical' = 'grid'
 ): Record<string, Position> {
-  // Get a base position for the group
-  const basePosition = getCategoryBasedPosition(nodeType, stageId);
+  // Get a base position for the group using the enhanced group position logic
+  const basePosition = getGroupPosition(existingNodes, nodesToArrange.length, nodeType, stageId);
   
   // Create a map to store the positions
   const positions: Record<string, Position> = {};
@@ -453,15 +546,22 @@ export function arrangeNodesInGroup(
   switch (arrangement) {
     case 'grid': {
       // Calculate grid dimensions
-      const cols = Math.ceil(Math.sqrt(nodesToArrange.length));
-      const spacing = 20;
+      const cols = nodeType === 'userPersona' ? NODES_PER_ROW.userPersona :
+                  nodeType === 'competitor' ? NODES_PER_ROW.competitor :
+                  nodeType === 'feature' ? NODES_PER_ROW.feature :
+                  Math.ceil(Math.sqrt(nodesToArrange.length));
+      const spacing = MIN_SPACING * 2;
       
       nodesToArrange.forEach((node, index) => {
         const row = Math.floor(index / cols);
         const col = index % cols;
         
+        // Center the grid around the base position
+        const gridWidth = Math.min(nodesToArrange.length, cols) * (node.size.width + spacing);
+        const gridOffsetX = (gridWidth / 2) - (node.size.width / 2);
+        
         positions[node.id] = {
-          x: basePosition.x + col * (node.size.width + spacing),
+          x: basePosition.x + col * (node.size.width + spacing) - gridOffsetX,
           y: basePosition.y + row * (node.size.height + spacing)
         };
       });

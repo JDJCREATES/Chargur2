@@ -263,20 +263,19 @@ export function createValuePropNode(valueProposition: string, existingNodes: Nod
 export function createUserPersonaNode(
   persona: any, 
   index: number = 0, 
-  existingNodes: Node[] = []
+  existingNodes: Node[] = [],
+  isUserCreated: boolean = false
 ): Node {
   const defaults = STAGE1_NODE_DEFAULTS.userPersona;
   
-  // Calculate position with horizontal offset based on index
-  const position = {
-    x: defaults.position.x + (index * 180),
-    y: defaults.position.y
-  };
+  // Use the improved grid-based positioning
   const finalPosition = getSmartNodePosition(
     existingNodes,
     defaults.size,
     'userPersona',
-    position
+    undefined,
+    'ideation-discovery',
+    isUserCreated
   );
   
   return {
@@ -342,20 +341,23 @@ export function createLegacyUserPersonaNode(
 export function createCompetitorNode(
   competitor: any, 
   index: number = 0,
-  existingNodes: Node[] = []
+  existingNodes: Node[] = [],
+  isUserCreated: boolean = false
 ): Node {
   const defaults = STAGE1_NODE_DEFAULTS.competitor;
-  const position = getSmartNodePosition(
+  const finalPosition = getSmartNodePosition(
     existingNodes,
     defaults.size,
     'competitor',
-    defaults.position
+    undefined,
+    'ideation-discovery',
+    isUserCreated
   );
   
   return {
     id: uuidv4(),
     type: 'competitor',
-    position,
+    position: finalPosition,
     data: {
       title: 'Competitor',
       content: '',
@@ -387,7 +389,8 @@ export function createFeaturePackNode(
   index: number, 
   baseX: number, 
   baseY: number,
-  existingNodes: Node[] = []
+  existingNodes: Node[] = [],
+  isUserCreated: boolean = false
 ): Node {
   const packNames: { [key: string]: string } = {
     'auth': 'Authentication & Users',
@@ -400,16 +403,14 @@ export function createFeaturePackNode(
     'ai': 'AI & Automation'
   };
   
-  const position = { 
-    x: baseX + (index % 3) * 200, 
-    y: baseY + Math.floor(index / 3) * 120 
-  };
+  // Use the improved grid-based positioning
   const finalPosition = getSmartNodePosition(
     existingNodes,
     STAGE2_NODE_DEFAULTS.feature.size,
     'feature',
-    position,
-    'feature-planning'
+    undefined,
+    'feature-planning',
+    isUserCreated
   );
   
   return {
@@ -444,18 +445,17 @@ export function createCustomFeatureNode(
   index: number, 
   baseX: number, 
   baseY: number,
-  existingNodes: Node[] = []
+  existingNodes: Node[] = [],
+  isUserCreated: boolean = false
 ): Node {
-  const position = { 
-    x: baseX + (index % 3) * 200, 
-    y: baseY + Math.floor(index / 3) * 120 
-  };
+  // Use the improved grid-based positioning
   const finalPosition = getSmartNodePosition(
     existingNodes,
     STAGE2_NODE_DEFAULTS.feature.size,
     'feature',
-    position,
-    'feature-planning'
+    undefined,
+    'feature-planning',
+    isUserCreated
   );
   
   return {
