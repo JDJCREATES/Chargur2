@@ -172,7 +172,7 @@ function App() {
         
         {/* Progress Bubbles - Positioned at the bottom center, adjusts with sidebar */}
         <div className={`absolute bottom-4 left-1/2 transform -translate-x-1/2 z-40 transition-all duration-300 ${
-          isSidebarOpen ? "-ml-40" : ""
+          isSidebarOpen ? "ml-16" : ""
         }`}>
           <div className="bg-white bg-opacity-90 backdrop-blur-sm rounded-lg shadow-md border border-gray-200 p-3 flex items-center justify-between space-x-4">
             <Logo size="md" />
