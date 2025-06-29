@@ -134,16 +134,11 @@ export const SpatialCanvas: React.FC<SpatialCanvasProps> = ({
 
   // Add useEffect to process stageData changes
   useEffect(() => {
-    // Create a stable string representation for comparison, but exclude empty objects
-    const cleanStageData = Object.fromEntries(
-      Object.entries(stageData).filter(([key, value]) => 
-        value && typeof value === 'object' && Object.keys(value).length > 0
-      )
-    );
-    const stageDataString = JSON.stringify(cleanStageData);
+    // Create a stable string representation for comparison
+    const stageDataString = JSON.stringify(stageData);
     
-    // Only process if the data has actually changed AND is not empty
-    if (lastProcessedStageDataRef.current === stageDataString || Object.keys(cleanStageData).length === 0) {
+    // Only process if the data has actually changed
+    if (lastProcessedStageDataRef.current === stageDataString) {
       return;
     }
 
