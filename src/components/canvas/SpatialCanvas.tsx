@@ -159,8 +159,9 @@ export const SpatialCanvas: React.FC<SpatialCanvasProps> = ({
 
 
   // SEPARATE: StageData processing (should ONLY happen on AI responses)
-  // COMPLETELY COMMENT OUT the entire stageData processing useEffect
+  // Re-enable the stageData processing useEffect
 
+  // Re-enable the stageData processing useEffect
   useEffect(() => {
   
     const stageDataString = JSON.stringify(stageData);
@@ -218,22 +219,60 @@ export const SpatialCanvas: React.FC<SpatialCanvasProps> = ({
           processedNodes = currentNodes;
       }
       
-      // Add callbacks and update
+      // Add callbacks to nodes
       const nodesWithCallbacks = processedNodes.map(node => ({
         ...node,
         data: {
           ...(node.data || {}),
           onNodeUpdate: (id: string, updates: any) => {
-            const updatedNodes = currentNodes.map(n => n.id === id 
-              ? { ...n, data: { ...(n.data || {}), ...updates } } 
-              : n
+            const node = processedNodes.find(n => n.id === id);
+            if (!node) return;
+            
+            // Special handling for nodes that need to update stage data
+            if (node.type === 'branding') {
+              // Update the interface-interaction stage data with the branding information
+              updateStageData('interface-interaction', { 
+                customBranding: {
+                  primaryColor: updates.primaryColor || node.data.primaryColor,
+                  secondaryColor: updates.secondaryColor || node.data.secondaryColor,
+                  accentColor: updates.accentColor || node.data.accentColor,
+                  fontFamily: updates.fontFamily || node.data.fontFamily,
+                  bodyFont: updates.bodyFont || node.data.bodyFont,
+                  borderRadius: updates.borderRadius || node.data.borderRadius
+                },
+                selectedDesignSystem: updates.designSystem || node.data.designSystem
+              });
+              console.log('Updated branding data in stage data:', updates);
+            } else if (node.type === 'appName' && updates.value !== undefined) {
+              // Update ideation-discovery stage data with app name
+              updateStageData('ideation-discovery', { appName: updates.value });
+            } else if (node.type === 'tagline' && updates.value !== undefined) {
+              // Update ideation-discovery stage data with tagline
+              updateStageData('ideation-discovery', { tagline: updates.value });
+            } else if (node.type === 'coreProblem' && updates.value !== undefined) {
+              // Update ideation-discovery stage data with problem statement
+              updateStageData('ideation-discovery', { problemStatement: updates.value });
+            } else if (node.type === 'mission' && (updates.value !== undefined || updates.missionStatement !== undefined)) {
+              // Update ideation-discovery stage data with mission
+              const updateData: any = {};
+              if (updates.value !== undefined) updateData.appIdea = updates.value;
+              if (updates.missionStatement !== undefined) updateData.missionStatement = updates.missionStatement;
+              updateStageData('ideation-discovery', updateData);
+            } else if (node.type === 'valueProp' && updates.value !== undefined) {
+              // Update ideation-discovery stage data with value proposition
+              updateStageData('ideation-discovery', { valueProposition: updates.value });
+            }
+            
+            // Update the node in the canvas
+            const updatedNodes = processedNodes.map(n => 
+              n.id === id ? { ...n, data: { ...n.data, ...updates } } : n
             );
             handleUpdateNodes(updatedNodes);
           },
           onNodeDelete: (id: string) => {
             // Use the cleanupNodeConnections utility
             const { updatedNodes, updatedEdges } = cleanupNodeConnections(
-              effectiveNodes,
+              processedNodes,
               effectiveEdges,
               id
             );
