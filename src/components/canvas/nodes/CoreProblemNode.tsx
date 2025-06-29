@@ -104,7 +104,7 @@ const CoreProblemNode: React.FC<NodeProps> = ({
       />
 
       <div className={`
-        relative w-full h-full bg-gradient-to-br from-orange-100 to-red-100 
+        relative bg-gradient-to-br from-orange-100 to-red-100 
         rounded-lg shadow-md border-2 transition-all duration-300 transform rotate-1
         ${selected ? 'border-orange-400 shadow-lg rotate-0' : 'border-orange-200'}
         ${isPlaceholder ? 'opacity-70' : 'opacity-100'}

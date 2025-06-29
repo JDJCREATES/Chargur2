@@ -80,7 +80,7 @@ const PlatformNode: React.FC<NodeProps> = ({
       />
 
       <div className={`
-        relative w-full h-full bg-gradient-to-br from-blue-50 to-cyan-50 
+        relative bg-gradient-to-br from-blue-50 to-cyan-50 
         rounded-lg shadow-md border-2 transition-all duration-300
         ${selected ? 'border-blue-400 shadow-lg' : 'border-blue-200'}
         ${isPlaceholder ? 'opacity-70' : 'opacity-100'}

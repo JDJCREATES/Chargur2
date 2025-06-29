@@ -84,7 +84,7 @@ const RouteApiMappingNode: React.FC<NodeProps> = ({
       />
 
       <div className={`
-        relative w-full h-full bg-white 
+        relative bg-white 
         rounded-lg shadow-md border-2 transition-all duration-300
         ${selected ? 'border-cyan-400 shadow-lg' : 'border-cyan-200'}
       `}>

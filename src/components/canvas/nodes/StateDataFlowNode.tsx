@@ -90,7 +90,7 @@ const StateDataFlowNode: React.FC<StateDataFlowNodeProps> = ({
       />
 
       <div className={`
-        relative w-full h-full bg-white 
+        relative bg-white 
         rounded-lg shadow-md border-2 transition-all duration-300 overflow-hidden
         ${selected ? 'border-red-400 shadow-lg' : 'border-red-200'}
       `}>

@@ -75,7 +75,7 @@ const InformationArchitectureNode: React.FC<NodeProps> = ({
       />
 
       <div className={`
-        relative w-full h-full bg-white 
+        relative bg-white 
         rounded-lg shadow-md border-2 transition-all duration-300 overflow-hidden
         ${selected ? 'border-blue-400 shadow-lg' : 'border-blue-200'}
       `}>

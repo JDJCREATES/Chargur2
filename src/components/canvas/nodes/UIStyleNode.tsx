@@ -94,7 +94,7 @@ const UIStyleNode: React.FC<NodeProps> = ({
       <div className={`
         relative w-full h-full bg-gradient-to-br ${colors.bg}
         rounded-lg shadow-md border-2 ${colors.border} transition-all duration-300
-        ${selected ? 'shadow-lg' : ''}
+        ${selected ? 'shadow-lg' : 'shadow-sm'}
         ${isPlaceholder ? 'opacity-70' : 'opacity-100'}
       `}>
         {/* Header */}

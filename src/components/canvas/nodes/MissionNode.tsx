@@ -114,7 +114,7 @@ const MissionNode: React.FC<NodeProps> = ({
       />
 
       <div className={`
-        relative w-full h-full bg-gradient-to-r from-green-50 to-emerald-50 
+        relative bg-gradient-to-r from-green-50 to-emerald-50 
         rounded-lg shadow-md border-2 transition-all duration-300
         ${selected ? 'border-green-400 shadow-lg' : 'border-green-200'}
         ${isPlaceholder ? 'opacity-70' : 'opacity-100'}

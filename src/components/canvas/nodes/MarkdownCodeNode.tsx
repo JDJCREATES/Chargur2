@@ -100,7 +100,7 @@ const MarkdownCodeNode: React.FC<NodeProps<MarkdownCodeNodeData>> = ({
       />
 
       <div className={`
-        relative w-full h-full bg-gray-900 
+        relative bg-gray-900 
         rounded-lg shadow-md border-2 transition-all duration-300
         ${selected ? 'border-green-400 shadow-lg' : 'border-green-200'}
       `}>

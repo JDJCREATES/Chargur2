@@ -105,7 +105,7 @@ const ValuePropositionNode: React.FC<NodeProps> = ({
       />
 
       <div className={`
-        relative w-full h-full bg-gradient-to-br from-emerald-50 to-teal-50 
+        relative bg-gradient-to-br from-emerald-50 to-teal-50 
         rounded-lg shadow-md border-2 transition-all duration-300
         ${selected ? 'border-emerald-400 shadow-lg' : 'border-emerald-200'}
         ${isPlaceholder ? 'opacity-70' : 'opacity-100'}

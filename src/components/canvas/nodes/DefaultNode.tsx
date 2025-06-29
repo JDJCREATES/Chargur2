@@ -136,7 +136,7 @@ const DefaultNode: React.FC<NodeProps> = ({
       />
 
       <div className={`
-        w-full h-full rounded-lg border-2 shadow-sm transition-all
+        rounded-lg border-2 shadow-sm transition-all
         ${getNodeColors()}
         ${selected ? 'shadow-lg' : 'shadow-sm'}
       `}>

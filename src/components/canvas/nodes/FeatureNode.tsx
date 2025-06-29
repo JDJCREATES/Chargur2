@@ -250,7 +250,7 @@ const FeatureNode: React.FC<NodeProps> = ({
       />
 
       <div className={`
-        relative w-full h-full bg-white 
+        relative bg-white 
         rounded-lg shadow-md border transition-all duration-300
         ${selected ? 'border-blue-400 shadow-lg' : 'border-blue-200'}
       `}>

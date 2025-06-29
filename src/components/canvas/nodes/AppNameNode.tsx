@@ -81,7 +81,7 @@ const AppNameNode: React.FC<NodeProps> = ({
 
       <div 
         className={`
-        relative w-full h-full bg-gradient-to-r from-blue-600 to-purple-600 
+        relative bg-gradient-to-r from-blue-600 to-purple-600 
         rounded-xl shadow-lg border-2 transition-all duration-300
         ${selected ? 'border-white shadow-2xl' : 'border-blue-400'}
         ${isPlaceholder ? 'opacity-70' : 'opacity-100'}

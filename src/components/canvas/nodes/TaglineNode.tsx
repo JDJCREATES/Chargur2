@@ -69,7 +69,7 @@ const TaglineNode: React.FC<NodeProps> = ({
       />
 
       <div className={`
-        relative w-full h-full bg-gradient-to-r from-purple-100 to-pink-100 
+        relative bg-gradient-to-r from-purple-100 to-pink-100 
         rounded-full shadow-md border-2 transition-all duration-300
         ${selected ? 'border-purple-400 shadow-lg' : 'border-purple-200'}
         ${isPlaceholder ? 'opacity-70' : 'opacity-100'}
