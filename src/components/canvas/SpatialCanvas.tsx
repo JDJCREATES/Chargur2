@@ -101,6 +101,9 @@ export const SpatialCanvas: React.FC<SpatialCanvasProps> = ({
 
   // Get the ReactFlow instance
   const reactFlowInstance = useReactFlow();
+  
+  // Get updateStageData from the store
+  const updateStageData = useAppStore(state => state.updateStageData);
 
 
   // Use store data as fallback when props aren't provided - MEMOIZED
@@ -272,6 +275,42 @@ export const SpatialCanvas: React.FC<SpatialCanvasProps> = ({
     }, 100);
   }, [projectId, reactFlowInstance]);
 
+  // Handle node data updates with special handling for branding nodes
+  const handleNodeDataUpdate = useCallback((nodeId: string, updates: any) => {
+    const updatedNodes = effectiveNodes.map(node => {
+      if (node.id === nodeId) {
+        // Special handling for branding node
+        if (node.type === 'branding') {
+          // Update the interface-interaction stage data with the branding information
+          updateStageData('interface-interaction', { 
+            customBranding: {
+              primaryColor: updates.primaryColor || node.data.primaryColor,
+              secondaryColor: updates.secondaryColor || node.data.secondaryColor,
+              accentColor: updates.accentColor || node.data.accentColor,
+              fontFamily: updates.fontFamily || node.data.fontFamily,
+              bodyFont: updates.bodyFont || node.data.bodyFont,
+              borderRadius: updates.borderRadius || node.data.borderRadius
+            },
+            selectedDesignSystem: updates.designSystem || node.data.designSystem
+          });
+          
+          console.log('Updated branding data in stage data:', updates);
+        }
+        
+        return {
+          ...node,
+          data: {
+            ...node.data,
+            ...updates
+          }
+        };
+      }
+      return node;
+    });
+    
+    handleUpdateNodes(updatedNodes);
+  }, [effectiveNodes, handleUpdateNodes, updateStageData]);
+
   const handleAddNode = useCallback((type: string) => {
     // Check if it's a custom ideation node type
     if (Object.values(STAGE1_NODE_TYPES).includes(type as any)) {
@@ -361,11 +400,7 @@ export const SpatialCanvas: React.FC<SpatialCanvasProps> = ({
       newNode.data = {
         ...newNode.data,
         onNodeUpdate: (id: string, updates: any) => {
-          const updatedNodes = effectiveNodes.map(node => node.id === id 
-            ? { ...node, data: { ...(node.data || {}), ...updates } } 
-            : node
-          );
-          handleUpdateNodes(updatedNodes);
+          handleNodeDataUpdate(id, updates);
         },
         onNodeDelete: (id: string) => {
           const filteredNodes = effectiveNodes.filter(node => node.id !== id);
@@ -463,7 +498,7 @@ export const SpatialCanvas: React.FC<SpatialCanvasProps> = ({
       handleUpdateNodes(newNodes);
       setSelectedNodeId(newNode.id);
     }
-  }, [effectiveNodes, effectiveEdges, handleUpdateNodes, handleUpdateConnections, currentStageId, onSendMessage]);
+  }, [effectiveNodes, effectiveEdges, handleNodeDataUpdate, handleUpdateNodes, handleUpdateConnections, currentStageId, onSendMessage]);
 
   const handleClearCanvas = useCallback(() => {
     if (window.confirm('Are you sure you want to clear the canvas? This action cannot be undone.')) {
@@ -606,6 +641,12 @@ export const SpatialCanvas: React.FC<SpatialCanvasProps> = ({
           onNodeClick={(_, node) => setSelectedNodeId(node.id)}
           fitView
           fitViewOptions={{ padding: 0.2 }}
+          onNodeDragStop={(_, node) => {
+            // If it's a branding node, update the position in the node data
+            if (node.type === 'branding') {
+              handleNodeDataUpdate(node.id, { position: node.position });
+            }
+          }}
           deleteKeyCode="Delete"
           minZoom={0.1}
           maxZoom={4}
