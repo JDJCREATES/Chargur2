@@ -32,8 +32,6 @@ import ReactFlow, {
   addEdge
 } from 'reactflow';
 import 'reactflow/dist/style.css';
-  // Import addEdge from reactflow
-  import { addEdge } from 'reactflow';
 
 import { motion } from 'framer-motion';
 import { useAppStore } from '../../store/useAppStore';
