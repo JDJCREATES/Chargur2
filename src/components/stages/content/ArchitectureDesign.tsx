@@ -8,6 +8,7 @@ import {
   FileText, 
   CheckCircle,
   Plus,
+  Building2,
   Copy,
   Download,
   GitBranch,
@@ -297,6 +298,78 @@ ${Array.isArray(formData?.integrations) ? formData.integrations.map((integration
 
   return (
     <div className="p-2 space-y-2">
+
+      {/* 5.1 Page & Component Structure */}
+      <Accordion>
+        <AccordionSummary expandIcon={<ChevronDown size={16} />}>
+          <div className="flex items-center gap-2">
+            <Building2 className="w-4 h-4 text-blue-600" />
+            <Typography className="font-medium text-sm">Page & Component Structure</Typography>
+          </div>
+        </AccordionSummary>
+        <AccordionDetails>
+          <div className="space-y-4">
+            <div className="flex items-center justify-between">
+              <p className="text-sm text-gray-600">Define all routes and page components</p>
+              <button
+                onClick={addRoute}
+                className="flex items-center gap-1 px-2 py-1 text-xs bg-blue-600 text-white rounded-md hover:bg-blue-700"
+              >
+                <Plus className="w-3 h-3" />
+                Add Route
+              </button>
+            </div>
+
+            <div className="space-y-2">
+              {formData.sitemap.map((route: Route) => (
+                <div key={route.id} className="p-3 bg-blue-50 rounded-lg">
+                  <div className="grid grid-cols-4 gap-2 text-xs">
+                    <div>
+                      <label className="block font-medium text-blue-700 mb-1">Path</label>
+                      <input
+                        type="text"
+                        value={route.path}
+                        readOnly={true}
+                        className="w-full px-2 py-1 border border-blue-200 rounded focus:outline-none focus:ring-1 focus:ring-blue-500 font-mono"
+                      />
+                    </div>
+                    <div>
+                      <label className="block font-medium text-blue-700 mb-1">Component</label>
+                      <input
+                        type="text"
+                        value={route.component}
+                        readOnly={true}
+                        className="w-full px-2 py-1 border border-blue-200 rounded focus:outline-none focus:ring-1 focus:ring-blue-500"
+                      />
+                    </div>
+                    <div>
+                      <label className="block font-medium text-blue-700 mb-1">Protected</label>
+                      <div className="flex items-center gap-1">
+                        <input
+                          type="checkbox"
+                          checked={route.protected}
+                          className="w-3 h-3 text-blue-600 rounded focus:ring-blue-500"
+                          readOnly
+                        />
+                        <span className="text-blue-700">{route.protected ? 'Yes' : 'No'}</span>
+                      </div>
+                    </div>
+                    <div>
+                      <label className="block font-medium text-blue-700 mb-1">Description</label>
+                      <input
+                        type="text"
+                        value={route.description}
+                        readOnly={true}
+                        className="w-full px-2 py-1 border border-blue-200 rounded focus:outline-none focus:ring-1 focus:ring-blue-500"
+                      />
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        </AccordionDetails>
+      </Accordion>
 
       {/* 5.2 Folder Structure & Naming Conventions */}
       <Accordion>
