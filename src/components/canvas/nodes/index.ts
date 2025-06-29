@@ -31,7 +31,7 @@ export {
   TechStackNode,
   UIStyleNode,
   FeatureNode,
-  ArchitectureNode
+  ArchitectureNode,
   InformationArchitectureNode
 };
 
