@@ -39,6 +39,15 @@ import { CanvasToolbar } from './CanvasToolbar';
 import { v4 as uuidv4 } from 'uuid';
 import * as nodeFactory from '../../lib/canvas/nodeFactory';
 import { STAGE1_NODE_TYPES, STAGE2_NODE_TYPES } from '../../lib/canvas/nodeFactory';
+import { 
+  getEdgeStyle, 
+  generateConnectionLabel, 
+  connectionExists, 
+  getUniqueEdgeId,
+  updateNodesWithConnection,
+  cleanupNodeConnections,
+  createEdge
+} from '../../lib/canvas/connectionUtilities';
 import { nodeTypes } from './nodes';
 
 // Import processors directly
@@ -120,15 +129,26 @@ export const SpatialCanvas: React.FC<SpatialCanvasProps> = ({
   }, [effectiveEdges, handleUpdateConnections]);
 
   const onConnect = useCallback((params: any) => {
-    const newEdge = {
-      ...params,
-      id: `e${params.source}-${params.target}`,
-      type: 'smoothstep',
-      animated: false,
-      style: { stroke: '#9CA3AF', strokeWidth: 2 },
-      markerEnd: { type: MarkerType.Arrow }
-    };
+    // Check if connection already exists
+    if (connectionExists(effectiveEdges, params.source, params.target)) {
+      return;
+    }
+    
+    // Find source and target nodes
+    const sourceNode = effectiveNodes.find(node => node.id === params.source);
+    const targetNode = effectiveNodes.find(node => node.id === params.target);
+    
+    // Create edge with appropriate style and label
+    const newEdge = createEdge(params.source, params.target, sourceNode, targetNode);
+    
+    // Add the edge
     const newEdges = addEdge(newEdge, effectiveEdges);
+    
+    // Update nodes with connection data
+    const updatedNodes = updateNodesWithConnection(effectiveNodes, params.source, params.target);
+    
+    // Update both nodes and edges
+    handleUpdateNodes(updatedNodes);
     handleUpdateConnections(newEdges);
   }, [effectiveEdges, handleUpdateConnections]);
 
@@ -206,12 +226,15 @@ export const SpatialCanvas: React.FC<SpatialCanvasProps> = ({
             handleUpdateNodes(updatedNodes);
           },
           onNodeDelete: (id: string) => {
-            const filteredNodes = currentNodes.filter(n => n.id !== id);
-            const filteredEdges = currentEdges.filter(edge => 
-              edge.source !== id && edge.target !== id
+            // Use the cleanupNodeConnections utility
+            const { updatedNodes, updatedEdges } = cleanupNodeConnections(
+              effectiveNodes,
+              effectiveEdges,
+              id
             );
-            handleUpdateNodes(filteredNodes);
-            handleUpdateConnections(filteredEdges);
+            
+            handleUpdateNodes(updatedNodes);
+            handleUpdateConnections(updatedEdges);
           },
           onStartConnection: (id: string) => {
             console.log('Start connection from', id);
@@ -382,12 +405,15 @@ export const SpatialCanvas: React.FC<SpatialCanvasProps> = ({
             handleUpdateNodes(updatedNodes);
           },
           onNodeDelete: (id: string) => {
-            const filteredNodes = effectiveNodes.filter(node => node.id !== id);
-            const filteredEdges = effectiveEdges.filter(edge => 
-              edge.source !== id && edge.target !== id
+            // Use the cleanupNodeConnections utility
+            const { updatedNodes, updatedEdges } = cleanupNodeConnections(
+              effectiveNodes,
+              effectiveEdges,
+              id
             );
-            handleUpdateNodes(filteredNodes);
-            handleUpdateConnections(filteredEdges);
+            
+            handleUpdateNodes(updatedNodes);
+            handleUpdateConnections(updatedEdges);
           },
           onStartConnection: (id: string) => {
         
@@ -553,7 +579,9 @@ export const SpatialCanvas: React.FC<SpatialCanvasProps> = ({
           defaultEdgeOptions={{
             type: 'smoothstep',
             style: { stroke: '#9CA3AF', strokeWidth: 2 },
-            markerEnd: { type: MarkerType.Arrow }
+            markerEnd: { type: MarkerType.Arrow },
+            labelStyle: { fill: '#6b7280', fontWeight: 500, fontSize: 12 },
+            labelBgStyle: { fill: '#ffffff', fillOpacity: 0.8, rx: 4, ry: 4 }
           }}
         >
           <Background color="#e5e7eb" gap={20} size={1} variant={showGrid ? BackgroundVariant.Dots : undefined} />
