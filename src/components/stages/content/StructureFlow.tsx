@@ -27,6 +27,7 @@ import { UserFlows } from './structure-flow/UserFlows';
 import { ModularUIComposition } from './structure-flow/ModularUIComposition';
 import { ProjectFileStructure } from './structure-flow/ProjectFileStructure';
 import { StructureSummary } from './structure-flow/StructureSummary';
+import { StateDataFlow } from './structure-flow/StateDataFlow';
 
 interface StructureFlowProps {
   stage: Stage;
