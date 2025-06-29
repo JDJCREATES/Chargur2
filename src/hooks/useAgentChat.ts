@@ -109,6 +109,12 @@ export const useAgentChat = ({
   // Reset chat state when projectId or stageId changes
   React.useEffect(() => {
     const loadExistingConversation = async () => {
+      // Skip if projectId or stageId are null/empty - this prevents resetting during transient states
+      if (!projectId || !stageId) {
+        console.log('⚠️ projectId or stageId is missing, skipping conversation load/reset');
+        return;
+      }
+      
       try {
         // Only proceed if we have all required data
         if (!projectId || !stageId || !user || !session?.access_token) {
@@ -121,13 +127,8 @@ export const useAgentChat = ({
           // Reset only conversation-specific state, not the entire state
           setState(prev => ({
             ...prev,
-            conversationId: null,
-            historyMessages: [],
-            content: '',
-            suggestions: [],
-            autoFillData: {},
-            isComplete: false,
-            goToStageId: null
+            isLoading: false,
+            error: null
           }));
           return;
         }
@@ -181,8 +182,6 @@ export const useAgentChat = ({
           console.log('ℹ️ No existing conversation found, will create new one on first message');
           setState(prev => ({ 
             ...prev, 
-            conversationId: null,
-            historyMessages: [],
             isLoading: false 
           }));
         }
@@ -202,15 +201,9 @@ export const useAgentChat = ({
     } else {
       // Reset state if no user is logged in
       setState({
-        isLoading: false,
-        error: null,
-        content: '',
-        suggestions: [],
-        autoFillData: {},
-        isComplete: false,
-        conversationId: null,
-        historyMessages: [],
-        goToStageId: null
+        ...state,
+        isLoading: false, 
+        error: null
       });
     }
   }, [projectId, stageId, user, session?.access_token]);
