@@ -21,6 +21,7 @@ import UserJourneyNode from './UserJourneyNode';
 import StateDataFlowNode from './StateDataFlowNode';
 import MarkdownCodeNode from './MarkdownCodeNode';
 import LofiLayoutNode from './LofiLayoutNode';
+import RouteApiMappingNode from './RouteApiMappingNode';
 
 // Export all node components
 export {
@@ -42,7 +43,8 @@ export {
   UserJourneyNode,
   StateDataFlowNode,
   MarkdownCodeNode,
-  LofiLayoutNode
+  LofiLayoutNode,
+  RouteApiMappingNode
 };
 
 // Define node types mapping for ReactFlow
@@ -66,6 +68,7 @@ export const nodeTypes = {
   stateDataFlow: StateDataFlowNode,
   markdownCode: MarkdownCodeNode,
   lofiLayout: LofiLayoutNode,
+  routeApiMapping: RouteApiMappingNode,
   system: DefaultNode, // Map system node type to DefaultNode
   'ux-flow': DefaultNode, // Also map ux-flow node type to DefaultNode
   wireframe: DefaultNode, // Also map wireframe node type to DefaultNode
