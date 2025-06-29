@@ -295,7 +295,7 @@ const FeatureNode: React.FC<NodeProps> = ({
         )}
 
         {/* Main Content */}
-        <div className="p-3">
+        <div className="p-3 whitespace-normal break-words">
           {isEditing ? (
             <div className="space-y-3">
               {/* Description */}

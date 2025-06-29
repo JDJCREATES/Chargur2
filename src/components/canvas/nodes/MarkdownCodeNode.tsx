@@ -136,7 +136,7 @@ const MarkdownCodeNode: React.FC<NodeProps<MarkdownCodeNodeData>> = ({
         </div>
 
         {/* Content */}
-        <div className="p-3 overflow-auto max-h-[calc(100%-40px)]">
+        <div className="p-3 overflow-auto whitespace-normal break-words max-h-[calc(100%-40px)]">
           {isEditing ? (
             <textarea
               ref={textareaRef}

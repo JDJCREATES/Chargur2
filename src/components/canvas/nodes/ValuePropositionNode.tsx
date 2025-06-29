@@ -117,7 +117,7 @@ const ValuePropositionNode: React.FC<NodeProps> = ({
           </div>
 
           {/* Main Content */}
-          <div className="p-4">
+          <div className="p-4 whitespace-normal break-words">
             {isEditing ? (
               <div className="space-y-4">
                 {/* Main Value Text */}

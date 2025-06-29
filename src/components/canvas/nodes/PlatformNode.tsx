@@ -86,7 +86,7 @@ const PlatformNode: React.FC<NodeProps> = ({
         ${isPlaceholder ? 'opacity-70' : 'opacity-100'}
       `}>
         {/* Main Content */}
-        <div className="p-3 h-full flex flex-col">
+        <div className="p-3 flex flex-col whitespace-normal break-words">
           <div className="flex items-center gap-2 mb-2">
             {getPlatformIcon()}
             <h3 className="font-medium text-sm text-blue-800">{getPlatformLabel()}</h3>

@@ -89,7 +89,7 @@ const AppNameNode: React.FC<NodeProps> = ({
         onDoubleClick={handleDoubleClick}
       >
           {/* Main Content */}
-          <div className="p-6 flex flex-col items-center justify-center h-full">
+          <div className="p-6 flex flex-col items-center justify-center whitespace-normal break-words">
             {isEditing ? (
               <input
                 ref={inputRef}

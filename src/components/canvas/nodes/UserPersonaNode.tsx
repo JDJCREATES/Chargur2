@@ -122,7 +122,7 @@ const UserPersonaNode: React.FC<NodeProps> = ({
         </div>
 
         {/* Body Content */}
-        <div className="px-4 pb-4">
+        <div className="px-4 pb-4 whitespace-normal break-words">
           {isEditing ? (
             <div className="space-y-3">
               <input

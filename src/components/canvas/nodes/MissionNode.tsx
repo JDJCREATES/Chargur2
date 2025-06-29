@@ -126,7 +126,7 @@ const MissionNode: React.FC<NodeProps> = ({
           </div>
 
           {/* Main Content */}
-          <div className="p-4">
+          <div className="p-4 whitespace-normal break-words">
             {isEditing ? (
               <>
                 <textarea

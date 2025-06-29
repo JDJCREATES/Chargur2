@@ -112,7 +112,7 @@ const RouteApiMappingNode: React.FC<NodeProps> = ({
 
         {/* Content */}
         {isExpanded && (
-          <div className="p-3">
+          <div className="p-3 whitespace-normal break-words">
             {/* Frontend Route Section */}
             <div className="mb-3">
               <div className="flex items-center gap-2 mb-2">

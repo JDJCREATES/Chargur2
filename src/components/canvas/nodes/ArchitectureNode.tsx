@@ -133,7 +133,7 @@ const ArchitectureNode: React.FC<NodeProps> = ({
         </div>
 
         {/* Content - Scrollable */}
-        <div className="p-2 overflow-y-auto" style={{ maxHeight: 'calc(100% - 40px)' }}>
+        <div className="p-2 overflow-y-auto whitespace-normal break-words" style={{ maxHeight: 'calc(100% - 40px)' }}>
           {/* Screens Section */}
           <div className="mb-2">
             <div 

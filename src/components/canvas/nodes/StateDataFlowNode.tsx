@@ -103,7 +103,7 @@ const StateDataFlowNode: React.FC<StateDataFlowNodeProps> = ({
         </div>
 
         {/* Content - Scrollable */}
-        <div className="p-3 overflow-y-auto" style={{ maxHeight: 'calc(100% - 50px)' }}>
+        <div className="p-3 overflow-y-auto whitespace-normal break-words" style={{ maxHeight: 'calc(100% - 50px)' }}>
           {/* State Management Section */}
           <div className="mb-4">
             <div 

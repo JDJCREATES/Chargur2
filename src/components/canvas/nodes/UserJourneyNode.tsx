@@ -63,7 +63,7 @@ const UserJourneyNode: React.FC<NodeProps> = ({
         </div>
 
         {/* Content - Scrollable */}
-        <div className="p-3 overflow-y-auto" style={{ maxHeight: 'calc(100% - 50px)' }}>
+        <div className="p-3 overflow-y-auto whitespace-normal break-words" style={{ maxHeight: 'calc(100% - 50px)' }}>
           {userFlows.length > 0 ? (
             <div className="space-y-3">
               {userFlows.map((flow) => (

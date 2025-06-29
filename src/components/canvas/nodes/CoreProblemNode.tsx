@@ -118,7 +118,7 @@ const CoreProblemNode: React.FC<NodeProps> = ({
           </div>
 
           {/* Main Content */}
-          <div className="p-4 pt-12 h-full">
+          <div className="p-4 pt-12 whitespace-normal break-words">
             {isEditing ? (
               <textarea
                 ref={textareaRef}

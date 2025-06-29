@@ -52,7 +52,7 @@ const TechStackNode: React.FC<NodeProps> = ({
         </div>
 
         {/* Main Content */}
-        <div className="p-4">
+        <div className="p-4 whitespace-normal break-words">
           {isPlaceholder ? (
             <div className="text-sm text-indigo-400 italic">
               No technologies selected yet

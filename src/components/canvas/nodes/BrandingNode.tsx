@@ -145,7 +145,7 @@ const BrandingNode: React.FC<NodeProps> = ({
         </div>
 
         {/* Content */}
-        <div className="p-3">
+        <div className="p-3 whitespace-normal break-words">
           {isEditing ? (
             <div className="space-y-3">
               {/* Color Pickers */}

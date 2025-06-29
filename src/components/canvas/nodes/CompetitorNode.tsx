@@ -169,7 +169,7 @@ const CompetitorNode: React.FC<NodeProps> = ({
         ${selected ? 'border-red-400 shadow-lg' : 'border-red-200'}
       `}>
           {/* Main Content */}
-          <div className="p-3">
+          <div className="p-3 whitespace-normal break-words">
             {isEditing ? (
               <div className="space-y-3 max-h-[calc(100%-40px)] overflow-y-auto">
                 {/* Tabs for different sections */}

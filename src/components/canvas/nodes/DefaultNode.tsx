@@ -195,7 +195,7 @@ const DefaultNode: React.FC<NodeProps> = ({
 
         {/* Node Content */}
         {!data?.collapsed && (
-          <div className="p-3 flex-1 overflow-auto">
+          <div className="p-3 flex-1 overflow-auto whitespace-normal break-words">
             {isEditing ? (
               <textarea
                 ref={inputRef}
