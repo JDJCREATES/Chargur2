@@ -12,7 +12,7 @@
  * - Handles toolbar integration and canvas controls
  */
 
-import React, { useEffect, useCallback, useState, useRef, useMemo } from 'react';
+import { useEffect, useCallback, useState, useRef, useMemo } from 'react';
 import ReactFlow, {
   Background,
   MiniMap,
@@ -43,6 +43,7 @@ import * as connectionUtils from '../../lib/canvas/connectionUtilities';
 import { nodeTypes } from './nodes';
 import { CanvasExportModal } from './CanvasExportModal';
 import * as layoutUtils from '../../lib/canvas/layoutUtils';
+import { useLocalStorage } from '../../hooks/useLocalStorage';
 
 // Import processors directly
 import { processIdeationData } from '../../lib/canvas/processors/ideationProcessor';
@@ -93,6 +94,9 @@ export const SpatialCanvas: React.FC<SpatialCanvasProps> = ({
   const [showGrid, setShowGrid] = useState(true);
   const [selectedNodeId, setSelectedNodeId] = useState<string | null>(null);
   const [isExportModalOpen, setIsExportModalOpen] = useState(false);
+
+  // Store selected layout type in localStorage
+  const [selectedLayoutType, setSelectedLayoutType] = useLocalStorage<string>('chargur-layout-type', 'stage');
 
   // Get screenshot functionality
   const { takeScreenshot, canvasRef } = useCanvasScreenshot();
@@ -556,6 +560,14 @@ export const SpatialCanvas: React.FC<SpatialCanvasProps> = ({
   }, [handleUpdateNodes, handleUpdateConnections]);
 
   const handleAutoLayout = useCallback(async (layoutType?: string) => {
+    // If a layout type is provided, update the stored preference
+    if (layoutType) {
+      setSelectedLayoutType(layoutType);
+    } else {
+      // Use the stored preference if no layout type is provided
+      layoutType = selectedLayoutType;
+    }
+
     try {
       // Show loading state
       const loadingNotification = document.createElement('div');
@@ -596,7 +608,7 @@ export const SpatialCanvas: React.FC<SpatialCanvasProps> = ({
       // Remove loading notification
       setTimeout(() => {
         loadingNotification.remove();
-        
+
         // Show success notification
         const successNotification = document.createElement('div');
         successNotification.className = 'fixed top-4 right-4 bg-green-100 text-green-800 px-4 py-2 rounded-lg shadow-md z-50';
@@ -628,7 +640,19 @@ export const SpatialCanvas: React.FC<SpatialCanvasProps> = ({
         errorNotification.remove();
       }, 3000);
     }
-  }, [effectiveNodes, effectiveEdges, handleUpdateNodes, reactFlowInstance]);
+  }, [effectiveNodes, effectiveEdges, handleUpdateNodes, reactFlowInstance, selectedLayoutType, setSelectedLayoutType]);
+
+  // Apply saved layout on initial load
+  useEffect(() => {
+    // Only apply layout if we have nodes to layout
+    if (effectiveNodes.length > 0) {
+      // Use a small delay to ensure the canvas is fully rendered
+      const timer = setTimeout(() => {
+        handleAutoLayout(selectedLayoutType);
+      }, 500);
+      return () => clearTimeout(timer);
+    }
+  }, [projectId]); // Only run when project changes
 
   // Save canvas state
   const handleSave = useCallback(() => {

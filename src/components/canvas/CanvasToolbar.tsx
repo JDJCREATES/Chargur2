@@ -39,7 +39,7 @@ interface CanvasToolbarProps {
   onResetView: () => void;
   onSave: () => void;
   onExport: () => void;
-  onToggleGrid: () => void;
+  onAutoLayout: (layoutType?: string) => void;
   onScreenshot: () => void;
   onAutoLayout: (layoutType?: string) => void;
   nodes?: Node[];
@@ -387,30 +387,30 @@ export const CanvasToolbar: React.FC<CanvasToolbarProps> = ({
               </div>
               
               {/* Layout Types */}
-              <div className="mt-2 pt-2 border-t border-red-200">
-                <div className="text-xs font-medium text-red-700 mb-1">Layout Types:</div>
+              <div className="mt-2 pt-2 border-t border-gray-200">
+                <div className="text-xs font-medium text-gray-700 mb-1">Layout Types:</div>
                 <div className="grid grid-cols-2 gap-1">
                   <button
                     onClick={() => onAutoLayout('hierarchical')}
-                    className="text-xs p-1 bg-white rounded hover:bg-red-50 text-red-700"
+                    className="text-xs p-1 bg-white rounded hover:bg-gray-100 text-gray-700"
                   >
                     Hierarchical
                   </button>
                   <button
                     onClick={() => onAutoLayout('force')}
-                    className="text-xs p-1 bg-white rounded hover:bg-red-50 text-red-700"
+                    className="text-xs p-1 bg-white rounded hover:bg-gray-100 text-gray-700"
                   >
                     Force-Directed
                   </button>
                   <button
                     onClick={() => onAutoLayout('radial')}
-                    className="text-xs p-1 bg-white rounded hover:bg-red-50 text-red-700"
+                    className="text-xs p-1 bg-white rounded hover:bg-gray-100 text-gray-700"
                   >
                     Radial
                   </button>
                   <button
                     onClick={() => onAutoLayout('stage')}
-                    className="text-xs p-1 bg-white rounded hover:bg-red-50 text-red-700"
+                    className="text-xs p-1 bg-white rounded hover:bg-gray-100 text-gray-700"
                   >
                     Stage-Specific
                   </button>
