@@ -449,7 +449,7 @@ export const SpatialCanvas: React.FC<SpatialCanvasProps> = ({
             handleUpdateNodes(updatedNodes);
             handleUpdateConnections(updatedEdges);
           },
-          onAddLofiLayoutNode={() => handleAddNode('lofiLayout')}
+          onAddLofiLayoutNode: () => handleAddNode('lofiLayout'),
           onStartConnection: (id: string) => {
         
           },
