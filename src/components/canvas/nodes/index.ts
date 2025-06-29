@@ -48,5 +48,8 @@ export const nodeTypes = {
   uiStyle: UIStyleNode,
   feature: FeatureNode,
   architecture: ArchitectureNode,
+  system: DefaultNode, // Map system node type to DefaultNode
+  'ux-flow': DefaultNode, // Also map ux-flow node type to DefaultNode
+  wireframe: DefaultNode, // Also map wireframe node type to DefaultNode
   // Add more node types as they are implemented
 };
