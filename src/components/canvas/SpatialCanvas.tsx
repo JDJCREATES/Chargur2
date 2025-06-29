@@ -29,6 +29,7 @@ import ReactFlow, {
   BackgroundVariant,
   applyNodeChanges,
   applyEdgeChanges
+  addEdge
 } from 'reactflow';
 import 'reactflow/dist/style.css';
 
@@ -87,6 +88,12 @@ export const SpatialCanvas: React.FC<SpatialCanvasProps> = ({
   const [showGrid, setShowGrid] = useState(true);
   const [selectedNodeId, setSelectedNodeId] = useState<string | null>(null);
 
+  // Get the ReactFlow instance
+  const reactFlowInstance = useReactFlow();
+
+  // Get the ReactFlow instance
+  const reactFlowInstance = useReactFlow();
+
   // Use store data as fallback when props aren't provided
   const effectiveNodes = canvasNodes.length > 0 ? canvasNodes : storeCanvasNodes;
   const effectiveEdges = canvasConnections.length > 0 
@@ -120,6 +127,9 @@ export const SpatialCanvas: React.FC<SpatialCanvasProps> = ({
     const newEdges = addEdge(newEdge, effectiveEdges);
     handleUpdateConnections(newEdges);
   }, [effectiveEdges, handleUpdateConnections]);
+
+  // Import addEdge from reactflow
+  import { addEdge } from 'reactflow';
 
   // Add useEffect to process stageData changes
   useEffect(() => {
