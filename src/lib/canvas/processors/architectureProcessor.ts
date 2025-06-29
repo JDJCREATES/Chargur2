@@ -205,8 +205,9 @@ export function processArchitectureData(
       processedAPINode = true;
       
       // Check if API endpoints have changed
+      const endpointsLength = Array.isArray(architectureData.apiEndpoints) ? architectureData.apiEndpoints.length : 0;
       const hasChanged = 
-        existingNode.data?.content !== `${architectureData.apiEndpoints.length} endpoints defined\n\nIncludes REST API routes for data operations`;
+        existingNode.data?.content !== `${endpointsLength} endpoints defined\n\nIncludes REST API routes for data operations`;
       
       if (hasChanged) {
         // Update the existing node
@@ -214,7 +215,7 @@ export function processArchitectureData(
           ...existingNode,
           data: {
             ...existingNode.data,
-            content: `${architectureData.apiEndpoints.length} endpoints defined\n\nIncludes REST API routes for data operations`
+            content: `${endpointsLength} endpoints defined\n\nIncludes REST API routes for data operations`
           }
         };
         newNodes.push(updatedNode);
@@ -285,14 +286,14 @@ export function processArchitectureData(
   }
 
   // Process route-API mappings
-  if (architectureData.sitemap && architectureData.apiEndpoints) {
+  if (architectureData.sitemap && Array.isArray(architectureData.apiEndpoints)) {
     const existingRouteApiMappingNodes = existingArchitectureNodes.filter(node => 
       node.type === 'routeApiMapping'
     );
     
     architectureData.sitemap.forEach((route: any) => {
       // Find API endpoints related to this route
-      const relatedApiEndpoints = (architectureData.apiEndpoints || []).filter((endpoint: any) => 
+      const relatedApiEndpoints = architectureData.apiEndpoints.filter((endpoint: any) => 
         isApiEndpointRelatedToRoute(endpoint, route)
       );
       
