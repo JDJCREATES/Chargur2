@@ -9,6 +9,7 @@
 import { Node } from 'reactflow';
 import { ProcessorState } from '../../../components/canvas/core/CanvasDataProcessor';
 import * as nodeFactory from '../nodeFactory';
+import { STAGE3_NODE_TYPES } from '../nodeFactory';
 
 // Helper function to check if arrays are equal
 function areArraysEqual(arr1: any[] | undefined, arr2: any[] | undefined): boolean {
@@ -66,59 +67,53 @@ export function processStructureData(
 
   let flowX = 100;
   let flowY = 600;
-
-  // Track which screen nodes we've processed
-  const processedScreenIds = new Set<string>();
-
-  // Process screens
-  if (structureData.screens) {
-    const existingScreenNodes = existingStructureNodes.filter(node => 
-      node.data?.metadata?.screenType !== undefined
+  
+  // Track if we've processed the information architecture node
+  let processedInfoArchNode = false;
+  
+  // Process information architecture (screens and data models together)
+  if (structureData.screens || structureData.dataModels) {
+    const screens = structureData.screens || [];
+    const dataModels = structureData.dataModels || [];
+    
+    // Check if information architecture node already exists
+    const existingNode = existingStructureNodes.find(node => 
+      node.type === 'informationArchitecture'
     );
     
-    structureData.screens.forEach((screen: any, index: number) => {
-      // Check if this screen already exists
-      const existingNode = existingScreenNodes.find(node => 
-        node.data?.metadata?.sourceId === screen.id
-      );
+    if (existingNode) {
+      processedInfoArchNode = true;
       
-      if (existingNode) {
-        // Check if screen data has changed
-        const hasChanged = 
-          existingNode.data?.title !== screen.name ||
-          existingNode.data?.metadata?.screenType !== screen.type ||
-          !existingNode.data?.content.includes(screen.description || '');
-        
-        if (hasChanged) {
-          // Update the existing node
-          const updatedNode = {
-            ...existingNode,
-            data: {
-              ...existingNode.data,
-              title: screen.name,
-              content: `Screen type: ${screen.type}\n\n${screen.description || 'Core app screen'}`,
-              metadata: {
-                ...existingNode.data.metadata,
-                screenType: screen.type
-              }
-            }
-          };
-          newNodes.push(updatedNode);
-          nodesChanged = true;
-        } else {
-          // Keep existing node unchanged
-          newNodes.push(existingNode);
-        }
-        
-        processedScreenIds.add(existingNode.id);
-      } else {
-        // Create a new node
-        const newNode = nodeFactory.createScreenNode(screen, index, flowX, flowY, newNodes);
-        newNodes.push(newNode);
+      // Check if screens or data models have changed
+      const hasChanged = 
+        !areArraysEqual(existingNode.data?.screens, screens) ||
+        !areArraysEqual(existingNode.data?.dataModels, dataModels);
+      
+      if (hasChanged) {
+        // Update the existing node
+        const updatedNode = {
+          ...existingNode,
+          data: {
+            ...existingNode.data,
+            screens,
+            dataModels,
+            content: `Information architecture with ${screens.length} screens and ${dataModels.length} data models.`
+          }
+        };
+        newNodes.push(updatedNode);
         nodesChanged = true;
+      } else {
+        // Keep existing node unchanged
+        newNodes.push(existingNode);
       }
-    });
+    } else {
+      // Create a new node
+      const newNode = nodeFactory.createInformationArchitectureNode(screens, dataModels, newNodes);
+      newNodes.push(newNode);
+      nodesChanged = true;
+    }
   }
+
 
   // Track which user flow nodes we've processed
   const processedFlowIds = new Set<string>();
@@ -171,7 +166,7 @@ export function processStructureData(
   // Add any remaining structure nodes that weren't processed
   existingStructureNodes.forEach(node => {
     // Skip nodes we've already processed
-    if ((node.data?.metadata?.screenType && processedScreenIds.has(node.id)) ||
+    if ((node.type === 'informationArchitecture' && processedInfoArchNode) ||
         (node.data?.metadata?.flowType === 'user-journey' && processedFlowIds.has(node.id))) {
       return;
     }

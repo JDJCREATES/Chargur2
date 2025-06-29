@@ -29,6 +29,9 @@ export const STAGE2_NODE_TYPES = {
   ARCHITECTURE: 'architecture',
 };
 
+export const STAGE3_NODE_TYPES = {
+  INFORMATION_ARCHITECTURE: 'informationArchitecture',
+};
 // Define default node configurations
 const STAGE1_NODE_DEFAULTS = {
   appName: {
@@ -92,6 +95,14 @@ export const STAGE2_NODE_DEFAULTS = {
   'architecture': {
     size: { width: 400, height: 300 },
     position: { x: 700, y: 350 },
+    editable: true,
+  },
+};
+
+export const STAGE3_NODE_DEFAULTS = {
+  'informationArchitecture': {
+    size: { width: 350, height: 300 },
+    position: { x: 400, y: 200 },
     editable: true,
   },
 };
@@ -544,6 +555,44 @@ export function createArchitectureNode(
         stage: 'feature-planning',
         architectureData
       },
+      resizable: true
+    }
+  };
+}
+
+/**
+ * Create an information architecture node
+ */
+export function createInformationArchitectureNode(
+  screens: any[],
+  dataModels: any[],
+  existingNodes: Node[] = []
+): Node {
+  const defaults = STAGE3_NODE_DEFAULTS.informationArchitecture;
+  const position = getSmartNodePosition(
+    existingNodes,
+    defaults.size,
+    STAGE3_NODE_TYPES.INFORMATION_ARCHITECTURE,
+    defaults.position,
+    'structure-flow'
+  );
+  
+  return {
+    id: 'information-architecture',
+    type: 'informationArchitecture',
+    position,
+    data: {
+      title: 'Information Architecture',
+      content: `Information architecture with ${screens.length} screens and ${dataModels.length} data models.`,
+      size: defaults.size,
+      color: 'blue',
+      connections: [],
+      metadata: { 
+        stage: 'structure-flow',
+        nodeType: 'informationArchitecture'
+      },
+      screens,
+      dataModels,
       resizable: true
     }
   };

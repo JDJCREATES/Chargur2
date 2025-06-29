@@ -15,6 +15,7 @@ import TechStackNode from './TechStackNode';
 import UIStyleNode from './UIStyleNode';
 import FeatureNode from './FeatureNode';
 import ArchitectureNode from './ArchitectureNode';
+import InformationArchitectureNode from './InformationArchitectureNode';
 
 // Export all node components
 export {
@@ -31,6 +32,7 @@ export {
   UIStyleNode,
   FeatureNode,
   ArchitectureNode
+  InformationArchitectureNode
 };
 
 // Define node types mapping for ReactFlow
@@ -48,6 +50,7 @@ export const nodeTypes = {
   uiStyle: UIStyleNode,
   feature: FeatureNode,
   architecture: ArchitectureNode,
+  informationArchitecture: InformationArchitectureNode,
   system: DefaultNode, // Map system node type to DefaultNode
   'ux-flow': DefaultNode, // Also map ux-flow node type to DefaultNode
   wireframe: DefaultNode, // Also map wireframe node type to DefaultNode

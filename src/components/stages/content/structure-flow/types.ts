@@ -22,24 +22,6 @@ export interface UserFlow {
   description?: string;
 }
 
-export interface Component {
-  id: string;
-  name: string;
-  type: 'layout' | 'ui' | 'form' | 'display' | 'utility';
-  props: string[];
-  description?: string;
-}
-
-export interface FeatureBlueprint {
-  id: string;
-  name: string;
-  description: string;
-  components: string[];
-  apis: string[];
-  context: string;
-  category: 'core' | 'secondary' | 'optional';
-}
-
 export interface FileStructure {
   [key: string]: FileStructure | string[];
 }
@@ -48,8 +30,6 @@ export interface FormData {
   screens: Screen[];
   dataModels: DataModel[];
   userFlows: UserFlow[];
-  components: Component[];
-  featureBlueprints: FeatureBlueprint[];
   fileStructure: FileStructure;
   stateManagement: string;
   dataFlow: string;
