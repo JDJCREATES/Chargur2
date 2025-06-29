@@ -456,12 +456,14 @@ const processWithEdgeFunction = useCallback(async (
               if (data.type === 'content') {
                 setState(prev => ({ ...prev, content: data.content }));
               } else if (data.type === 'complete') {
+                 console.log(data.autoFillData);
                 setState(prev => ({
                   ...prev,
                   suggestions: data.suggestions || [],
                   autoFillData: data.autoFillData || {},
                   isComplete: true,
                   goToStageId: data.goToStageId
+                 
                 }));  
 
                 // Trigger callbacks
