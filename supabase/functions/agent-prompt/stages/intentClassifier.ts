@@ -8,7 +8,7 @@
 export function generateIntentClassificationPrompt(context: any) {
   const { userMessage, stageId, allStageData, conversationHistory = [] } = context;
   
-  // Get the current stage name for context and generate a summary of all stages
+  // Get the current stage name for context
   const stageName = getStageNameById(stageId);
   
   // Create a summary of all stages and their purposes
@@ -26,6 +26,20 @@ CURRENT CONTEXT:
 - User is currently in the "${stageName}" stage
 - Their message: "${userMessage.replace(/"/g, '\\"')}"
 
+CROSS-STAGE INTENT DETECTION:
+1. **Actively Identify Cross-Stage References:** Look for explicit mentions of fields, concepts, or actions that clearly belong to stages OTHER than the current one, even if the user doesn't explicitly ask to switch stages.
+2. **Field-Level Detection:** Recognize when users reference specific fields or sections from other stages (e.g., "I need to update my app name" while in Feature Planning should be detected as Ideation & Discovery).
+3. **Implicit Navigation Needs:** Infer when a user's request can only be fulfilled by moving to another stage, even if they don't explicitly request it.
+4. **Prioritize User Intent Over Current Location:** If a user clearly wants to work on content from another stage, set that as the suggestedPrimaryStage regardless of their current location.
+5. **Multi-Stage Awareness:** When a query spans multiple stages, identify ALL relevant stages but set suggestedPrimaryStage to the most directly relevant one.
+
+EXAMPLES OF CROSS-STAGE REFERENCES:
+- "I need to change my app name" → ideation-discovery (even if currently in a different stage)
+- "Let's add authentication to our features" → feature-planning (even if in architecture-design)
+- "How do I set up user roles?" → user-auth-flow (even if in feature-planning)
+- "I want to change my app's color scheme" → interface-interaction (even if in structure-flow)
+- "Can you help me design the database schema?" → architecture-design (even if in feature-planning)
+
 CONVERSATION HISTORY:
 ${conversationHistory.slice(-3).map((msg: any) => 
   `${msg.type === 'user' ? 'User' : 'Assistant'}: ${msg.content.substring(0, 100)}${msg.content.length > 100 ? '...' : ''}`
@@ -37,11 +51,12 @@ ${projectSummary}
 CLASSIFICATION GUIDELINES:
 1.  **Prioritize Current Stage:** Assume the user's intent is related to their \`currentStage\` unless the message *explicitly* and *unambiguously* indicates a different stage.
 2.  **Consider Granularity/Depth:**
-    *   If the query is high-level, conceptual, or about preferences (e.g., "What UI style should I use?"), it likely belongs to an earlier, more foundational stage (like Ideation & Discovery).
-    *   If the query is detailed, implementation-specific, or about specific components (e.g., "How do I implement a dark mode UI?"), it likely belongs to a later, more technical stage (like Interface & Interaction).
+    * If the query is high-level, conceptual, or about preferences (e.g., "What UI style should I use?"), it likely belongs to an earlier, more foundational stage (like Ideation & Discovery).
+    * If the query is detailed, implementation-specific, or about specific components (e.g., "How do I implement a dark mode UI?"), it likely belongs to a later, more technical stage (like Interface & Interaction).
 3.  **Stage Progression:** Understand that concepts evolve across stages. A topic introduced in an early stage might be refined in a later one. Always map to the *earliest relevant stage* that can address the query at its current level of detail.
 4.  **Evaluate Message Context:** Consider the full message, conversation history, and existing \`allStageData\` to infer intent.
 5.  **Uncertainty:** If there is significant ambiguity, lean towards the \`currentStage\` and provide a lower \`confidence\` score.
+6.  **Field-Specific References:** When users mention specific fields or sections (e.g., "app name", "user roles", "database schema"), these should strongly influence stage classification regardless of current stage.
 
     STAGE-SPECIFIC KEYWORDS & GRANULARITY HINTS:
  - **Ideation & Discovery (ideation-discovery):**
@@ -86,11 +101,11 @@ Determine which stage(s) of the app planning process this message relates to. Th
 
 Respond in this exact JSON format:
 {
-  "relevantStageIds": ["stage-id-1", "stage-id-2"],
+  "relevantStageIds": ["stage-id-1", "stage-id-2"], 
   "confidence": 0.85,
   "reasoning": "Brief explanation of why these stages were selected",
   "currentStageRelevance": "high|medium|low",
-  "suggestedPrimaryStage": "most-relevant-stage-id",
+  "suggestedPrimaryStage": "most-relevant-stage-id", 
   "competitorSearchIntent": true|false
 }
 
