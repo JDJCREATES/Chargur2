@@ -24,17 +24,20 @@ const GROUP_SPACING = 200; // Spacing between different groups
 const SEMANTIC_ZONES = {
   // Stage 1 - Ideation & Discovery (Left side, organized vertically)
   'appName': { x: 100, y: 100 },
-  'tagline': { x: 100, y: 160 }, // Moved up slightly from 200
-  'coreProblem': { x: 100, y: 280 }, // More spacing from tagline
-  'mission': { x: 100, y: 420 }, // More spacing
-  'valueProp': { x: 100, y: 560 }, // More spacing
+  'tagline': { x: 100, y: 160 },
+  'coreProblem': { x: 100, y: 280 },
+  'mission': { x: 100, y: 420 },
+  'valueProp': { x: 100, y: 560 },
   
   // User research cluster (right of stage 1)
-  'userPersona': { x: 450, y: 150 }, // Base position for first persona
-  'competitor': { x: 450, y: 400 }, // Base position for first competitor
+  'userPersona': { x: 450, y: 150 },
+  'competitor': { x: 450, y: 400 },
+  'branding': { x: 700, y: 100 },
   
   // Stage 2 - Feature Planning (Far right, grouped together)
-  'feature': { x: 800, y: 150 }, // Much further right, grouped together
+  'feature': { x: 800, y: 150 },
+  'architecture': { x: 1200, y: 400 },
+  'routeApiMapping': { x: 1200, y: 200 },
   
   // Technical specs (bottom area)
   'platform': { x: 100, y: 700 },
@@ -42,10 +45,14 @@ const SEMANTIC_ZONES = {
   'uiStyle': { x: 500, y: 700 },
   
   // Stage 3+ (separate areas)
+  'informationArchitecture': { x: 1200, y: 200 },
+  'userJourney': { x: 1200, y: 400 },
+  'stateDataFlow': { x: 1200, y: 600 },
+  'markdownCode': { x: 1400, y: 200 },
+  'lofiLayout': { x: 800, y: 500 },
   'ux-flow': { x: 1200, y: 200 },
   'system': { x: 1200, y: 400 },
   'wireframe': { x: 1200, y: 600 },
-  'lofiLayout': { x: 800, y: 500 },
   
   // Default fallback
   'default': { x: 600, y: 300 }
@@ -73,6 +80,13 @@ const GRID_LAYOUTS = {
     columns: 2, // 2 columns for features
     rowSpacing: 200,
     colSpacing: 300
+  },
+  'markdownCode': {
+    baseX: 1400,
+    baseY: 200,
+    columns: 1, // Stack vertically
+    rowSpacing: 320,
+    colSpacing: 0
   }
 };
 
