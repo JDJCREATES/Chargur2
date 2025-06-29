@@ -1,6 +1,7 @@
 import React from 'react';
 import { CheckCircle } from 'lucide-react';
 import { FormData } from './types';
+import { Screen, DataModel, UserFlow, Component } from './types'; 
 
 interface StructureSummaryProps {
   formData: FormData;
@@ -13,19 +14,19 @@ export const StructureSummary: React.FC<StructureSummaryProps> = ({
 }) => {
   const generateArchitectureSummary = () => {
     return `
-**Architecture Overview**
+*Architecture Overview*
 
 **Screens (${formData.screens.length}):**
-${formData.screens.map((s) => `- ${s.name} (${s.type})`).join('\n')}
+${formData.screens.map((s: Screen) => `- ${s.name} (${s.type})`).join('\n')}
 
 **Data Models (${formData.dataModels.length}):**
-${formData.dataModels.map((m) => `- ${m.name}: ${m.fields.join(', ')}`).join('\n')}
+${formData.dataModels.map((m: DataModel) => `- ${m.name}: ${m.fields.join(', ')}`).join('\n')}
 
 **User Flows (${formData.userFlows.length}):**
-${formData.userFlows.map((f) => `- ${f.name}: ${f.steps.length} steps`).join('\n')}
+${formData.userFlows.map((f: UserFlow) => `- ${f.name}: ${f.steps.length} steps`).join('\n')}
 
 **Components (${formData.components.length}):**
-${formData.components.map((c) => `- <${c.name} /> (${c.type})`).join('\n')}
+${formData.components.map((c: Component) => `- <${c.name} /> (${c.type})`).join('\n')}
 
 **State Management:** ${formData.stateManagement}
 

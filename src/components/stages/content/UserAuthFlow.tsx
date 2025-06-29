@@ -183,7 +183,7 @@ export const UserAuthFlow: React.FC<UserAuthFlowProps> = ({
   };
 
   const toggleAuthMethod = (methodId: string) => {
-    const updated = formData.authMethods.map(method =>
+    const updated = formData.authMethods.map((method: AuthMethod) =>
       method.id === methodId ? { ...method, enabled: !method.enabled } : method
     );
     updateFormData('authMethods', updated);
@@ -201,7 +201,7 @@ export const UserAuthFlow: React.FC<UserAuthFlowProps> = ({
   };
 
   const updateUserRole = (roleId: string, updates: Partial<UserRole>) => {
-    const updated = formData.userRoles.map(role =>
+    const updated = formData.userRoles.map((role: UserRole) =>
       role.id === roleId ? { ...role, ...updates } : role
     );
     updateFormData('userRoles', updated);
@@ -218,7 +218,7 @@ export const UserAuthFlow: React.FC<UserAuthFlowProps> = ({
   };
 
   const toggleSecurityFeature = (featureId: string) => {
-    const updated = formData.securityFeatures.map(feature =>
+    const updated = formData.securityFeatures.map((feature: SecurityFeature) =>
       feature.id === featureId ? { ...feature, enabled: !feature.enabled } : feature
     );
     updateFormData('securityFeatures', updated);
@@ -329,17 +329,17 @@ export const useAuth = () => {
   };
 
   const generateAuthSummary = () => {
-    const enabledMethods = formData.authMethods.filter(m => m.enabled);
-    const enabledSecurity = formData.securityFeatures.filter(f => f.enabled);
+    const enabledMethods = formData.authMethods.filter((m: AuthMethod) => m.enabled);
+    const enabledSecurity = formData.securityFeatures.filter((f: SecurityFeature) => f.enabled);
     
     return `
 **User & Auth Flow Summary**
 
 **Authentication Methods (${enabledMethods.length}):**
-${enabledMethods.map(m => `- ${m.name}${m.provider ? ` (${m.provider})` : ''}`).join('\n')}
+${enabledMethods.map((m: AuthMethod) => `- ${m.name}${m.provider ? ` (${m.provider})` : ''}`).join('\n')}
 
 **User Roles (${formData.userRoles.length}):**
-${formData.userRoles.map(r => `- ${r.name}: ${r.description}`).join('\n')}
+${formData.userRoles.map((r: UserRole) => `- ${r.name}: ${r.description}`).join('\n')}
 
 **Session Management:**
 - Provider: ${formData.sessionManagement.provider}
@@ -348,7 +348,7 @@ ${formData.userRoles.map(r => `- ${r.name}: ${r.description}`).join('\n')}
 - Session Timeout: ${formData.sessionManagement.sessionTimeout} days
 
 **Security Features (${enabledSecurity.length} enabled):**
-${enabledSecurity.map(f => `- ${f.name}`).join('\n')}
+${enabledSecurity.map((f: SecurityFeature) => `- ${f.name}`).join('\n')}
 
 **Edge Cases Handled:** ${formData.edgeCases.length}
 **Onboarding Steps:** ${Object.values(formData.onboardingFlow).filter(Boolean).length}
@@ -357,7 +357,7 @@ ${enabledSecurity.map(f => `- ${f.name}`).join('\n')}
 - SUPABASE_URL
 - SUPABASE_ANON_KEY
 - SUPABASE_SERVICE_ROLE_KEY
-${formData.authMethods.some(m => m.type === 'oauth') ? '- GOOGLE_CLIENT_ID\n- GOOGLE_CLIENT_SECRET' : ''}
+${formData.authMethods.some((m: AuthMethod) => m.type === 'oauth') ? '- GOOGLE_CLIENT_ID\n- GOOGLE_CLIENT_SECRET' : ''}
     `.trim();
   };
 
@@ -377,7 +377,7 @@ ${formData.authMethods.some(m => m.type === 'oauth') ? '- GOOGLE_CLIENT_ID\n- GO
             <p className="text-sm text-gray-600">Select authentication methods for your app</p>
             
             <div className="space-y-2">
-              {formData.authMethods.map((method) => (
+              {formData.authMethods.map((method: AuthMethod) => (
                 <div key={method.id} className="flex items-center justify-between p-3 bg-blue-50 rounded-lg">
                   <div className="flex items-center gap-3">
                     <div className="flex items-center gap-2">
@@ -414,7 +414,7 @@ ${formData.authMethods.some(m => m.type === 'oauth') ? '- GOOGLE_CLIENT_ID\n- GO
                   <label key={key} className="flex items-center gap-2">
                     <input
                       type="checkbox"
-                      checked={value}
+                      checked={Boolean(value)}
                       onChange={(e) => updateFormData('onboardingFlow', { ...formData.onboardingFlow, [key]: e.target.checked })}
                       className="w-3 h-3 text-blue-600 rounded focus:ring-blue-500"
                     />
@@ -449,7 +449,7 @@ ${formData.authMethods.some(m => m.type === 'oauth') ? '- GOOGLE_CLIENT_ID\n- GO
             </div>
 
             <div className="space-y-3">
-              {formData.userRoles.map((role) => (
+              {formData.userRoles.map((role: UserRole) => (
                 <div key={role.id} className="p-3 bg-green-50 rounded-lg">
                   <div className="flex items-center gap-2 mb-2">
                     <div className={`w-3 h-3 rounded-full bg-${role.color}-500`}></div>
@@ -503,7 +503,7 @@ ${formData.authMethods.some(m => m.type === 'oauth') ? '- GOOGLE_CLIENT_ID\n- GO
                     </tr>
                   </thead>
                   <tbody>
-                    {formData.userRoles.map((role) => (
+                    {formData.userRoles.map((role: UserRole) => (
                       <tr key={role.id} className="border-b border-green-100">
                         <td className="py-1 text-green-800 font-medium">{role.name}</td>
                         <td className="text-center py-1">{role.permissions.create ? '✅' : '❌'}</td>
@@ -620,7 +620,7 @@ ${formData.authMethods.some(m => m.type === 'oauth') ? '- GOOGLE_CLIENT_ID\n- GO
             </div>
 
             <div className="space-y-2">
-              {formData.edgeCases.map((edgeCase) => (
+              {formData.edgeCases.map((edgeCase: EdgeCase, index: number) => (
                 <div key={edgeCase.id} className="p-3 bg-orange-50 rounded-lg">
                   <div className="grid grid-cols-3 gap-2 text-xs">
                     <div>
@@ -646,7 +646,7 @@ ${formData.authMethods.some(m => m.type === 'oauth') ? '- GOOGLE_CLIENT_ID\n- GO
                       <select
                         value={edgeCase.priority}
                        onChange={(e) => {
-                         const updatedEdgeCases = formData.edgeCases.map(ec => 
+                         const updatedEdgeCases = formData.edgeCases.map((ec: EdgeCase) => 
                            ec.id === edgeCase.id ? { ...ec, priority: e.target.value as 'high' | 'medium' | 'low' } : ec
                          );
                          updateFormData('edgeCases', updatedEdgeCases);
@@ -680,7 +680,7 @@ ${formData.authMethods.some(m => m.type === 'oauth') ? '- GOOGLE_CLIENT_ID\n- GO
               <div className="bg-teal-50 rounded-lg p-3">
                 <h4 className="font-medium text-sm text-teal-800 mb-2">Required Fields</h4>
                 <div className="space-y-1">
-                  {formData.userMetadata.requiredFields.map((field, index) => (
+                  {formData.userMetadata.requiredFields.map((field: string, index: number) => (
                     <div key={index} className="text-xs bg-white rounded px-2 py-1 text-teal-700">
                       {field}
                     </div>
@@ -691,7 +691,7 @@ ${formData.authMethods.some(m => m.type === 'oauth') ? '- GOOGLE_CLIENT_ID\n- GO
               <div className="bg-teal-50 rounded-lg p-3">
                 <h4 className="font-medium text-sm text-teal-800 mb-2">Optional Fields</h4>
                 <div className="space-y-1">
-                  {formData.userMetadata.optionalFields.map((field, index) => (
+                  {formData.userMetadata.optionalFields.map((field: string, index: number) => (
                     <div key={index} className="text-xs bg-white rounded px-2 py-1 text-teal-700">
                       {field}
                     </div>
@@ -703,7 +703,7 @@ ${formData.authMethods.some(m => m.type === 'oauth') ? '- GOOGLE_CLIENT_ID\n- GO
             <div className="bg-teal-50 rounded-lg p-3">
               <h4 className="font-medium text-sm text-teal-800 mb-2">User Preferences</h4>
               <div className="grid grid-cols-2 gap-1">
-                {formData.userMetadata.preferences.map((pref, index) => (
+                {formData.userMetadata.preferences.map((pref: string, index: number) => (
                   <div key={index} className="text-xs bg-white rounded px-2 py-1 text-teal-700">
                     {pref}
                   </div>
@@ -714,11 +714,11 @@ ${formData.authMethods.some(m => m.type === 'oauth') ? '- GOOGLE_CLIENT_ID\n- GO
             <div className="bg-teal-50 rounded-lg p-3">
               <h4 className="font-medium text-sm text-teal-800 mb-2">Activity Tracking</h4>
               <div className="grid grid-cols-2 gap-2">
-                {Object.entries(formData.userMetadata.tracking).map(([key, enabled]) => (
+                {Object.entries(formData.userMetadata.tracking).map(([key, enabled]: [string, unknown]) => (
                   <label key={key} className="flex items-center gap-2">
                     <input
                       type="checkbox"
-                      checked={enabled}
+                      checked={Boolean(enabled)}
                       onChange={(e) => updateFormData('userMetadata', {
                         ...formData.userMetadata,
                         tracking: { ...formData.userMetadata.tracking, [key]: e.target.checked }
@@ -747,7 +747,7 @@ ${formData.authMethods.some(m => m.type === 'oauth') ? '- GOOGLE_CLIENT_ID\n- GO
             <p className="text-sm text-gray-600">Configure security measures and protections</p>
             
             <div className="space-y-2">
-              {formData.securityFeatures.map((feature) => (
+              {formData.securityFeatures.map((feature: SecurityFeature) => (
                 <div key={feature.id} className="flex items-center justify-between p-3 bg-red-50 rounded-lg">
                   <div>
                     <div className="flex items-center gap-2">

@@ -29,9 +29,8 @@ import {
   GiTreeBranch,
   GiCircuitry
 } from 'react-icons/gi';
-import { Accordion, AccordionSummary, AccordionDetails, Typography } from '@mui/material';
+import { Accordion, AccordionSummary, AccordionDetails } from '@mui/material';
 import { Node, Edge } from 'reactflow';
-import { Connection } from '../../types';
 
 interface CanvasToolbarProps {
   onAddNode: (type: string) => void;

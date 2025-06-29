@@ -22,6 +22,14 @@ export interface UserFlow {
   description?: string;
 }
 
+export interface Component {
+  id: string;
+  name: string;
+  type: string;
+  props?: string[];
+  children?: string[];
+}
+
 export interface FileStructure {
   [key: string]: FileStructure | string[];
 }
@@ -30,6 +38,7 @@ export interface FormData {
   screens: Screen[];
   dataModels: DataModel[];
   userFlows: UserFlow[];
+  components: Component[];
   fileStructure: FileStructure;
   stateManagement: string;
   dataFlow: string;
