@@ -9,6 +9,13 @@
 import { Node } from 'reactflow';
 import * as nodeFactory from '../nodeFactory';
 
+// Helper function to check if a node is a folder structure node for architecture stage
+function isArchitectureFolderStructureNode(node: Node): boolean {
+  return node.type === 'markdownCode' && 
+         node.data?.title === 'Folder Structure' && 
+         node.data?.metadata?.stage === 'architecture-design';
+}
+
 /**
  * Convert folder structure object to string representation
  */
@@ -67,11 +74,236 @@ export function processArchitectureData(
   // Separate architecture nodes from other nodes
   const existingArchitectureNodes: Node[] = [];
   const otherNodes: Node[] = [];
+  // Track the folder structure node specifically
+  let existingFolderStructureNode: Node | undefined;
   
   currentNodes.forEach(node => {
     existingNodesMap.set(node.id, node);
     
     if (node.data?.metadata?.stage === 'architecture-design') {
+      // Check if this is the folder structure node
+      if (isArchitectureFolderStructureNode(node)) {
+        existingFolderStructureNode = node;
+      } else {
+        existingArchitectureNodes.push(node);
+      }
+    } else {
+      otherNodes.push(node);
+    }
+  });
+  
+  // Start with non-architecture nodes
+  let newNodes = [...otherNodes];
+
+  let systemX = 100;
+  let systemY = 800;
+
+  // Track which database table nodes we've processed
+  const processedTableIds = new Set<string>();
+
+  // Process database schema
+  if (architectureData.databaseSchema) {
+    const existingTableNodes = existingArchitectureNodes.filter(node => 
+      node.data?.metadata?.tableType === 'database'
+    );
+    
+    architectureData.databaseSchema.forEach((table: any, index: number) => {
+      // Check if this table already exists
+      const existingNode = existingTableNodes.find(node => 
+        node.data?.metadata?.sourceId === table.id
+      );
+      
+      if (existingNode) {
+        // Check if table data has changed
+        const tableFields = table.fields?.slice(0, 4).map((f: any) => `• ${f.name}`).join('\n') || 'No fields defined';
+        const hasChanged = 
+          existingNode.data?.title !== `${table.name} Table` ||
+          !existingNode.data?.content.includes(tableFields);
+        
+        if (hasChanged) {
+          // Update the existing node
+          const updatedNode = {
+            ...existingNode,
+            data: {
+              ...existingNode.data,
+              title: `${table.name} Table`,
+              content: `Database table\n\nFields:\n${tableFields}${table.fields?.length > 4 ? '\n...' : ''}`
+            }
+          };
+          newNodes.push(updatedNode);
+          nodesChanged = true;
+        } else {
+          // Keep existing node unchanged
+          newNodes.push(existingNode);
+        }
+        
+        processedTableIds.add(existingNode.id);
+      } else {
+        // Create a new node
+        const newNode = nodeFactory.createDatabaseTableNode(table, index, systemX, systemY, newNodes);
+        newNodes.push(newNode);
+        nodesChanged = true;
+      }
+    });
+  }
+
+  // Track if we've processed the API endpoints node
+  let processedAPINode = false;
+
+  // Process API endpoints
+  if (architectureData.apiEndpoints) {
+    // Check if API endpoints node already exists
+    const existingNode = existingArchitectureNodes.find(node => 
+      node.data?.metadata?.systemType === 'api'
+    );
+    
+    if (existingNode) {
+      processedAPINode = true;
+      
+      // Check if API endpoints have changed
+      const hasChanged = 
+        existingNode.data?.content !== `${architectureData.apiEndpoints.length} endpoints defined\n\nIncludes REST API routes for data operations`;
+      
+      if (hasChanged) {
+        // Update the existing node
+        const updatedNode = {
+          ...existingNode,
+          data: {
+            ...existingNode.data,
+            content: `${architectureData.apiEndpoints.length} endpoints defined\n\nIncludes REST API routes for data operations`
+          }
+        };
+        newNodes.push(updatedNode);
+        nodesChanged = true;
+      } else {
+        // Keep existing node unchanged
+        newNodes.push(existingNode);
+      }
+    } else {
+      // Create a new node
+      const newNode = nodeFactory.createAPIEndpointsNode(architectureData.apiEndpoints, systemX, systemY, newNodes);
+      newNodes.push(newNode);
+      nodesChanged = true;
+    }
+  }
+
+  // Track which route nodes we've processed
+  const processedRouteIds = new Set<string>();
+
+  // Process other architecture components
+  if (architectureData.sitemap) {
+    const existingRouteNodes = existingArchitectureNodes.filter(node => 
+      node.data?.metadata?.routeType === 'page'
+    );
+    
+    architectureData.sitemap.forEach((route: any, index: number) => {
+      // Check if this route already exists
+      const existingNode = existingRouteNodes.find(node => 
+        node.data?.metadata?.sourceId === route.id
+      );
+      
+      if (existingNode) {
+        // Check if route data has changed
+        const hasChanged = 
+          existingNode.data?.title !== `${route.path} Route` ||
+          !existingNode.data?.content.includes(route.component) ||
+          !existingNode.data?.content.includes(route.protected ? 'Yes' : 'No') ||
+          !existingNode.data?.content.includes(route.description);
+        
+        if (hasChanged) {
+          // Update the existing node
+          const updatedNode = {
+            ...existingNode,
+            data: {
+              ...existingNode.data,
+              title: `${route.path} Route`,
+              content: `Component: ${route.component}\nProtected: ${route.protected ? 'Yes' : 'No'}\n\n${route.description}`
+            }
+          };
+          newNodes.push(updatedNode);
+          nodesChanged = true;
+        } else {
+          // Keep existing node unchanged
+          newNodes.push(existingNode);
+        }
+        
+        processedRouteIds.add(existingNode.id);
+      } else {
+        // Create a new node
+        const newNode = nodeFactory.createRouteNode(route, index, systemX, systemY, newNodes);
+        newNodes.push(newNode);
+        nodesChanged = true;
+      }
+    });
+  }
+
+  // Process folder structure - with special handling
+  if (architectureData.folderStructure && Object.keys(architectureData.folderStructure).length > 0) {
+    const folderStructureString = folderStructureToString(architectureData.folderStructure);
+    
+    // Check if architecture folder structure node already exists
+    if (existingFolderStructureNode) {
+      // Check if folder structure has changed
+      if (existingFolderStructureNode.data?.content !== folderStructureString) {
+        // Update the existing node
+        const updatedNode = {
+          ...existingFolderStructureNode,
+          data: {
+            ...existingFolderStructureNode.data,
+            content: folderStructureString
+          }
+        };
+        newNodes.push(updatedNode);
+        nodesChanged = true;
+      } else {
+        // Keep existing node unchanged
+        newNodes.push(existingFolderStructureNode);
+      }
+    } else {
+      // Create a new node
+      const newNode = nodeFactory.createMarkdownCodeNode(
+        folderStructureString,
+        'Folder Structure',
+        'Architecture Design',
+        newNodes
+      );
+      
+      // Ensure the node is tagged with the architecture-design stage
+      newNode.data.metadata = {
+        ...newNode.data.metadata,
+        stage: 'architecture-design'
+      };
+      
+      newNodes.push(newNode);
+      nodesChanged = true;
+    }
+  }
+
+  // Add any remaining architecture nodes that weren't processed
+  existingArchitectureNodes.forEach(node => {
+    // Skip nodes we've already processed
+    if ((node.data?.metadata?.tableType === 'database' && processedTableIds.has(node.id)) ||
+        (node.data?.metadata?.systemType === 'api' && processedAPINode) ||
+        (node.data?.metadata?.routeType === 'page' && processedRouteIds.has(node.id))) {
+      return;
+    }
+    
+    // Add the node to our new nodes array
+    newNodes.push(node);
+  });
+
+  // Check if any nodes were actually changed
+  const nodesAdded = newNodes.length - originalNodeCount;
+  console.log('Processed architecture data:', nodesAdded, 'nodes added/updated, changed:', nodesChanged);
+  
+  // If no nodes were changed and the count is the same, return the original array
+  if (!nodesChanged && newNodes.length === currentNodes.length) {
+    return currentNodes;
+  }
+
+  return newNodes;
+}
+
       existingArchitectureNodes.push(node);
     } else {
       otherNodes.push(node);
