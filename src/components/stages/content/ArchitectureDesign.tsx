@@ -236,7 +236,11 @@ export const ArchitectureDesign: React.FC<ArchitectureDesignProps> = ({
   };
 
   const generateSQLSchema = () => {
-    return (formData.databaseSchema || []).map((table: DatabaseTable) => {
+    if (!Array.isArray(formData.databaseSchema)) {
+      return '-- No database schema defined';
+    }
+    
+    return formData.databaseSchema.map((table: DatabaseTable) => {
       const fields = table.fields.map((field: DatabaseField) => {
         const constraints = [];
         if (field.required) constraints.push('NOT NULL');
@@ -249,7 +253,11 @@ export const ArchitectureDesign: React.FC<ArchitectureDesignProps> = ({
   };
 
   const generateEnvTemplate = () => {
-    return (formData.envVariables || []).map((envVar: EnvVariable) => {
+    if (!Array.isArray(formData.envVariables)) {
+      return '# No environment variables defined';
+    }
+    
+    return formData.envVariables.map((envVar: EnvVariable) => {
       const comment = `# ${envVar.description} (${envVar.usage})`;
       const required = envVar.required ? ' # REQUIRED' : ' # OPTIONAL';
       return `${comment}\n${envVar.name}=${envVar.type === 'secret' ? 'your_secret_here' : 'your_value_here'}${required}`;
@@ -257,25 +265,30 @@ export const ArchitectureDesign: React.FC<ArchitectureDesignProps> = ({
   };
 
   const generateArchitectureSummary = () => {
+    const sitemapCount = Array.isArray(formData.sitemap) ? formData.sitemap.length : 0;
+    const dbSchemaCount = Array.isArray(formData.databaseSchema) ? formData.databaseSchema.length : 0;
+    const apiEndpointsCount = Array.isArray(formData.apiEndpoints) ? formData.apiEndpoints.length : 0;
+    const envVarsCount = Array.isArray(formData.envVariables) ? formData.envVariables.length : 0;
+    
     return `
 **Architecture Design Summary**
 
 **Project Structure:**
-- Routes: ${(formData.sitemap || []).length} pages defined
-- Database Tables: ${(formData.databaseSchema || []).length} tables
-- API Endpoints: ${(formData.apiEndpoints || []).length} endpoints
-- Environment Variables: ${(formData.envVariables || []).length} variables
+- Routes: ${sitemapCount} pages defined
+- Database Tables: ${dbSchemaCount} tables
+- API Endpoints: ${apiEndpointsCount} endpoints
+- Environment Variables: ${envVarsCount} variables
 
 **State Management:** ${formData.stateManagement || 'Not specified'}
 
 **Key Integrations:**
-${(formData.integrations || []).map((integration: string) => `- ${integration}`).join('\n')}
+${Array.isArray(formData.integrations) ? formData.integrations.map((integration: string) => `- ${integration}`).join('\n') : '- None defined'}
 
 **AI Agent Zones:**
-${(formData.aiAgentZones || []).map((zone: string) => `- ${zone}`).join('\n')}
+${Array.isArray(formData.aiAgentZones) ? formData.aiAgentZones.map((zone: string) => `- ${zone}`).join('\n') : '- None defined'}
 
-**Protected Routes:** ${(formData.sitemap || []).filter((route: Route) => route.protected).length}/${(formData.sitemap || []).length}
-**Auth Required Endpoints:** ${(formData.apiEndpoints || []).filter((endpoint: APIEndpoint) => endpoint.auth).length}/${(formData.apiEndpoints || []).length}
+**Protected Routes:** ${Array.isArray(formData.sitemap) ? formData.sitemap.filter((route: Route) => route.protected).length : 0}/${sitemapCount}
+**Auth Required Endpoints:** ${Array.isArray(formData.apiEndpoints) ? formData.apiEndpoints.filter((endpoint: APIEndpoint) => endpoint.auth).length : 0}/${apiEndpointsCount}
     `.trim();
   };
 
@@ -485,7 +498,7 @@ ${(formData.aiAgentZones || []).map((zone: string) => `- ${zone}`).join('\n')}
             </div>
 
             <div className="space-y-3">
-              {formData.databaseSchema.map((table: DatabaseTable) => (
+              {Array.isArray(formData.databaseSchema) ? formData.databaseSchema.map((table: DatabaseTable) => (
                 <div key={table.id} className="bg-orange-50 rounded-lg p-3">
                   <div className="flex items-center gap-2 mb-2">
                     <Database className="w-4 h-4 text-orange-600" />
@@ -518,7 +531,7 @@ ${(formData.aiAgentZones || []).map((zone: string) => `- ${zone}`).join('\n')}
                     </div>
                   )}
                 </div>
-              ))}
+              )) : <div className="text-gray-500 text-sm">No database tables defined</div>}
             </div>
 
             <div className="bg-gray-900 text-green-400 p-3 rounded-lg">
@@ -557,7 +570,7 @@ ${(formData.aiAgentZones || []).map((zone: string) => `- ${zone}`).join('\n')}
             </div>
 
             <div className="space-y-2">
-              {(formData.apiEndpoints || []).map((endpoint: APIEndpoint) => (
+              {Array.isArray(formData.apiEndpoints) ? formData.apiEndpoints.map((endpoint: APIEndpoint) => (
                 <div key={endpoint.id} className="p-3 bg-teal-50 rounded-lg">
                   <div className="grid grid-cols-5 gap-2 text-xs">
                     <div>
@@ -596,7 +609,7 @@ ${(formData.aiAgentZones || []).map((zone: string) => `- ${zone}`).join('\n')}
                     </div>
                   )}
                 </div>
-              ))}
+              )) : null}
             </div>
 
             <div className="bg-teal-50 rounded-lg p-3">
@@ -636,7 +649,7 @@ ${(formData.aiAgentZones || []).map((zone: string) => `- ${zone}`).join('\n')}
             </div>
 
             <div className="space-y-2">
-              {formData.envVariables.map((envVar: EnvVariable) => (
+              {Array.isArray(formData.envVariables) ? formData.envVariables.map((envVar: EnvVariable) => (
                 <div key={envVar.id} className="p-3 bg-indigo-50 rounded-lg">
                   <div className="grid grid-cols-4 gap-2 text-xs">
                     <div>
@@ -664,7 +677,7 @@ ${(formData.aiAgentZones || []).map((zone: string) => `- ${zone}`).join('\n')}
                   </div>
                   <div className="mt-2 text-xs text-indigo-600">{envVar.description}</div>
                 </div>
-              ))}
+              )) : <div className="text-gray-500 text-sm">No environment variables defined</div>}
             </div>
 
             <div className="bg-gray-900 text-green-400 p-3 rounded-lg">
@@ -694,7 +707,7 @@ ${(formData.aiAgentZones || []).map((zone: string) => `- ${zone}`).join('\n')}
             <p className="text-sm text-gray-600">Areas where AI can dynamically adjust and optimize the architecture</p>
             
             <div className="space-y-2">
-              {formData.aiAgentZones.map((zone: string, index: number) => (
+              {Array.isArray(formData.aiAgentZones) ? formData.aiAgentZones.map((zone: string, index: number) => (
                 <div key={index} className="flex items-center gap-3 p-2 bg-pink-50 rounded-lg">
                   <Brain className="w-4 h-4 text-pink-600" />
                   <span className="text-sm text-pink-700">{zone}</span>
@@ -702,7 +715,7 @@ ${(formData.aiAgentZones || []).map((zone: string) => `- ${zone}`).join('\n')}
                     <span className="text-xs px-2 py-1 bg-pink-200 text-pink-700 rounded">AI-Controlled</span>
                   </div>
                 </div>
-              ))}
+              )) : <div className="text-gray-500 text-sm">No AI agent zones defined</div>}
             </div>
 
             <div className="bg-pink-50 border border-pink-200 rounded-lg p-3">

@@ -27,10 +27,16 @@ const ArchitectureNode: React.FC<NodeProps> = ({
   };
 
   // Extract architecture data from node
-  const architectureData = data?.metadata?.architectureData || {
-    screens: [],
-    apiRoutes: [],
-    components: []
+  const architectureData = {
+    screens: Array.isArray(data?.metadata?.architectureData?.screens) 
+      ? data.metadata.architectureData.screens 
+      : [],
+    apiRoutes: Array.isArray(data?.metadata?.architectureData?.apiRoutes) 
+      ? data.metadata.architectureData.apiRoutes 
+      : [],
+    components: Array.isArray(data?.metadata?.architectureData?.components) 
+      ? data.metadata.architectureData.components 
+      : []
   };
 
   const getMethodColor = (method: string) => {
@@ -147,7 +153,7 @@ const ArchitectureNode: React.FC<NodeProps> = ({
               </div>
             </div>
             
-            {expandedSections.screens && architectureData.screens.length > 0 && (
+            {expandedSections.screens && Array.isArray(architectureData.screens) && architectureData.screens.length > 0 && (
               <div className="mt-1 pl-5 space-y-1">
                 {architectureData.screens.map((screen: any, index: number) => (
                   <div 
@@ -183,7 +189,7 @@ const ArchitectureNode: React.FC<NodeProps> = ({
               </div>
             </div>
             
-            {expandedSections.api && architectureData.apiRoutes.length > 0 && (
+            {expandedSections.api && Array.isArray(architectureData.apiRoutes) && architectureData.apiRoutes.length > 0 && (
               <div className="mt-1 pl-5 space-y-1">
                 {architectureData.apiRoutes.map((route: any, index: number) => (
                   <div 
@@ -219,7 +225,7 @@ const ArchitectureNode: React.FC<NodeProps> = ({
               </div>
             </div>
             
-            {expandedSections.components && architectureData.components.length > 0 && (
+            {expandedSections.components && Array.isArray(architectureData.components) && architectureData.components.length > 0 && (
               <div className="mt-1 pl-5 space-y-1">
                 {architectureData.components.map((component: any) => 
                   renderComponent(component)
