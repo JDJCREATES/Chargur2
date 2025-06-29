@@ -456,6 +456,7 @@ export const useAppStore = create<AppState>((set, get) => {
             console.error('Error processing UX review data:', error);
           }
         }
+        return {
           stageData: updatedStageData
         };
       });
