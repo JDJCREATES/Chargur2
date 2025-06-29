@@ -235,25 +235,34 @@ export const ArchitectureDesign: React.FC<ArchitectureDesignProps> = ({
     updateFormData('envVariables', [...formData.envVariables, newVar]);
   };
 
+  console.log('ArchitectureDesign formData:', {
+    sitemap: formData?.sitemap,
+    databaseSchema: formData?.databaseSchema,
+    apiEndpoints: formData?.apiEndpoints,
+    envVariables: formData?.envVariables,
+    integrations: formData?.integrations,
+    aiAgentZones: formData?.aiAgentZones
+  });
+
   const generateSQLSchema = () => {
-    if (!Array.isArray(formData.databaseSchema)) {
+    if (!formData?.databaseSchema || !Array.isArray(formData.databaseSchema)) {
       return '-- No database schema defined';
     }
     
     return formData.databaseSchema.map((table: DatabaseTable) => {
-      const fields = (table.fields || []).map((field: DatabaseField) => {
+      const fields = Array.isArray(table.fields) ? table.fields.map((field: DatabaseField) => {
         const constraints = [];
         if (field.required) constraints.push('NOT NULL');
         if (field.unique) constraints.push('UNIQUE');
         return `  ${field.name} ${field.type.toUpperCase()} ${constraints.join(' ')}`;
-      }).join(',\n');
+      }).join(',\n') : '';
       
       return `CREATE TABLE ${table.name} (\n${fields}\n);`;
     }).join('\n\n');
   };
 
   const generateEnvTemplate = () => {
-    if (!Array.isArray(formData.envVariables)) {
+    if (!formData?.envVariables || !Array.isArray(formData.envVariables)) {
       return '# No environment variables defined';
     }
     
@@ -265,10 +274,10 @@ export const ArchitectureDesign: React.FC<ArchitectureDesignProps> = ({
   };
 
   const generateArchitectureSummary = () => {
-    const sitemapCount = Array.isArray(formData.sitemap) ? formData.sitemap.length : 0;
-    const dbSchemaCount = Array.isArray(formData.databaseSchema) ? formData.databaseSchema.length : 0;
-    const apiEndpointsCount = Array.isArray(formData.apiEndpoints) ? formData.apiEndpoints.length : 0;
-    const envVarsCount = Array.isArray(formData.envVariables) ? formData.envVariables.length : 0;
+    const sitemapCount = Array.isArray(formData?.sitemap) ? formData.sitemap.length : 0;
+    const dbSchemaCount = Array.isArray(formData?.databaseSchema) ? formData.databaseSchema.length : 0;
+    const apiEndpointsCount = Array.isArray(formData?.apiEndpoints) ? formData.apiEndpoints.length : 0;
+    const envVarsCount = Array.isArray(formData?.envVariables) ? formData.envVariables.length : 0;
     
     return `
 **Architecture Design Summary**
@@ -279,16 +288,16 @@ export const ArchitectureDesign: React.FC<ArchitectureDesignProps> = ({
 - API Endpoints: ${apiEndpointsCount} endpoints
 - Environment Variables: ${envVarsCount} variables
 
-**State Management:** ${formData.stateManagement || 'Not specified'}
+**State Management:** ${formData?.stateManagement || 'Not specified'}
 
 **Key Integrations:**
-${Array.isArray(formData.integrations) ? formData.integrations.map((integration: string) => `- ${integration}`).join('\n') : '- None defined'}
+${Array.isArray(formData?.integrations) ? formData.integrations.map((integration: string) => `- ${integration}`).join('\n') : '- None defined'}
 
 **AI Agent Zones:**
-${Array.isArray(formData.aiAgentZones) ? formData.aiAgentZones.map((zone: string) => `- ${zone}`).join('\n') : '- None defined'}
+${Array.isArray(formData?.aiAgentZones) ? formData.aiAgentZones.map((zone: string) => `- ${zone}`).join('\n') : '- None defined'}
 
-**Protected Routes:** ${Array.isArray(formData.sitemap) ? formData.sitemap.filter((route: Route) => route.protected).length : 0}/${sitemapCount}
-**Auth Required Endpoints:** ${Array.isArray(formData.apiEndpoints) ? formData.apiEndpoints.filter((endpoint: APIEndpoint) => endpoint.auth).length : 0}/${apiEndpointsCount}
+**Protected Routes:** ${Array.isArray(formData?.sitemap) ? formData.sitemap.filter((route: Route) => route.protected).length : 0}/${sitemapCount}
+**Auth Required Endpoints:** ${Array.isArray(formData?.apiEndpoints) ? formData.apiEndpoints.filter((endpoint: APIEndpoint) => endpoint.auth).length : 0}/${apiEndpointsCount}
     `.trim();
   };
 
@@ -498,7 +507,7 @@ ${Array.isArray(formData.aiAgentZones) ? formData.aiAgentZones.map((zone: string
             </div>
 
             <div className="space-y-3">
-              {Array.isArray(formData.databaseSchema) ? formData.databaseSchema.map((table: DatabaseTable) => (
+              {Array.isArray(formData.databaseSchema) && formData.databaseSchema.length > 0 ? formData.databaseSchema.map((table: DatabaseTable) => (
                 <div key={table.id} className="bg-orange-50 rounded-lg p-3">
                   <div className="flex items-center gap-2 mb-2">
                     <Database className="w-4 h-4 text-orange-600" />
@@ -514,24 +523,26 @@ ${Array.isArray(formData.aiAgentZones) ? formData.aiAgentZones.map((zone: string
                     <div className="font-medium text-orange-700">Required</div>
                     <div className="font-medium text-orange-700">Unique</div>
                     
-                    {(table.fields || []).map((field: DatabaseField, index: number) => (
+                    {Array.isArray(table.fields) ? table.fields.map((field: DatabaseField, index: number) => (
                       <React.Fragment key={index}>
                         <div className="text-orange-600 font-mono">{field.name}</div>
                         <div className="text-orange-600">{field.type}</div>
                         <div className="text-orange-600">{field.required ? '✓' : '—'}</div>
                         <div className="text-orange-600">{field.unique ? '✓' : '—'}</div>
                       </React.Fragment>
-                    ))}
+                    )) : null}
                   </div>
 
-                  {table.relations && table.relations.length > 0 && (
+                  {Array.isArray(table.relations) && table.relations.length > 0 && (
                     <div className="mt-2 pt-2 border-t border-orange-200">
                       <span className="text-xs font-medium text-orange-700">Relations: </span>
-                      <span className="text-xs text-orange-600">{(table.relations || []).join(', ')}</span>
+                      <span className="text-xs text-orange-600">{table.relations.join(', ')}</span>
                     </div>
                   )}
                 </div>
-              )) : <div className="text-gray-500 text-sm">No database tables defined</div>}
+              )) : (
+                <div className="text-gray-500 text-sm">No database tables defined</div>
+              )}
             </div>
 
             <div className="bg-gray-900 text-green-400 p-3 rounded-lg">
@@ -570,7 +581,7 @@ ${Array.isArray(formData.aiAgentZones) ? formData.aiAgentZones.map((zone: string
             </div>
 
             <div className="space-y-2">
-              {Array.isArray(formData.apiEndpoints) ? formData.apiEndpoints.map((endpoint: APIEndpoint) => (
+              {Array.isArray(formData.apiEndpoints) && formData.apiEndpoints.length > 0 ? formData.apiEndpoints.map((endpoint: APIEndpoint) => (
                 <div key={endpoint.id} className="p-3 bg-teal-50 rounded-lg">
                   <div className="grid grid-cols-5 gap-2 text-xs">
                     <div>
@@ -602,7 +613,7 @@ ${Array.isArray(formData.aiAgentZones) ? formData.aiAgentZones.map((zone: string
                     </div>
                   </div>
                   
-                  {endpoint.params.length > 0 && (
+                  {Array.isArray(endpoint.params) && endpoint.params.length > 0 && (
                     <div className="mt-2 pt-2 border-t border-teal-200">
                       <span className="text-xs font-medium text-teal-700">Parameters: </span>
                       <span className="text-xs text-teal-600">{endpoint.params.join(', ')}</span>
@@ -649,7 +660,7 @@ ${Array.isArray(formData.aiAgentZones) ? formData.aiAgentZones.map((zone: string
             </div>
 
             <div className="space-y-2">
-              {Array.isArray(formData.envVariables) ? formData.envVariables.map((envVar: EnvVariable) => (
+              {Array.isArray(formData.envVariables) && formData.envVariables.length > 0 ? formData.envVariables.map((envVar: EnvVariable) => (
                 <div key={envVar.id} className="p-3 bg-indigo-50 rounded-lg">
                   <div className="grid grid-cols-4 gap-2 text-xs">
                     <div>
@@ -707,7 +718,7 @@ ${Array.isArray(formData.aiAgentZones) ? formData.aiAgentZones.map((zone: string
             <p className="text-sm text-gray-600">Areas where AI can dynamically adjust and optimize the architecture</p>
             
             <div className="space-y-2">
-              {Array.isArray(formData.aiAgentZones) ? formData.aiAgentZones.map((zone: string, index: number) => (
+              {Array.isArray(formData.aiAgentZones) && formData.aiAgentZones.length > 0 ? formData.aiAgentZones.map((zone: string, index: number) => (
                 <div key={index} className="flex items-center gap-3 p-2 bg-pink-50 rounded-lg">
                   <Brain className="w-4 h-4 text-pink-600" />
                   <span className="text-sm text-pink-700">{zone}</span>
