@@ -9,6 +9,7 @@ import { useAgentChat } from "./hooks/useAgentChat";
 import { LoginModal } from './components/auth/LoginModal';
 import { StageProgressBubbles } from './components/ui/StageProgressBubbles';
 import { Logo } from './components/layout/Logo';
+import { BoltBadge } from './components/ui/BoltBadge';
 
 function App() {
   const [isSidebarOpen, setIsSidebarOpen] = useState(true);
@@ -184,6 +185,9 @@ function App() {
           </div>
         </div>
       </div>
+      
+      {/* Bolt.new Badge */}
+      <BoltBadge />
 
       {/* Sidebar */}
       <Sidebar
