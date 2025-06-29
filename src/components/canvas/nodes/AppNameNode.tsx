@@ -86,6 +86,7 @@ const AppNameNode: React.FC<NodeProps> = ({
         ${selected ? 'border-white shadow-2xl' : 'border-blue-400'}
         ${isPlaceholder ? 'opacity-70' : 'opacity-100'}
         `}
+        style={{ width: data.size?.width, height: data.size?.height }}
         onDoubleClick={handleDoubleClick}
       >
           {/* Main Content */}

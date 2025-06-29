@@ -92,6 +92,7 @@ const UserPersonaNode: React.FC<NodeProps> = ({
         rounded-lg shadow-md border-2 transition-all duration-300
         ${selected ? 'border-blue-400 shadow-lg' : 'border-blue-200'}
       `}>
+        style={{ width: data.size?.width, height: data.size?.height }}
         {/* Avatar Head */}
         <div className="flex justify-center -mt-6 mb-2">
           <div className="relative">

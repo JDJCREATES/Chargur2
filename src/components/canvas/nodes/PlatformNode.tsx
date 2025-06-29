@@ -85,6 +85,7 @@ const PlatformNode: React.FC<NodeProps> = ({
         ${selected ? 'border-blue-400 shadow-lg' : 'border-blue-200'}
         ${isPlaceholder ? 'opacity-70' : 'opacity-100'}
       `}>
+        style={{ width: data.size?.width, height: data.size?.height }}
         {/* Main Content */}
         <div className="p-3 h-full flex flex-col">
           <div className="flex items-center gap-2 mb-2">

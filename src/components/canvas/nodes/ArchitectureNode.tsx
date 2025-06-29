@@ -124,6 +124,7 @@ const ArchitectureNode: React.FC<NodeProps> = ({
         rounded-lg shadow-md border-2 transition-all duration-300 overflow-hidden
         ${selected ? 'border-indigo-400 shadow-lg' : 'border-indigo-200'}
       `}>
+        style={{ width: data.size?.width, height: data.size?.height }}
         {/* Header */}
         <div className="bg-gradient-to-r from-indigo-50 to-blue-50 p-2 border-b border-indigo-100">
           <div className="flex items-center gap-2">
