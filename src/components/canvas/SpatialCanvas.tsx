@@ -102,8 +102,8 @@ export const SpatialCanvas: React.FC<SpatialCanvasProps> = ({
   // Get the ReactFlow instance
   const reactFlowInstance = useReactFlow();
   
-  // Get updateStageData from the store
-  const updateStageData = useAppStore(state => state.updateStageData);
+  // Get updateStageData and other methods from the store
+  const { updateStageData, currentStageId } = useAppStore();
 
 
   // Use store data as fallback when props aren't provided - MEMOIZED
@@ -275,42 +275,6 @@ export const SpatialCanvas: React.FC<SpatialCanvasProps> = ({
     }, 100);
   }, [projectId, reactFlowInstance]);
 
-  // Handle node data updates with special handling for branding nodes
-  const handleNodeDataUpdate = useCallback((nodeId: string, updates: any) => {
-    const updatedNodes = effectiveNodes.map(node => {
-      if (node.id === nodeId) {
-        // Special handling for branding node
-        if (node.type === 'branding') {
-          // Update the interface-interaction stage data with the branding information
-          updateStageData('interface-interaction', { 
-            customBranding: {
-              primaryColor: updates.primaryColor || node.data.primaryColor,
-              secondaryColor: updates.secondaryColor || node.data.secondaryColor,
-              accentColor: updates.accentColor || node.data.accentColor,
-              fontFamily: updates.fontFamily || node.data.fontFamily,
-              bodyFont: updates.bodyFont || node.data.bodyFont,
-              borderRadius: updates.borderRadius || node.data.borderRadius
-            },
-            selectedDesignSystem: updates.designSystem || node.data.designSystem
-          });
-          
-          console.log('Updated branding data in stage data:', updates);
-        }
-        
-        return {
-          ...node,
-          data: {
-            ...node.data,
-            ...updates
-          }
-        };
-      }
-      return node;
-    });
-    
-    handleUpdateNodes(updatedNodes);
-  }, [effectiveNodes, handleUpdateNodes, updateStageData]);
-
   const handleAddNode = useCallback((type: string) => {
     // Check if it's a custom ideation node type
     if (Object.values(STAGE1_NODE_TYPES).includes(type as any)) {
@@ -400,7 +364,49 @@ export const SpatialCanvas: React.FC<SpatialCanvasProps> = ({
       newNode.data = {
         ...newNode.data,
         onNodeUpdate: (id: string, updates: any) => {
-          handleNodeDataUpdate(id, updates);
+          const node = effectiveNodes.find(n => n.id === id);
+          if (!node) return;
+          
+          // Special handling for nodes that need to update stage data
+          if (node.type === 'branding') {
+            // Update the interface-interaction stage data with the branding information
+            updateStageData('interface-interaction', { 
+              customBranding: {
+                primaryColor: updates.primaryColor || node.data.primaryColor,
+                secondaryColor: updates.secondaryColor || node.data.secondaryColor,
+                accentColor: updates.accentColor || node.data.accentColor,
+                fontFamily: updates.fontFamily || node.data.fontFamily,
+                bodyFont: updates.bodyFont || node.data.bodyFont,
+                borderRadius: updates.borderRadius || node.data.borderRadius
+              },
+              selectedDesignSystem: updates.designSystem || node.data.designSystem
+            });
+            console.log('Updated branding data in stage data:', updates);
+          } else if (node.type === 'appName' && updates.value !== undefined) {
+            // Update ideation-discovery stage data with app name
+            updateStageData('ideation-discovery', { appName: updates.value });
+          } else if (node.type === 'tagline' && updates.value !== undefined) {
+            // Update ideation-discovery stage data with tagline
+            updateStageData('ideation-discovery', { tagline: updates.value });
+          } else if (node.type === 'coreProblem' && updates.value !== undefined) {
+            // Update ideation-discovery stage data with problem statement
+            updateStageData('ideation-discovery', { problemStatement: updates.value });
+          } else if (node.type === 'mission' && (updates.value !== undefined || updates.missionStatement !== undefined)) {
+            // Update ideation-discovery stage data with mission
+            const updateData: any = {};
+            if (updates.value !== undefined) updateData.appIdea = updates.value;
+            if (updates.missionStatement !== undefined) updateData.missionStatement = updates.missionStatement;
+            updateStageData('ideation-discovery', updateData);
+          } else if (node.type === 'valueProp' && updates.value !== undefined) {
+            // Update ideation-discovery stage data with value proposition
+            updateStageData('ideation-discovery', { valueProposition: updates.value });
+          }
+          
+          // Update the node in the canvas
+          const updatedNodes = effectiveNodes.map(n => 
+            n.id === id ? { ...n, data: { ...n.data, ...updates } } : n
+          );
+          handleUpdateNodes(updatedNodes);
         },
         onNodeDelete: (id: string) => {
           const filteredNodes = effectiveNodes.filter(node => node.id !== id);
@@ -498,7 +504,7 @@ export const SpatialCanvas: React.FC<SpatialCanvasProps> = ({
       handleUpdateNodes(newNodes);
       setSelectedNodeId(newNode.id);
     }
-  }, [effectiveNodes, effectiveEdges, handleNodeDataUpdate, handleUpdateNodes, handleUpdateConnections, currentStageId, onSendMessage]);
+  }, [effectiveNodes, effectiveEdges, handleUpdateNodes, handleUpdateConnections, currentStageId, onSendMessage, updateStageData]);
 
   const handleClearCanvas = useCallback(() => {
     if (window.confirm('Are you sure you want to clear the canvas? This action cannot be undone.')) {
@@ -642,10 +648,11 @@ export const SpatialCanvas: React.FC<SpatialCanvasProps> = ({
           fitView
           fitViewOptions={{ padding: 0.2 }}
           onNodeDragStop={(_, node) => {
-            // If it's a branding node, update the position in the node data
-            if (node.type === 'branding') {
-              handleNodeDataUpdate(node.id, { position: node.position });
-            }
+            // Update node position in the canvas
+            const updatedNodes = effectiveNodes.map(n => 
+              n.id === node.id ? { ...n, position: node.position } : n
+            );
+            handleUpdateNodes(updatedNodes);
           }}
           deleteKeyCode="Delete"
           minZoom={0.1}
