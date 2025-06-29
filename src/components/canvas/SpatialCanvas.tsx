@@ -151,91 +151,86 @@ export const SpatialCanvas: React.FC<SpatialCanvasProps> = ({
     }
 
     processingRef.current = true;
-    
-    const timeoutId = setTimeout(async () => {
-      try {
-        const currentStageId = useAppStore.getState().currentStageId;
-        const currentState = useAppStore.getState();
-        
-        // Get current nodes/edges from store at processing time, not from dependencies
-        const currentNodes = currentState.canvasNodes;
-        const currentEdges = currentState.canvasConnections;
-        
-        const stageSpecificData = stageData[currentStageId];
-        
-        if (!stageSpecificData || Object.keys(stageSpecificData).length === 0) {
-          console.log(`SpatialCanvas: No stage-specific data for ${currentStageId} or it's empty. Skipping processing.`);
-          return;
-        }
 
-        console.log(`SpatialCanvas: Processing stage data for ${currentStageId}. Current nodes count: ${currentNodes.length}. Stage data keys: ${Object.keys(stageSpecificData).join(', ')}`);
-        // Process nodes...
-        let processedNodes: Node[] = [];
-        
-        switch (currentStageId) {
-          case 'ideation-discovery':
-            processedNodes = processIdeationData(currentNodes, stageSpecificData, {});
-            break;
-          case 'feature-planning':
-            processedNodes = processFeatureData(currentNodes, stageSpecificData, {});
-            break;
-          case 'structure-flow':
-            processedNodes = processStructureData(currentNodes, stageSpecificData, {});
-            break;
-          case 'architecture-design':
-            processedNodes = processArchitectureData(currentNodes, stageSpecificData, {});
-            break;
-          case 'interface-interaction':
-            processedNodes = processInterfaceData(currentNodes, stageSpecificData, {});
-            break;
-          case 'user-auth-flow':
-            processedNodes = processAuthData(currentNodes, stageSpecificData, {});
-            break;
-          default:
-            processedNodes = currentNodes;
-        }
-        
-        // Add callbacks and update
-        const nodesWithCallbacks = processedNodes.map(node => ({
-          ...node,
-          data: {
-            ...(node.data || {}),
-            onNodeUpdate: (id: string, updates: any) => {
-              const updatedNodes = currentNodes.map(n => n.id === id 
-                ? { ...n, data: { ...(n.data || {}), ...updates } } 
-                : n
-              );
-              handleUpdateNodes(updatedNodes);
-            },
-            onNodeDelete: (id: string) => {
-              const filteredNodes = currentNodes.filter(n => n.id !== id);
-              const filteredEdges = currentEdges.filter(edge => 
-                edge.source !== id && edge.target !== id
-              );
-              handleUpdateNodes(filteredNodes);
-              handleUpdateConnections(filteredEdges);
-            },
-            onStartConnection: (id: string) => {
-              console.log('Start connection from', id);
-            },
-            onSendMessage
-          }
-        }));
-        
-        console.log('SpatialCanvas: Calling handleUpdateNodes with new nodes. Count:', nodesWithCallbacks.length);
-        handleUpdateNodes(nodesWithCallbacks);
-        lastProcessedStageDataRef.current = stageDataString;
-        
-      } catch (error) {
-        console.error('Error processing stage data:', error);
-      } finally {
+    try {
+      const currentStageId = useAppStore.getState().currentStageId;
+      const currentState = useAppStore.getState();
+      
+      // Get current nodes/edges from store at processing time, not from dependencies
+      const currentNodes = currentState.canvasNodes;
+      const currentEdges = currentState.canvasConnections;
+      
+      const stageSpecificData = stageData[currentStageId];
+      
+      if (!stageSpecificData || Object.keys(stageSpecificData).length === 0) {
+        console.log(`SpatialCanvas: No stage-specific data for ${currentStageId} or it's empty. Skipping processing.`);
         processingRef.current = false;
+        return;
       }
-    }, 200);
-    
-    return () => {
-      clearTimeout(timeoutId);
-    };
+
+      console.log(`SpatialCanvas: Processing stage data for ${currentStageId}. Current nodes count: ${currentNodes.length}. Stage data keys: ${Object.keys(stageSpecificData).join(', ')}`);
+      // Process nodes...
+      let processedNodes: Node[] = [];
+      
+      switch (currentStageId) {
+        case 'ideation-discovery':
+          processedNodes = processIdeationData(currentNodes, stageSpecificData, {});
+          break;
+        case 'feature-planning':
+          processedNodes = processFeatureData(currentNodes, stageSpecificData, {});
+          break;
+        case 'structure-flow':
+          processedNodes = processStructureData(currentNodes, stageSpecificData, {});
+          break;
+        case 'architecture-design':
+          processedNodes = processArchitectureData(currentNodes, stageSpecificData, {});
+          break;
+        case 'interface-interaction':
+          processedNodes = processInterfaceData(currentNodes, stageSpecificData, {});
+          break;
+        case 'user-auth-flow':
+          processedNodes = processAuthData(currentNodes, stageSpecificData, {});
+          break;
+        default:
+          processedNodes = currentNodes;
+      }
+      
+      // Add callbacks and update
+      const nodesWithCallbacks = processedNodes.map(node => ({
+        ...node,
+        data: {
+          ...(node.data || {}),
+          onNodeUpdate: (id: string, updates: any) => {
+            const updatedNodes = currentNodes.map(n => n.id === id 
+              ? { ...n, data: { ...(n.data || {}), ...updates } } 
+              : n
+            );
+            handleUpdateNodes(updatedNodes);
+          },
+          onNodeDelete: (id: string) => {
+            const filteredNodes = currentNodes.filter(n => n.id !== id);
+            const filteredEdges = currentEdges.filter(edge => 
+              edge.source !== id && edge.target !== id
+            );
+            handleUpdateNodes(filteredNodes);
+            handleUpdateConnections(filteredEdges);
+          },
+          onStartConnection: (id: string) => {
+            console.log('Start connection from', id);
+          },
+          onSendMessage
+        }
+      }));
+      
+      console.log('SpatialCanvas: Calling handleUpdateNodes with new nodes. Count:', nodesWithCallbacks.length);
+      handleUpdateNodes(nodesWithCallbacks);
+      lastProcessedStageDataRef.current = stageDataString;
+      
+    } catch (error) {
+      console.error('Error processing stage data:', error);
+    } finally {
+      processingRef.current = false;
+    }
   }, [stageData, onSendMessage]); // ONLY stageData and onSendMessage - no node/edge dependencies!
  
   // Reset view when canvas nodes change significantly (indicating project change)
