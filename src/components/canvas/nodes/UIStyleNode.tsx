@@ -114,12 +114,6 @@ const UIStyleNode: React.FC<NodeProps> = ({
               <h3 className={`font-bold text-sm ${colors.text}`}>{uiStyleLabel}</h3>
               <p className={`text-xs opacity-80 ${colors.text}`}>{uiStyleDesc}</p>
               
-              {/* Style Preview Elements */}
-              <div className="flex gap-2 mt-3">
-                <div className={`w-6 h-6 rounded-full ${colors.accent}`}></div>
-                <div className={`w-6 h-6 rounded-full bg-opacity-70 ${colors.accent}`}></div>
-                <div className={`w-6 h-6 rounded-full bg-opacity-40 ${colors.accent}`}></div>
-              </div>
             </div>
           )}
         </div>
