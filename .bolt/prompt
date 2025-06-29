@@ -5,4 +5,4 @@ By default, this template supports JSX syntax with Tailwind CSS classes, React h
 We are building Chargur, a Bolt.new companion application that helps users prepare everything they needs before ever writing a line of code. Chargur is a UX AI Agent and app architecture planner. After talking with our ai agent users will have every piece of documentation needed to build a full fledged app with Bolt.new, all while never losing sight of their app's mission or design. Create wireframes, design systems, and simulate the user experience with our agentic AI Chargur.
 
 
-NEVER EDIT A HIDDEN FILE, if you cant see whats in it, skip it and tell me it needs updating. Reuse components and scripts where possible. as our app grows, be careful not to overwrite any important files.
+NEVER EDIT A HIDDEN FILE, if you cant see whats in it, skip it and tell me it needs updating. Reuse components and scripts where possible. as our app grows, be careful not to overwrite any important files. ENSURE YOU USE TYPESCRIPT.

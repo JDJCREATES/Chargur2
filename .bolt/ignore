@@ -196,6 +196,6 @@ src/components/auth/
 # src/components/layout/
 # src/components/stages/content/
 src/hooks/useAuth.ts
-# src/lib/prompts/
+src/lib/prompts/
 src/components/chat/
-# src/components/stages/IdeationDiscovery.tsx
+src/components/stages/IdeationDiscovery.tsx
