@@ -14,7 +14,7 @@ export const ComponentStylingSection: React.FC<ComponentStylingSectionProps> = (
   selectedDesignSystem,
   customBranding,
   onUpdateDesignSystem,
-  onUpdateCustomBranding
+  onUpdateCustomBranding,
   onAddBrandingNode
 }) => {
   const designSystems = [
