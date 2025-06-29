@@ -66,7 +66,7 @@ Create a logical, user-friendly structure that supports all planned features.
 NEVER INCLUDE THIS SCHEMA IN THE CONTENT FIELD!
 Respond in this exact JSON format:
 {
-  "content": "Your architectural guidance and structure explanation",
+  "content": "Natural language description of the structure plan/details",
   "suggestions": ["Structure suggestion 1", "Flow improvement", "Navigation advice"],
   "autoFillData": {
     "screens": [

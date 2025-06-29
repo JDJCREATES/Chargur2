@@ -188,7 +188,7 @@ When completing the stage, generate comprehensive architecture prep:
 NEVER PUT JSON IN THE CONTENT FIELD! ENSURE NO LEADING TEXT OR WHITESPACE!
 Respond in this exact JSON format:
 {
-  "content": "Your strategic analysis and feature planning recommendations with dependency reasoning",
+  "content": "Natural Language text describing the feature plan",
   "suggestions": ["Specific actionable suggestions for feature implementation"],
   "autoFillData": {
     "selectedFeaturePacks": ["auth", "crud", "social"],

@@ -65,7 +65,7 @@ Create a cohesive design system that enhances user experience.
 NEVER INCLUDE THIS SCHEMA IN THE CONTENT FIELD!
 Respond in this exact JSON format:
 {
-  "content": "Your design guidance and visual strategy explanation",
+  "content": "Natural language description of the interface plan/details",
   "suggestions": ["Design suggestion 1", "Branding advice", "Interaction idea"],
   "autoFillData": {
     "selectedDesignSystem": "shadcn|mui|chakra|radix|custom",

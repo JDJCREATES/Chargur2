@@ -47,7 +47,7 @@ When you are done with stage 1 (or users asks), mark this stage as complete and 
 NEVER INCLUDE THIS SCHEMA IN THE CONTENT FIELD!
 Respond in this exact JSON format:
 {
-  "content": "Your export preparation and delivery recommendations",
+  "content": "Your export preparation and delivery recommendations in Natural language response",
   "suggestions": ["Export option 1", "Documentation improvement", "Handoff tip"],
   "autoFillData": {
     "exportPackages": {

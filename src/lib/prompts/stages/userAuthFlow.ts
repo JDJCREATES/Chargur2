@@ -61,7 +61,7 @@ Create a secure, user-friendly auth system.
 NEVER INCLUDE THIS SCHEMA IN THE CONTENT FIELD!
 Respond in this exact JSON format:
 {
-  "content": "Your authentication strategy and security recommendations",
+  "content": "Natural language response",
   "suggestions": ["Auth suggestion 1", "Security advice", "User flow improvement"],
   "autoFillData": {
     "authMethods": [
