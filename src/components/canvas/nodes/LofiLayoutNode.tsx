@@ -1,4 +1,4 @@
-import React, { useState, useRef, useEffect } from 'react';
+import React, { useState, useRef, useEffect, memo } from 'react';
 import { motion } from 'framer-motion';
 import { Handle, Position, NodeProps } from 'reactflow';
 import { Layout, Edit3, Plus, Trash2, Copy, Check, X, Layers, Monitor, Smartphone, Tablet } from 'lucide-react';
@@ -224,7 +224,8 @@ const getViewModeWidth = (mode: string): number => {
   }
 };
 
-const LofiLayoutNode: React.FC<NodeProps<LofiLayoutNodeData>> = ({ 
+// Component implementation
+const LofiLayoutNodeComponent: React.FC<NodeProps<LofiLayoutNodeData>> = ({ 
   id, 
   data, 
   selected,
@@ -642,5 +643,18 @@ const LofiLayoutNode: React.FC<NodeProps<LofiLayoutNodeData>> = ({
     </>
   );
 };
+
+// Memoize the component to prevent unnecessary re-renders
+const LofiLayoutNode = memo(LofiLayoutNodeComponent, (prevProps, nextProps) => {
+  // Only re-render if these props change
+  return (
+    prevProps.selected === nextProps.selected &&
+    prevProps.data.layoutId === nextProps.data.layoutId &&
+    prevProps.data.templateName === nextProps.data.templateName &&
+    prevProps.data.viewMode === nextProps.data.viewMode &&
+    JSON.stringify(prevProps.data.layoutBlocks) === JSON.stringify(nextProps.data.layoutBlocks) &&
+    prevProps.isConnectable === nextProps.isConnectable
+  );
+});
 
 export default LofiLayoutNode;
