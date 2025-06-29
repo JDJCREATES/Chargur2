@@ -221,31 +221,6 @@ export async function getLayoutedElements(
     return applyFallbackLayout(nodes, edges);
   }
 }
-            const nodeIndex = layoutedNodes.findIndex(n => n.id === elkNode.id);
-            if (nodeIndex !== -1 && elkNode.x !== undefined && elkNode.y !== undefined) {
-              // Update node position
-              layoutedNodes[nodeIndex] = {
-                ...layoutedNodes[nodeIndex],
-                position: {
-                  x: elkNode.x,
-                  y: elkNode.y
-                }
-              };
-            }
-          });
-        }
-      });
-    }
-
-    console.log(`✅ ELK layout completed successfully`);
-    return { nodes: layoutedNodes, edges };
-  } catch (error) {
-    console.error('❌ Error applying ELK layout:', error);
-    
-    // Fallback to simple grid layout if ELK fails
-    return applyFallbackLayout(nodes, edges);
-  }
-}
 
 /**
  * Apply a simple grid layout as fallback
