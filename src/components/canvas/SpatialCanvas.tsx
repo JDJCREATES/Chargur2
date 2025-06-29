@@ -28,7 +28,7 @@ import ReactFlow, {
   ConnectionLineType,
   BackgroundVariant,
   applyNodeChanges,
-  applyEdgeChanges
+  applyEdgeChanges,
   addEdge
 } from 'reactflow';
 import 'reactflow/dist/style.css';
