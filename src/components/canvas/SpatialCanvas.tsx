@@ -91,8 +91,6 @@ export const SpatialCanvas: React.FC<SpatialCanvasProps> = ({
   // Get the ReactFlow instance
   const reactFlowInstance = useReactFlow();
 
-  // Get the ReactFlow instance
-  const reactFlowInstance = useReactFlow();
 
   // Use store data as fallback when props aren't provided
   const effectiveNodes = canvasNodes.length > 0 ? canvasNodes : storeCanvasNodes;
