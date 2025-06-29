@@ -1,7 +1,6 @@
 import React from 'react';
 import { CheckCircle } from 'lucide-react';
-import { FormData } from './types';
-import { Screen, DataModel, UserFlow, Component } from './types'; 
+import { FormData, Screen, DataModel, UserFlow, Component } from './types';
 
 interface StructureSummaryProps {
   formData: FormData;
@@ -13,24 +12,30 @@ export const StructureSummary: React.FC<StructureSummaryProps> = ({
   onComplete
 }) => {
   const generateArchitectureSummary = () => {
+    // Add safe defaults for all arrays
+    const screens = formData.screens || [];
+    const dataModels = formData.dataModels || [];
+    const userFlows = formData.userFlows || [];
+    const components = formData.components || [];
+
     return `
 *Architecture Overview*
 
-**Screens (${formData.screens.length}):**
-${formData.screens.map((s: Screen) => `- ${s.name} (${s.type})`).join('\n')}
+**Screens (${screens.length}):**
+${screens.map((s: Screen) => `- ${s.name} (${s.type})`).join('\n')}
 
-**Data Models (${formData.dataModels.length}):**
-${formData.dataModels.map((m: DataModel) => `- ${m.name}: ${m.fields.join(', ')}`).join('\n')}
+**Data Models (${dataModels.length}):**
+${dataModels.map((m: DataModel) => `- ${m.name}: ${m.fields.join(', ')}`).join('\n')}
 
-**User Flows (${formData.userFlows.length}):**
-${formData.userFlows.map((f: UserFlow) => `- ${f.name}: ${f.steps.length} steps`).join('\n')}
+**User Flows (${userFlows.length}):**
+${userFlows.map((f: UserFlow) => `- ${f.name}: ${f.steps.length} steps`).join('\n')}
 
-**Components (${formData.components.length}):**
-${formData.components.map((c: Component) => `- <${c.name} /> (${c.type})`).join('\n')}
+**Components (${components.length}):**
+${components.map((c: Component) => `- <${c.name} /> (${c.type})`).join('\n')}
 
-**State Management:** ${formData.stateManagement}
+**State Management:** ${formData.stateManagement || 'Not specified'}
 
-**Data Flow Pattern:** ${formData.dataFlow}
+**Data Flow Pattern:** ${formData.dataFlow || 'Not specified'}
     `.trim();
   };
 
