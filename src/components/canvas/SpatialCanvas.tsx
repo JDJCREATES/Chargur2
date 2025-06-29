@@ -146,7 +146,7 @@ export const SpatialCanvas: React.FC<SpatialCanvasProps> = ({
       return;
     }
 
-    console.log('🤖 AI stageData changed, processing...', Object.keys(stageData));
+    {/*console.log('🤖 AI stageData changed, processing...', Object.keys(stageData));*/}
     
     // Debounce the processing to prevent rapid fire updates
     const timeoutId = setTimeout(async () => {
