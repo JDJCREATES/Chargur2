@@ -236,7 +236,7 @@ export const ArchitectureDesign: React.FC<ArchitectureDesignProps> = ({
   };
 
   const generateSQLSchema = () => {
-    return formData.databaseSchema.map((table: DatabaseTable) => {
+    return (formData.databaseSchema || []).map((table: DatabaseTable) => {
       const fields = table.fields.map((field: DatabaseField) => {
         const constraints = [];
         if (field.required) constraints.push('NOT NULL');
@@ -249,7 +249,7 @@ export const ArchitectureDesign: React.FC<ArchitectureDesignProps> = ({
   };
 
   const generateEnvTemplate = () => {
-    return formData.envVariables.map((envVar: EnvVariable) => {
+    return (formData.envVariables || []).map((envVar: EnvVariable) => {
       const comment = `# ${envVar.description} (${envVar.usage})`;
       const required = envVar.required ? ' # REQUIRED' : ' # OPTIONAL';
       return `${comment}\n${envVar.name}=${envVar.type === 'secret' ? 'your_secret_here' : 'your_value_here'}${required}`;
@@ -261,21 +261,21 @@ export const ArchitectureDesign: React.FC<ArchitectureDesignProps> = ({
 **Architecture Design Summary**
 
 **Project Structure:**
-- Routes: ${formData.sitemap.length} pages defined
-- Database Tables: ${formData.databaseSchema.length} tables
-- API Endpoints: ${formData.apiEndpoints.length} endpoints
-- Environment Variables: ${formData.envVariables.length} variables
+- Routes: ${(formData.sitemap || []).length} pages defined
+- Database Tables: ${(formData.databaseSchema || []).length} tables
+- API Endpoints: ${(formData.apiEndpoints || []).length} endpoints
+- Environment Variables: ${(formData.envVariables || []).length} variables
 
-**State Management:** ${formData.stateManagement}
+**State Management:** ${formData.stateManagement || 'Not specified'}
 
 **Key Integrations:**
-${formData.integrations.map((integration: string) => `- ${integration}`).join('\n')}
+${(formData.integrations || []).map((integration: string) => `- ${integration}`).join('\n')}
 
 **AI Agent Zones:**
-${formData.aiAgentZones.map((zone: string) => `- ${zone}`).join('\n')}
+${(formData.aiAgentZones || []).map((zone: string) => `- ${zone}`).join('\n')}
 
-**Protected Routes:** ${formData.sitemap.filter((route: Route) => route.protected).length}/${formData.sitemap.length}
-**Auth Required Endpoints:** ${formData.apiEndpoints.filter((endpoint: APIEndpoint) => endpoint.auth).length}/${formData.apiEndpoints.length}
+**Protected Routes:** ${(formData.sitemap || []).filter((route: Route) => route.protected).length}/${(formData.sitemap || []).length}
+**Auth Required Endpoints:** ${(formData.apiEndpoints || []).filter((endpoint: APIEndpoint) => endpoint.auth).length}/${(formData.apiEndpoints || []).length}
     `.trim();
   };
 
@@ -557,7 +557,7 @@ ${formData.aiAgentZones.map((zone: string) => `- ${zone}`).join('\n')}
             </div>
 
             <div className="space-y-2">
-              {formData.apiEndpoints.map((endpoint: APIEndpoint) => (
+              {(formData.apiEndpoints || []).map((endpoint: APIEndpoint) => (
                 <div key={endpoint.id} className="p-3 bg-teal-50 rounded-lg">
                   <div className="grid grid-cols-5 gap-2 text-xs">
                     <div>
