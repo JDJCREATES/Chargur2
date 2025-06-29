@@ -32,7 +32,7 @@ const CoreProblemNode: React.FC<NodeProps> = ({
     // Auto-highlight keywords when value changes
     if (data?.keywords && data.keywords.length > 0) {
       let highlighted = data?.value || data?.content || '';
-      data.keywords.forEach(keyword => {
+      (data.keywords as string[]).forEach((keyword: string) => {
         const regex = new RegExp(`\\b(${keyword})\\b`, 'gi');
         highlighted = highlighted.replace(regex, '<mark class="bg-yellow-200 px-1 rounded">$1</mark>');
       });
@@ -64,9 +64,9 @@ const CoreProblemNode: React.FC<NodeProps> = ({
     if (!content) return;
     
     // Simple keyword extraction - split by common words and take meaningful ones
-    const words = content.toLowerCase()
+    const words: string[] = content.toLowerCase()
       .split(/\s+/)
-      .filter(word => word.length > 3 && !['that', 'with', 'they', 'have', 'this', 'from', 'were', 'been'].includes(word))
+      .filter((word: string) => word.length > 3 && !['that', 'with', 'they', 'have', 'this', 'from', 'were', 'been'].includes(word))
       .slice(0, 5);
     
     data?.onNodeUpdate?.(id, { keywords: words });
@@ -184,7 +184,7 @@ const CoreProblemNode: React.FC<NodeProps> = ({
           {data?.keywords && data.keywords.length > 0 && !isEditing && (
             <div className="absolute bottom-2 right-2">
               <div className="flex flex-wrap gap-1">
-                {data.keywords.slice(0, 3).map((keyword, index) => (
+                {(data.keywords as string[]).slice(0, 3).map((keyword: string, index: number) => (
                   <span
                     key={index}
                     className="text-xs bg-yellow-200 text-yellow-800 px-2 py-1 rounded-full"

@@ -4,13 +4,13 @@ import { Handle, Position, NodeProps } from 'reactflow';
 
 const ValuePropositionNode: React.FC<NodeProps> = ({ 
   id, 
-  data, 
+  data = {}, // Add default empty object
   selected,
   isConnectable 
 }) => {
   const [isEditing, setIsEditing] = useState(false);
   const [editValue, setEditValue] = useState(data?.value || '');
-  const [editBullets, setEditBullets] = useState(data?.bulletPoints || []);
+  const [editBullets, setEditBullets] = useState<string[]>(data?.bulletPoints || []);
   const [newBullet, setNewBullet] = useState('');
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const newBulletRef = useRef<HTMLInputElement>(null);
@@ -30,7 +30,7 @@ const ValuePropositionNode: React.FC<NodeProps> = ({
     }
     
     if (JSON.stringify(editBullets) !== JSON.stringify(data?.bulletPoints)) {
-      updates.bulletPoints = editBullets.filter(bullet => bullet.trim());
+      updates.bulletPoints = editBullets.filter((bullet: string) => bullet.trim());
     }
     
     if (Object.keys(updates).length > 0) {
@@ -62,7 +62,7 @@ const ValuePropositionNode: React.FC<NodeProps> = ({
   };
 
   const removeBulletPoint = (index: number) => {
-    setEditBullets(editBullets.filter((_, i) => i !== index));
+    setEditBullets(editBullets.filter((_, i: number) => i !== index));
   };
 
   const rewriteWithAI = async () => {
@@ -134,7 +134,7 @@ const ValuePropositionNode: React.FC<NodeProps> = ({
                 <div className="space-y-2">
                   <label className="text-xs font-medium text-emerald-700">Key Benefits:</label>
                   
-                  {editBullets.map((bullet, index) => (
+                  {editBullets.map((bullet: string, index: number) => (
                     <div key={index} className="flex items-center gap-2">
                       <CheckCircle className="w-3 h-3 text-emerald-500 flex-shrink-0" />
                       <input
@@ -206,7 +206,7 @@ const ValuePropositionNode: React.FC<NodeProps> = ({
                 {/* Bullet Points */}
                 {data?.bulletPoints && data.bulletPoints.length > 0 && (
                   <div className="space-y-1">
-                    {data.bulletPoints.map((bullet, index) => (
+                    {(data.bulletPoints as string[]).map((bullet: string, index: number) => (
                       <div key={index} className="flex items-start gap-2">
                         <CheckCircle className="w-3 h-3 text-emerald-500 flex-shrink-0 mt-0.5" />
                         <span className="text-xs text-emerald-800 leading-relaxed">{bullet}</span>

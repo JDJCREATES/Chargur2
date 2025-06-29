@@ -23,6 +23,11 @@ import {
 } from 'react-icons/gi';
 import { Handle, Position, NodeProps } from 'reactflow';
 
+// Define the node type based on your nodeTypes object
+type NodeType = 'default' | 'appName' | 'tagline' | 'coreProblem' | 'mission' | 'valueProp' | 
+                'userPersona' | 'competitor' | 'platform' | 'techStack' | 'uiStyle' | 
+                'feature' | 'architecture' | 'concept' | 'ux-flow' | 'wireframe' | 'system' | 'agent-output';
+
 const DefaultNode: React.FC<NodeProps> = ({ 
   id, 
   data, 
@@ -57,7 +62,8 @@ const DefaultNode: React.FC<NodeProps> = ({
   };
 
   const getNodeIcon = () => {
-    switch (data?.type) {
+    const nodeType = data?.type as NodeType;
+    switch (nodeType) {
       case 'concept': return <GiLightBulb className="w-4 h-4" />;
       case 'feature': return <GiEnergise className="w-4 h-4" />;
       case 'ux-flow': return <GiPerson className="w-4 h-4" />;
@@ -76,7 +82,8 @@ const DefaultNode: React.FC<NodeProps> = ({
   };
 
   const getNodeColors = () => {
-    const colors = {
+    const colors: Record<NodeType, string> = {
+      default: 'bg-gray-100 border-gray-300 text-gray-800',
       concept: 'bg-yellow-100 border-yellow-300 text-yellow-800',
       feature: 'bg-blue-100 border-blue-300 text-blue-800',
       'ux-flow': 'bg-green-100 border-green-300 text-green-800',
@@ -90,8 +97,14 @@ const DefaultNode: React.FC<NodeProps> = ({
       userPersona: 'bg-blue-100 border-blue-300 text-blue-800',
       valueProp: 'bg-emerald-100 border-emerald-300 text-emerald-800',
       competitor: 'bg-red-100 border-red-300 text-red-800',
+      platform: 'bg-indigo-100 border-indigo-300 text-indigo-800',
+      techStack: 'bg-slate-100 border-slate-300 text-slate-800',
+      uiStyle: 'bg-pink-100 border-pink-300 text-pink-800',
+      architecture: 'bg-cyan-100 border-cyan-300 text-cyan-800',
     };
-    return colors[data?.type] || colors['agent-output'];
+    
+    const nodeType = data?.type as NodeType;
+    return colors[nodeType] || colors['default'];
   };
 
   return (

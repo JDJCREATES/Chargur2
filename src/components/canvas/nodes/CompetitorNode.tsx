@@ -2,6 +2,19 @@ import React, { useState, useRef, useEffect } from 'react';
 import { ExternalLink, Edit3, FileText, Trash2, DollarSign, Target, ThumbsUp, ThumbsDown, Plus, X } from 'lucide-react';
 import { Handle, Position, NodeProps } from 'reactflow';
 
+interface CompetitorData {
+  name: string;
+  notes: string;
+  link: string;
+  domain: string;
+  tagline: string;
+  features: string[];
+  pricingTiers: string[];
+  marketPositioning: string;
+  strengths: string[];
+  weaknesses: string[];
+}
+
 const CompetitorNode: React.FC<NodeProps> = ({ 
   id, 
   data, 
@@ -10,17 +23,17 @@ const CompetitorNode: React.FC<NodeProps> = ({
 }) => {
   const [isEditing, setIsEditing] = useState(false);
   const [showNotes, setShowNotes] = useState(false);
-  const [editData, setEditData] = useState({
+  const [editData, setEditData] = useState<CompetitorData>({
     name: data?.name || '',
     notes: data?.notes || '',
     link: data?.link || '',
     domain: data?.domain || '',
     tagline: data?.tagline || '',
-    features: data?.features || [],
-    pricingTiers: data?.pricingTiers || [],
+    features: (data?.features as string[]) || [],
+    pricingTiers: (data?.pricingTiers as string[]) || [],
     marketPositioning: data?.marketPositioning || '',
-    strengths: data?.strengths || [],
-    weaknesses: data?.weaknesses || [],
+    strengths: (data?.strengths as string[]) || [],
+    weaknesses: (data?.weaknesses as string[]) || [],
   });
   const [activeTab, setActiveTab] = useState<'basic' | 'features' | 'positioning' | 'swot'>('basic');
   const nameInputRef = useRef<HTMLInputElement>(null);
@@ -86,35 +99,38 @@ const CompetitorNode: React.FC<NodeProps> = ({
   const hasWeaknesses = data?.weaknesses && data.weaknesses.length > 0;
 
   // Helper function to add items to arrays
-  const addArrayItem = (field: keyof typeof editData, value: string) => {
-    if (Array.isArray(editData[field])) {
+  const addArrayItem = (field: keyof CompetitorData, value: string) => {
+    const currentValue = editData[field];
+    if (Array.isArray(currentValue)) {
       setEditData({
         ...editData,
-        [field]: [...(editData[field] as string[]), value]
+        [field]: [...currentValue, value] as any
       });
     }
   };
 
   // Helper function to remove items from arrays
-  const removeArrayItem = (field: keyof typeof editData, index: number) => {
-    if (Array.isArray(editData[field])) {
-      const newArray = [...(editData[field] as string[])];
+  const removeArrayItem = (field: keyof CompetitorData, index: number) => {
+    const currentValue = editData[field];
+    if (Array.isArray(currentValue)) {
+      const newArray = [...currentValue];
       newArray.splice(index, 1);
       setEditData({
         ...editData,
-        [field]: newArray
+        [field]: newArray as any
       });
     }
   };
 
   // Helper function to update items in arrays
-  const updateArrayItem = (field: keyof typeof editData, index: number, value: string) => {
-    if (Array.isArray(editData[field])) {
-      const newArray = [...(editData[field] as string[])];
+  const updateArrayItem = (field: keyof CompetitorData, index: number, value: string) => {
+    const currentValue = editData[field];
+    if (Array.isArray(currentValue)) {
+      const newArray = [...currentValue];
       newArray[index] = value;
       setEditData({
         ...editData,
-        [field]: newArray
+        [field]: newArray as any
       });
     }
   };
@@ -509,11 +525,11 @@ const CompetitorNode: React.FC<NodeProps> = ({
                       <span>Core Features:</span>
                     </div>
                     <ul className="text-xs text-red-600 list-disc list-inside space-y-0.5">
-                      {data?.features?.slice(0, 3).map((feature, index) => (
+                      {(data?.features as string[])?.slice(0, 3).map((feature: string, index: number) => (
                         <li key={index} className="truncate">{feature}</li>
                       ))}
-                      {(data?.features?.length || 0) > 3 && (
-                        <li className="text-red-400">+{(data?.features?.length || 0) - 3} more...</li>
+                      {((data?.features as string[])?.length || 0) > 3 && (
+                        <li className="text-red-400">+{((data?.features as string[])?.length || 0) - 3} more...</li>
                       )}
                     </ul>
                   </div>
@@ -535,14 +551,14 @@ const CompetitorNode: React.FC<NodeProps> = ({
                     
                     {hasPricingTiers && (
                       <div className="flex flex-wrap gap-1">
-                        {data?.pricingTiers?.slice(0, 2).map((tier, index) => (
+                        {(data?.pricingTiers as string[])?.slice(0, 2).map((tier: string, index: number) => (
                           <span key={index} className="text-xs px-1.5 py-0.5 bg-red-100 text-red-700 rounded-full flex items-center gap-0.5">
                             <DollarSign className="w-2.5 h-2.5" />
                             {tier}
                           </span>
                         ))}
-                        {(data?.pricingTiers?.length || 0) > 2 && (
-                          <span className="text-xs text-red-400">+{(data?.pricingTiers?.length || 0) - 2} more</span>
+                        {((data?.pricingTiers as string[])?.length || 0) > 2 && (
+                          <span className="text-xs text-red-400">+{((data?.pricingTiers as string[])?.length || 0) - 2} more</span>
                         )}
                       </div>
                     )}
@@ -561,9 +577,9 @@ const CompetitorNode: React.FC<NodeProps> = ({
                           <span className="font-medium">Strengths:</span>
                         </div>
                         <div className="text-xs text-green-600 ml-4">
-                          {data?.strengths?.[0] || ''}
-                          {(data?.strengths?.length || 0) > 1 && (
-                            <span className="text-green-400"> +{(data?.strengths?.length || 0) - 1} more</span>
+                          {(data?.strengths as string[])?.[0] || ''}
+                          {((data?.strengths as string[])?.length || 0) > 1 && (
+                            <span className="text-green-400"> +{((data?.strengths as string[])?.length || 0) - 1} more</span>
                           )}
                         </div>
                       </div>
@@ -576,9 +592,9 @@ const CompetitorNode: React.FC<NodeProps> = ({
                           <span className="font-medium">Weaknesses:</span>
                         </div>
                         <div className="text-xs text-red-600 ml-4">
-                          {data?.weaknesses?.[0] || ''}
-                          {(data?.weaknesses?.length || 0) > 1 && (
-                            <span className="text-red-400"> +{(data?.weaknesses?.length || 0) - 1} more</span>
+                          {(data?.weaknesses as string[])?.[0] || ''}
+                          {((data?.weaknesses as string[])?.length || 0) > 1 && (
+                            <span className="text-red-400"> +{((data?.weaknesses as string[])?.length || 0) - 1} more</span>
                           )}
                         </div>
                       </div>

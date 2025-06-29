@@ -466,7 +466,7 @@ const FeatureNode: React.FC<NodeProps> = ({
             ) : (
               <div className="space-y-1">
                 {data?.subFeatures && data.subFeatures.length > 0 ? (
-                  data.subFeatures.map((subFeature, index) => (
+                  (data.subFeatures as string[]).map((subFeature: string, index: number) => (
                     <div key={index} className="flex items-start gap-2 text-xs text-blue-700">
                       <div className="w-2 h-2 rounded-full bg-blue-400 flex-shrink-0 mt-1.5"></div>
                       <div>{subFeature}</div>

@@ -59,7 +59,7 @@ const TechStackNode: React.FC<NodeProps> = ({
             </div>
           ) : (
             <div className="flex flex-wrap gap-2">
-              {techStack.map((tech, index) => (
+              {(techStack as string[]).map((tech: string, index: number) => (
                 <div 
                   key={index} 
                   className="px-2 py-1 text-xs bg-indigo-100 text-indigo-700 rounded-full"
