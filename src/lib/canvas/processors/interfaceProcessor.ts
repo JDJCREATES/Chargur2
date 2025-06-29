@@ -60,7 +60,6 @@ export function processInterfaceData(
 
   // Track which nodes we've processed
   const processedDesignSystemNode = false;
-  const processedBrandingNode = false;
   const processedLayoutNode = false;
   let processedLofiLayoutNodes: string[] = [];
 
@@ -97,39 +96,6 @@ export function processInterfaceData(
   }
 
   // Process custom branding
-  if (interfaceData.customBranding) {
-    // Check if branding node already exists
-    const existingNode = existingInterfaceNodes.find(node => 
-      node.data?.metadata?.uiType === 'branding'
-    );
-    
-    if (existingNode) {
-      // Check if branding has changed
-      if (!areObjectsEqual(existingNode.data?.branding, interfaceData.customBranding)) {
-        // Update the existing node
-        const updatedNode = {
-          ...existingNode,
-          data: {
-            ...existingNode.data,
-            content: `Primary: ${interfaceData.customBranding.primaryColor}\nSecondary: ${interfaceData.customBranding.secondaryColor}\nFont: ${interfaceData.customBranding.fontFamily}`,
-            branding: interfaceData.customBranding
-          }
-        };
-        newNodes.push(updatedNode);
-        nodesChanged = true;
-      } else {
-        // Keep existing node unchanged
-        newNodes.push(existingNode);
-      }
-    } else {
-      // Create a new node
-      const newNode = nodeFactory.createBrandingNode(interfaceData.customBranding, uiX, uiY, newNodes);
-      newNodes.push(newNode);
-      nodesChanged = true;
-    }
-  }
-
-  // Process branding node with new BrandingNode component
   if (interfaceData.customBranding) {
     // Check if branding node already exists
     const existingBrandingNode = existingInterfaceNodes.find(node => 
@@ -277,10 +243,9 @@ export function processInterfaceData(
   existingInterfaceNodes.forEach(node => {
     // Skip nodes we've already processed
     if ((node.data?.metadata?.uiType === 'design-system' && processedDesignSystemNode) ||
-        (node.data?.metadata?.uiType === 'branding' && processedBrandingNode) ||
         (node.data?.metadata?.uiType === 'layout' && processedLayoutNode) ||
         (node.type === 'lofiLayout' && processedLofiLayoutNodes.includes(node.id)) ||
-        (node.type === 'branding')) {
+        (node.type === 'branding' && interfaceData.customBranding)) {
       return;
     }
     
