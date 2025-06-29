@@ -101,9 +101,6 @@ export const SpatialCanvas: React.FC<SpatialCanvasProps> = ({
 
   const onNodesChange = useCallback((changes: NodeChange[]) => {
     const newNodes = applyNodeChanges(changes, effectiveNodes);
-  // Handle node changes - apply changes and update store directly
-  const onNodesChange = useCallback((changes: NodeChange[]) => {
-    const newNodes = applyNodeChanges(changes, effectiveNodes);
     handleUpdateNodes(newNodes);
   }, [effectiveNodes, handleUpdateNodes]);
 
@@ -112,12 +109,17 @@ export const SpatialCanvas: React.FC<SpatialCanvasProps> = ({
     const newEdges = applyEdgeChanges(changes, effectiveEdges);
     handleUpdateConnections(newEdges);
   }, [effectiveEdges, handleUpdateConnections]);
+
+  const onConnect = useCallback((params: any) => {
+    const newEdge = {
+      ...params,
+      id: `e${params.source}-${params.target}`,
+      type: 'smoothstep',
       animated: false,
       style: { stroke: '#9CA3AF', strokeWidth: 2 },
       markerEnd: { type: MarkerType.Arrow }
     };
     const newEdges = addEdge(newEdge, effectiveEdges);
-    handleUpdateConnections(newEdges);
     handleUpdateConnections(newEdges);
   }, [effectiveEdges, handleUpdateConnections]);
 
@@ -199,11 +201,10 @@ export const SpatialCanvas: React.FC<SpatialCanvasProps> = ({
             onNodeUpdate: (id: string, updates: any) => {
               const updatedNodes = effectiveNodes.map(n => n.id === id 
                 ? { ...n, data: { ...(n.data || {}), ...updates } } 
-                : n
+                : n);
+              handleUpdateNodes(updatedNodes);
             },
             onNodeDelete: (id: string) => {
-              const filteredNodes = effectiveNodes.filter(n => n.id !== id);
-              const filteredEdges = effectiveEdges.filter(edge => 
               const filteredNodes = effectiveNodes.filter(n => n.id !== id);
               const filteredEdges = effectiveEdges.filter(edge => 
                 edge.source !== id && edge.target !== id
@@ -218,7 +219,6 @@ export const SpatialCanvas: React.FC<SpatialCanvasProps> = ({
           }
         }));
         
-        // Update nodes directly through store
         // Update nodes directly through store
         handleUpdateNodes(nodesWithCallbacks);
         
@@ -345,13 +345,6 @@ export const SpatialCanvas: React.FC<SpatialCanvasProps> = ({
       // Add common callback functions to the node data
       newNode.data = {
         ...newNode.data,
-        onNodeUpdate: (id: string, updates: any) => {
-          const updatedNodes = effectiveNodes.map(node => node.id === id 
-            ? { ...node, data: { ...(node.data || {}), ...updates } } 
-            : node
-          );
-          handleUpdateNodes(updatedNodes);
-        },
         onNodeUpdate: (id: string, updates: any) => {
           const updatedNodes = effectiveNodes.map(node => node.id === id 
             ? { ...node, data: { ...(node.data || {}), ...updates } } 
