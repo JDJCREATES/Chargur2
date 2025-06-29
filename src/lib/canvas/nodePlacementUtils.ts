@@ -45,9 +45,9 @@ const CATEGORY_ZONES = {
   'appName': { x: 400, y: 50, radius: 100 },
   'tagline': { x: 420, y: 150, radius: 100 },
   'coreProblem': { x: 100, y: 200, radius: 100 },
-  'mission': { x: 350, y: 220, radius: 100 },
+  'mission': { x: 350, y: 300, radius: 100 }, // Adjusted Y
   'userPersona': { x: 650, y: 200, radius: 150 },
-  'valueProp': { x: 100, y: 400, radius: 100 },
+  'valueProp': { x: 100, y: 500, radius: 100 }, // Adjusted Y
   'competitor': { x: 700, y: 400, radius: 100 },
   
   // Feature Planning nodes
@@ -190,6 +190,71 @@ function getCategoryBasedPosition(nodeType: string, stageId?: string): Position 
 }
 
 /**
+ * Get a position relative to a related node.
+ * This function implements the specific placement logic requested by the user.
+ */
+function getRelatedNodePosition(
+  existingNodes: Node[],
+  newNodeType: string,
+  newNodeSize: Size
+): Position | null {
+  switch (newNodeType) {
+    case 'mission': {
+      const appNameNode = existingNodes.find(node => node.type === 'appName');
+      if (appNameNode) {
+        return {
+          x: appNameNode.position.x,
+          y: appNameNode.position.y + (appNameNode.data.size?.height || 80) + MIN_SPACING * 2
+        };
+      }
+      break;
+    }
+    case 'valueProp': {
+      const coreProblemNode = existingNodes.find(node => node.type === 'coreProblem');
+      if (coreProblemNode) {
+        return {
+          x: coreProblemNode.position.x,
+          y: coreProblemNode.position.y + (coreProblemNode.data.size?.height || 160) + MIN_SPACING * 2
+        };
+      }
+      break;
+    }
+    case 'feature': {
+      const featureNodes = existingNodes.filter(node => node.type === 'feature');
+      if (featureNodes.length > 0) {
+        // Find the feature node with the maximum Y coordinate
+        const lowestFeatureNode = featureNodes.reduce((prev, current) => 
+          (prev.position.y + (prev.data.size?.height || 160)) > (current.position.y + (current.data.size?.height || 160)) ? prev : current
+        );
+        return {
+          x: lowestFeatureNode.position.x,
+          y: lowestFeatureNode.position.y + (lowestFeatureNode.data.size?.height || 160) + MIN_SPACING
+        };
+      }
+      break;
+    }
+    case 'userPersona': {
+      const personaNodes = existingNodes.filter(node => node.type === 'userPersona');
+      const personaCount = personaNodes.length;
+      const nodesPerRow = 5; // User requested 5 per row
+      const row = Math.floor(personaCount / nodesPerRow);
+      const col = personaCount % nodesPerRow;
+
+      const basePersonaX = CATEGORY_ZONES.userPersona.x;
+      const basePersonaY = CATEGORY_ZONES.userPersona.y;
+      const personaWidth = newNodeSize.width || 160;
+      const personaHeight = newNodeSize.height || 140;
+
+      return {
+        x: basePersonaX + col * (personaWidth + MIN_SPACING),
+        y: basePersonaY + row * (personaHeight + MIN_SPACING)
+      };
+    }
+  }
+  return null;
+}
+
+/**
  * Find a non-colliding position using a spiral search pattern
  */
 function findNonCollidingPosition(
@@ -282,7 +347,31 @@ export function getSmartNodePosition(
   isUserCreated: boolean = false
 ): Position {
   // If a preferred position is provided, try to use it first
-  if (preferredPosition) {
+  // First check if we have a related node position
+  const relatedPosition = getRelatedNodePosition(existingNodes, nodeType, nodeSize);
+  
+  if (relatedPosition) {
+    // Check if the related position would cause a collision
+    const newNodeRect: Rectangle = {
+      x: relatedPosition.x,
+      y: relatedPosition.y,
+      width: nodeSize.width + MIN_SPACING,
+      height: nodeSize.height + MIN_SPACING
+    };
+    
+    const hasCollision = existingNodes.some(node => 
+      checkCollision(newNodeRect, nodeToRectangle(node))
+    );
+    
+    // If no collision, use the related position
+    if (!hasCollision && isWithinBounds(relatedPosition, nodeSize)) {
+      return relatedPosition;
+    }
+    
+    // Otherwise, find a non-colliding position starting from the related position
+    return findNonCollidingPosition(relatedPosition, nodeSize, existingNodes);
+  }
+  else if (preferredPosition) {
     // Check if the preferred position would cause a collision
     const newNodeRect: Rectangle = {
       x: preferredPosition.x,
