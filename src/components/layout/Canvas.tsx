@@ -5,7 +5,7 @@
  * Flexible, responsive layout with smart animations.
  */
 
-import React, { useState } from 'react';
+import React, { useState, useCallback } from 'react';
 import { motion } from 'framer-motion';
 import { ReactFlowProvider } from 'reactflow';
 import { Stage, StageData } from '../../types';
@@ -56,6 +56,23 @@ export const Canvas: React.FC<CanvasProps> = ({
   
   const effectiveCanvasNodes = canvasNodes || [];
   const effectiveCanvasConnections = canvasConnections || [];
+  
+  // Handler for adding a lo-fi layout node
+  const handleAddLofiLayoutNode = useCallback(() => {
+    // Import nodeFactory and use it to create a new lo-fi layout node
+    import('../../lib/canvas/nodeFactory').then(({ createLofiLayoutNode }) => {
+      // Get current canvas nodes from the store
+      const currentNodes = useAppStore.getState().canvasNodes;
+      
+      // Create a new lo-fi layout node
+      const newNode = createLofiLayoutNode({}, currentNodes);
+      
+      // Update the canvas nodes in the store
+      useAppStore.getState().updateCanvasNodes([...currentNodes, newNode]);
+      
+      console.log('Lo-fi layout node added to canvas');
+    });
+  }, []);
 
   const handleSendMessage = (message: string) => {
     setLastUserMessage(message);
@@ -130,7 +147,7 @@ export const Canvas: React.FC<CanvasProps> = ({
               canvasConnections={effectiveCanvasConnections}
               onUpdateCanvasNodes={onUpdateCanvasNodes}
               onUpdateCanvasConnections={onUpdateCanvasConnections}
-              onAddLofiLayoutNode={onAddLofiLayoutNode}
+              onAddLofiLayoutNode={handleAddLofiLayoutNode}
               onSendMessage={agentChat.sendMessage}
             />
           </ReactFlowProvider>

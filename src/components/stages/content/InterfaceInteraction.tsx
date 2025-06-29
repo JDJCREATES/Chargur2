@@ -25,6 +25,7 @@ import { NavigationBehaviorSection } from './interface-interaction/NavigationBeh
 import { UXCopywritingSection } from './interface-interaction/UXCopywritingSection';
 import { InteractionPreviewSection } from './interface-interaction/InteractionPreviewSection';
 import { InterfaceSummarySection } from './interface-interaction/InterfaceSummarySection';
+import { useAppStore } from '../../../store/useAppStore';
 
 interface InterfaceInteractionProps {
   stage: Stage;

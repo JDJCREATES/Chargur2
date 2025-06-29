@@ -67,6 +67,7 @@ interface SpatialCanvasProps {
   canvasConnections?: Edge[];
   onUpdateCanvasNodes?: (nodes: Node[]) => void;
   onUpdateCanvasConnections?: (connections: Edge[]) => void;
+  onAddLofiLayoutNode?: () => void;
   onSendMessage: (message: string) => void;
 }
 
@@ -78,6 +79,7 @@ export const SpatialCanvas: React.FC<SpatialCanvasProps> = ({
   canvasConnections = [],
   onUpdateCanvasNodes,
   onUpdateCanvasConnections,
+  onAddLofiLayoutNode,
   onSendMessage
 }) => {
   // Make sure these refs are properly initialized
