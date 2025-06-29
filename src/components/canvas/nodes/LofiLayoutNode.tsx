@@ -2,7 +2,7 @@ import React, { useState, useRef, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { Handle, Position, NodeProps } from 'reactflow';
 import { Layout, Edit3, Plus, Trash2, Copy, Check, X, Layers, Monitor, Smartphone, Tablet } from 'lucide-react';
-import { v4 as uuidv4 } from 'uuid';
+import { v4 as uuidv4 } from 'uuid'; 
 
 // Define the layout block interface
 export interface LayoutBlock {
@@ -228,8 +228,10 @@ const LofiLayoutNode: React.FC<NodeProps<LofiLayoutNodeData>> = ({
   id, 
   data, 
   selected,
-  isConnectable 
+  isConnectable
 }) => {
+  console.log('LofiLayoutNode rendering with data:', data);
+  
   const [isEditing, setIsEditing] = useState(false);
   const [selectedTemplateId, setSelectedTemplateId] = useState<string>('');
   const [editingCardId, setEditingCardId] = useState<string | null>(null);
@@ -240,11 +242,11 @@ const LofiLayoutNode: React.FC<NodeProps<LofiLayoutNodeData>> = ({
   const [dragOffset, setDragOffset] = useState({ x: 0, y: 0 });
 
   // Initialize with default data if not provided
-  const layoutId = data?.layoutId || id;
-  const templateName = data?.templateName || 'Dashboard Layout';
-  const layoutBlocks = data?.layoutBlocks || LAYOUT_TEMPLATES[0].blocks;
-  const viewMode = data?.viewMode || 'desktop';
-  const editable = data?.editable !== undefined ? data?.editable : true;
+  const layoutId = data.layoutId || id;
+  const templateName = data.templateName || 'Dashboard Layout';
+  const layoutBlocks = data.layoutBlocks || LAYOUT_TEMPLATES[0].blocks;
+  const viewMode = data.viewMode || 'desktop';
+  const editable = data.editable !== undefined ? data.editable : true;
   
   // Find the current template
   const currentTemplate = LAYOUT_TEMPLATES.find(t => t.name === templateName) || LAYOUT_TEMPLATES[0];
@@ -253,6 +255,7 @@ const LofiLayoutNode: React.FC<NodeProps<LofiLayoutNodeData>> = ({
   const handleTemplateSelect = (templateId: string) => {
     const template = LAYOUT_TEMPLATES.find(t => t.id === templateId);
     if (template && data?.onNodeUpdate) {
+      console.log('Updating template to:', template.name);
       data.onNodeUpdate(id, {
         templateName: template.name,
         layoutBlocks: template.blocks,
@@ -264,7 +267,7 @@ const LofiLayoutNode: React.FC<NodeProps<LofiLayoutNodeData>> = ({
   // Handle adding a new card
   const handleAddCard = () => {
     const newCard: LayoutBlock = {
-      id: uuidv4(),
+      id: `card-${Date.now()}-${Math.floor(Math.random() * 1000)}`,
       type: 'card',
       label: 'New Card',
       position: { x: 30, y: 40 },
@@ -272,6 +275,7 @@ const LofiLayoutNode: React.FC<NodeProps<LofiLayoutNodeData>> = ({
     };
     
     if (data?.onNodeUpdate) {
+      console.log('Adding new card:', newCard);
       data.onNodeUpdate(id, {
         layoutBlocks: [...layoutBlocks, newCard]
       });
@@ -281,6 +285,7 @@ const LofiLayoutNode: React.FC<NodeProps<LofiLayoutNodeData>> = ({
   // Handle updating a card
   const handleUpdateCard = (cardId: string, updates: Partial<LayoutBlock>) => {
     if (data?.onNodeUpdate) {
+      console.log('Updating card:', cardId, updates);
       const updatedBlocks = layoutBlocks.map(block => 
         block.id === cardId ? { ...block, ...updates } : block
       );
@@ -294,6 +299,7 @@ const LofiLayoutNode: React.FC<NodeProps<LofiLayoutNodeData>> = ({
   // Handle deleting a card
   const handleDeleteCard = (cardId: string) => {
     if (data?.onNodeUpdate) {
+      console.log('Deleting card:', cardId);
       const updatedBlocks = layoutBlocks.filter(block => block.id !== cardId);
       
       data.onNodeUpdate(id, {
@@ -355,6 +361,7 @@ const LofiLayoutNode: React.FC<NodeProps<LofiLayoutNodeData>> = ({
   // Handle view mode change
   const handleViewModeChange = (mode: 'desktop' | 'tablet' | 'mobile') => {
     if (data?.onNodeUpdate) {
+      console.log('Changing view mode to:', mode);
       data.onNodeUpdate(id, {
         viewMode: mode
       });
@@ -373,6 +380,7 @@ const LofiLayoutNode: React.FC<NodeProps<LofiLayoutNodeData>> = ({
   // Handle card label save
   const handleCardLabelSave = () => {
     if (editingCardId) {
+      console.log('Saving card label:', editingCardId, editingCardLabel);
       handleUpdateCard(editingCardId, {
         label: editingCardLabel
       });
@@ -410,9 +418,12 @@ const LofiLayoutNode: React.FC<NodeProps<LofiLayoutNodeData>> = ({
       window.addEventListener('mousemove', handleMouseMove);
       window.addEventListener('mouseup', handleMouseUp);
       
+      console.log('Added window event listeners for dragging');
+      
       return () => {
         window.removeEventListener('mousemove', handleMouseMove);
         window.removeEventListener('mouseup', handleMouseUp);
+        console.log('Removed window event listeners for dragging');
       };
     }
   }, [isDragging, draggedCardId, dragOffset]);
@@ -551,7 +562,7 @@ const LofiLayoutNode: React.FC<NodeProps<LofiLayoutNodeData>> = ({
           <div 
             className="relative bg-gray-50 border border-gray-200 rounded w-full h-full overflow-hidden"
             style={{ 
-              width: `${getViewModeWidth(viewMode) * 100}%`,
+              width: `${getViewModeWidth(viewMode) * 100}%`, 
               margin: '0 auto'
             }}
           >
@@ -597,7 +608,7 @@ const LofiLayoutNode: React.FC<NodeProps<LofiLayoutNodeData>> = ({
                     <div className="w-full h-full flex flex-col items-center justify-center p-1 relative">
                       <span className="text-xs font-medium truncate max-w-full px-1">{block.label}</span>
                       
-                      {/* Edit controls for non-locked blocks when in edit mode */}
+                      {/* Edit controls for non-locked blocks when in edit mode */} 
                       {isEditing && !block.locked && (
                         <div className="absolute top-1 right-1 flex gap-1">
                           <button
