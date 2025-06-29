@@ -135,13 +135,10 @@ export const SpatialCanvas: React.FC<SpatialCanvasProps> = ({
 
   // SEPARATE: StageData processing (should ONLY happen on AI responses)
   useEffect(() => {
-    // This should ONLY run when actual AI-generated stageData changes
-    // NOT when nodes are moved around
-    
     const stageDataString = JSON.stringify(stageData);
     
     if (lastProcessedStageDataRef.current === stageDataString) {
-      return; // No actual stageData change
+      return;
     }
 
     if (processingRef.current) {
