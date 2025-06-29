@@ -20,6 +20,25 @@ export interface CustomNodeData {
   [key: string]: any; // Allow additional properties
 }
 
+export interface LayoutBlock {
+  id: string;
+  type: 'header' | 'sidebar' | 'content' | 'footer' | 'card' | 'modal' | 'navigation';
+  label: string;
+  position: { x: number; y: number };
+  size: { width: number; height: number };
+  color?: string;
+  locked?: boolean;
+}
+
+export interface LofiLayoutNodeData extends CustomNodeData {
+  layoutId: string;
+  templateName: string;
+  layoutBlocks: LayoutBlock[];
+  description?: string;
+  viewMode: 'desktop' | 'tablet' | 'mobile';
+  editable: boolean;
+}
+
 export interface Stage {
   id: string;
   title: string;

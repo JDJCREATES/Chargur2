@@ -16,7 +16,7 @@ import {
   InteractionRule, 
   CopywritingItem, 
   CustomBranding, 
-  FormData 
+  FormData as InterfaceFormData
 } from './interface-interaction/types';
 import { LayoutBlueprintingSection } from './interface-interaction/LayoutBlueprintingSection';
 import { ComponentStylingSection } from './interface-interaction/ComponentStylingSection';
@@ -31,6 +31,7 @@ interface InterfaceInteractionProps {
   initialFormData?: any;
   onComplete: () => void;
   onUpdateData: (data: any) => void;
+  onAddLofiLayoutNode?: () => void;
 }
 
 export const InterfaceInteraction: React.FC<InterfaceInteractionProps> = ({
@@ -38,6 +39,7 @@ export const InterfaceInteraction: React.FC<InterfaceInteractionProps> = ({
   initialFormData,
   onComplete,
   onUpdateData,
+  onAddLofiLayoutNode
 }) => {
   const defaultFormData = {
     selectedDesignSystem: 'shadcn',
@@ -71,7 +73,7 @@ export const InterfaceInteraction: React.FC<InterfaceInteractionProps> = ({
     previewMode: 'desktop',
   };
   
-  const [formData, setFormData] = useState(() => ({
+  const [formData, setFormData] = useState<InterfaceFormData>(() => ({
     ...defaultFormData,
     ...(initialFormData || {})
   }));
@@ -183,9 +185,9 @@ export const InterfaceInteraction: React.FC<InterfaceInteractionProps> = ({
         <AccordionDetails>
           <LayoutBlueprintingSection
             previewMode={formData.previewMode}
-            layoutBlocks={formData.layoutBlocks}
+            layoutBlocks={formData.layoutBlocks || []}
             onUpdatePreviewMode={(mode) => updateFormData('previewMode', mode)}
-            onAddLayoutBlock={addLayoutBlock}
+            onAddLofiLayoutNode={onAddLofiLayoutNode}
           />
         </AccordionDetails>
       </Accordion>

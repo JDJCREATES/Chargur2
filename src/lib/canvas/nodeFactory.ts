@@ -34,6 +34,7 @@ export const STAGE3_NODE_TYPES = {
   USER_JOURNEY: 'userJourney',
   STATE_DATA_FLOW: 'stateDataFlow', 
   MARKDOWN_CODE: 'markdownCode',
+  LOFI_LAYOUT: 'lofiLayout',
 };
 // Define default node configurations
 const STAGE1_NODE_DEFAULTS = {
@@ -122,6 +123,11 @@ export const STAGE3_NODE_DEFAULTS = {
     size: { width: 400, height: 300 },
     position: { x: 400, y: 400 },
     editable: true, 
+  },
+  'lofiLayout': {
+    size: { width: 400, height: 300 },
+    position: { x: 400, y: 200 },
+    editable: true,
   },
 };
 
@@ -1312,6 +1318,57 @@ export function createUIStyleNode(
       metadata: { stage: 'ideation-discovery', nodeType: 'uiStyle' },
       uiStyle: uiStyle,
       editable: true,
+      resizable: true
+    }
+  };
+}
+
+/**
+ * Create a lofi layout node
+ */
+export function createLofiLayoutNode(
+  layoutData: any = {},
+  existingNodes: Node[] = []
+): Node {
+  const defaults = STAGE3_NODE_DEFAULTS.lofiLayout;
+  const position = getSmartNodePosition(
+    existingNodes,
+    defaults.size,
+    'lofiLayout',
+    defaults.position,
+    'interface-interaction'
+  );
+  
+  // Get template data
+  const templateName = layoutData.templateName || 'Dashboard Layout';
+  
+  // Get layout blocks, either from provided data or default template
+  const layoutBlocks = layoutData.layoutBlocks || [
+    { id: 'header', type: 'header', label: 'Header', position: { x: 0, y: 0 }, size: { width: 100, height: 10 }, locked: true },
+    { id: 'sidebar', type: 'sidebar', label: 'Sidebar', position: { x: 0, y: 10 }, size: { width: 20, height: 80 }, locked: true },
+    { id: 'content', type: 'content', label: 'Content Area', position: { x: 20, y: 10 }, size: { width: 80, height: 80 }, locked: true },
+    { id: 'footer', type: 'footer', label: 'Footer', position: { x: 0, y: 90 }, size: { width: 100, height: 10 }, locked: true }
+  ];
+  
+  return {
+    id: layoutData.layoutId || uuidv4(),
+    type: 'lofiLayout',
+    position,
+    data: {
+      layoutId: layoutData.layoutId || uuidv4(),
+      templateName,
+      layoutBlocks,
+      description: layoutData.description || `${templateName} wireframe layout`,
+      viewMode: layoutData.viewMode || 'desktop',
+      editable: true,
+      size: defaults.size,
+      color: 'blue',
+      connections: [],
+      metadata: { 
+        stage: 'interface-interaction', 
+        nodeType: 'lofiLayout',
+        layoutType: templateName
+      },
       resizable: true
     }
   };

@@ -383,6 +383,40 @@ export const SpatialCanvas: React.FC<SpatialCanvasProps> = ({
       const newNodes = [...effectiveNodes, newNode];
       handleUpdateNodes(newNodes);
       setSelectedNodeId(newNode.id);
+    } else if (type === 'lofiLayout') {
+      // Create a new lofi layout node
+      const newNode = nodeFactory.createLofiLayoutNode({}, effectiveNodes);
+      
+      // Add common callback functions to the node data
+      newNode.data = {
+        ...newNode.data,
+        onNodeUpdate: (id: string, updates: any) => {
+          const updatedNodes = effectiveNodes.map(node => node.id === id 
+            ? { ...node, data: { ...(node.data || {}), ...updates } } 
+            : node
+          );
+          handleUpdateNodes(updatedNodes);
+        },
+        onNodeDelete: (id: string) => {
+          // Use the cleanupNodeConnections utility
+          const { updatedNodes, updatedEdges } = cleanupNodeConnections(
+            effectiveNodes,
+            effectiveEdges,
+            id
+          );
+          
+          handleUpdateNodes(updatedNodes);
+          handleUpdateConnections(updatedEdges);
+        },
+        onStartConnection: (id: string) => {
+          // Implement connection logic
+        },
+        onSendMessage
+      };
+      
+      const newNodes = [...effectiveNodes, newNode];
+      handleUpdateNodes(newNodes);
+      setSelectedNodeId(newNode.id);
     } else {
       // Default node creation for other types
       const newNode: Node = {
@@ -415,6 +449,7 @@ export const SpatialCanvas: React.FC<SpatialCanvasProps> = ({
             handleUpdateNodes(updatedNodes);
             handleUpdateConnections(updatedEdges);
           },
+          onAddLofiLayoutNode={() => handleAddNode('lofiLayout')}
           onStartConnection: (id: string) => {
         
           },

@@ -1,19 +1,21 @@
 import React from 'react';
-import { Layout, Plus, Grid, Monitor, Tablet, Smartphone } from 'lucide-react';
-import { LayoutBlock } from './types';
+import { Layout, Plus, Grid, Monitor, Tablet, Smartphone, Layers } from 'lucide-react';
+import { LayoutBlock } from '../../../../types';
 
 interface LayoutBlueprintingSectionProps {
   previewMode: string;
   layoutBlocks: LayoutBlock[];
   onUpdatePreviewMode: (mode: string) => void;
-  onAddLayoutBlock: () => void;
+  onAddLayoutBlock?: () => void;
+  onAddLofiLayoutNode?: () => void;
 }
 
 export const LayoutBlueprintingSection: React.FC<LayoutBlueprintingSectionProps> = ({
   previewMode,
   layoutBlocks,
   onUpdatePreviewMode,
-  onAddLayoutBlock
+  onAddLayoutBlock,
+  onAddLofiLayoutNode
 }) => {
   return (
     <div className="space-y-4">
@@ -51,40 +53,28 @@ export const LayoutBlueprintingSection: React.FC<LayoutBlueprintingSectionProps>
           <h4 className="text-sm font-medium text-gray-800">Layout Canvas</h4>
           <div className="flex gap-2">
             <button
-              onClick={onAddLayoutBlock}
+              onClick={onAddLofiLayoutNode}
               className="flex items-center gap-1 px-2 py-1 text-xs bg-blue-600 text-white rounded-md hover:bg-blue-700"
             >
-              <Plus className="w-3 h-3" />
-              Add Block
-            </button>
-            <button className="flex items-center gap-1 px-2 py-1 text-xs bg-gray-600 text-white rounded-md hover:bg-gray-700">
-              <Grid className="w-3 h-3" />
-              Grid
+              <Layers className="w-3 h-3" />
+              Add Lo-fi Layout
             </button>
           </div>
         </div>
         
-        {/* Simplified Layout Visualization */}
-        <div className="bg-white rounded border-2 border-dashed border-gray-300 h-48 relative">
-          {layoutBlocks.map((block: LayoutBlock) => (
-            <div
-              key={block.id}
-              className={`absolute border-2 rounded flex items-center justify-center text-xs font-medium ${
-                block.locked ? 'border-red-300 bg-red-50 text-red-700' : 'border-blue-300 bg-blue-50 text-blue-700'
-              }`}
-              style={{
-                left: `${block.position.x}%`,
-                top: `${block.position.y}%`,
-                width: `${block.size.width}%`,
-                height: `${block.size.height}%`,
-              }}
-            >
-              <div className="flex items-center gap-1">
-                {block.locked && <span className="w-3 h-3 text-red-600">🔒</span>}
-                <span>{block.type}</span>
-              </div>
-            </div>
-          ))}
+        {/* Information about Lo-fi Layouts */}
+        <div className="bg-blue-50 rounded-lg p-4 border border-blue-200">
+          <h4 className="font-medium text-sm text-blue-800 mb-2">Lo-fi Layout Nodes</h4>
+          <p className="text-sm text-blue-700 mb-3">
+            Lo-fi layout nodes allow you to create and visualize screen layouts directly on the canvas.
+            Click the "Add Lo-fi Layout" button to create a new layout node.
+          </p>
+          <div className="text-xs text-blue-600">
+            <p>• Choose from 10 predefined layout templates</p>
+            <p>• Customize layouts by adding and moving cards</p>
+            <p>• Preview layouts in desktop, tablet, and mobile views</p>
+            <p>• Connect layouts to other nodes to show relationships</p>
+          </div>
         </div>
       </div>
     </div>

@@ -36,6 +36,7 @@ interface CanvasProps {
   onUpdateCanvasNodes?: (nodes: Node[]) => void;
   onUpdateCanvasConnections?: (connections: Edge[]) => void;
   onOpenSidebar?: () => void;
+  onAddLofiLayoutNode?: () => void;
   agentChat: AgentChatProps;
 }
 
@@ -47,6 +48,7 @@ export const Canvas: React.FC<CanvasProps> = ({
   onUpdateCanvasNodes,
   onUpdateCanvasConnections,
   onOpenSidebar,
+  onAddLofiLayoutNode,
   agentChat
 }) => {
   const [lastUserMessage, setLastUserMessage] = useState<string>('');
@@ -128,6 +130,7 @@ export const Canvas: React.FC<CanvasProps> = ({
               canvasConnections={effectiveCanvasConnections}
               onUpdateCanvasNodes={onUpdateCanvasNodes}
               onUpdateCanvasConnections={onUpdateCanvasConnections}
+              onAddLofiLayoutNode={onAddLofiLayoutNode}
               onSendMessage={agentChat.sendMessage}
             />
           </ReactFlowProvider>
