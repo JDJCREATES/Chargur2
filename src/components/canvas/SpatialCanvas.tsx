@@ -147,14 +147,14 @@ export const SpatialCanvas: React.FC<SpatialCanvasProps> = ({
     
     // Set processing flag and update reference immediately
     processingRef.current = true;
-    lastProcessedStageDataRef.current = stageDataString;
+  
     
     // Debounce the processing to prevent rapid fire updates
     const timeoutId = setTimeout(() => {
       try {
         // Get current stage ID from the app store
         const currentStageId = useAppStore.getState().currentStageId;
-        
+          lastProcessedStageDataRef.current = stageDataString;
         console.log('Calling CanvasDataProcessor with:', {
           currentStageId,
           stageDataKeys: Object.keys(stageData),
