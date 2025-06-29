@@ -31,6 +31,7 @@ export const STAGE2_NODE_TYPES = {
 
 export const STAGE3_NODE_TYPES = {
   INFORMATION_ARCHITECTURE: 'informationArchitecture',
+  USER_JOURNEY: 'userJourney',
 };
 // Define default node configurations
 const STAGE1_NODE_DEFAULTS = {
@@ -103,6 +104,11 @@ export const STAGE3_NODE_DEFAULTS = {
   'informationArchitecture': {
     size: { width: 350, height: 300 },
     position: { x: 400, y: 200 },
+    editable: true,
+  },
+  'userJourney': {
+    size: { width: 400, height: 300 },
+    position: { x: 800, y: 200 },
     editable: true,
   },
 };
@@ -593,6 +599,42 @@ export function createInformationArchitectureNode(
       },
       screens,
       dataModels,
+      resizable: true
+    }
+  };
+}
+
+/**
+ * Create a user journey node
+ */
+export function createUserJourneyNode(
+  userFlows: any[],
+  existingNodes: Node[] = []
+): Node {
+  const defaults = STAGE3_NODE_DEFAULTS.userJourney;
+  const position = getSmartNodePosition(
+    existingNodes,
+    defaults.size,
+    STAGE3_NODE_TYPES.USER_JOURNEY,
+    defaults.position,
+    'structure-flow'
+  );
+  
+  return {
+    id: 'user-journey',
+    type: 'userJourney',
+    position,
+    data: {
+      title: 'User Journey Map',
+      content: `User journey map with ${userFlows.length} flows.`,
+      size: defaults.size,
+      color: 'purple',
+      connections: [],
+      metadata: { 
+        stage: 'structure-flow',
+        nodeType: 'userJourney'
+      },
+      userFlows,
       resizable: true
     }
   };

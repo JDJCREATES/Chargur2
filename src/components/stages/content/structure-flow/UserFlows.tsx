@@ -1,6 +1,6 @@
 import React from 'react';
 import { Workflow, Plus } from 'lucide-react';
-import { UserFlow } from './types';
+import { UserFlow } from './types'; 
 
 interface UserFlowsProps {
   userFlows: UserFlow[];
@@ -24,19 +24,26 @@ export const UserFlows: React.FC<UserFlowsProps> = ({
         </button>
       </div>
             
-      {userFlows.map((flow: UserFlow) => (
-        <div key={flow.id} className="p-3 bg-purple-50 rounded-lg">
-          <h4 className="font-medium text-sm text-purple-800 mb-2">{flow.name}</h4>
-          <div className="flex items-center gap-2 text-xs">
-            {flow.steps.map((step: string, index: number) => (
-              <React.Fragment key={index}>
-                <span className="px-2 py-1 bg-white rounded text-purple-700">{step}</span>
-                {index < flow.steps.length - 1 && <span className="text-purple-400">→</span>}
-              </React.Fragment>
-            ))}
+      <div className="grid grid-cols-1 gap-3">
+        {userFlows.map((flow: UserFlow) => (
+          <div key={flow.id} className="p-3 bg-purple-50 rounded-lg">
+            <h4 className="font-medium text-sm text-purple-800 mb-2">{flow.name}</h4>
+            <div className="flex flex-wrap items-center gap-2 text-xs">
+              {flow.steps.map((step: string, index: number) => (
+                <React.Fragment key={index}>
+                  <span className="px-2 py-1 bg-white rounded text-purple-700 border border-purple-200">{step}</span>
+                  {index < flow.steps.length - 1 && <span className="text-purple-400 flex-shrink-0">→</span>}
+                </React.Fragment>
+              ))}
+            </div>
+            {flow.description && (
+              <div className="mt-2 text-xs text-purple-600 italic">
+                {flow.description}
+              </div>
+            )}
           </div>
-        </div>
-      ))}
+        ))}
+      </div>
     </div>
   );
 };

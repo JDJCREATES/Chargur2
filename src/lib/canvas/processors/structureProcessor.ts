@@ -9,7 +9,6 @@
 import { Node } from 'reactflow';
 import { ProcessorState } from '../../../components/canvas/core/CanvasDataProcessor';
 import * as nodeFactory from '../nodeFactory';
-import { STAGE3_NODE_TYPES } from '../nodeFactory';
 
 // Helper function to check if arrays are equal
 function areArraysEqual(arr1: any[] | undefined, arr2: any[] | undefined): boolean {
@@ -68,8 +67,9 @@ export function processStructureData(
   let flowX = 100;
   let flowY = 600;
   
-  // Track if we've processed the information architecture node
+  // Track if we've processed the special nodes
   let processedInfoArchNode = false;
+  let processedUserJourneyNode = false;
   
   // Process information architecture (screens and data models together)
   if (structureData.screens || structureData.dataModels) {
@@ -114,60 +114,51 @@ export function processStructureData(
     }
   }
 
-
-  // Track which user flow nodes we've processed
-  const processedFlowIds = new Set<string>();
-
-  // Process user flows
+  // Process user journey (all user flows together)
   if (structureData.userFlows) {
-    const existingFlowNodes = existingStructureNodes.filter(node => 
-      node.data?.metadata?.flowType === 'user-journey'
+    const userFlows = structureData.userFlows || [];
+    
+    // Check if user journey node already exists
+    const existingNode = existingStructureNodes.find(node => 
+      node.type === 'userJourney'
     );
     
-    structureData.userFlows.forEach((flow: any, index: number) => {
-      // Check if this flow already exists
-      const existingNode = existingFlowNodes.find(node => 
-        node.data?.metadata?.sourceId === flow.id
-      );
+    if (existingNode) {
+      processedUserJourneyNode = true;
       
-      if (existingNode) {
-        // Check if flow data has changed
-        const hasChanged = 
-          existingNode.data?.title !== flow.name ||
-          !areArraysEqual(flow.steps, existingNode.data?.content.match(/→\s*([^→\n]+)/g)?.map((s: string) => s.replace(/→\s*/, '').trim()));
-        
-        if (hasChanged) {
-          // Update the existing node
-          const updatedNode = {
-            ...existingNode,
-            data: {
-              ...existingNode.data,
-              title: flow.name,
-              content: `User journey:\n${flow.steps?.slice(0, 3).join(' → ') || 'Flow steps'}${flow.steps?.length > 3 ? '...' : ''}`
-            }
-          };
-          newNodes.push(updatedNode);
-          nodesChanged = true;
-        } else {
-          // Keep existing node unchanged
-          newNodes.push(existingNode);
-        }
-        
-        processedFlowIds.add(existingNode.id);
-      } else {
-        // Create a new node
-        const newNode = nodeFactory.createUserFlowNode(flow, index, flowX, flowY, newNodes);
-        newNodes.push(newNode);
+      // Check if user flows have changed
+      const hasChanged = !areArraysEqual(existingNode.data?.userFlows, userFlows);
+      
+      if (hasChanged) {
+        // Update the existing node
+        const updatedNode = {
+          ...existingNode,
+          data: {
+            ...existingNode.data,
+            userFlows,
+            content: `User journey map with ${userFlows.length} flows.`
+          }
+        };
+        newNodes.push(updatedNode);
         nodesChanged = true;
+      } else {
+        // Keep existing node unchanged
+        newNodes.push(existingNode);
       }
-    });
+    } else {
+      // Create a new node
+      const newNode = nodeFactory.createUserJourneyNode(userFlows, newNodes);
+      newNodes.push(newNode);
+      nodesChanged = true;
+    }
   }
+
 
   // Add any remaining structure nodes that weren't processed
   existingStructureNodes.forEach(node => {
     // Skip nodes we've already processed
     if ((node.type === 'informationArchitecture' && processedInfoArchNode) ||
-        (node.data?.metadata?.flowType === 'user-journey' && processedFlowIds.has(node.id))) {
+        (node.type === 'userJourney' && processedUserJourneyNode)) {
       return;
     }
     
