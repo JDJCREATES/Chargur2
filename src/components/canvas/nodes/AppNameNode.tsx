@@ -141,7 +141,7 @@ const AppNameNode: React.FC<NodeProps> = ({
             >
               <h4 className="font-medium text-sm text-gray-800 mb-2">Name History</h4>
               <div className="space-y-1">
-                {data?.nameHistory?.map((name, index) => (
+                {data?.nameHistory?.map((name: string, index: number) => (
                   <div key={index} className="text-xs text-gray-600 p-1 hover:bg-gray-50 rounded cursor-pointer"
                        onClick={() => {
                          data?.onNodeUpdate?.(id, { value: name });

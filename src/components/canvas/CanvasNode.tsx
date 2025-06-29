@@ -1,4 +1,4 @@
-    export interface CanvasNodeData {
+    export interface Node {
   id: string;
   type: 'concept' | 'feature' | 'ux-flow' | 'wireframe' | 'system' | 'agent-output' | 
         'appName' | 'tagline' | 'coreProblem' | 'mission' | 'userPersona' | 'valueProp' | 'competitor' |
@@ -43,11 +43,11 @@
 }
 
 interface CanvasNodeProps {
-  node: CanvasNodeData;
+  node: Node;
   isSelected: boolean;
   isConnecting?: boolean;
   onSelect: (nodeId: string) => void;
-  onUpdate: (nodeId: string, updates: Partial<CanvasNodeData>) => void;
+  onUpdate: (nodeId: string, updates: Partial<Node>) => void;
   onDelete: (nodeId: string) => void;
   onStartConnection: (nodeId: string) => void;
   onEndConnection: (nodeId: string) => void;

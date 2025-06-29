@@ -427,7 +427,7 @@ export const useAppStore = create<AppState>((set, get) => {
       debouncedSave();
     },
     
-    updateCanvasNodes: (nodes: CanvasNodeData[]) => {
+    updateCanvasNodes: (nodes: Node[]) => {
       // Directly update the nodes for immediate visual feedback
       set({ canvasNodes: nodes });
       // Trigger save after canvas update
@@ -444,7 +444,7 @@ export const useAppStore = create<AppState>((set, get) => {
       }));
     },
     
-    updateCanvasConnections: (connections: Connection[]) => {
+    updateCanvasConnections: (connections: Edge[]) => {
       set({ canvasConnections: connections });
       
       // Save the updated canvas connections to the project

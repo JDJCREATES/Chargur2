@@ -20,8 +20,7 @@
 
 import { useState, useEffect, useCallback } from 'react';
 import { useRef } from 'react';
-import { isEqual } from 'lodash';
-import { CanvasNodeData } from '../CanvasNode';
+import { Node, Edge } from 'reactflow';
 import { CanvasDataProcessor, ProcessorState } from './CanvasDataProcessor';
 import { useAppStore } from '../../../store/useAppStore';
 
@@ -32,12 +31,6 @@ export interface CanvasState {
   showGrid: boolean;
 }
 
-export interface Connection {
-  id: string;
-  from: string;
-  to: string;
-  type?: 'reference' | 'dependency' | 'flow';
-}
 
 const DEFAULT_STATE: CanvasState = {
   selectedNodeId: null,
@@ -47,10 +40,10 @@ const DEFAULT_STATE: CanvasState = {
 };
 
 export const useCanvasStateManager = (
-  initialNodes: CanvasNodeData[] = [],
-  initialConnections: Connection[] = [],
-  onUpdateNodes?: (nodes: CanvasNodeData[]) => void | undefined,
-  onUpdateConnections?: (connections: Connection[]) => void | undefined
+  initialNodes: Node[] = [],
+  initialConnections: Edge[] = [],
+  onUpdateNodes?: (nodes: Node[]) => void | undefined,
+  onUpdateConnections?: (connections: Edge[]) => void | undefined
 ) => {
   const [state, setState] = useState<CanvasState>(DEFAULT_STATE);
   const [lastProcessedStageData, setLastProcessedStageData] = useState<{ [key: string]: any }>({});
@@ -65,7 +58,7 @@ export const useCanvasStateManager = (
     setState(prev => ({ ...prev, ...updates }));
   }, []);
 
-  const updateNodes = useCallback((updatedNodes: CanvasNodeData[]) => {
+  const updateNodes = useCallback((updatedNodes: Node[]) => {
     // Update nodes through the callback
     if (onUpdateNodes) {
       console.log('Nodes changed, updating...');
@@ -73,15 +66,9 @@ export const useCanvasStateManager = (
     }
   }, [onUpdateNodes]);
 
-  const updateConnections = useCallback((updatedConnections: Connection[]) => {
-    // Update connections through the callback
-    if (onUpdateConnections) {
-      console.log('Connections changed, updating...');
-      onUpdateConnections(updatedConnections);
-    }
-  }, [onUpdateConnections]);
+ 
 
-  const updateNode = useCallback((nodeId: string, updates: Partial<CanvasNodeData>) => {
+  const updateNode = useCallback((nodeId: string, updates: Partial<Node>) => {
     const updatedNodes = initialNodes.map(node => 
       node.id === nodeId ? { ...node, ...updates } : node
     );
@@ -90,7 +77,7 @@ export const useCanvasStateManager = (
     }
   }, [initialNodes, onUpdateNodes]);
 
-  const addNode = useCallback((node: CanvasNodeData) => {
+  const addNode = useCallback((node: Node) => {
     const updatedNodes = [...initialNodes, node];
     if (onUpdateNodes) {
       onUpdateNodes(updatedNodes);
@@ -103,8 +90,9 @@ export const useCanvasStateManager = (
       onUpdateNodes(updatedNodes);
     }
     
+    // Fix: Use Edge properties (source/target) instead of (from/to)
     const updatedConnections = initialConnections.filter(conn => 
-      conn.from !== nodeId && conn.to !== nodeId
+      conn.source !== nodeId && conn.target !== nodeId  // Changed from conn.from/conn.to
     );
     if (onUpdateConnections) {
       onUpdateConnections(updatedConnections);
@@ -116,7 +104,7 @@ export const useCanvasStateManager = (
     }
   }, [initialNodes, initialConnections, state.selectedNodeId, onUpdateNodes, onUpdateConnections]);
 
-  const addConnection = useCallback((connection: Connection) => {
+  const addConnection = useCallback((connection: Edge) => {
     const updatedConnections = [...initialConnections, connection];
     if (onUpdateConnections) {
       onUpdateConnections(updatedConnections);
@@ -132,14 +120,14 @@ export const useCanvasStateManager = (
 
   const clearCanvas = useCallback(() => {
     console.log('Clearing canvas in CanvasStateManager');
-    const emptyNodes: CanvasNodeData[] = [];
+    const emptyNodes: Node[] = [];
     
     // Use the callback instead of setNodes
     if (onUpdateNodes) {
       onUpdateNodes(emptyNodes);
     }
     
-    const emptyConnections: Connection[] = [];
+    const emptyConnections: Edge[] = [];
     if (onUpdateConnections) {
       onUpdateConnections(emptyConnections);
     }
@@ -238,7 +226,6 @@ export const useCanvasStateManager = (
     connections: initialConnections,
     updateState,
     updateNodes,
-    updateConnections,
     updateNode,
     addNode,
     removeNode,

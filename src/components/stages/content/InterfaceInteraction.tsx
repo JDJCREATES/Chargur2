@@ -11,7 +11,13 @@ import {
 import { Accordion, AccordionSummary, AccordionDetails, Typography } from '@mui/material';
 import { ChevronDown } from 'lucide-react';
 import { Stage } from '../../../types';
-import { FormData } from './interface-interaction/types';
+import { 
+  LayoutBlock, 
+  InteractionRule, 
+  CopywritingItem, 
+  CustomBranding, 
+  FormData 
+} from './interface-interaction/types';
 import { LayoutBlueprintingSection } from './interface-interaction/LayoutBlueprintingSection';
 import { ComponentStylingSection } from './interface-interaction/ComponentStylingSection';
 import { InteractionMappingSection } from './interface-interaction/InteractionMappingSection';
@@ -101,14 +107,14 @@ export const InterfaceInteraction: React.FC<InterfaceInteractionProps> = ({
   };
 
   const updateInteractionRule = (ruleId: string, updates: Partial<InteractionRule>) => {
-    const updatedRules = formData.interactionRules.map(rule => 
+    const updatedRules = formData.interactionRules.map((rule: InteractionRule) => 
       rule.id === ruleId ? { ...rule, ...updates } : rule
     );
     updateFormData('interactionRules', updatedRules);
   };
 
   const updateCopywritingItem = (itemId: string, updates: Partial<CopywritingItem>) => {
-    const updatedItems = formData.copywriting.map(item => 
+    const updatedItems = formData.copywriting.map((item: CopywritingItem) => 
       item.id === itemId ? { ...item, ...updates } : item
     );
     updateFormData('copywriting', updatedItems);

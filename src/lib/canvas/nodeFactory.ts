@@ -83,7 +83,7 @@ const STAGE1_NODE_DEFAULTS = {
   }
 };
 
-const STAGE2_NODE_DEFAULTS = {
+export const STAGE2_NODE_DEFAULTS = {
   'feature': {
     size: { width: 500, height: 160 },
     position: { x: 200, y: 350 },

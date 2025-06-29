@@ -20,7 +20,8 @@ import {
   UserFlow, 
   Component as ComponentType, 
   FileStructure,
-  FormData
+  FormData,
+  FeatureBlueprint
 } from './structure-flow/types';
 import { InformationArchitecture } from './structure-flow/InformationArchitecture';
 import { UserFlows } from './structure-flow/UserFlows';

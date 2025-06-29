@@ -1,5 +1,3 @@
-import { Component as ReactComponentType } from 'lucide-react';
-
 export interface Feature {
   id: string;
   name: string;

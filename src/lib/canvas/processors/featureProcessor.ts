@@ -9,12 +9,11 @@
 import { Node } from 'reactflow';
 import { ProcessorState } from '../../../components/canvas/core/CanvasDataProcessor';
 import * as nodeFactory from '../nodeFactory';
+import { v4 as uuidv4 } from 'uuid';
 
-// Define constants for node types
-const STAGE2_NODE_TYPES = { 
-  FEATURE: 'feature',
-  ARCHITECTURE: 'architecture',
-};
+import { STAGE2_NODE_TYPES, STAGE2_NODE_DEFAULTS } from '../nodeFactory';
+import { getSmartNodePosition } from '../../../lib/canvas/nodePlacementUtils';
+
 
 /**
  * Process feature planning stage data
@@ -45,7 +44,7 @@ export function processFeatureData(
     !node.data?.metadata?.stage || node.data.metadata.stage !== 'feature-planning');
   
   // Create a new array for updated feature planning nodes
-  const updatedFeaturePlanningNodes: CanvasNodeData[] = [];
+  const updatedFeaturePlanningNodes: Node[] = [];
 
   // Process selected feature packs
   if (featureData.selectedFeaturePacks) {
@@ -73,7 +72,7 @@ export function processFeatureData(
         // Add default sub-features for common feature packs
         if (pack === 'auth' || pack === 'social' || pack === 'commerce' || pack === 'analytics' || 
             pack === 'media' || pack === 'communication') {
-          newNode.subFeatures = getDefaultSubFeatures(pack);
+          newNode.data.subFeatures = getDefaultSubFeatures(pack);
         }
         
         updatedFeaturePlanningNodes.push(newNode);
@@ -147,7 +146,7 @@ export function processFeatureData(
       // Create a new node
       const newNode = nodeFactory.createNaturalLanguageFeatureNode(
         featureData.naturalLanguageFeatures, 
-        [...nonFeaturePlanningNodes, ...updatedFeaturePlanningNodes as Node[]]
+        [...nonFeaturePlanningNodes, ...updatedFeaturePlanningNodes]
       );
       updatedFeaturePlanningNodes.push(newNode);
     }
@@ -178,11 +177,9 @@ export function processFeatureData(
       updatedFeaturePlanningNodes.push(updatedNode);
     } else {
       // Create a new architecture node
-      const newNode: CanvasNodeData = {
+      const newNode: Node = {
         id: uuidv4(),
         type: STAGE2_NODE_TYPES.ARCHITECTURE,
-        title: 'Architecture Blueprint',
-        content: `Architecture blueprint with ${featureData.architecturePrep.screens.length} screens, ${featureData.architecturePrep.apiRoutes.length} API routes, and ${featureData.architecturePrep.components.length} components.`,
         position: getSmartNodePosition(
           [...nonFeaturePlanningNodes, ...updatedFeaturePlanningNodes],
           STAGE2_NODE_DEFAULTS.architecture.size,
@@ -208,7 +205,7 @@ export function processFeatureData(
   }
 
   // Combine non-feature planning nodes with updated feature planning nodes
-  nodes = [...nonFeaturePlanningNodes, ...updatedFeaturePlanningNodes as Node[]];
+  nodes = [...nonFeaturePlanningNodes, ...updatedFeaturePlanningNodes];
 
   console.log('Processed feature data:', nodes.length - originalNodeCount, 'nodes added/updated');
 

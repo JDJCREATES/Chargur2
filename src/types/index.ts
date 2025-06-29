@@ -1,5 +1,24 @@
 import { Node, Edge } from 'reactflow';
 
+// Add a proper interface for your custom node data
+export interface CustomNodeData {
+  title: string;
+  content: string;
+  size: { width: number; height: number };
+  color: string;
+  connections: any[];
+  metadata: {
+    stage: string;
+    nodeType?: string;
+    [key: string]: any;
+  };
+  resizable: boolean;
+  // Add other custom properties as needed
+  subFeatures?: string[];
+  value?: string;
+  editable?: boolean;
+  [key: string]: any; // Allow additional properties
+}
 
 export interface Stage {
   id: string;
@@ -36,12 +55,6 @@ export interface Project {
   updated_at: string;
 }
 
-export interface Connection {
-  id: string;
-  from: string;
-  to: string;
-  type?: 'reference' | 'dependency' | 'flow';
-}
 
 export interface StreamingChatResponse {
   content: string;

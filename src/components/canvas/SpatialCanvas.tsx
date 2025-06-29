@@ -28,7 +28,9 @@ import ReactFlow, {
   EdgeChange,
   NodeTypes,
   useReactFlow,
-  MarkerType
+  MarkerType,
+  ConnectionLineType,
+  BackgroundVariant  // Add this import
 } from 'reactflow';
 import 'reactflow/dist/style.css';
 
@@ -127,10 +129,16 @@ export const SpatialCanvas: React.FC<SpatialCanvasProps> = ({
 
   // Handle new connections
   const onConnect = useCallback((connection: ReactFlowConnection) => {
+    // Add null checks before creating the edge
+    if (!connection.source || !connection.target) {
+      console.warn('Cannot create connection: source or target is null');
+      return;
+    }
+
     const newEdge = {
       id: `${connection.source}-${connection.target}-${Date.now()}`,
-      source: connection.source,
-      target: connection.target,
+      source: connection.source,  // Now guaranteed to be string
+      target: connection.target,  // Now guaranteed to be string
       type: 'smoothstep',
       animated: false,
       style: { stroke: '#9CA3AF', strokeWidth: 2 },
@@ -511,18 +519,25 @@ export const SpatialCanvas: React.FC<SpatialCanvasProps> = ({
   }, [nodes, edges]);
 
   const handleScreenshot = useCallback(() => {
-    reactFlowInstance.toImage({
-      quality: 0.95,
-      width: reactFlowInstance.getWidth(),
-      height: reactFlowInstance.getHeight(),
-      backgroundColor: '#f9fafb'
-    }).then(dataUrl => {
-      const link = document.createElement('a');
-      link.href = dataUrl;
-      link.download = `canvas-screenshot-${new Date().toISOString().slice(0, 10)}.png`;
-      link.click();
-    });
-  }, [reactFlowInstance]);
+    // Get the React Flow wrapper element
+    const reactFlowWrapper = document.querySelector('.react-flow');
+    
+    if (reactFlowWrapper) {
+      // Use the browser's built-in screenshot API if available
+      if ('html2canvas' in window) {
+        // If you have html2canvas available
+        (window as any).html2canvas(reactFlowWrapper).then((canvas: HTMLCanvasElement) => {
+          const link = document.createElement('a');
+          link.href = canvas.toDataURL('image/png');
+          link.download = `canvas-screenshot-${new Date().toISOString().slice(0, 10)}.png`;
+          link.click();
+        });
+      } else {
+        // Fallback: Simple alert or notification
+        alert('Screenshot functionality requires additional setup. Please use browser screenshot tools.');
+      }
+    }
+  }, []);
 
   return (
     <div className="relative w-full h-full flex flex-col overflow-hidden bg-gray-50 rounded-lg border border-gray-200">
@@ -562,14 +577,14 @@ export const SpatialCanvas: React.FC<SpatialCanvasProps> = ({
           defaultViewport={{ x: 0, y: 0, zoom: 0.5 }}
           proOptions={{ hideAttribution: true }}
           connectionLineStyle={{ stroke: '#9CA3AF', strokeWidth: 2 }}
-          connectionLineType="smoothstep"
+          connectionLineType={ConnectionLineType.SmoothStep}
           defaultEdgeOptions={{
             type: 'smoothstep',
             style: { stroke: '#9CA3AF', strokeWidth: 2 },
             markerEnd: { type: MarkerType.Arrow }
           }}
         >
-          <Background color="#e5e7eb" gap={20} size={1} visible={showGrid} />
+          <Background color="#e5e7eb" gap={20} size={1} variant={showGrid ? BackgroundVariant.Dots : undefined} />
           <Controls />
           <MiniMap 
             nodeColor={(node) => {

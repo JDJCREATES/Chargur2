@@ -59,4 +59,5 @@ export interface FormData {
   includeOnboarding?: boolean;
   includeAuth?: boolean;
   includeSettings?: boolean;
+  [key: string]: any;
 }

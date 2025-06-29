@@ -1,6 +1,5 @@
 import { Node, Edge } from 'reactflow';
 
-import { getSmartNodePosition } from '../../../lib/canvas/nodePlacementUtils';
 import { processIdeationData } from '../../../lib/canvas/processors/ideationProcessor';
 import { processFeatureData } from '../../../lib/canvas/processors/featureProcessor';
 import { processStructureData } from '../../../lib/canvas/processors/structureProcessor';

@@ -8,7 +8,7 @@
 import React, { useState } from 'react';
 import { motion } from 'framer-motion';
 import { ReactFlowProvider } from 'reactflow';
-import { Stage, StageData, Connection } from '../../types';
+import { Stage, StageData } from '../../types';
 import { SpatialCanvas } from '../canvas/SpatialCanvas';
 import { Node, Edge } from 'reactflow';
 import { Logo } from './Logo';
