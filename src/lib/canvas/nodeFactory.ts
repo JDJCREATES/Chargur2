@@ -41,7 +41,7 @@ export const STAGE3_NODE_TYPES = {
 // Define default node configurations
 const STAGE1_NODE_DEFAULTS = {
   appName: {
-    size: { width: 280, height: 80 },
+    size: { width: 275, height: 80 },
     position: { x: 400, y: 50 },
     editable: true,
   },
@@ -51,22 +51,22 @@ const STAGE1_NODE_DEFAULTS = {
     editable: true,
   },
   coreProblem: {
-    size: { width: 220, height: 160 },
+    size: { width: 110, height: 160 },
     position: { x: 100, y: 200 },
     editable: true,
   },
   mission: {
-    size: { width: 300, height: 140 },
+    size: { width: 175, height: 140 },
     position: { x: 350, y: 220 },
     editable: true,
   },
   userPersona: {
-    size: { width: 160, height: 140 },
+    size: { width: 95, height: 140 },
     position: { x: 650, y: 200 },
     editable: true,
   },
   valueProp: {
-    size: { width: 240, height: 180 },
+    size: { width: 120, height: 180 },
     position: { x: 100, y: 400 },
     editable: true,
   },
@@ -76,12 +76,12 @@ const STAGE1_NODE_DEFAULTS = {
     editable: true,
   },
   techStack: {
-    size: { width: 180, height: 120 },
+    size: { width: 75, height: 120 },
     position: { x: 500, y: 400 },
     editable: true,
   },
   uiStyle: {
-    size: { width: 180, height: 120 },
+    size: { width: 115, height: 120 },
     position: { x: 300, y: 400 },
     editable: true,
   },
