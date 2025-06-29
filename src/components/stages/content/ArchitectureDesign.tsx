@@ -211,7 +211,7 @@ export const ArchitectureDesign: React.FC<ArchitectureDesignProps> = ({
       rateLimit: false,
       params: [],
     };
-    updateFormData('apiEndpoints', [...formData.apiEndpoints, newEndpoint]);
+    updateFormData('apiEndpoints', [...(formData.apiEndpoints || []), newEndpoint]);
   };
 
   const addEnvVariable = () => {
@@ -223,7 +223,7 @@ export const ArchitectureDesign: React.FC<ArchitectureDesignProps> = ({
       type: 'config',
       usage: 'frontend',
     };
-    updateFormData('envVariables', [...formData.envVariables, newVar]);
+    updateFormData('envVariables', [...(formData.envVariables || []), newVar]);
   };
 
   console.log('ArchitectureDesign formData:', {
