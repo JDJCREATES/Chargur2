@@ -137,13 +137,16 @@ export const SpatialCanvas: React.FC<SpatialCanvasProps> = ({
   // COMPLETELY COMMENT OUT the entire stageData processing useEffect
 
   useEffect(() => {
+    console.log('SpatialCanvas useEffect triggered. stageData dependency changed.');
     const stageDataString = JSON.stringify(stageData);
     
     if (lastProcessedStageDataRef.current === stageDataString) {
+      console.log('SpatialCanvas useEffect: stageData is the same as last processed. Bailing early.');
       return;
     }
 
     if (processingRef.current) {
+      console.log('SpatialCanvas useEffect: Already processing stage data. Skipping this trigger.');
       return;
     }
 
@@ -161,9 +164,11 @@ export const SpatialCanvas: React.FC<SpatialCanvasProps> = ({
         const stageSpecificData = stageData[currentStageId];
         
         if (!stageSpecificData || Object.keys(stageSpecificData).length === 0) {
+          console.log(`SpatialCanvas: No stage-specific data for ${currentStageId} or it's empty. Skipping processing.`);
           return;
         }
 
+        console.log(`SpatialCanvas: Processing stage data for ${currentStageId}. Current nodes count: ${currentNodes.length}. Stage data keys: ${Object.keys(stageSpecificData).join(', ')}`);
         // Process nodes...
         let processedNodes: Node[] = [];
         
@@ -217,6 +222,7 @@ export const SpatialCanvas: React.FC<SpatialCanvasProps> = ({
           }
         }));
         
+        console.log('SpatialCanvas: Calling handleUpdateNodes with new nodes. Count:', nodesWithCallbacks.length);
         handleUpdateNodes(nodesWithCallbacks);
         lastProcessedStageDataRef.current = stageDataString;
         
