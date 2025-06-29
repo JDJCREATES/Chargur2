@@ -186,9 +186,7 @@ export function processInterfaceData(
   // Process lofi layouts
   if (interfaceData.lofiLayouts && Array.isArray(interfaceData.lofiLayouts) && interfaceData.lofiLayouts.length > 0) {
     // Find existing lofi layout nodes
-    const existingLofiNodes = existingInterfaceNodes.filter(node => 
-      node.type === 'lofiLayout'
-    );
+    const existingLofiNodes = existingInterfaceNodes.filter(node => node.type === 'lofiLayout');
     
     // Process each lofi layout
     interfaceData.lofiLayouts.forEach((layout: any) => {
@@ -199,7 +197,7 @@ export function processInterfaceData(
       
       // Check if this layout already exists
       const existingNode = existingLofiNodes.find(node => 
-        node.data?.layoutId === layout.layoutId
+        node.data && node.data.layoutId === layout.layoutId
       );
       
       if (existingNode) {
@@ -208,9 +206,9 @@ export function processInterfaceData(
         
         // Check if layout data has changed
         const hasChanged = 
-          existingNode.data?.templateName !== layout.templateName ||
-          !areObjectsEqual(existingNode.data?.layoutBlocks, layout.layoutBlocks) ||
-          existingNode.data?.viewMode !== layout.viewMode;
+          existingNode.data.templateName !== layout.templateName ||
+          !areObjectsEqual(existingNode.data.layoutBlocks, layout.layoutBlocks) ||
+          existingNode.data.viewMode !== layout.viewMode;
         
         if (hasChanged) {
           // Update the existing node
@@ -242,9 +240,9 @@ export function processInterfaceData(
   // Add any remaining interface nodes that weren't processed
   existingInterfaceNodes.forEach(node => {
     // Skip nodes we've already processed
-    if ((node.data?.metadata?.uiType === 'design-system' && processedDesignSystemNode) ||
-        (node.data?.metadata?.uiType === 'layout' && processedLayoutNode) ||
-        (node.type === 'lofiLayout' && processedLofiLayoutNodes.includes(node.id)) ||
+    if ((node.data && node.data.metadata && node.data.metadata.uiType === 'design-system' && processedDesignSystemNode) ||
+        (node.data && node.data.metadata && node.data.metadata.uiType === 'layout' && processedLayoutNode) ||
+        (node.type === 'lofiLayout' && node.id && processedLofiLayoutNodes.includes(node.id)) ||
         (node.type === 'branding' && interfaceData.customBranding)) {
       return;
     }
@@ -255,7 +253,7 @@ export function processInterfaceData(
 
   // Check if any nodes were actually changed
   const nodesAdded = newNodes.length - originalNodeCount;
-  console.log('Processed interface data:', nodesAdded, 'nodes added/updated, changed:', nodesChanged);
+  console.log('Processed interface data:', nodesAdded, 'nodes added/updated, changed:', nodesChanged, 'lofi layouts:', interfaceData.lofiLayouts?.length || 0);
   
   // If no nodes were changed and the count is the same, return the original array
   if (!nodesChanged && newNodes.length === currentNodes.length) {

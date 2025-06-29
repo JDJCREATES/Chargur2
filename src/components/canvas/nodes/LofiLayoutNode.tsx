@@ -1,8 +1,8 @@
 import React, { useState, useRef, useEffect, memo } from 'react';
 import { motion } from 'framer-motion';
 import { Handle, Position, NodeProps } from 'reactflow';
-import { Layout, Edit3, Plus, Trash2, Copy, Check, X, Layers, Monitor, Smartphone, Tablet } from 'lucide-react';
-import { v4 as uuidv4 } from 'uuid'; 
+import { Layout, Edit3, Plus, Trash2, Check, X, Layers, Monitor, Smartphone, Tablet } from 'lucide-react';
+import { v4 as uuidv4 } from 'uuid';
 
 // Define the layout block interface
 export interface LayoutBlock {
@@ -227,12 +227,10 @@ const getViewModeWidth = (mode: string): number => {
 // Component implementation
 const LofiLayoutNodeComponent: React.FC<NodeProps<LofiLayoutNodeData>> = ({ 
   id, 
-  data, 
+  data = {} as LofiLayoutNodeData, 
   selected,
   isConnectable
 }) => {
-  console.log('LofiLayoutNode rendering with data:', data);
-  
   const [isEditing, setIsEditing] = useState(false);
   const [selectedTemplateId, setSelectedTemplateId] = useState<string>('');
   const [editingCardId, setEditingCardId] = useState<string | null>(null);
@@ -243,11 +241,11 @@ const LofiLayoutNodeComponent: React.FC<NodeProps<LofiLayoutNodeData>> = ({
   const [dragOffset, setDragOffset] = useState({ x: 0, y: 0 });
 
   // Initialize with default data if not provided
-  const layoutId = data.layoutId || id;
-  const templateName = data.templateName || 'Dashboard Layout';
-  const layoutBlocks = data.layoutBlocks || LAYOUT_TEMPLATES[0].blocks;
-  const viewMode = data.viewMode || 'desktop';
-  const editable = data.editable !== undefined ? data.editable : true;
+  const layoutId = data?.layoutId || id;
+  const templateName = data?.templateName || 'Dashboard Layout';
+  const layoutBlocks = data?.layoutBlocks || LAYOUT_TEMPLATES[0].blocks;
+  const viewMode = data?.viewMode || 'desktop';
+  const editable = data?.editable !== undefined ? data?.editable : true;
   
   // Find the current template
   const currentTemplate = LAYOUT_TEMPLATES.find(t => t.name === templateName) || LAYOUT_TEMPLATES[0];
@@ -255,8 +253,7 @@ const LofiLayoutNodeComponent: React.FC<NodeProps<LofiLayoutNodeData>> = ({
   // Handle template selection
   const handleTemplateSelect = (templateId: string) => {
     const template = LAYOUT_TEMPLATES.find(t => t.id === templateId);
-    if (template && data?.onNodeUpdate) {
-      console.log('Updating template to:', template.name);
+    if (template && data && data.onNodeUpdate) {
       data.onNodeUpdate(id, {
         templateName: template.name,
         layoutBlocks: template.blocks,
@@ -276,7 +273,6 @@ const LofiLayoutNodeComponent: React.FC<NodeProps<LofiLayoutNodeData>> = ({
     };
     
     if (data?.onNodeUpdate) {
-      console.log('Adding new card:', newCard);
       data.onNodeUpdate(id, {
         layoutBlocks: [...layoutBlocks, newCard]
       });
@@ -286,7 +282,6 @@ const LofiLayoutNodeComponent: React.FC<NodeProps<LofiLayoutNodeData>> = ({
   // Handle updating a card
   const handleUpdateCard = (cardId: string, updates: Partial<LayoutBlock>) => {
     if (data?.onNodeUpdate) {
-      console.log('Updating card:', cardId, updates);
       const updatedBlocks = layoutBlocks.map(block => 
         block.id === cardId ? { ...block, ...updates } : block
       );
@@ -300,7 +295,6 @@ const LofiLayoutNodeComponent: React.FC<NodeProps<LofiLayoutNodeData>> = ({
   // Handle deleting a card
   const handleDeleteCard = (cardId: string) => {
     if (data?.onNodeUpdate) {
-      console.log('Deleting card:', cardId);
       const updatedBlocks = layoutBlocks.filter(block => block.id !== cardId);
       
       data.onNodeUpdate(id, {
@@ -362,7 +356,6 @@ const LofiLayoutNodeComponent: React.FC<NodeProps<LofiLayoutNodeData>> = ({
   // Handle view mode change
   const handleViewModeChange = (mode: 'desktop' | 'tablet' | 'mobile') => {
     if (data?.onNodeUpdate) {
-      console.log('Changing view mode to:', mode);
       data.onNodeUpdate(id, {
         viewMode: mode
       });
@@ -381,7 +374,6 @@ const LofiLayoutNodeComponent: React.FC<NodeProps<LofiLayoutNodeData>> = ({
   // Handle card label save
   const handleCardLabelSave = () => {
     if (editingCardId) {
-      console.log('Saving card label:', editingCardId, editingCardLabel);
       handleUpdateCard(editingCardId, {
         label: editingCardLabel
       });
@@ -419,12 +411,9 @@ const LofiLayoutNodeComponent: React.FC<NodeProps<LofiLayoutNodeData>> = ({
       window.addEventListener('mousemove', handleMouseMove);
       window.addEventListener('mouseup', handleMouseUp);
       
-      console.log('Added window event listeners for dragging');
-      
       return () => {
         window.removeEventListener('mousemove', handleMouseMove);
         window.removeEventListener('mouseup', handleMouseUp);
-        console.log('Removed window event listeners for dragging');
       };
     }
   }, [isDragging, draggedCardId, dragOffset]);
@@ -646,15 +635,23 @@ const LofiLayoutNodeComponent: React.FC<NodeProps<LofiLayoutNodeData>> = ({
 
 // Memoize the component to prevent unnecessary re-renders
 const LofiLayoutNode = memo(LofiLayoutNodeComponent, (prevProps, nextProps) => {
-  // Only re-render if these props change
-  return (
-    prevProps.selected === nextProps.selected &&
-    prevProps.data.layoutId === nextProps.data.layoutId &&
-    prevProps.data.templateName === nextProps.data.templateName &&
-    prevProps.data.viewMode === nextProps.data.viewMode &&
-    JSON.stringify(prevProps.data.layoutBlocks) === JSON.stringify(nextProps.data.layoutBlocks) &&
-    prevProps.isConnectable === nextProps.isConnectable
-  );
+  try {
+    // Only re-render if these props change
+    const prevData = prevProps.data || {};
+    const nextData = nextProps.data || {};
+    
+    return (
+      prevProps.selected === nextProps.selected &&
+      prevData.layoutId === nextData.layoutId &&
+      prevData.templateName === nextData.templateName &&
+      prevData.viewMode === nextData.viewMode &&
+      JSON.stringify(prevData.layoutBlocks) === JSON.stringify(nextData.layoutBlocks) &&
+      prevProps.isConnectable === nextProps.isConnectable
+    );
+  } catch (error) {
+    // If comparison fails, force re-render to be safe
+    return false;
+  }
 });
 
 export default LofiLayoutNode;
