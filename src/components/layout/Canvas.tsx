@@ -82,33 +82,10 @@ export const Canvas: React.FC<CanvasProps> = ({
           { id: 'footer', type: 'footer', label: 'Footer', position: { x: 0, y: 90 }, size: { width: 100, height: 10 }, locked: true }
         ]
       };
-      const currentNodes = appStore.canvasNodes;
-      const currentStageData = appStore.stageData['interface-interaction'] || {};
-      
-      // Create a unique layout ID
-      const layoutId = `layout-${Date.now()}`;
-      
-      // Create layout data
-      const layoutData = {
-        layoutId,
-        templateName: 'Dashboard Layout',
-        description: 'Main dashboard with sidebar navigation',
-        viewMode: 'desktop',
-        layoutBlocks: [
-          { id: 'header', type: 'header', label: 'Header', position: { x: 0, y: 0 }, size: { width: 100, height: 10 }, locked: true },
-          { id: 'sidebar', type: 'sidebar', label: 'Sidebar', position: { x: 0, y: 10 }, size: { width: 20, height: 80 }, locked: true },
-          { id: 'content', type: 'content', label: 'Content Area', position: { x: 20, y: 10 }, size: { width: 80, height: 80 }, locked: true },
-          { id: 'footer', type: 'footer', label: 'Footer', position: { x: 0, y: 90 }, size: { width: 100, height: 10 }, locked: true }
-        ]
-      };
       
       // Create a new lo-fi layout node
       const newNode = createLofiLayoutNode(layoutData, currentNodes);
       
-      // Add the new node to canvas
-      appStore.updateCanvasNodes([...currentNodes, newNode]);
-      
-      // Also update the stage data to include this layout
       // Add the new node to canvas
       appStore.updateCanvasNodes([...currentNodes, newNode]);
       
