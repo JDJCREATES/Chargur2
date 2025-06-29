@@ -18,8 +18,6 @@ import ReactFlow, {
   Controls,
   MiniMap,
   Panel,
-  useNodesState,
-  useEdgesState,
   addEdge,
   Connection as ReactFlowConnection,
   Edge,
@@ -30,7 +28,9 @@ import ReactFlow, {
   useReactFlow,
   MarkerType,
   ConnectionLineType,
-  BackgroundVariant  // Add this import
+  BackgroundVariant,
+  applyNodeChanges,
+  applyEdgeChanges
 } from 'reactflow';
 import 'reactflow/dist/style.css';
 
@@ -99,33 +99,19 @@ export const SpatialCanvas: React.FC<SpatialCanvasProps> = ({
   const handleUpdateNodes = onUpdateCanvasNodes || updateCanvasNodes;
   const handleUpdateConnections = onUpdateCanvasConnections || updateCanvasConnections;
 
-  // Initialize ReactFlow state
-  const [nodes, setNodes, onNodesChange] = useNodesState(effectiveNodes);
-  const [edges, setEdges, onEdgesChange] = useEdgesState(effectiveEdges);
   const reactFlowInstance = useReactFlow();
 
-  // Update nodes and edges when props change
-  useEffect(() => {
-    if (effectiveNodes.length > 0) {
-      setNodes(effectiveNodes);
-    }
-    if (effectiveEdges.length > 0) {
-      setEdges(effectiveEdges);
-    }
-  }, [effectiveNodes, effectiveEdges, setNodes, setEdges]);
+  // Handle node changes - apply changes and update store directly
+  const onNodesChange = useCallback((changes: NodeChange[]) => {
+    const newNodes = applyNodeChanges(changes, effectiveNodes);
+    handleUpdateNodes(newNodes);
+  }, [effectiveNodes, handleUpdateNodes]);
 
-  // Process nodes changes and update store
-  useEffect(() => {
-    handleUpdateNodes(nodes);
-  }, [nodes, handleUpdateNodes]);
-
-  // Process edges changes and update store
-  useEffect(() => {
-    const connections = edges.map(edge => ({
-      ...edge
-    }));
-    handleUpdateConnections(connections);
-  }, [edges, handleUpdateConnections]);
+  // Handle edge changes - apply changes and update store directly
+  const onEdgesChange = useCallback((changes: EdgeChange[]) => {
+    const newEdges = applyEdgeChanges(changes, effectiveEdges);
+    handleUpdateConnections(newEdges);
+  }, [effectiveEdges, handleUpdateConnections]);
 
   // Handle new connections
   const onConnect = useCallback((connection: ReactFlowConnection) => {
@@ -144,8 +130,9 @@ export const SpatialCanvas: React.FC<SpatialCanvasProps> = ({
       style: { stroke: '#9CA3AF', strokeWidth: 2 },
       markerEnd: { type: MarkerType.Arrow }
     };
-    setEdges((eds) => addEdge(newEdge, eds));
-  }, [setEdges]);
+    const newEdges = addEdge(newEdge, effectiveEdges);
+    handleUpdateConnections(newEdges);
+  }, [effectiveEdges, handleUpdateConnections]);
 
   // Add useEffect to process stageData changes
   useEffect(() => {
@@ -178,7 +165,7 @@ export const SpatialCanvas: React.FC<SpatialCanvasProps> = ({
         console.log('Calling CanvasDataProcessor with:', {
           currentStageId,
           stageDataKeys: Object.keys(stageData),
-          nodeCount: nodes.length
+          nodeCount: effectiveNodes.length
         });
 
         // Get stage-specific data
@@ -195,26 +182,26 @@ export const SpatialCanvas: React.FC<SpatialCanvasProps> = ({
         
         switch (currentStageId) {
           case 'ideation-discovery':
-            processedNodes = processIdeationData(nodes, stageSpecificData, {});
+            processedNodes = processIdeationData(effectiveNodes, stageSpecificData, {});
             break;
           case 'feature-planning':
-            processedNodes = processFeatureData(nodes, stageSpecificData, {});
+            processedNodes = processFeatureData(effectiveNodes, stageSpecificData, {});
             break;
           case 'structure-flow':
-            processedNodes = processStructureData(nodes, stageSpecificData, {});
+            processedNodes = processStructureData(effectiveNodes, stageSpecificData, {});
             break;
           case 'architecture-design':
-            processedNodes = processArchitectureData(nodes, stageSpecificData, {});
+            processedNodes = processArchitectureData(effectiveNodes, stageSpecificData, {});
             break;
           case 'interface-interaction':
-            processedNodes = processInterfaceData(nodes, stageSpecificData, {});
+            processedNodes = processInterfaceData(effectiveNodes, stageSpecificData, {});
             break;
           case 'user-auth-flow':
-            processedNodes = processAuthData(nodes, stageSpecificData, {});
+            processedNodes = processAuthData(effectiveNodes, stageSpecificData, {});
             break;
           default:
             console.warn('Unknown stage type:', currentStageId);
-            processedNodes = nodes;
+            processedNodes = effectiveNodes;
         }
         
         // Add callback functions to all processed nodes
@@ -223,18 +210,19 @@ export const SpatialCanvas: React.FC<SpatialCanvasProps> = ({
           data: {
             ...(node.data || {}),
             onNodeUpdate: (id: string, updates: any) => {
-              setNodes(nds => 
-                nds.map(n => n.id === id 
-                  ? { ...n, data: { ...(n.data || {}), ...updates } } 
-                  : n
-                )
+              const updatedNodes = effectiveNodes.map(n => n.id === id 
+                ? { ...n, data: { ...(n.data || {}), ...updates } } 
+                : n
               );
+              handleUpdateNodes(updatedNodes);
             },
             onNodeDelete: (id: string) => {
-              setNodes(nds => nds.filter(n => n.id !== id));
-              setEdges(eds => eds.filter(edge => 
+              const filteredNodes = effectiveNodes.filter(n => n.id !== id);
+              const filteredEdges = effectiveEdges.filter(edge => 
                 edge.source !== id && edge.target !== id
-              ));
+              );
+              handleUpdateNodes(filteredNodes);
+              handleUpdateConnections(filteredEdges);
             },
             onStartConnection: (id: string) => {
               console.log('Start connection from', id);
@@ -243,8 +231,8 @@ export const SpatialCanvas: React.FC<SpatialCanvasProps> = ({
           }
         }));
         
-        // Update nodes and edges
-        setNodes(nodesWithCallbacks);
+        // Update nodes directly through store
+        handleUpdateNodes(nodesWithCallbacks);
         
         // Update last processed data
         lastProcessedStageDataRef.current = stageDataString;
@@ -262,7 +250,7 @@ export const SpatialCanvas: React.FC<SpatialCanvasProps> = ({
     return () => {
       clearTimeout(timeoutId);
     };
-  }, [stageData, nodes, setNodes, setEdges, onSendMessage]);
+  }, [stageData, effectiveNodes, effectiveEdges, handleUpdateNodes, handleUpdateConnections, onSendMessage]);
 
   // Reset view when canvas nodes change significantly (indicating project change)
   useEffect(() => {
@@ -288,7 +276,7 @@ export const SpatialCanvas: React.FC<SpatialCanvasProps> = ({
       if (type === 'appName' || type === 'tagline' || type === 'coreProblem' || 
           type === 'mission' || type === 'valueProp') {
         // Check if this singleton node already exists          
-        const existingNode = nodes.find(node => node.id === type);
+        const existingNode = effectiveNodes.find(node => node.id === type);
         if (existingNode) {
           // Select the existing node instead of creating a new one
           setSelectedNodeId(existingNode.id);
@@ -302,28 +290,28 @@ export const SpatialCanvas: React.FC<SpatialCanvasProps> = ({
       // Use the nodeFactory to create the appropriate node type
       switch(type) {
         case 'appName':
-          newNode = nodeFactory.createAppNameNode('', nodes);
+          newNode = nodeFactory.createAppNameNode('', effectiveNodes);
           break;
         case 'tagline':
-          newNode = nodeFactory.createTaglineNode('', nodes);
+          newNode = nodeFactory.createTaglineNode('', effectiveNodes);
           break;
         case 'coreProblem':
-          newNode = nodeFactory.createCoreProblemNode('', nodes);
+          newNode = nodeFactory.createCoreProblemNode('', effectiveNodes);
           break;
         case 'mission':
-          newNode = nodeFactory.createMissionNode('', '', nodes);
+          newNode = nodeFactory.createMissionNode('', '', effectiveNodes);
           break;
         case 'valueProp':
-          newNode = nodeFactory.createValuePropNode('', nodes);
+          newNode = nodeFactory.createValuePropNode('', effectiveNodes);
           break;
         case 'platform':
-          newNode = nodeFactory.createPlatformNode('web', nodes);
+          newNode = nodeFactory.createPlatformNode('web', effectiveNodes);
           break;
         case 'techStack':
-          newNode = nodeFactory.createTechStackNode([], nodes);
+          newNode = nodeFactory.createTechStackNode([], effectiveNodes);
           break;
         case 'uiStyle':
-          newNode = nodeFactory.createUIStyleNode('clean-minimal', nodes);
+          newNode = nodeFactory.createUIStyleNode('clean-minimal', effectiveNodes);
           break;
         case 'feature':
           newNode = {
@@ -370,19 +358,19 @@ export const SpatialCanvas: React.FC<SpatialCanvasProps> = ({
       newNode.data = {
         ...newNode.data,
         onNodeUpdate: (id: string, updates: any) => {
-          setNodes(nds => 
-            nds.map(node => node.id === id 
-              ? { ...node, data: { ...(node.data || {}), ...updates } } 
-              : node
-            )
+          const updatedNodes = effectiveNodes.map(node => node.id === id 
+            ? { ...node, data: { ...(node.data || {}), ...updates } } 
+            : node
           );
+          handleUpdateNodes(updatedNodes);
         },
         onNodeDelete: (id: string) => {
-          setNodes(nds => nds.filter(node => node.id !== id));
-          // Also remove any edges connected to this node
-          setEdges(eds => eds.filter(edge => 
+          const filteredNodes = effectiveNodes.filter(node => node.id !== id);
+          const filteredEdges = effectiveEdges.filter(edge => 
             edge.source !== id && edge.target !== id
-          ));
+          );
+          handleUpdateNodes(filteredNodes);
+          handleUpdateConnections(filteredEdges);
         },
         onStartConnection: (id: string) => {
           console.log('Start connection from', id);
@@ -391,7 +379,8 @@ export const SpatialCanvas: React.FC<SpatialCanvasProps> = ({
         onSendMessage: onSendMessage
       };
       
-      setNodes(nds => [...nds, newNode]);
+      const newNodes = [...effectiveNodes, newNode];
+      handleUpdateNodes(newNodes);
       setSelectedNodeId(newNode.id);
     } else {
       // Default node creation for other types
@@ -408,19 +397,19 @@ export const SpatialCanvas: React.FC<SpatialCanvasProps> = ({
           metadata: { stage: currentStageId, nodeType: type },
           resizable: true,
           onNodeUpdate: (id: string, updates: any) => {
-            setNodes(nds => 
-              nds.map(node => node.id === id 
-                ? { ...node, data: { ...(node.data || {}), ...updates } } 
-                : node
-              )
+            const updatedNodes = effectiveNodes.map(node => node.id === id 
+              ? { ...node, data: { ...(node.data || {}), ...updates } } 
+              : node
             );
+            handleUpdateNodes(updatedNodes);
           },
           onNodeDelete: (id: string) => {
-            setNodes(nds => nds.filter(node => node.id !== id));
-            // Also remove any edges connected to this node
-            setEdges(eds => eds.filter(edge => 
+            const filteredNodes = effectiveNodes.filter(node => node.id !== id);
+            const filteredEdges = effectiveEdges.filter(edge => 
               edge.source !== id && edge.target !== id
-            ));
+            );
+            handleUpdateNodes(filteredNodes);
+            handleUpdateConnections(filteredEdges);
           },
           onStartConnection: (id: string) => {
             console.log('Start connection from', id);
@@ -430,27 +419,28 @@ export const SpatialCanvas: React.FC<SpatialCanvasProps> = ({
         }
       };
       
-      setNodes(nds => [...nds, newNode]);
+      const newNodes = [...effectiveNodes, newNode];
+      handleUpdateNodes(newNodes);
       setSelectedNodeId(newNode.id);
     }
-  }, [nodes, setNodes, currentStageId]);
+  }, [effectiveNodes, effectiveEdges, handleUpdateNodes, handleUpdateConnections, currentStageId, onSendMessage]);
 
   const handleClearCanvas = useCallback(() => {
     if (window.confirm('Are you sure you want to clear the canvas? This action cannot be undone.')) {
       console.log('Clearing canvas from user action');
       try {
-        setNodes([]);
-        setEdges([]);
+        handleUpdateNodes([]);
+        handleUpdateConnections([]);
       } catch (error) {
         console.error('Error clearing canvas:', error);
       }
     }
-  }, [setNodes, setEdges]);
+  }, [handleUpdateNodes, handleUpdateConnections]);
 
   const handleAutoLayout = useCallback(() => {
     // Simple force-directed layout
     try {
-      const nodesByType = nodes.reduce<Record<string, Node[]>>((acc, node) => {
+      const nodesByType = effectiveNodes.reduce<Record<string, Node[]>>((acc, node) => {
         if (!node) return acc;
         const type = node.type || 'unknown'; 
         if (!acc[type]) acc[type] = [];
@@ -461,24 +451,29 @@ export const SpatialCanvas: React.FC<SpatialCanvasProps> = ({
       let x = 100;
       const typeSpacing = 300;
       const nodeSpacing = 120;
+
+      const updatedNodes = [...effectiveNodes];
   
       Object.entries(nodesByType).forEach(([type, typeNodes]) => {
         let y = 100;
         typeNodes.forEach((node) => {
-          setNodes(nds => 
-            nds.map(n => n.id === node.id 
-              ? { ...n, position: { x, y } } 
-              : n
-            )
-          );
+          const nodeIndex = updatedNodes.findIndex(n => n.id === node.id);
+          if (nodeIndex !== -1) {
+            updatedNodes[nodeIndex] = {
+              ...updatedNodes[nodeIndex],
+              position: { x, y }
+            };
+          }
           y += nodeSpacing;
         });
         x += typeSpacing;
       });
+
+      handleUpdateNodes(updatedNodes);
     } catch (error) {
       console.error('Error in auto layout:', error);
     }
-  }, [nodes, setNodes]);
+  }, [effectiveNodes, handleUpdateNodes]);
 
   // Save canvas state
   const handleSave = useCallback(() => {
@@ -496,13 +491,13 @@ export const SpatialCanvas: React.FC<SpatialCanvasProps> = ({
   const handleExport = useCallback(() => {
     try {
       const exportData = {
-        nodes,
-        edges,
+        nodes: effectiveNodes,
+        edges: effectiveEdges,
         metadata: {
           exportedAt: new Date().toISOString(),
           version: '1.0',
-          nodeCount: nodes.length,
-          edgeCount: edges.length
+          nodeCount: effectiveNodes.length,
+          edgeCount: effectiveEdges.length
         }
       };
       console.log('Exporting canvas data');
@@ -516,7 +511,7 @@ export const SpatialCanvas: React.FC<SpatialCanvasProps> = ({
     } catch (error) {
       console.error('Error exporting canvas data:', error);
     }
-  }, [nodes, edges]);
+  }, [effectiveNodes, effectiveEdges]);
 
   const handleScreenshot = useCallback(() => {
     // Get the React Flow wrapper element
@@ -562,8 +557,8 @@ export const SpatialCanvas: React.FC<SpatialCanvasProps> = ({
       {/* Main Canvas Area */}
       <div className="w-full h-full">
         <ReactFlow
-          nodes={nodes}
-          edges={edges}
+          nodes={effectiveNodes}
+          edges={effectiveEdges}
           onNodesChange={onNodesChange}
           onEdgesChange={onEdgesChange}
           onConnect={onConnect}
@@ -606,8 +601,8 @@ export const SpatialCanvas: React.FC<SpatialCanvasProps> = ({
           {/* Canvas Info */}
           <Panel position="bottom-right">
             <div className="bg-white bg-opacity-90 backdrop-blur-sm rounded-lg shadow-sm border border-gray-200 p-3 text-xs text-gray-600">
-              <div>Nodes: {nodes.length}</div>
-              <div>Connections: {edges.length}</div>
+              <div>Nodes: {effectiveNodes.length}</div>
+              <div>Connections: {effectiveEdges.length}</div>
               <div>Zoom: {Math.round(reactFlowInstance.getZoom() * 100)}%</div>
             </div>
           </Panel>
