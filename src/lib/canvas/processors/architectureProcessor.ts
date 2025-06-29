@@ -9,6 +9,50 @@
 import { Node } from 'reactflow';
 import * as nodeFactory from '../nodeFactory';
 
+// Helper function to check if an API endpoint is related to a route
+function isApiEndpointRelatedToRoute(endpoint: any, route: any): boolean {
+  if (!endpoint || !route) return false;
+  
+  // Convert route path to API path format (remove trailing slashes, etc.)
+  const routePath = route.path.replace(/\/$/, '');
+  const routePathSegments = routePath.split('/').filter(Boolean);
+  
+  // Check if the API endpoint path contains the route path
+  const endpointPath = endpoint.path.replace(/\/$/, '');
+  const endpointPathSegments = endpointPath.split('/').filter(Boolean);
+  
+  // Check for exact match (e.g., route: /users, api: /api/users)
+  if (endpointPath.includes(routePath) || endpointPath.includes(`/api${routePath}`)) {
+    return true;
+  }
+  
+  // Check for resource name match (e.g., route: /users, api: /api/users/123)
+  if (routePathSegments.length > 0 && endpointPathSegments.length > 0) {
+    const routeResource = routePathSegments[routePathSegments.length - 1];
+    return endpointPathSegments.some(segment => 
+      segment === routeResource || 
+      segment === `${routeResource}s` || // Plural form
+      routeResource === `${segment}s` // Singular form
+    );
+  }
+  
+  // Check for component name match (e.g., component: UserProfile, api: /api/users)
+  if (route.component) {
+    const componentName = route.component.toLowerCase();
+    const resourceNames = endpointPathSegments.map(s => s.toLowerCase());
+    
+    // Check for partial matches (e.g., UserProfile -> users)
+    for (const resource of resourceNames) {
+      if (componentName.includes(resource) || 
+          resource.includes(componentName.replace('component', '').replace('page', '').replace('screen', ''))) {
+        return true;
+      }
+    }
+  }
+  
+  return false;
+}
+
 // Helper function to check if a node is a folder structure node for architecture stage
 function isArchitectureFolderStructureNode(node: Node): boolean {
   return node.type === 'markdownCode' && 
@@ -190,6 +234,9 @@ export function processArchitectureData(
   // Track which route nodes we've processed
   const processedRouteIds = new Set<string>();
 
+  // Track which route-API mapping nodes we've processed
+  const processedRouteApiMappingIds = new Set<string>();
+
   // Process other architecture components
   if (architectureData.sitemap) {
     const existingRouteNodes = existingArchitectureNodes.filter(node => 
@@ -233,6 +280,67 @@ export function processArchitectureData(
         const newNode = nodeFactory.createRouteNode(route, index, systemX, systemY, newNodes);
         newNodes.push(newNode);
         nodesChanged = true;
+      }
+    });
+  }
+
+  // Process route-API mappings
+  if (architectureData.sitemap && architectureData.apiEndpoints) {
+    const existingRouteApiMappingNodes = existingArchitectureNodes.filter(node => 
+      node.type === 'routeApiMapping'
+    );
+    
+    architectureData.sitemap.forEach((route: any) => {
+      // Find API endpoints related to this route
+      const relatedApiEndpoints = architectureData.apiEndpoints.filter((endpoint: any) => 
+        isApiEndpointRelatedToRoute(endpoint, route)
+      );
+      
+      // Only create a mapping node if there are related API endpoints
+      if (relatedApiEndpoints.length > 0) {
+        // Check if a mapping node already exists for this route
+        const existingNode = existingRouteApiMappingNodes.find(node => 
+          node.data?.metadata?.routeId === route.id
+        );
+        
+        if (existingNode) {
+          processedRouteApiMappingIds.add(existingNode.id);
+          
+          // Check if the related API endpoints have changed
+          const currentEndpointIds = existingNode.data?.apiEndpoints?.map((e: any) => e.id).sort().join(',') || '';
+          const newEndpointIds = relatedApiEndpoints.map((e: any) => e.id).sort().join(',');
+          
+          if (currentEndpointIds !== newEndpointIds || 
+              existingNode.data?.route?.path !== route.path ||
+              existingNode.data?.route?.component !== route.component ||
+              existingNode.data?.route?.protected !== route.protected) {
+            
+            // Update the existing node
+            const updatedNode = {
+              ...existingNode,
+              data: {
+                ...existingNode.data,
+                title: `${route.path} Mapping`,
+                route,
+                apiEndpoints: relatedApiEndpoints
+              }
+            };
+            newNodes.push(updatedNode);
+            nodesChanged = true;
+          } else {
+            // Keep existing node unchanged
+            newNodes.push(existingNode);
+          }
+        } else {
+          // Create a new node
+          const newNode = nodeFactory.createRouteApiMappingNode(
+            route,
+            relatedApiEndpoints,
+            newNodes
+          );
+          newNodes.push(newNode);
+          nodesChanged = true;
+        }
       }
     });
   }
@@ -284,7 +392,8 @@ export function processArchitectureData(
     // Skip nodes we've already processed
     if ((node.data?.metadata?.tableType === 'database' && processedTableIds.has(node.id)) ||
         (node.data?.metadata?.systemType === 'api' && processedAPINode) ||
-        (node.data?.metadata?.routeType === 'page' && processedRouteIds.has(node.id))) {
+        (node.data?.metadata?.routeType === 'page' && processedRouteIds.has(node.id)) ||
+        (node.type === 'routeApiMapping' && processedRouteApiMappingIds.has(node.id))) {
       return;
     }
     

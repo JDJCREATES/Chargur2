@@ -28,6 +28,7 @@ export const STAGE1_NODE_TYPES = {
 export const STAGE2_NODE_TYPES = { 
   FEATURE: 'feature',
   ARCHITECTURE: 'architecture',
+  ROUTE_API_MAPPING: 'routeApiMapping',
 };
 
 export const STAGE3_NODE_TYPES = {
@@ -100,12 +101,17 @@ export const STAGE2_NODE_DEFAULTS = {
   'feature': {
     size: { width: 500, height: 160 },
     position: { x: 200, y: 350 },
-    editable: true,
+    editable: true
   },
   'architecture': {
     size: { width: 400, height: 300 },
     position: { x: 700, y: 350 },
-    editable: true,
+    editable: true
+  },
+  'routeApiMapping': {
+    size: { width: 350, height: 300 },
+    position: { x: 450, y: 350 },
+    editable: true
   },
 };
 
@@ -584,6 +590,44 @@ export function createArchitectureNode(
       metadata: { 
         stage: 'feature-planning',
         architectureData
+      },
+      resizable: true
+    }
+  };
+}
+
+/**
+ * Create a route-API mapping node
+ */
+export function createRouteApiMappingNode(
+  route: any,
+  apiEndpoints: any[],
+  existingNodes: Node[] = []
+): Node {
+  const defaults = STAGE2_NODE_DEFAULTS.routeApiMapping;
+  const position = getSmartNodePosition(
+    existingNodes,
+    defaults.size,
+    STAGE2_NODE_TYPES.ROUTE_API_MAPPING,
+    undefined,
+    'architecture-design'
+  );
+  
+  return {
+    id: `route-api-${route.id}-${Date.now()}`,
+    type: 'routeApiMapping',
+    position,
+    data: {
+      title: `${route.path} Mapping`,
+      route,
+      apiEndpoints,
+      size: defaults.size,
+      color: 'cyan',
+      connections: [],
+      metadata: { 
+        stage: 'architecture-design', 
+        routeId: route.id,
+        nodeType: 'routeApiMapping'
       },
       resizable: true
     }
