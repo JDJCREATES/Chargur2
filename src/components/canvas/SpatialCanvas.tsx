@@ -107,9 +107,10 @@ export const SpatialCanvas: React.FC<SpatialCanvasProps> = ({
   const handleUpdateNodes = onUpdateCanvasNodes || updateCanvasNodes;
   const handleUpdateConnections = onUpdateCanvasConnections || updateCanvasConnections;
 
+  // SEPARATE: Node position/interaction updates (should NOT trigger stageData processing)
   const onNodesChange = useCallback((changes: NodeChange[]) => {
     const newNodes = applyNodeChanges(changes, effectiveNodes);
-    handleUpdateNodes(newNodes);
+    handleUpdateNodes(newNodes); // This saves positions but doesn't process stageData
   }, [effectiveNodes, handleUpdateNodes]);
 
   // Handle edge changes - apply changes and update store directly
@@ -132,23 +133,23 @@ export const SpatialCanvas: React.FC<SpatialCanvasProps> = ({
   }, [effectiveEdges, handleUpdateConnections]);
 
 
-  // Add useEffect to process stageData changes
+  // SEPARATE: StageData processing (should ONLY happen on AI responses)
   useEffect(() => {
-    // Create a stable string representation for comparison
+    // This should ONLY run when actual AI-generated stageData changes
+    // NOT when nodes are moved around
+    
     const stageDataString = JSON.stringify(stageData);
     
-    // Only process if the data has actually changed
     if (lastProcessedStageDataRef.current === stageDataString) {
-      return;
+      return; // No actual stageData change
     }
 
-    // Prevent concurrent processing
     if (processingRef.current) {
       console.log('Processing already in progress, skipping...');
       return;
     }
 
-    console.log('stageData changed, processing...', Object.keys(stageData));
+    console.log('🤖 AI stageData changed, processing...', Object.keys(stageData));
     
     // Debounce the processing to prevent rapid fire updates
     const timeoutId = setTimeout(async () => {
