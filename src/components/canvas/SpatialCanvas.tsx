@@ -39,7 +39,7 @@ import { useCanvasScreenshot } from './core/CanvasScreenshot';
 import { v4 as uuidv4 } from 'uuid';
 import * as nodeFactory from '../../lib/canvas/nodeFactory';
 import { STAGE1_NODE_TYPES, STAGE2_NODE_TYPES } from '../../lib/canvas/nodeFactory';
-import { 
+import {
   getEdgeStyle, 
   generateConnectionLabel, 
   connectionExists, 
@@ -108,7 +108,7 @@ export const SpatialCanvas: React.FC<SpatialCanvasProps> = ({
   const reactFlowInstance = useReactFlow();
   
   // Get updateStageData and other methods from the store
-  const { updateStageData } = useAppStore();
+  const { updateStageData, resetView: storeResetView } = useAppStore();
 
 
   // Use store data as fallback when props aren't provided - MEMOIZED
@@ -125,6 +125,66 @@ export const SpatialCanvas: React.FC<SpatialCanvasProps> = ({
   // Use store methods as fallback
   const handleUpdateNodes = onUpdateCanvasNodes || updateCanvasNodes;
   const handleUpdateConnections = onUpdateCanvasConnections || updateCanvasConnections;
+
+  // Define node update and delete handlers outside of the useEffect
+  const handleNodeUpdate = useCallback((nodeId: string, updates: Partial<any>) => {
+    const updatedNodes = effectiveNodes.map(node => 
+      node.id === nodeId ? { ...node, data: { ...node.data, ...updates } } : node
+    );
+    
+    // Special handling for nodes that need to update stage data
+    const node = effectiveNodes.find(n => n.id === nodeId);
+    if (node) {
+      if (node.type === 'branding') {
+        // Update the interface-interaction stage data with the branding information
+        updateStageData('interface-interaction', { 
+          customBranding: {
+            primaryColor: updates.primaryColor || node.data.primaryColor,
+            secondaryColor: updates.secondaryColor || node.data.secondaryColor,
+            accentColor: updates.accentColor || node.data.accentColor,
+            fontFamily: updates.fontFamily || node.data.fontFamily,
+            bodyFont: updates.bodyFont || node.data.bodyFont,
+            borderRadius: updates.borderRadius || node.data.borderRadius
+          },
+          selectedDesignSystem: updates.designSystem || node.data.designSystem
+        });
+        console.log('Updated branding data in stage data:', updates);
+      } else if (node.type === 'appName' && updates.value !== undefined) {
+        // Update ideation-discovery stage data with app name
+        updateStageData('ideation-discovery', { appName: updates.value });
+      } else if (node.type === 'tagline' && updates.value !== undefined) {
+        // Update ideation-discovery stage data with tagline
+        updateStageData('ideation-discovery', { tagline: updates.value });
+      } else if (node.type === 'coreProblem' && updates.value !== undefined) {
+        // Update ideation-discovery stage data with problem statement
+        updateStageData('ideation-discovery', { problemStatement: updates.value });
+      } else if (node.type === 'mission' && (updates.value !== undefined || updates.missionStatement !== undefined)) {
+        // Update ideation-discovery stage data with mission
+        const updateData: any = {};
+        if (updates.value !== undefined) updateData.appIdea = updates.value;
+        if (updates.missionStatement !== undefined) updateData.missionStatement = updates.missionStatement;
+        updateStageData('ideation-discovery', updateData);
+      } else if (node.type === 'valueProp' && updates.value !== undefined) {
+        // Update ideation-discovery stage data with value proposition
+        updateStageData('ideation-discovery', { valueProposition: updates.value });
+      }
+    }
+    
+    // Update the nodes in the canvas
+    handleUpdateNodes(updatedNodes);
+  }, [effectiveNodes, handleUpdateNodes, updateStageData]);
+
+  const handleNodeDelete = useCallback((nodeId: string) => {
+    // Use the cleanupNodeConnections utility
+    const { updatedNodes, updatedEdges } = cleanupNodeConnections(
+      effectiveNodes,
+      effectiveEdges,
+      nodeId
+    );
+    
+    handleUpdateNodes(updatedNodes);
+    handleUpdateConnections(updatedEdges);
+  }, [effectiveNodes, effectiveEdges, handleUpdateNodes, handleUpdateConnections]);
 
   // SEPARATE: Node position/interaction updates (should NOT trigger stageData processing)
   const onNodesChange = useCallback((changes: NodeChange[]) => {
@@ -184,13 +244,13 @@ export const SpatialCanvas: React.FC<SpatialCanvasProps> = ({
     try {
       const currentStageId = useAppStore.getState().currentStageId;
       const currentState = useAppStore.getState();
-      
+
       // Get current nodes/edges from store at processing time, not from dependencies
       const currentNodes = currentState.canvasNodes;
       const currentEdges = currentState.canvasConnections;
-      
+
       const stageSpecificData = stageData[currentStageId];
-      
+
       if (!stageSpecificData || Object.keys(stageSpecificData).length === 0) {
        /* console.log(`SpatialCanvas: No stage-specific data for ${currentStageId} or it's empty. Skipping processing.`);*/
         processingRef.current = false;
@@ -200,7 +260,7 @@ export const SpatialCanvas: React.FC<SpatialCanvasProps> = ({
      /* console.log(`SpatialCanvas: Processing stage data for ${currentStageId}. Current nodes count: ${currentNodes.length}. Stage data keys: ${Object.keys(stageSpecificData).join(', ')}`);*/
       // Process nodes...
       let processedNodes: Node[] = [];
-      
+
       switch (currentStageId) {
         case 'ideation-discovery':
           processedNodes = processIdeationData(currentNodes, stageSpecificData, {});
@@ -223,85 +283,31 @@ export const SpatialCanvas: React.FC<SpatialCanvasProps> = ({
         default:
           processedNodes = currentNodes;
       }
-      
+
       // Add callbacks to nodes
       const nodesWithCallbacks = processedNodes.map(node => ({
         ...node,
         data: {
           ...(node.data || {}),
-          onNodeUpdate: (id: string, updates: any) => {
-            const node = processedNodes.find(n => n.id === id);
-            if (!node) return;
-            
-            // Special handling for nodes that need to update stage data
-            if (node.type === 'branding') {
-              // Update the interface-interaction stage data with the branding information
-              updateStageData('interface-interaction', { 
-                customBranding: {
-                  primaryColor: updates.primaryColor || node.data.primaryColor,
-                  secondaryColor: updates.secondaryColor || node.data.secondaryColor,
-                  accentColor: updates.accentColor || node.data.accentColor,
-                  fontFamily: updates.fontFamily || node.data.fontFamily,
-                  bodyFont: updates.bodyFont || node.data.bodyFont,
-                  borderRadius: updates.borderRadius || node.data.borderRadius
-                },
-                selectedDesignSystem: updates.designSystem || node.data.designSystem
-              });
-              console.log('Updated branding data in stage data:', updates);
-            } else if (node.type === 'appName' && updates.value !== undefined) {
-              // Update ideation-discovery stage data with app name
-              updateStageData('ideation-discovery', { appName: updates.value });
-            } else if (node.type === 'tagline' && updates.value !== undefined) {
-              // Update ideation-discovery stage data with tagline
-              updateStageData('ideation-discovery', { tagline: updates.value });
-            } else if (node.type === 'coreProblem' && updates.value !== undefined) {
-              // Update ideation-discovery stage data with problem statement
-              updateStageData('ideation-discovery', { problemStatement: updates.value });
-            } else if (node.type === 'mission' && (updates.value !== undefined || updates.missionStatement !== undefined)) {
-              // Update ideation-discovery stage data with mission
-              const updateData: any = {};
-              if (updates.value !== undefined) updateData.appIdea = updates.value;
-              if (updates.missionStatement !== undefined) updateData.missionStatement = updates.missionStatement;
-              updateStageData('ideation-discovery', updateData);
-            } else if (node.type === 'valueProp' && updates.value !== undefined) {
-              // Update ideation-discovery stage data with value proposition
-              updateStageData('ideation-discovery', { valueProposition: updates.value });
-            }
-            
-            // Update the node in the canvas
-            const updatedNodes = processedNodes.map(n => 
-              n.id === id ? { ...n, data: { ...n.data, ...updates } } : n
-            );
-            handleUpdateNodes(updatedNodes);
-          },
-          onNodeDelete: (id: string) => {
-            // Use the cleanupNodeConnections utility
-            const { updatedNodes, updatedEdges } = cleanupNodeConnections(
-              processedNodes,
-              effectiveEdges,
-              id
-            );
-            
-            handleUpdateNodes(updatedNodes);
-            handleUpdateConnections(updatedEdges);
-          },
+          onNodeUpdate: handleNodeUpdate,
+          onNodeDelete: handleNodeDelete,
           onStartConnection: (id: string) => {
             console.log('Start connection from', id);
           },
           onSendMessage
         }
       }));
-      
+
       console.log('SpatialCanvas: Calling handleUpdateNodes with new nodes. Count:', nodesWithCallbacks.length);
       handleUpdateNodes(nodesWithCallbacks);
       lastProcessedStageDataRef.current = stageDataString;
-      
+
     } catch (error) {
       console.error('Error processing stage data:', error);
     } finally {
       processingRef.current = false;
     }
-  }, [stageData, onSendMessage]); // ONLY stageData and onSendMessage - no node/edge dependencies!
+  }, [stageData, onSendMessage, handleNodeUpdate, handleNodeDelete]); // Added the new callbacks to dependencies
  
   // Reset view when canvas nodes change significantly (indicating project change)
   useEffect(() => {
@@ -407,59 +413,8 @@ export const SpatialCanvas: React.FC<SpatialCanvasProps> = ({
       // Add common callback functions to the node data
       newNode.data = {
         ...newNode.data,
-        onNodeUpdate: (id: string, updates: any) => {
-          const node = effectiveNodes.find(n => n.id === id);
-          if (!node) return;
-          
-          // Special handling for nodes that need to update stage data
-          if (node.type === 'branding') {
-            // Update the interface-interaction stage data with the branding information
-            updateStageData('interface-interaction', { 
-              customBranding: {
-                primaryColor: updates.primaryColor || node.data.primaryColor,
-                secondaryColor: updates.secondaryColor || node.data.secondaryColor,
-                accentColor: updates.accentColor || node.data.accentColor,
-                fontFamily: updates.fontFamily || node.data.fontFamily,
-                bodyFont: updates.bodyFont || node.data.bodyFont,
-                borderRadius: updates.borderRadius || node.data.borderRadius
-              },
-              selectedDesignSystem: updates.designSystem || node.data.designSystem
-            });
-            console.log('Updated branding data in stage data:', updates);
-          } else if (node.type === 'appName' && updates.value !== undefined) {
-            // Update ideation-discovery stage data with app name
-            updateStageData('ideation-discovery', { appName: updates.value });
-          } else if (node.type === 'tagline' && updates.value !== undefined) {
-            // Update ideation-discovery stage data with tagline
-            updateStageData('ideation-discovery', { tagline: updates.value });
-          } else if (node.type === 'coreProblem' && updates.value !== undefined) {
-            // Update ideation-discovery stage data with problem statement
-            updateStageData('ideation-discovery', { problemStatement: updates.value });
-          } else if (node.type === 'mission' && (updates.value !== undefined || updates.missionStatement !== undefined)) {
-            // Update ideation-discovery stage data with mission
-            const updateData: any = {};
-            if (updates.value !== undefined) updateData.appIdea = updates.value;
-            if (updates.missionStatement !== undefined) updateData.missionStatement = updates.missionStatement;
-            updateStageData('ideation-discovery', updateData);
-          } else if (node.type === 'valueProp' && updates.value !== undefined) {
-            // Update ideation-discovery stage data with value proposition
-            updateStageData('ideation-discovery', { valueProposition: updates.value });
-          }
-          
-          // Update the node in the canvas
-          const updatedNodes = effectiveNodes.map(n => 
-            n.id === id ? { ...n, data: { ...n.data, ...updates } } : n
-          );
-          handleUpdateNodes(updatedNodes);
-        },
-        onNodeDelete: (id: string) => {
-          const filteredNodes = effectiveNodes.filter(node => node.id !== id);
-          const filteredEdges = effectiveEdges.filter(edge => 
-            edge.source !== id && edge.target !== id
-          );
-          handleUpdateNodes(filteredNodes);
-          handleUpdateConnections(filteredEdges);
-        },
+        onNodeUpdate: handleNodeUpdate,
+        onNodeDelete: handleNodeDelete,
         onStartConnection: (id: string) => {
          
           // Implement connection logic
@@ -518,24 +473,8 @@ export const SpatialCanvas: React.FC<SpatialCanvasProps> = ({
           connections: [],
           metadata: { stage: currentStageId, nodeType: type },
           resizable: true,
-          onNodeUpdate: (id: string, updates: any) => {
-            const updatedNodes = effectiveNodes.map(node => node.id === id 
-              ? { ...node, data: { ...(node.data || {}), ...updates } } 
-              : node
-            );
-            handleUpdateNodes(updatedNodes);
-          },
-          onNodeDelete: (id: string) => {
-            // Use the cleanupNodeConnections utility
-            const { updatedNodes, updatedEdges } = cleanupNodeConnections(
-              effectiveNodes,
-              effectiveEdges,
-              id
-            );
-            
-            handleUpdateNodes(updatedNodes);
-            handleUpdateConnections(updatedEdges);
-          },
+          onNodeUpdate: handleNodeUpdate,
+          onNodeDelete: handleNodeDelete,
           onAddLofiLayoutNode: () => handleAddNode('lofiLayout'),
           onStartConnection: (id: string) => {
         
@@ -548,7 +487,7 @@ export const SpatialCanvas: React.FC<SpatialCanvasProps> = ({
       handleUpdateNodes(newNodes);
       setSelectedNodeId(newNode.id);
     }
-  }, [effectiveNodes, effectiveEdges, handleUpdateNodes, handleUpdateConnections, currentStageId, onSendMessage, updateStageData]);
+  }, [effectiveNodes, effectiveEdges, handleUpdateNodes, handleUpdateConnections, currentStageId, onSendMessage, handleNodeUpdate, handleNodeDelete]);
 
   const handleClearCanvas = useCallback(() => {
     if (window.confirm('Are you sure you want to clear the canvas? This action cannot be undone.')) {
@@ -600,6 +539,18 @@ export const SpatialCanvas: React.FC<SpatialCanvasProps> = ({
     }
   }, [effectiveNodes, handleUpdateNodes]);
 
+  const resetView = useCallback(() => {
+    console.log('Resetting canvas view');
+    // Call the store's resetView action 
+    storeResetView();
+    // Update local state
+    setState(prev => ({
+      ...prev,
+      scale: DEFAULT_STATE.scale,
+      offset: { x: 0, y: 0 }
+    }));
+  }, [storeResetView]);
+
   // Save canvas state
   const handleSave = useCallback(() => {
     // Canvas is already auto-saved via onUpdateCanvasNodes/onUpdateCanvasConnections
@@ -634,7 +585,7 @@ export const SpatialCanvas: React.FC<SpatialCanvasProps> = ({
         onAddNode={handleAddNode}
         onZoomIn={() => reactFlowInstance.zoomIn()}
         onZoomOut={() => reactFlowInstance.zoomOut()}
-        onResetView={() => reactFlowInstance.fitView()}
+        onResetView={resetView}
         onSave={handleSave}
         onExport={handleExport}
         onToggleGrid={() => setShowGrid(!showGrid)} 
