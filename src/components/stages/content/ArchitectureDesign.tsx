@@ -5,7 +5,6 @@ import {
   FolderTree, 
   Database, 
   Globe,  
-  Brain, 
   FileText, 
   CheckCircle,
   Plus,
@@ -165,14 +164,6 @@ export const ArchitectureDesign: React.FC<ArchitectureDesignProps> = ({
       'Stripe (Payments)',
       'Resend (Email)',
     ],
-    
-    aiAgentZones: [
-      'Layout injection based on screen size',
-      'Dynamic form generation from schema',
-      'Prompt history management',
-      'Auto-generated API documentation',
-      'Component prop suggestions',
-    ],
   };
   
   const [formData, setFormData] = useState(() => ({
@@ -240,8 +231,7 @@ export const ArchitectureDesign: React.FC<ArchitectureDesignProps> = ({
     databaseSchema: formData?.databaseSchema,
     apiEndpoints: formData?.apiEndpoints,
     envVariables: formData?.envVariables,
-    integrations: formData?.integrations,
-    aiAgentZones: formData?.aiAgentZones
+    integrations: formData?.integrations
   });
 
   const generateSQLSchema = () => {
@@ -293,9 +283,6 @@ export const ArchitectureDesign: React.FC<ArchitectureDesignProps> = ({
 **Key Integrations:**
 ${Array.isArray(formData?.integrations) ? formData.integrations.map((integration: string) => `- ${integration}`).join('\n') : '- None defined'}
 
-**AI Agent Zones:**
-${Array.isArray(formData?.aiAgentZones) ? formData.aiAgentZones.map((zone: string) => `- ${zone}`).join('\n') : '- None defined'}
-
 **Protected Routes:** ${Array.isArray(formData?.sitemap) ? formData.sitemap.filter((route: Route) => route.protected).length : 0}/${sitemapCount}
 **Auth Required Endpoints:** ${Array.isArray(formData?.apiEndpoints) ? formData.apiEndpoints.filter((endpoint: APIEndpoint) => endpoint.auth).length : 0}/${apiEndpointsCount}
     `.trim();
@@ -310,78 +297,6 @@ ${Array.isArray(formData?.aiAgentZones) ? formData.aiAgentZones.map((zone: strin
 
   return (
     <div className="p-2 space-y-2">
-   
-      {/* 5.1 Page & Component Structure */}
-      <Accordion>
-        <AccordionSummary expandIcon={<ChevronDown size={16} />}>
-          <div className="flex items-center gap-2">
-            <Building2 className="w-4 h-4 text-blue-600" />
-            <Typography className="font-medium text-sm">Page & Component Structure</Typography>
-          </div>
-        </AccordionSummary>
-        <AccordionDetails>
-          <div className="space-y-4">
-            <div className="flex items-center justify-between">
-              <p className="text-sm text-gray-600">Define all routes and page components</p>
-              <button
-                onClick={addRoute}
-                className="flex items-center gap-1 px-2 py-1 text-xs bg-blue-600 text-white rounded-md hover:bg-blue-700"
-              >
-                <Plus className="w-3 h-3" />
-                Add Route
-              </button>
-            </div>
-
-            <div className="space-y-2">
-              {formData.sitemap.map((route: Route) => (
-                <div key={route.id} className="p-3 bg-blue-50 rounded-lg">
-                  <div className="grid grid-cols-4 gap-2 text-xs">
-                    <div>
-                      <label className="block font-medium text-blue-700 mb-1">Path</label>
-                      <input
-                        type="text"
-                        value={route.path}
-                        readOnly={true}
-                        className="w-full px-2 py-1 border border-blue-200 rounded focus:outline-none focus:ring-1 focus:ring-blue-500 font-mono"
-                      />
-                    </div>
-                    <div>
-                      <label className="block font-medium text-blue-700 mb-1">Component</label>
-                      <input
-                        type="text"
-                        value={route.component}
-                        readOnly={true}
-                        className="w-full px-2 py-1 border border-blue-200 rounded focus:outline-none focus:ring-1 focus:ring-blue-500"
-                      />
-                    </div>
-                    <div>
-                      <label className="block font-medium text-blue-700 mb-1">Protected</label>
-                      <div className="flex items-center gap-1">
-                        <input
-                          type="checkbox"
-                          checked={route.protected}
-                          className="w-3 h-3 text-blue-600 rounded focus:ring-blue-500"
-                          readOnly
-                        />
-                        <span className="text-blue-700">{route.protected ? 'Yes' : 'No'}</span>
-                      </div>
-                    </div>
-                    <div>
-                      <label className="block font-medium text-blue-700 mb-1">Description</label>
-                      <input
-                        type="text"
-                        value={route.description}
-                        readOnly={true}
-                        className="w-full px-2 py-1 border border-blue-200 rounded focus:outline-none focus:ring-1 focus:ring-blue-500"
-                      />
-                    </div>
-                  </div>
-                </div>
-              ))}
-            </div>
-          </div>
-        </AccordionDetails>
-      </Accordion>
 
       {/* 5.2 Folder Structure & Naming Conventions */}
       <Accordion>
@@ -425,61 +340,6 @@ ${Array.isArray(formData?.aiAgentZones) ? formData.aiAgentZones.map((zone: strin
                 <li>• <strong>Types:</strong> PascalCase interfaces (e.g., User, ApiResponse)</li>
                 <li>• <strong>Constants:</strong> UPPER_SNAKE_CASE (e.g., API_BASE_URL)</li>
               </ul>
-            </div>
-          </div>
-        </AccordionDetails>
-      </Accordion>
-
-      {/* 5.3 State Management Plan */}
-      <Accordion>
-        <AccordionSummary expandIcon={<ChevronDown size={16} />}>
-          <div className="flex items-center gap-2">
-            <GitBranch className="w-4 h-4 text-purple-600" />
-            <Typography className="font-medium text-sm">State Management Plan</Typography>
-          </div>
-        </AccordionSummary>
-        <AccordionDetails>
-          <div className="space-y-4">
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-2">State Management Strategy</label>
-              <div className="grid grid-cols-2 gap-2">
-                {stateManagementOptions.map((option) => (
-                  <button
-                    key={option.value}
-                    onClick={() => updateFormData('stateManagement', option.value)}
-                    className={`p-3 rounded-lg border text-left transition-colors ${
-                      formData.stateManagement === option.value
-                        ? 'bg-purple-50 border-purple-200 text-purple-700'
-                        : 'bg-gray-50 border-gray-200 text-gray-600 hover:bg-gray-100'
-                    }`}
-                  >
-                    <div className="font-medium text-sm">{option.label}</div>
-                    <div className="text-xs text-gray-500">{option.desc}</div>
-                  </button>
-                ))}
-              </div>
-            </div>
-
-            <div className="bg-purple-50 rounded-lg p-3">
-              <h4 className="font-medium text-sm text-purple-800 mb-2">State Ownership Map</h4>
-              <div className="space-y-2 text-xs">
-                <div className="flex items-center justify-between">
-                  <span className="text-purple-700">User Authentication</span>
-                  <span className="px-2 py-1 bg-purple-200 text-purple-800 rounded">AuthContext</span>
-                </div>
-                <div className="flex items-center justify-between">
-                  <span className="text-purple-700">Theme Preferences</span>
-                  <span className="px-2 py-1 bg-purple-200 text-purple-800 rounded">ThemeContext</span>
-                </div>
-                <div className="flex items-center justify-between">
-                  <span className="text-purple-700">Form Data</span>
-                  <span className="px-2 py-1 bg-purple-200 text-purple-800 rounded">Local State</span>
-                </div>
-                <div className="flex items-center justify-between">
-                  <span className="text-purple-700">API Cache</span>
-                  <span className="px-2 py-1 bg-purple-200 text-purple-800 rounded">React Query</span>
-                </div>
-              </div>
             </div>
           </div>
         </AccordionDetails>
@@ -700,44 +560,6 @@ ${Array.isArray(formData?.aiAgentZones) ? formData.aiAgentZones.map((zone: strin
                 </button>
               </div>
               <pre className="text-xs overflow-x-auto">{generateEnvTemplate()}</pre>
-            </div>
-          </div>
-        </AccordionDetails>
-      </Accordion>
-
-      {/* 5.7 AI Agent Logic Zones */}
-      <Accordion>
-        <AccordionSummary expandIcon={<ChevronDown size={16} />}>
-          <div className="flex items-center gap-2">
-            <Brain className="w-4 h-4 text-pink-600" />
-            <Typography className="font-medium text-sm">AI Agent Logic Zones</Typography>
-          </div>
-        </AccordionSummary>
-        <AccordionDetails>
-          <div className="space-y-3">
-            <p className="text-sm text-gray-600">Areas where AI can dynamically adjust and optimize the architecture</p>
-            
-            <div className="space-y-2">
-              {Array.isArray(formData.aiAgentZones) && formData.aiAgentZones.length > 0 ? formData.aiAgentZones.map((zone: string, index: number) => (
-                <div key={index} className="flex items-center gap-3 p-2 bg-pink-50 rounded-lg">
-                  <Brain className="w-4 h-4 text-pink-600" />
-                  <span className="text-sm text-pink-700">{zone}</span>
-                  <div className="ml-auto">
-                    <span className="text-xs px-2 py-1 bg-pink-200 text-pink-700 rounded">AI-Controlled</span>
-                  </div>
-                </div>
-              )) : <div className="text-gray-500 text-sm">No AI agent zones defined</div>}
-            </div>
-
-            <div className="bg-pink-50 border border-pink-200 rounded-lg p-3">
-              <h4 className="font-medium text-sm text-pink-800 mb-2">AI Capabilities</h4>
-              <ul className="text-xs text-pink-700 space-y-1">
-                <li>• Dynamic component generation based on data models</li>
-                <li>• Responsive layout adjustments for different screen sizes</li>
-                <li>• Auto-optimization of API calls and caching strategies</li>
-                <li>• Intelligent error boundary placement</li>
-                <li>• Performance monitoring and optimization suggestions</li>
-              </ul>
             </div>
           </div>
         </AccordionDetails>
