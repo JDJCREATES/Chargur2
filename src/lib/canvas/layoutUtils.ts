@@ -15,7 +15,7 @@ const elk = new ELK();
 // Default layout options
 const DEFAULT_LAYOUT_OPTIONS = {
   'algorithm': 'layered',
-  'elk.direction': 'DOWN',
+  'elk.direction': 'DOWN', 
   'elk.spacing.nodeNode': '80',
   'elk.layered.spacing.nodeNodeBetweenLayers': '100',
   'elk.edgeRouting': 'ORTHOGONAL',
@@ -25,9 +25,11 @@ const DEFAULT_LAYOUT_OPTIONS = {
 // Layout options by stage
 const STAGE_LAYOUT_OPTIONS: Record<string, any> = {
   'ideation-discovery': {
-    'algorithm': 'stress',
+    'algorithm': 'force',
     'elk.padding': '[top=50, left=50, bottom=50, right=50]',
-    'stress.desiredEdgeLength': '150'
+    'elk.force.repulsion': '2.5',
+    'elk.force.attraction': '0.1',
+    'elk.force.iterations': '300'
   },
   'feature-planning': {
     'algorithm': 'layered',
@@ -42,7 +44,8 @@ const STAGE_LAYOUT_OPTIONS: Record<string, any> = {
   'interface-interaction': {
     'algorithm': 'force',
     'elk.force.repulsion': '2',
-    'elk.force.attraction': '0.1'
+    'elk.force.attraction': '0.1',
+    'elk.force.iterations': '300'
   },
   'architecture-design': {
     'algorithm': 'layered',
@@ -143,6 +146,24 @@ export async function getLayoutedElements(
     // Calculate layout
     const layoutedGraph = await elk.layout(elkGraph);
 
+    // Log the layout results for debugging
+    console.log('🔍 ELK layout results:', {
+      algorithm: layoutOptions.algorithm,
+      nodeCount: nodes.length,
+      stageGroups: layoutedGraph.children?.length || 0,
+      layoutedNodes: layoutedGraph.children?.reduce((count, group) => count + (group.children?.length || 0), 0) || 0
+    });
+    
+    // Log a sample of node positions for the first few nodes
+    if (layoutedGraph.children && layoutedGraph.children[0]?.children) {
+      const sampleNodes = layoutedGraph.children[0].children.slice(0, 3);
+      console.log('📍 Sample node positions:', sampleNodes.map(node => ({
+        id: node.id,
+        x: node.x,
+        y: node.y
+      })));
+    }
+
     // Apply the layout to the nodes
     const layoutedNodes = [...nodes];
     
@@ -231,11 +252,11 @@ function applyFallbackLayout(nodes: Node[], edges: Edge[]): { nodes: Node[]; edg
 export async function applyForceDirectedLayout(
   nodes: Node[],
   edges: Edge[],
-  options: Record<string, any> = {}
+  options: Record<string, any> = {} 
 ): Promise<{ nodes: Node[]; edges: Edge[] }> {
   const forceOptions = {
     'algorithm': 'force',
-    'elk.force.iterations': '300',
+    'elk.force.iterations': '500',
     'elk.force.repulsion': '2',
     'elk.force.attraction': '0.1',
     ...options
@@ -270,11 +291,11 @@ export async function applyHierarchicalLayout(
 export async function applyRadialLayout(
   nodes: Node[],
   edges: Edge[],
-  options: Record<string, any> = {}
+  options: Record<string, any> = {} 
 ): Promise<{ nodes: Node[]; edges: Edge[] }> {
   const radialOptions = {
     'algorithm': 'radial',
-    'elk.radial.radius': '300',
+    'elk.radial.radius': '400',
     ...options
   };
   

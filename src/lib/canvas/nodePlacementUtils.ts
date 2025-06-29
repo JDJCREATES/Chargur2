@@ -94,7 +94,7 @@ export const GRID_LAYOUTS = {
 /**
  * Get the exact position for a node based on semantic rules
  */
-export function getSmartNodePosition( 
+export function getSmartNodePosition(
   existingNodes: Node[],
   nodeSize: Size,
   nodeType: string,
@@ -102,28 +102,50 @@ export function getSmartNodePosition(
   stageId?: string,
   isUserCreated: boolean = false
 ): Position {
+  console.log(`Getting smart position for ${nodeType} node, isUserCreated: ${isUserCreated}`);
+  
   // Handle singleton nodes (only one should exist)
   if (['appName', 'tagline', 'coreProblem', 'mission', 'valueProp'].includes(nodeType)) {
     const position = SEMANTIC_ZONES[nodeType as keyof typeof SEMANTIC_ZONES];
     if (position) {
+      console.log(`Using singleton position for ${nodeType}: (${position.x}, ${position.y})`);
       return position;
     }
   }
   
   // Handle user-created nodes
   if (isUserCreated) {
-    return findUserCreatedPosition(existingNodes);
+    const userPosition = findUserCreatedPosition(existingNodes);
+    console.log(`Using user-created position: (${userPosition.x}, ${userPosition.y})`);
+    return userPosition;
   }
   
-  // Handle preferred position with collision avoidance
+  // For nodes that will be laid out by ELK.js, don't use fixed preferred positions
+  // unless they're explicitly user-created or singletons
   if (preferredPosition) {
-    return preferredPosition;
+    // Check if this node should be dynamically laid out
+    const shouldUseELK = !['appName', 'tagline', 'coreProblem', 'mission', 'valueProp'].includes(nodeType);
+    
+    if (shouldUseELK) {
+      // For ELK-managed nodes, use a more flexible initial position
+      // This allows ELK to have more freedom in positioning
+      const elkPosition = {
+        x: preferredPosition.x + Math.random() * 50 - 25, // Add some randomness
+        y: preferredPosition.y + Math.random() * 50 - 25
+      };
+      console.log(`Using flexible position for ELK-managed ${nodeType}: (${elkPosition.x}, ${elkPosition.y})`);
+      return elkPosition;
+    } else {
+      console.log(`Using preferred position for ${nodeType}: (${preferredPosition.x}, ${preferredPosition.y})`);
+      return preferredPosition;
+    }
   }
   
   // Fallback to semantic zone
   const semanticPosition = SEMANTIC_ZONES[nodeType as keyof typeof SEMANTIC_ZONES] 
     || SEMANTIC_ZONES.default;
   
+  console.log(`Using semantic position for ${nodeType}: (${semanticPosition.x}, ${semanticPosition.y})`);
   return semanticPosition;
 }
 
@@ -131,8 +153,11 @@ export function getSmartNodePosition(
  * Find position for user-created nodes (center area)
  */
 function findUserCreatedPosition(existingNodes: Node[]): Position {
-  const centerArea = { x: 600, y: 300 };
-  return centerArea;
+  // Add some randomness to prevent exact overlaps
+  return { 
+    x: 600 + Math.random() * 100 - 50,
+    y: 300 + Math.random() * 100 - 50
+  };
 }
 
 /**

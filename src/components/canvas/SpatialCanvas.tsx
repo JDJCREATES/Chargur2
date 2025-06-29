@@ -562,10 +562,12 @@ export const SpatialCanvas: React.FC<SpatialCanvasProps> = ({
   const handleAutoLayout = useCallback(async (layoutType?: string) => {
     // If a layout type is provided, update the stored preference
     if (layoutType) {
+      console.log(`🔄 Setting layout type to: ${layoutType}`);
       setSelectedLayoutType(layoutType);
     } else {
       // Use the stored preference if no layout type is provided
       layoutType = selectedLayoutType;
+      console.log(`🔄 Using stored layout type: ${layoutType}`);
     }
 
     try {
@@ -582,26 +584,32 @@ export const SpatialCanvas: React.FC<SpatialCanvasProps> = ({
       
       // Apply different layout algorithms based on the selected type
       switch (layoutType) {
-        case 'hierarchical':
+        case 'hierarchical': 
+          console.log('🔄 Applying hierarchical layout');
           result = await layoutUtils.applyHierarchicalLayout(effectiveNodes, effectiveEdges);
           break;
         case 'force':
+          console.log('🔄 Applying force-directed layout');
           result = await layoutUtils.applyForceDirectedLayout(effectiveNodes, effectiveEdges);
           break;
         case 'radial':
+          console.log('🔄 Applying radial layout');
           result = await layoutUtils.applyRadialLayout(effectiveNodes, effectiveEdges);
           break;
         case 'stage':
+          console.log('🔄 Applying stage-specific layout');
           result = await layoutUtils.applyStageLayout(effectiveNodes, effectiveEdges, currentStageId);
           break;
         default:
           // Default to stage-specific layout if available, otherwise use hierarchical
+          console.log('🔄 Applying default layout (stage-specific or hierarchical)');
           result = await layoutUtils.applyStageLayout(effectiveNodes, effectiveEdges, currentStageId);
           break;
       }
       
       // Update nodes with new positions
       if (result && result.nodes) {
+        console.log(`✅ Layout applied successfully with ${result.nodes.length} nodes`);
         handleUpdateNodes(result.nodes);
       }
       
