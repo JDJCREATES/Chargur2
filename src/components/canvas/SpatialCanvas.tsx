@@ -12,7 +12,7 @@
  * - Handles toolbar integration and canvas controls
  */
 
-import React, { useEffect, useCallback, useState, useRef } from 'react';
+import React, { useEffect, useCallback, useState, useRef, useMemo } from 'react';
 import ReactFlow, {
   Background,
   Controls,
@@ -92,11 +92,16 @@ export const SpatialCanvas: React.FC<SpatialCanvasProps> = ({
   const reactFlowInstance = useReactFlow();
 
 
-  // Use store data as fallback when props aren't provided
-  const effectiveNodes = canvasNodes.length > 0 ? canvasNodes : storeCanvasNodes;
-  const effectiveEdges = canvasConnections.length > 0 
-    ? canvasConnections
-    : storeCanvasConnections;
+  // Use store data as fallback when props aren't provided - MEMOIZED
+  const effectiveNodes = useMemo(() => 
+    canvasNodes.length > 0 ? canvasNodes : storeCanvasNodes,
+    [canvasNodes, storeCanvasNodes]
+  );
+
+  const effectiveEdges = useMemo(() => 
+    canvasConnections.length > 0 ? canvasConnections : storeCanvasConnections,
+    [canvasConnections, storeCanvasConnections]
+  );
   
   // Use store methods as fallback
   const handleUpdateNodes = onUpdateCanvasNodes || updateCanvasNodes;
@@ -145,20 +150,30 @@ export const SpatialCanvas: React.FC<SpatialCanvasProps> = ({
 
     console.log('stageData changed, processing...', Object.keys(stageData));
     
-    // Set processing flag and update reference immediately
-    processingRef.current = true;
-    lastProcessedStageDataRef.current = stageDataString;
-  
-    
     // Debounce the processing to prevent rapid fire updates
-    const timeoutId = setTimeout(() => {
+    const timeoutId = setTimeout(async () => {
+      // Check processing flag again inside timeout
+      if (processingRef.current) {
+        console.log('Processing started by another instance, skipping...');
+        return;
+      }
+      
+      // Set processing flag at the start of actual processing
+      processingRef.current = true;
+      
       try {
         // Get current stage ID from the app store
         const currentStageId = useAppStore.getState().currentStageId;
+        
+        // Get fresh node and edge data from store at processing time
+        const currentState = useAppStore.getState();
+        const currentNodes = canvasNodes.length > 0 ? canvasNodes : currentState.canvasNodes;
+        const currentEdges = canvasConnections.length > 0 ? canvasConnections : currentState.canvasConnections;
+        
         console.log('Calling CanvasDataProcessor with:', {
           currentStageId,
           stageDataKeys: Object.keys(stageData),
-          nodeCount: effectiveNodes.length
+          nodeCount: currentNodes.length
         });
 
         // Get stage-specific data
@@ -166,36 +181,34 @@ export const SpatialCanvas: React.FC<SpatialCanvasProps> = ({
         
         if (!stageSpecificData) {
           console.log('No data for current stage:', currentStageId);
-          processingRef.current = false; // Reset processing flag
           return;
         }
 
-        try {
         // Process the data based on the stage type
         let processedNodes: Node[] = [];
         
         switch (currentStageId) {
           case 'ideation-discovery':
-            processedNodes = processIdeationData(effectiveNodes, stageSpecificData, {});
+            processedNodes = processIdeationData(currentNodes, stageSpecificData, {});
             break;
           case 'feature-planning':
-            processedNodes = processFeatureData(effectiveNodes, stageSpecificData, {});
+            processedNodes = processFeatureData(currentNodes, stageSpecificData, {});
             break;
           case 'structure-flow':
-            processedNodes = processStructureData(effectiveNodes, stageSpecificData, {});
+            processedNodes = processStructureData(currentNodes, stageSpecificData, {});
             break;
           case 'architecture-design':
-            processedNodes = processArchitectureData(effectiveNodes, stageSpecificData, {});
+            processedNodes = processArchitectureData(currentNodes, stageSpecificData, {});
             break;
           case 'interface-interaction':
-            processedNodes = processInterfaceData(effectiveNodes, stageSpecificData, {});
+            processedNodes = processInterfaceData(currentNodes, stageSpecificData, {});
             break;
           case 'user-auth-flow':
-            processedNodes = processAuthData(effectiveNodes, stageSpecificData, {});
+            processedNodes = processAuthData(currentNodes, stageSpecificData, {});
             break;
           default:
             console.warn('Unknown stage type:', currentStageId);
-            processedNodes = effectiveNodes;
+            processedNodes = currentNodes;
         }
         
         // Add callback functions to all processed nodes
@@ -204,14 +217,15 @@ export const SpatialCanvas: React.FC<SpatialCanvasProps> = ({
           data: {
             ...(node.data || {}),
             onNodeUpdate: (id: string, updates: any) => {
-              const updatedNodes = effectiveNodes.map(n => n.id === id 
+              const updatedNodes = currentNodes.map(n => n.id === id 
                 ? { ...n, data: { ...(n.data || {}), ...updates } } 
-                : n);
+                : n
+              );
               handleUpdateNodes(updatedNodes);
             },
             onNodeDelete: (id: string) => {
-              const filteredNodes = effectiveNodes.filter(n => n.id !== id);
-              const filteredEdges = effectiveEdges.filter(edge => 
+              const filteredNodes = currentNodes.filter(n => n.id !== id);
+              const filteredEdges = currentEdges.filter(edge => 
                 edge.source !== id && edge.target !== id
               );
               handleUpdateNodes(filteredNodes);
@@ -227,26 +241,24 @@ export const SpatialCanvas: React.FC<SpatialCanvasProps> = ({
         // Update nodes directly through store
         handleUpdateNodes(nodesWithCallbacks);
         
-        // Update last processed data
+        // Update last processed data reference
         lastProcessedStageDataRef.current = stageDataString;
         
         console.log('Canvas data processed, node count:', nodesWithCallbacks.length);
-        } catch (processingError) {
-          console.error('Error processing stage data:', processingError);
-        } finally {
-          // Always reset processing flag, even if an error occurs
-          processingRef.current = false;
-        }
+        
       } catch (error) {
         console.error('Error processing stage data:', error);
+      } finally {
+        // ALWAYS reset processing flag
         processingRef.current = false;
+        console.log('Processing flag reset to false');
       }
-    }, 50);
+    }, 100); // Increased debounce time slightly
     
     return () => {
       clearTimeout(timeoutId);
     };
-  }, [stageData, effectiveNodes, effectiveEdges, handleUpdateNodes, handleUpdateConnections, onSendMessage]);
+  }, [stageData, canvasNodes, canvasConnections, handleUpdateNodes, handleUpdateConnections, onSendMessage]);
 
   // Reset view when canvas nodes change significantly (indicating project change)
   useEffect(() => {
