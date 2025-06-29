@@ -2,7 +2,6 @@ import { create } from 'zustand';
 import { Stage, StageData, Project } from '../types';
 import { supabase } from '../lib/auth/supabase';
 import { Node, Edge } from 'reactflow';
-import { debounce } from '../utils/debounce';
 
 const initialStages: Stage[] = [
   {
@@ -118,18 +117,8 @@ interface AppState {
 }
 
 export const useAppStore = create<AppState>((set, get) => {
-  // Create debounced version of updateStageData
-  const debouncedUpdateStageData = debounce((stageId: string, data: any) => {
-    set(state => ({
-      stageData: {
-        ...state.stageData,
-        [stageId]: { ...state.stageData[stageId], ...data }
-      }
-    }));
-  }, 300);
-
   // Create debounced save function for project updates
-  const debouncedSave = debounce(async () => {
+  const debouncedSave = async () => {
     const state = get();
     if (state.projectId && state.currentProject) {
       try {
@@ -152,7 +141,7 @@ export const useAppStore = create<AppState>((set, get) => {
         console.error('Error saving project:', err);
       }
     }
-  }, 1000); // Save after 1 second of inactivity
+  };
 
   return {
     // Initial state
@@ -421,8 +410,14 @@ export const useAppStore = create<AppState>((set, get) => {
     },
     
     updateStageData: (stageId: string, data: any) => {
-      // Use the debounced function
-      debouncedUpdateStageData(stageId, data);
+      // Update stage data immediately
+      set(state => ({
+        stageData: {
+          ...state.stageData,
+          [stageId]: { ...state.stageData[stageId], ...data }
+        }
+      }));
+      
       // Trigger save after stage data update
       debouncedSave();
     },
