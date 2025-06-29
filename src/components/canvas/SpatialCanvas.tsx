@@ -137,16 +137,14 @@ export const SpatialCanvas: React.FC<SpatialCanvasProps> = ({
   // COMPLETELY COMMENT OUT the entire stageData processing useEffect
 
   useEffect(() => {
-    console.log('SpatialCanvas useEffect triggered. stageData dependency changed.');
+  
     const stageDataString = JSON.stringify(stageData);
     
-    if (lastProcessedStageDataRef.current === stageDataString) {
-      console.log('SpatialCanvas useEffect: stageData is the same as last processed. Bailing early.');
+    if (lastProcessedStageDataRef.current === stageDataString) { 
       return;
     }
 
     if (processingRef.current) {
-      console.log('SpatialCanvas useEffect: Already processing stage data. Skipping this trigger.');
       return;
     }
 
@@ -163,12 +161,12 @@ export const SpatialCanvas: React.FC<SpatialCanvasProps> = ({
       const stageSpecificData = stageData[currentStageId];
       
       if (!stageSpecificData || Object.keys(stageSpecificData).length === 0) {
-        console.log(`SpatialCanvas: No stage-specific data for ${currentStageId} or it's empty. Skipping processing.`);
+       /* console.log(`SpatialCanvas: No stage-specific data for ${currentStageId} or it's empty. Skipping processing.`);*/
         processingRef.current = false;
         return;
       }
 
-      console.log(`SpatialCanvas: Processing stage data for ${currentStageId}. Current nodes count: ${currentNodes.length}. Stage data keys: ${Object.keys(stageSpecificData).join(', ')}`);
+     /* console.log(`SpatialCanvas: Processing stage data for ${currentStageId}. Current nodes count: ${currentNodes.length}. Stage data keys: ${Object.keys(stageSpecificData).join(', ')}`);*/
       // Process nodes...
       let processedNodes: Node[] = [];
       
@@ -239,7 +237,6 @@ export const SpatialCanvas: React.FC<SpatialCanvasProps> = ({
       return;
     }
     
-    console.log('Project changed, resetting canvas view');
     // Reset processing state when project changes
     processingRef.current = false;
     lastProcessedStageDataRef.current = '';
@@ -354,7 +351,7 @@ export const SpatialCanvas: React.FC<SpatialCanvasProps> = ({
           handleUpdateConnections(filteredEdges);
         },
         onStartConnection: (id: string) => {
-          console.log('Start connection from', id);
+         
           // Implement connection logic
         },
         onSendMessage: onSendMessage
@@ -393,8 +390,7 @@ export const SpatialCanvas: React.FC<SpatialCanvasProps> = ({
             handleUpdateConnections(filteredEdges);
           },
           onStartConnection: (id: string) => {
-            console.log('Start connection from', id);
-            // Implement connection logic
+        
           },
           onSendMessage
         }
@@ -408,7 +404,7 @@ export const SpatialCanvas: React.FC<SpatialCanvasProps> = ({
 
   const handleClearCanvas = useCallback(() => {
     if (window.confirm('Are you sure you want to clear the canvas? This action cannot be undone.')) {
-      console.log('Clearing canvas from user action');
+      
       try {
         handleUpdateNodes([]);
         handleUpdateConnections([]);
