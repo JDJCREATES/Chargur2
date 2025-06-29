@@ -39,17 +39,10 @@ import { useCanvasScreenshot } from './core/CanvasScreenshot';
 import { v4 as uuidv4 } from 'uuid';
 import * as nodeFactory from '../../lib/canvas/nodeFactory';
 import { STAGE1_NODE_TYPES, STAGE2_NODE_TYPES } from '../../lib/canvas/nodeFactory';
-import { 
-  getEdgeStyle, 
-  generateConnectionLabel, 
-  connectionExists, 
-  getUniqueEdgeId,
-  updateNodesWithConnection,
-  cleanupNodeConnections,
-  createEdge
-} from '../../lib/canvas/connectionUtilities';
+import * as connectionUtils from '../../lib/canvas/connectionUtilities';
 import { nodeTypes } from './nodes';
 import { CanvasExportModal } from './CanvasExportModal';
+import * as layoutUtils from '../../lib/canvas/layoutUtils';
 
 // Import processors directly
 import { processIdeationData } from '../../lib/canvas/processors/ideationProcessor';
@@ -140,7 +133,7 @@ export const SpatialCanvas: React.FC<SpatialCanvasProps> = ({
 
   const onConnect = useCallback((params: any) => {
     // Check if connection already exists
-    if (connectionExists(effectiveEdges, params.source, params.target)) {
+    if (connectionUtils.connectionExists(effectiveEdges, params.source, params.target)) {
       return;
     }
     
@@ -149,13 +142,13 @@ export const SpatialCanvas: React.FC<SpatialCanvasProps> = ({
     const targetNode = effectiveNodes.find(node => node.id === params.target);
     
     // Create edge with appropriate style and label
-    const newEdge = createEdge(params.source, params.target, sourceNode, targetNode);
+    const newEdge = connectionUtils.createEdge(params.source, params.target, sourceNode, targetNode);
     
     // Add the edge
     const newEdges = addEdge(newEdge, effectiveEdges);
     
     // Update nodes with connection data
-    const updatedNodes = updateNodesWithConnection(effectiveNodes, params.source, params.target);
+    const updatedNodes = connectionUtils.updateNodesWithConnection(effectiveNodes, params.source, params.target);
     
     // Update both nodes and edges
     handleUpdateNodes(updatedNodes);
@@ -562,43 +555,80 @@ export const SpatialCanvas: React.FC<SpatialCanvasProps> = ({
     }
   }, [handleUpdateNodes, handleUpdateConnections]);
 
-  const handleAutoLayout = useCallback(() => {
-    // Simple force-directed layout
+  const handleAutoLayout = useCallback(async (layoutType?: string) => {
     try {
-      const nodesByType = effectiveNodes.reduce<Record<string, Node[]>>((acc, node) => {
-        if (!node) return acc;
-        const type = node.type || 'unknown'; 
-        if (!acc[type]) acc[type] = [];
-        acc[type].push(node);
-        return acc;
-      }, {});
-  
-      let x = 100;
-      const typeSpacing = 300;
-      const nodeSpacing = 120;
-
-      const updatedNodes = [...effectiveNodes];
-  
-      Object.entries(nodesByType).forEach(([type, typeNodes]) => {
-        let y = 100;
-        typeNodes.forEach((node) => {
-          const nodeIndex = updatedNodes.findIndex(n => n.id === node.id);
-          if (nodeIndex !== -1) {
-            updatedNodes[nodeIndex] = {
-              ...updatedNodes[nodeIndex],
-              position: { x, y }
-            };
-          }
-          y += nodeSpacing;
-        });
-        x += typeSpacing;
-      });
-
-      handleUpdateNodes(updatedNodes);
+      // Show loading state
+      const loadingNotification = document.createElement('div');
+      loadingNotification.className = 'fixed top-4 right-4 bg-blue-100 text-blue-800 px-4 py-2 rounded-lg shadow-md z-50';
+      loadingNotification.textContent = 'Calculating layout...';
+      document.body.appendChild(loadingNotification);
+      
+      // Get current stage ID for stage-specific layouts
+      const currentStageId = useAppStore.getState().currentStageId;
+      
+      let result;
+      
+      // Apply different layout algorithms based on the selected type
+      switch (layoutType) {
+        case 'hierarchical':
+          result = await layoutUtils.applyHierarchicalLayout(effectiveNodes, effectiveEdges);
+          break;
+        case 'force':
+          result = await layoutUtils.applyForceDirectedLayout(effectiveNodes, effectiveEdges);
+          break;
+        case 'radial':
+          result = await layoutUtils.applyRadialLayout(effectiveNodes, effectiveEdges);
+          break;
+        case 'stage':
+          result = await layoutUtils.applyStageLayout(effectiveNodes, effectiveEdges, currentStageId);
+          break;
+        default:
+          // Default to stage-specific layout if available, otherwise use hierarchical
+          result = await layoutUtils.applyStageLayout(effectiveNodes, effectiveEdges, currentStageId);
+          break;
+      }
+      
+      // Update nodes with new positions
+      if (result && result.nodes) {
+        handleUpdateNodes(result.nodes);
+      }
+      
+      // Remove loading notification
+      setTimeout(() => {
+        loadingNotification.remove();
+        
+        // Show success notification
+        const successNotification = document.createElement('div');
+        successNotification.className = 'fixed top-4 right-4 bg-green-100 text-green-800 px-4 py-2 rounded-lg shadow-md z-50';
+        successNotification.textContent = 'Layout applied successfully';
+        document.body.appendChild(successNotification);
+        
+        // Remove success notification after 2 seconds
+        setTimeout(() => {
+          successNotification.remove();
+        }, 2000);
+      }, 500);
+      
+      // Fit view to show all nodes
+      setTimeout(() => {
+        reactFlowInstance.fitView({ padding: 0.2 });
+      }, 100);
+      
     } catch (error) {
       console.error('Error in auto layout:', error);
+      
+      // Show error notification
+      const errorNotification = document.createElement('div');
+      errorNotification.className = 'fixed top-4 right-4 bg-red-100 text-red-800 px-4 py-2 rounded-lg shadow-md z-50';
+      errorNotification.textContent = 'Error applying layout';
+      document.body.appendChild(errorNotification);
+      
+      // Remove error notification after 3 seconds
+      setTimeout(() => {
+        errorNotification.remove();
+      }, 3000);
     }
-  }, [effectiveNodes, handleUpdateNodes]);
+  }, [effectiveNodes, effectiveEdges, handleUpdateNodes, reactFlowInstance]);
 
   // Save canvas state
   const handleSave = useCallback(() => {
