@@ -84,4 +84,4 @@ export interface StreamingChatResponse {
 }
 
 // Re-export UX Review types
-export { CompletionItem, AIFeedback, UserTestScenario } from './uxReview';
+export type { CompletionItem, AIFeedback, UserTestScenario } from './uxReview';

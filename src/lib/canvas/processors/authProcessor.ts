@@ -192,7 +192,7 @@ export function processAuthData(
         }
       } else {
         // Create a new node
-        const newNode = nodeFactory.createSecurityFeaturesNode(enabledSecurity, authX, authY, newNodes);
+        const newNode = nodeFactory.createSecurityFeaturesNode(enabledSecurity, newNodes);
         newNodes.push(newNode);
         nodesChanged = true;
       }

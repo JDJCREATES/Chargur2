@@ -224,8 +224,8 @@ export const useAgentChat = ({
         
         // On error, we should still try to recover any existing history if possible
         try {
-          if (conversationId) {
-            const recoveryResult = await attemptRecovery(conversationId);
+          if (state.conversationId) {
+            const recoveryResult = await attemptRecovery(state.conversationId);
             if (recoveryResult) {
               console.log('✅ Successfully recovered conversation state');
               setState(prev => ({ 

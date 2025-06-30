@@ -209,7 +209,7 @@ export function processIdeationData(
       );
     
       if (!personaExists) {
-        newNodes.push(nodeFactory.createUserPersonaNode(persona, index, newNodes));
+        newNodes.push(nodeFactory.createUserPersonaNode(persona,  newNodes));
         nodesChanged = true;
       } else {
         // Find and keep the existing persona
@@ -218,7 +218,6 @@ export function processIdeationData(
         );
         if (existingPersona) {
           newNodes.push(existingPersona);
-          newNodes.push(nodeFactory.createUserPersonaNode(persona, newNodes));
         }
       }
     });
@@ -277,7 +276,7 @@ export function processIdeationData(
       );
       
       if (!competitorExists && competitor.name) {
-        newNodes.push(nodeFactory.createCompetitorNode(competitor, index, newNodes));
+        newNodes.push(nodeFactory.createCompetitorNode(competitor,  newNodes));
         nodesChanged = true;
       } else if (competitor.name) {
         // Find and keep the existing competitor
@@ -286,7 +285,6 @@ export function processIdeationData(
         );
         if (existingCompetitor) {
           newNodes.push(existingCompetitor);
-          newNodes.push(nodeFactory.createCompetitorNode(competitor, newNodes));
         }
       }
     });

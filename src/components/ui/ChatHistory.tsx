@@ -72,7 +72,7 @@ export const ChatHistory: React.FC<ChatHistoryProps> = ({
         </div>
 
         {/* Message Content */}
-        <div className={`flex-1 max-w-[80%] ${isUser ? 'text-right' : ''}`}>
+        <div className={`flex-1 max-w-[90%] ${isUser ? 'text-right' : ''}`}>
           {/* Message Header */}
           <div className={`flex items-center gap-2 mb-1 ${isUser ? 'justify-end' : ''}`}>
             <span className="text-xs font-medium text-gray-600">
@@ -87,7 +87,7 @@ export const ChatHistory: React.FC<ChatHistoryProps> = ({
           {/* Message Bubble */}
           <div
             className={`
-              p-4 rounded-2xl text-sm leading-relaxed max-w-none
+              p-2 rounded-2xl text-sm leading-relaxed max-w-none
               ${isUser 
                 ? 'bg-gradient-to-br from-blue-600 to-blue-700 text-white rounded-tr-md shadow-sm' 
                 : 'bg-gray-50 text-gray-800 rounded-tl-md border border-gray-100'
@@ -152,7 +152,7 @@ export const ChatHistory: React.FC<ChatHistoryProps> = ({
 
           {/* Error Display */}
           {currentResponse.error && (
-            <div className="mb-3 p-3 bg-red-50 border border-red-200 rounded-lg">
+            <div className="mb-2 p-2 bg-red-50 border border-red-200 rounded-lg">
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-2 text-red-700">
                   <AlertTriangle className="w-4 h-4" />
@@ -172,7 +172,7 @@ export const ChatHistory: React.FC<ChatHistoryProps> = ({
 
           {/* Response Bubble */}
           {currentResponse.content && (
-            <div className="bg-gray-50 text-gray-800 rounded-2xl rounded-tl-md p-4 mb-3 border border-gray-100">
+            <div className="bg-gray-50 text-gray-800 rounded-2xl rounded-tl-md p-2 mb-2 border border-gray-100">
               <div className="prose prose-sm max-w-none">
                 <div className="whitespace-pre-wrap break-words text-gray-700 leading-relaxed">
                   {currentResponse.content}
@@ -194,7 +194,7 @@ export const ChatHistory: React.FC<ChatHistoryProps> = ({
               initial={{ opacity: 0, y: 10 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.3 }}
-              className="bg-purple-50 rounded-lg p-3 border border-purple-200"
+              className="bg-purple-50 rounded-lg p-1 border border-purple-200"
             >
               <div className="flex items-center gap-2 mb-2">
                 <Sparkles className="w-3 h-3 text-purple-600" />
@@ -224,8 +224,8 @@ export const ChatHistory: React.FC<ChatHistoryProps> = ({
   return (
     <div 
       ref={scrollRef} 
-      className="flex-1 overflow-y-auto px-3 py-4 bg-transparent"
-      style={{ maxHeight: 'calc(100vh - 200px)' }}
+      className="flex-1 overflow-y-auto px-3 py-2 bg-transparent"
+      style={{ maxHeight: 'calc(100vh - 190px)' }}
     >
       {(!messages || messages.length === 0) && !currentResponse ? (
         <div className="flex flex-col justify-center h-full py-8">

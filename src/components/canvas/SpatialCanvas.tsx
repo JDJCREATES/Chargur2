@@ -273,7 +273,7 @@ export const SpatialCanvas: React.FC<SpatialCanvasProps> = ({
           },
           onNodeDelete: (id: string) => {
             // Use the cleanupNodeConnections utility
-            const { updatedNodes, updatedEdges } = cleanupNodeConnections(
+            const { updatedNodes, updatedEdges } = connectionUtils.cleanupNodeConnections(
               processedNodes,
               effectiveEdges,
               id
@@ -482,15 +482,12 @@ export const SpatialCanvas: React.FC<SpatialCanvasProps> = ({
           handleUpdateNodes(updatedNodes);
         },
         onNodeDelete: (id: string) => {
-          // Use the cleanupNodeConnections utility
-          const { updatedNodes, updatedEdges } = cleanupNodeConnections(
-            effectiveNodes,
-            effectiveEdges,
-            id
+          const filteredNodes = effectiveNodes.filter(node => node.id !== id);
+          const filteredEdges = effectiveEdges.filter(edge => 
+            edge.source !== id && edge.target !== id
           );
-          
-          handleUpdateNodes(updatedNodes);
-          handleUpdateConnections(updatedEdges);
+          handleUpdateNodes(filteredNodes);
+          handleUpdateConnections(filteredEdges);
         },
         onStartConnection: (id: string) => {
           // Implement connection logic
@@ -523,15 +520,12 @@ export const SpatialCanvas: React.FC<SpatialCanvasProps> = ({
             handleUpdateNodes(updatedNodes);
           },
           onNodeDelete: (id: string) => {
-            // Use the cleanupNodeConnections utility
-            const { updatedNodes, updatedEdges } = cleanupNodeConnections(
-              effectiveNodes,
-              effectiveEdges,
-              id
+            const filteredNodes = effectiveNodes.filter(node => node.id !== id);
+            const filteredEdges = effectiveEdges.filter(edge => 
+              edge.source !== id && edge.target !== id
             );
-            
-            handleUpdateNodes(updatedNodes);
-            handleUpdateConnections(updatedEdges);
+            handleUpdateNodes(filteredNodes);
+            handleUpdateConnections(filteredEdges);
           },
           onAddLofiLayoutNode: () => handleAddNode('lofiLayout'),
           onStartConnection: (id: string) => {
@@ -731,7 +725,11 @@ export const SpatialCanvas: React.FC<SpatialCanvasProps> = ({
             style: { stroke: '#9CA3AF', strokeWidth: 2 },
             markerEnd: { type: MarkerType.Arrow },
             labelStyle: { fill: '#6b7280', fontWeight: 500, fontSize: 12 },
-            labelBgStyle: { fill: '#ffffff', fillOpacity: 0.8, rx: 4, ry: 4 }
+            labelBgStyle: { 
+              fill: '#ffffff', 
+              fillOpacity: 0.8
+              // ReactFlow will handle the background shape styling
+            }
           }}
         >
           <Background color="#e5e7eb" gap={20} size={1} variant={showGrid ? BackgroundVariant.Dots : undefined} />

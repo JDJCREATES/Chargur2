@@ -41,7 +41,7 @@ interface CanvasToolbarProps {
   onExport: () => void;
   onAutoLayout: (layoutType?: string) => void;
   onScreenshot: () => void;
-  onAutoLayout: (layoutType?: string) => void;
+  onToggleGrid: () => void;
   nodes?: Node[];
   connections?: Edge[];
   onClearCanvas?: () => void;

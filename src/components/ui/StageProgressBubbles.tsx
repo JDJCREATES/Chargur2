@@ -111,7 +111,7 @@ export const StageProgressBubbles: React.FC<StageProgressBubblesProps> = ({
 
       {/* Progress Info */}
       <div className="text-gray-700">
-        <div className="text-sm font-semibold">{completedStages}/{batteryStages.length} Stages</div>
+        <div className="text-sm font-semibold">{completedStages}/{batteryStages.length}</div>
         <div className="text-xs text-gray-500">
           {completionPercentage}% Complete
         </div>

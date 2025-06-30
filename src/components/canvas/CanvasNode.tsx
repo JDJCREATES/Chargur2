@@ -1,4 +1,4 @@
-    export interface Node {
+export interface Node<T = any> {
   id: string;
   type: 'concept' | 'feature' | 'ux-flow' | 'wireframe' | 'system' | 'agent-output' | 
         'appName' | 'tagline' | 'coreProblem' | 'mission' | 'userPersona' | 'valueProp' | 'competitor' |
@@ -10,7 +10,7 @@
   height?: number;
   color: string;
   connections: string[];
-  metadata?: any;
+  metadata?: T;
   collapsed?: boolean;
   resizable?: boolean;
   // Feature node specific properties
@@ -43,7 +43,7 @@
   platform?: string;
 }
 
-interface CanvasNodeProps {
+export interface CanvasNodeProps {
   node: Node<any>;
   isSelected: boolean;
   isConnecting?: boolean;

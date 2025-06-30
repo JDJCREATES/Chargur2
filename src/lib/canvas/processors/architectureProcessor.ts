@@ -29,7 +29,7 @@ function isApiEndpointRelatedToRoute(endpoint: any, route: any): boolean {
   // Check for resource name match (e.g., route: /users, api: /api/users/123)
   if (routePathSegments.length > 0 && endpointPathSegments.length > 0) {
     const routeResource = routePathSegments[routePathSegments.length - 1];
-    return endpointPathSegments.some(segment => 
+    return endpointPathSegments.some((segment: string) => 
       segment === routeResource || 
       segment === `${routeResource}s` || // Plural form
       routeResource === `${segment}s` // Singular form
@@ -39,7 +39,7 @@ function isApiEndpointRelatedToRoute(endpoint: any, route: any): boolean {
   // Check for component name match (e.g., component: UserProfile, api: /api/users)
   if (route.component) {
     const componentName = route.component.toLowerCase();
-    const resourceNames = endpointPathSegments.map(s => s.toLowerCase());
+    const resourceNames = endpointPathSegments.map((s: string) => s.toLowerCase());
     
     // Check for partial matches (e.g., UserProfile -> users)
     for (const resource of resourceNames) {

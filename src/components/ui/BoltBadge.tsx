@@ -1,64 +1,53 @@
-import React, { useEffect, useRef } from 'react';
+import React from 'react';
+import { motion } from 'framer-motion';
 
 /**
  * BoltBadge component displays a "Powered by Bolt.new" badge in the bottom-left corner
- * with a smooth animation effect on initial render.
+ * with smooth Framer Motion animations and interactive hover effects.
  */
 export const BoltBadge: React.FC = () => {
-  const badgeRef = useRef<HTMLImageElement>(null);
-
-  useEffect(() => {
-    // Add event listener to mark animation as complete
-    const badge = badgeRef.current;
-    if (badge) {
-      badge.addEventListener('animationend', () => {
-        badge.classList.add('animated');
-      });
-    }
-
-    return () => {
-      // Clean up event listener
-      if (badge) {
-        badge.removeEventListener('animationend', () => {
-          badge.classList.add('animated');
-        });
-      }
-    };
-  }, []);
-
   return (
-    <div className="fixed bottom-4 left-4 z-50">
-      <a 
+    <motion.div 
+      className="fixed bottom-4 left-4 z-50"
+      initial={{ x: -100, opacity: 0 }}
+      animate={{ x: 0, opacity: 1 }}
+      transition={{ 
+        type: "spring", 
+        stiffness: 100, 
+        damping: 15,
+        delay: 1
+      }}
+    >
+      <motion.a 
         href="https://bolt.new/?rid=os72mi" 
         target="_blank" 
         rel="noopener noreferrer" 
-        className="block transition-all duration-300 hover:shadow-2xl"
+        className="block transition-shadow duration-300 hover:shadow-2xl"
+        whileHover={{ 
+          scale: 2,
+          rotate: [0, -2, 2, -2, 2, 0],
+          transition: { 
+            scale: { duration: 0.3, ease: "easeOut" },
+            rotate: { 
+              duration: 0.6, 
+              ease: "easeInOut",
+              times: [0, 0.2, 0.4, 0.6, 0.8, 1]
+            }
+          }
+        }}
+        whileTap={{ scale: 1.8 }}
       >
-        <img 
-          ref={badgeRef}
+        <motion.img 
           src="https://storage.bolt.army/logotext_poweredby_360w.png"
           alt="Powered by Bolt.new badge" 
-          className="h-8 md:h-10 w-auto shadow-lg opacity-90 hover:opacity-100 bolt-badge-intro bolt-badge-filter"
+          className="h-8 md:h-10 w-auto shadow-lg opacity-90 hover:opacity-100"
+          whileHover={{ 
+            filter: "brightness(1.1) saturate(1.2)"
+          }}
+          transition={{ duration: 0.2 }}
         />
-      </a>
-      
-      {/* Styles for the badge animation */}
-      <style jsx>{`
-        .bolt-badge {
-          transition: all 0.3s ease;
-        }
-        @keyframes badgeIntro {
-          0% { transform: translateX(-100px); opacity: 0; }
-          100% { transform: translateX(0); opacity: 1; }
-        }
-        .bolt-badge-intro {
-          animation: badgeIntro 0.6s ease-out 1s both;
-        }
-        .bolt-badge-intro.animated {
-          animation: none;
-        }
-      `}</style>
-    </div>
+      </motion.a>
+    </motion.div>
   );
 };
 

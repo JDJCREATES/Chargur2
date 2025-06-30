@@ -70,10 +70,10 @@ function toElkNodes(nodes: Node[]): ElkNode[] {
     height: node.height || node.data?.size?.height || 100,
     x: node.position.x,
     y: node.position.y,
-    // Add metadata for later reference
+    // Add metadata for later reference - use proper LayoutOptions format
     layoutOptions: {
-      'nodeType': node.type,
-      'nodeStage': node.data?.metadata?.stage || 'unknown'
+      'elk.nodeType': node.type || 'default',
+      'elk.nodeStage': node.data?.metadata?.stage || 'unknown'
     }
   }));
 }
@@ -158,13 +158,13 @@ export async function getLayoutedElements(
       algorithm: layoutOptions.algorithm,
       nodeCount: nodes.length,
       stageGroups: layoutedGraph.children?.length || 0,
-      layoutedNodes: layoutedGraph.children?.reduce((count, group) => count + (group.children?.length || 0), 0) || 0
+      layoutedNodes: layoutedGraph.children?.reduce((count: number, group: any) => count + (group.children?.length || 0), 0) || 0
     });
     
     // Log a sample of node positions for the first few nodes
     if (layoutedGraph.children && layoutedGraph.children[0]?.children) {
       const sampleNodes = layoutedGraph.children[0].children.slice(0, 3);
-      console.log('📍 Sample node positions:', sampleNodes.map(node => ({
+      console.log('📍 Sample node positions:', sampleNodes.map((node: any) => ({
         id: node.id,
         x: node.x,
         y: node.y,
@@ -180,9 +180,9 @@ export async function getLayoutedElements(
     if (layoutedGraph.children) {
       if (groupNodesByStage) {
         // Process nodes grouped by stage
-        layoutedGraph.children.forEach(stageGroup => {
+        layoutedGraph.children.forEach((stageGroup: any) => {
           if (stageGroup.children) {
-            stageGroup.children.forEach(elkNode => {
+            stageGroup.children.forEach((elkNode: any) => {
               const nodeIndex = layoutedNodes.findIndex(n => n.id === elkNode.id);
               if (nodeIndex !== -1 && elkNode.x !== undefined && elkNode.y !== undefined) {
                 // Update node position and dimensions
@@ -202,7 +202,7 @@ export async function getLayoutedElements(
         });
       } else {
         // Process nodes directly under root
-        layoutedGraph.children.forEach(elkNode => {
+        layoutedGraph.children.forEach((elkNode: any) => {
           const nodeIndex = layoutedNodes.findIndex(n => n.id === elkNode.id);
           if (nodeIndex !== -1 && elkNode.x !== undefined && elkNode.y !== undefined) {
             // Update node position and dimensions

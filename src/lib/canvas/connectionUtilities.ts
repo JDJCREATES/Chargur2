@@ -5,7 +5,7 @@
  * Provides functions for styling edges, generating labels, and managing connection data.
  */
 
-import { Node, Edge } from 'reactflow';
+import { Node, Edge, MarkerType } from 'reactflow';
 import { v4 as uuidv4 } from 'uuid';
 
 /**
@@ -20,7 +20,7 @@ export interface EdgeStyle {
     strokeDasharray?: string;
   };
   markerEnd?: {
-    type: string;
+    type: MarkerType;
     color?: string;
   };
 }
@@ -34,7 +34,7 @@ export function getEdgeStyle(sourceNode?: Node, targetNode?: Node): EdgeStyle {
     type: 'smoothstep',
     animated: false,
     style: { stroke: '#9CA3AF', strokeWidth: 2 },
-    markerEnd: { type: 'arrow' }
+    markerEnd: { type: MarkerType.Arrow }
   };
 
   if (!sourceNode || !targetNode) {
@@ -51,28 +51,28 @@ export function getEdgeStyle(sourceNode?: Node, targetNode?: Node): EdgeStyle {
           type: 'smoothstep',
           animated: false,
           style: { stroke: '#ef4444', strokeWidth: 2, strokeDasharray: '5,5' },
-          markerEnd: { type: 'arrow', color: '#ef4444' }
+          markerEnd: { type: MarkerType.Arrow, color: '#ef4444' }
         };
       case 'enhances':
         return {
           type: 'smoothstep',
           animated: false,
           style: { stroke: '#10b981', strokeWidth: 2, strokeDasharray: '5,5' },
-          markerEnd: { type: 'arrow', color: '#10b981' }
+          markerEnd: { type: MarkerType.Arrow, color: '#10b981' }
         };
       case 'conflicts':
         return {
           type: 'smoothstep',
           animated: true,
           style: { stroke: '#f97316', strokeWidth: 2, strokeDasharray: '5,5' },
-          markerEnd: { type: 'arrow', color: '#f97316' }
+          markerEnd: { type: MarkerType.Arrow, color: '#f97316' }
         };
       default:
         return {
           type: 'smoothstep',
           animated: false,
           style: { stroke: '#3b82f6', strokeWidth: 2, strokeDasharray: '5,5' },
-          markerEnd: { type: 'arrow', color: '#3b82f6' }
+          markerEnd: { type: MarkerType.Arrow, color: '#3b82f6' }
         };
     }
   }
@@ -83,7 +83,7 @@ export function getEdgeStyle(sourceNode?: Node, targetNode?: Node): EdgeStyle {
       type: 'smoothstep',
       animated: true,
       style: { stroke: '#10b981', strokeWidth: 3 },
-      markerEnd: { type: 'arrow', color: '#10b981' }
+      markerEnd: { type: MarkerType.Arrow, color: '#10b981' }
     };
   }
 
@@ -93,7 +93,7 @@ export function getEdgeStyle(sourceNode?: Node, targetNode?: Node): EdgeStyle {
       type: 'smoothstep',
       animated: false,
       style: { stroke: '#f59e0b', strokeWidth: 3 },
-      markerEnd: { type: 'arrow', color: '#f59e0b' }
+      markerEnd: { type: MarkerType.Arrow, color: '#f59e0b' }
     };
   }
 
@@ -103,7 +103,7 @@ export function getEdgeStyle(sourceNode?: Node, targetNode?: Node): EdgeStyle {
       type: 'smoothstep',
       animated: false,
       style: { stroke: '#10b981', strokeWidth: 3 },
-      markerEnd: { type: 'arrow', color: '#10b981' }
+      markerEnd: { type: MarkerType.Arrow, color: '#10b981' }
     };
   }
 
@@ -113,7 +113,7 @@ export function getEdgeStyle(sourceNode?: Node, targetNode?: Node): EdgeStyle {
       type: 'smoothstep',
       animated: false,
       style: { stroke: '#8b5cf6', strokeWidth: 2 },
-      markerEnd: { type: 'arrow', color: '#8b5cf6' }
+      markerEnd: { type: MarkerType.Arrow, color: '#8b5cf6' }
     };
   }
 
@@ -123,7 +123,7 @@ export function getEdgeStyle(sourceNode?: Node, targetNode?: Node): EdgeStyle {
       type: 'smoothstep',
       animated: false,
       style: { stroke: '#10b981', strokeWidth: 2 },
-      markerEnd: { type: 'arrow', color: '#10b981' }
+      markerEnd: { type: MarkerType.Arrow, color: '#10b981' }
     };
   }
 
@@ -134,7 +134,7 @@ export function getEdgeStyle(sourceNode?: Node, targetNode?: Node): EdgeStyle {
       type: 'smoothstep',
       animated: false,
       style: { stroke: '#6366f1', strokeWidth: 2 },
-      markerEnd: { type: 'arrow', color: '#6366f1' }
+      markerEnd: { type: MarkerType.Arrow, color: '#6366f1' }
     };
   }
 
@@ -145,7 +145,7 @@ export function getEdgeStyle(sourceNode?: Node, targetNode?: Node): EdgeStyle {
       type: 'smoothstep',
       animated: false,
       style: { stroke: '#8b5cf6', strokeWidth: 2 },
-      markerEnd: { type: 'arrow', color: '#8b5cf6' }
+      markerEnd: { type: MarkerType.Arrow, color: '#8b5cf6' }
     };
   }
 
@@ -156,7 +156,7 @@ export function getEdgeStyle(sourceNode?: Node, targetNode?: Node): EdgeStyle {
       type: 'smoothstep',
       animated: true,
       style: { stroke: '#ef4444', strokeWidth: 2 },
-      markerEnd: { type: 'arrow', color: '#ef4444' }
+      markerEnd: { type: MarkerType.Arrow, color: '#ef4444' }
     };
   }
 
@@ -166,7 +166,7 @@ export function getEdgeStyle(sourceNode?: Node, targetNode?: Node): EdgeStyle {
       type: 'smoothstep',
       animated: false,
       style: { stroke: '#ef4444', strokeWidth: 2, strokeDasharray: '3,3' },
-      markerEnd: { type: 'arrow', color: '#ef4444' }
+      markerEnd: { type: MarkerType.Arrow, color: '#ef4444' }
     };
   }
 
@@ -176,7 +176,7 @@ export function getEdgeStyle(sourceNode?: Node, targetNode?: Node): EdgeStyle {
       type: 'smoothstep',
       animated: false,
       style: { stroke: '#6366f1', strokeWidth: 2 },
-      markerEnd: { type: 'arrow', color: '#6366f1' }
+      markerEnd: { type: MarkerType.Arrow, color: '#6366f1' }
     };
   }
 
@@ -186,7 +186,7 @@ export function getEdgeStyle(sourceNode?: Node, targetNode?: Node): EdgeStyle {
       type: 'smoothstep',
       animated: false,
       style: { stroke: '#3b82f6', strokeWidth: 2 },
-      markerEnd: { type: 'arrow', color: '#3b82f6' }
+      markerEnd: { type: MarkerType.Arrow, color: '#3b82f6' }
     };
   }
 
@@ -196,7 +196,7 @@ export function getEdgeStyle(sourceNode?: Node, targetNode?: Node): EdgeStyle {
       type: 'smoothstep',
       animated: false,
       style: { stroke: '#ec4899', strokeWidth: 2 },
-      markerEnd: { type: 'arrow', color: '#ec4899' }
+      markerEnd: { type: MarkerType.Arrow, color: '#ec4899' }
     };
   }
 
@@ -288,6 +288,7 @@ export function generateConnectionLabel(sourceNode?: Node, targetNode?: Node): s
 
   return undefined;
 }
+
 
 /**
  * Get the dependency type between two feature nodes
@@ -445,6 +446,6 @@ export function createEdge(
     markerEnd: edgeStyle.markerEnd,
     label,
     labelStyle: { fill: edgeStyle.style.stroke, fontWeight: 500, fontSize: 12 },
-    labelBgStyle: { fill: '#ffffff', fillOpacity: 0.8, rx: 4, ry: 4 }
+    labelBgStyle: { fill: '#ffffff', fillOpacity: 0.8 }
   };
 }
