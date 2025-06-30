@@ -287,7 +287,7 @@ export const useAgentChat = ({
     
       
       const requestBody = {
-        // Remove stage_id to make conversations project-level instead of stage-level
+        stage_id: stageId, // Required field in database schema
         project_id: projectId,
         metadata: {
           currentStageData,
