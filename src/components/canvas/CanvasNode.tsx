@@ -6,7 +6,8 @@
   title: string;
   content: string;
   position: { x: number; y: number };
-  size: { width: number; height: number };
+  width?: number;
+  height?: number;
   color: string;
   connections: string[];
   metadata?: any;
@@ -43,7 +44,7 @@
 }
 
 interface CanvasNodeProps {
-  node: Node;
+  node: Node<any>;
   isSelected: boolean;
   isConnecting?: boolean;
   onSelect: (nodeId: string) => void;

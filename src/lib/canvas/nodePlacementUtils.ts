@@ -102,7 +102,7 @@ export function getSmartNodePosition(
   stageId?: string,
   isUserCreated: boolean = false
 ): Position {
-  console.log(`Getting smart position for ${nodeType} node, isUserCreated: ${isUserCreated}, stageId: ${stageId || 'none'}`);
+  console.log(`Getting smart position for ${nodeType} node, size: ${nodeSize.width}x${nodeSize.height}, isUserCreated: ${isUserCreated}, stageId: ${stageId || 'none'}`);
   
   // Handle singleton nodes (only one should exist)
   if (['appName', 'tagline', 'coreProblem', 'mission', 'valueProp'].includes(nodeType)) {
