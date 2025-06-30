@@ -40,7 +40,7 @@ const TechStackNode: React.FC<NodeProps> = ({
       />
 
       <div className={`
-        relative bg-gradient-to-br from-indigo-50 to-purple-50 
+        relative w-full h-full bg-gradient-to-br from-indigo-50 to-purple-50 
         rounded-lg shadow-md border-2 transition-all duration-300
         ${selected ? 'border-indigo-400 shadow-lg' : 'border-indigo-200'}
         ${isPlaceholder ? 'opacity-70' : 'opacity-100'}
@@ -52,7 +52,7 @@ const TechStackNode: React.FC<NodeProps> = ({
         </div>
 
         {/* Main Content */}
-        <div className="p-4 whitespace-normal break-words">
+        <div className="p-4 w-full h-[calc(100%-50px)] whitespace-normal break-words overflow-auto">
           {isPlaceholder ? (
             <div className="text-sm text-indigo-400 italic">
               No technologies selected yet

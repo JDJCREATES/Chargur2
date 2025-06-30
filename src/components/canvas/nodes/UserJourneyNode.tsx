@@ -50,7 +50,7 @@ const UserJourneyNode: React.FC<NodeProps> = ({
       />
 
       <div className={`
-        relative bg-white 
+        relative w-full h-full bg-white 
         rounded-lg shadow-md border-2 transition-all duration-300 overflow-hidden
         ${selected ? 'border-purple-400 shadow-lg' : 'border-purple-200'}
       `}>
@@ -63,7 +63,7 @@ const UserJourneyNode: React.FC<NodeProps> = ({
         </div>
 
         {/* Content - Scrollable */}
-        <div className="p-3 overflow-y-auto whitespace-normal break-words" style={{ maxHeight: 'calc(100% - 50px)' }}>
+        <div className="p-3 w-full h-[calc(100%-50px)] overflow-y-auto whitespace-normal break-words">
           {userFlows.length > 0 ? (
             <div className="space-y-3">
               {userFlows.map((flow) => (

@@ -250,7 +250,7 @@ const FeatureNode: React.FC<NodeProps> = ({
       />
 
       <div className={`
-        relative bg-white 
+        relative w-full h-full bg-white 
         rounded-lg shadow-md border transition-all duration-300
         ${selected ? 'border-blue-400 shadow-lg' : 'border-blue-200'}
       `}>
@@ -295,7 +295,7 @@ const FeatureNode: React.FC<NodeProps> = ({
         )}
 
         {/* Main Content */}
-        <div className="p-3 whitespace-normal break-words">
+        <div className="p-3 w-full whitespace-normal break-words overflow-auto">
           {isEditing ? (
             <div className="space-y-3">
               {/* Description */}

@@ -88,7 +88,7 @@ const UserPersonaNode: React.FC<NodeProps> = ({
       />
 
       <div className={`
-        relative bg-gradient-to-b from-blue-50 to-indigo-50 
+        relative w-full h-full bg-gradient-to-b from-blue-50 to-indigo-50 
         rounded-lg shadow-md border-2 transition-all duration-300
         ${selected ? 'border-blue-400 shadow-lg' : 'border-blue-200'}
       `}>
@@ -122,7 +122,7 @@ const UserPersonaNode: React.FC<NodeProps> = ({
         </div>
 
         {/* Body Content */}
-        <div className="px-4 pb-4 whitespace-normal break-words">
+        <div className="px-4 pb-4 w-full h-[calc(100%-40px)] whitespace-normal break-words overflow-auto">
           {isEditing ? (
             <div className="space-y-3">
               <input

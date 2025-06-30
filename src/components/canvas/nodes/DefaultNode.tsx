@@ -136,7 +136,7 @@ const DefaultNode: React.FC<NodeProps> = ({
       />
 
       <div className={`
-        rounded-lg border-2 shadow-sm transition-all
+        w-full h-full rounded-lg border-2 shadow-sm transition-all
         ${getNodeColors()}
         ${selected ? 'shadow-lg' : 'shadow-sm'}
       `}>
@@ -195,7 +195,7 @@ const DefaultNode: React.FC<NodeProps> = ({
 
         {/* Node Content */}
         {!data?.collapsed && (
-          <div className="p-3 flex-1 overflow-auto whitespace-normal break-words">
+          <div className="p-3 w-full h-[calc(100%-40px)] overflow-auto whitespace-normal break-words">
             {isEditing ? (
               <textarea
                 ref={inputRef}

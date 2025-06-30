@@ -80,13 +80,13 @@ const PlatformNode: React.FC<NodeProps> = ({
       />
 
       <div className={`
-        relative bg-gradient-to-br from-blue-50 to-cyan-50 
+        relative w-full h-full bg-gradient-to-br from-blue-50 to-cyan-50 
         rounded-lg shadow-md border-2 transition-all duration-300
         ${selected ? 'border-blue-400 shadow-lg' : 'border-blue-200'}
         ${isPlaceholder ? 'opacity-70' : 'opacity-100'}
       `}>
         {/* Main Content */}
-        <div className="p-3 flex flex-col whitespace-normal break-words">
+        <div className="p-3 w-full h-full flex flex-col whitespace-normal break-words overflow-auto">
           <div className="flex items-center gap-2 mb-2">
             {getPlatformIcon()}
             <h3 className="font-medium text-sm text-blue-800">{getPlatformLabel()}</h3>

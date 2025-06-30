@@ -164,12 +164,12 @@ const CompetitorNode: React.FC<NodeProps> = ({
       />
 
       <div className={`
-        relative bg-gradient-to-br from-red-50 to-pink-50 
+        relative w-full h-full bg-gradient-to-br from-red-50 to-pink-50 
         rounded-lg shadow-md border-2 transition-all duration-300
         ${selected ? 'border-red-400 shadow-lg' : 'border-red-200'}
       `}>
           {/* Main Content */}
-          <div className="p-3 whitespace-normal break-words">
+          <div className="p-3 w-full h-full whitespace-normal break-words overflow-auto">
             {isEditing ? (
               <div className="space-y-3 max-h-[calc(100%-40px)] overflow-y-auto">
                 {/* Tabs for different sections */}

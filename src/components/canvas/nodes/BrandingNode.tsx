@@ -122,7 +122,7 @@ const BrandingNode: React.FC<NodeProps> = ({
       />
 
       <div className={`
-        relative bg-gradient-to-br from-purple-50 to-pink-50 
+        relative w-full h-full bg-gradient-to-br from-purple-50 to-pink-50 
         rounded-lg shadow-md border-2 transition-all duration-300
         ${selected ? 'border-purple-400 shadow-lg' : 'border-purple-200'}
       `}>
@@ -145,7 +145,7 @@ const BrandingNode: React.FC<NodeProps> = ({
         </div>
 
         {/* Content */}
-        <div className="p-3 whitespace-normal break-words">
+        <div className="p-3 w-full h-[calc(100%-50px)] whitespace-normal break-words overflow-auto">
           {isEditing ? (
             <div className="space-y-3">
               {/* Color Pickers */}

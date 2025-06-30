@@ -100,7 +100,7 @@ const MarkdownCodeNode: React.FC<NodeProps<MarkdownCodeNodeData>> = ({
       />
 
       <div className={`
-        relative bg-gray-900 
+        relative w-full h-full bg-gray-900 
         rounded-lg shadow-md border-2 transition-all duration-300
         ${selected ? 'border-green-400 shadow-lg' : 'border-green-200'}
       `}>
@@ -136,7 +136,7 @@ const MarkdownCodeNode: React.FC<NodeProps<MarkdownCodeNodeData>> = ({
         </div>
 
         {/* Content */}
-        <div className="p-3 overflow-auto whitespace-normal break-words max-h-[calc(100%-40px)]">
+        <div className="p-3 w-full h-[calc(100%-40px)] overflow-auto whitespace-normal break-words">
           {isEditing ? (
             <textarea
               ref={textareaRef}

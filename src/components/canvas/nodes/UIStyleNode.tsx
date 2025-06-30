@@ -92,7 +92,7 @@ const UIStyleNode: React.FC<NodeProps> = ({
       />
 
       <div className={`
-        relative bg-gradient-to-br ${colors.bg}
+        relative w-full h-full bg-gradient-to-br ${colors.bg}
         rounded-lg shadow-md border-2 ${colors.border} transition-all duration-300
         ${selected ? 'shadow-lg' : 'shadow-sm'}
         ${isPlaceholder ? 'opacity-70' : 'opacity-100'}
@@ -104,7 +104,7 @@ const UIStyleNode: React.FC<NodeProps> = ({
         </div>
 
         {/* Style Preview */}
-        <div className="p-4 whitespace-normal break-words">
+        <div className="p-4 w-full h-[calc(100%-50px)] whitespace-normal break-words overflow-auto">
           {isPlaceholder ? (
             <div className="text-sm text-gray-400 italic">
               No UI style selected yet

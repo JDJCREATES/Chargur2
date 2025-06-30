@@ -120,7 +120,7 @@ const ArchitectureNode: React.FC<NodeProps> = ({
       />
 
       <div className={`
-        relative bg-white 
+        relative w-full h-full bg-white 
         rounded-lg shadow-md border-2 transition-all duration-300 overflow-hidden
         ${selected ? 'border-indigo-400 shadow-lg' : 'border-indigo-200'}
       `}>
@@ -133,7 +133,7 @@ const ArchitectureNode: React.FC<NodeProps> = ({
         </div>
 
         {/* Content - Scrollable */}
-        <div className="p-2 overflow-y-auto whitespace-normal break-words" style={{ maxHeight: 'calc(100% - 40px)' }}>
+        <div className="p-2 w-full h-[calc(100%-40px)] overflow-y-auto whitespace-normal break-words">
           {/* Screens Section */}
           <div className="mb-2">
             <div 

@@ -81,7 +81,7 @@ const AppNameNode: React.FC<NodeProps> = ({
 
       <div 
         className={`
-        relative bg-gradient-to-r from-blue-600 to-purple-600 
+        relative w-full h-full bg-gradient-to-r from-blue-600 to-purple-600 
         rounded-xl shadow-lg border-2 transition-all duration-300
         ${selected ? 'border-white shadow-2xl' : 'border-blue-400'}
         ${isPlaceholder ? 'opacity-70' : 'opacity-100'}
@@ -89,7 +89,7 @@ const AppNameNode: React.FC<NodeProps> = ({
         onDoubleClick={handleDoubleClick}
       >
           {/* Main Content */}
-          <div className="p-6 flex flex-col items-center justify-center whitespace-normal break-words">
+          <div className="p-6 w-full h-full flex flex-col items-center justify-center whitespace-normal break-words">
             {isEditing ? (
               <input
                 ref={inputRef}

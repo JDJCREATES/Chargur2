@@ -84,7 +84,7 @@ const RouteApiMappingNode: React.FC<NodeProps> = ({
       />
 
       <div className={`
-        relative bg-white 
+        relative w-full h-full bg-white 
         rounded-lg shadow-md border-2 transition-all duration-300
         ${selected ? 'border-cyan-400 shadow-lg' : 'border-cyan-200'}
       `}>
@@ -112,7 +112,7 @@ const RouteApiMappingNode: React.FC<NodeProps> = ({
 
         {/* Content */}
         {isExpanded && (
-          <div className="p-3 whitespace-normal break-words">
+          <div className="p-3 w-full h-[calc(100%-50px)] whitespace-normal break-words overflow-auto">
             {/* Frontend Route Section */}
             <div className="mb-3">
               <div className="flex items-center gap-2 mb-2">

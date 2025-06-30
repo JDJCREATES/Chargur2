@@ -104,7 +104,7 @@ const CoreProblemNode: React.FC<NodeProps> = ({
       />
 
       <div className={`
-        relative bg-gradient-to-br from-orange-100 to-red-100 
+        relative w-full h-full bg-gradient-to-br from-orange-100 to-red-100 
         rounded-lg shadow-md border-2 transition-all duration-300 transform rotate-1
         ${selected ? 'border-orange-400 shadow-lg rotate-0' : 'border-orange-200'}
         ${isPlaceholder ? 'opacity-70' : 'opacity-100'}
@@ -118,7 +118,7 @@ const CoreProblemNode: React.FC<NodeProps> = ({
           </div>
 
           {/* Main Content */}
-          <div className="p-4 pt-12 whitespace-normal break-words">
+          <div className="p-4 pt-12 w-full h-[calc(100%-12px)] whitespace-normal break-words overflow-auto">
             {isEditing ? (
               <textarea
                 ref={textareaRef}

@@ -447,7 +447,7 @@ const LofiLayoutNodeComponent: React.FC<NodeProps<LofiLayoutNodeData>> = ({
       />
 
       <div className={`
-        relative bg-white 
+        relative w-full h-full bg-white 
         rounded-lg shadow-md border-2 transition-all duration-300
         ${selected ? 'border-blue-400 shadow-lg' : 'border-blue-200'}
       `}>
