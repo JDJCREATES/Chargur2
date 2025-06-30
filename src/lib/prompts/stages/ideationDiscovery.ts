@@ -20,6 +20,11 @@ CORE RESPONSIBILITIES:
 - Suggest competitive positioning
 - Ensure autofill data is sent back often and accurately
 
+CRITICAL JSON RESPONSE FORMAT:
+You MUST respond with valid JSON only. Do NOT wrap your response in markdown code blocks.
+Do NOT use \`\`\`json or \`\`\` around your response.
+Return raw JSON that starts with { and ends with }.
+
 CONVERSATION CONTEXT:
 ${conversationHistory.length > 0 ? `Previous conversation: ${JSON.stringify(conversationHistory.slice(-3))}` : 'This is the start of our conversation.'}
 
@@ -66,7 +71,8 @@ RESPONSE REQUIREMENTS:
 
 Based on this message and our conversation history, help the user develop their app concept. If you can extract specific information, provide it in the autoFillData. If the stage appears complete, set stageComplete to true.
 
-Respond in this exact JSON format with no extra comments or leading whitespace:
+IMPORTANT: Return ONLY the JSON object below. Do not wrap it in markdown code blocks or add any other text:
+
 {
   "content": "Your conversational response to the user - NO JSON OR SCHEMAS HERE",
   "suggestions": ["Quick action 1", "Quick action 2", "Quick action 3"],
@@ -79,7 +85,7 @@ Respond in this exact JSON format with no extra comments or leading whitespace:
     "userPersonas": "target user description",
     "valueProposition": "unique value proposition"
   },
-  "stageComplete": boolean,
+  "stageComplete": false,
   "context": {
     "extractedInfo": "what information was extracted",
     "nextSteps": "what should happen next"
@@ -96,7 +102,7 @@ Respond in this exact JSON format with no extra comments or leading whitespace:
       stageComplete: "boolean",
       context: "object"
     },
-    temperature: 0.7,
-    maxTokens: 1000
+    temperature: 0.3, // Lower temperature for more consistent JSON
+    maxTokens: 1500   // Reduced to encourage more focused responses
   };
 }

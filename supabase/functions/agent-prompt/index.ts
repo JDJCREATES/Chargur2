@@ -755,10 +755,25 @@ function parseAndValidateResponse(llmResponse: string, stageId: string): AgentRe
   console.log('🔧 parseAndValidateResponse called')
   console.log('📄 Response to parse (first 500 chars):', llmResponse.substring(0, 500))
 
+  // Clean the response before parsing
+  let cleanedResponse = llmResponse.trim();
+  
+  // Remove markdown code blocks
+  cleanedResponse = cleanedResponse
+    .replace(/^\s*/i, '')
+    .replace(/^\s*/, '')
+    .replace(/\s*```$/g, '')
+    .trim();
+  
+  // Remove any leading/trailing whitespace or newlines
+  cleanedResponse = cleanedResponse.replace(/^\s+|\s+$/g, '');
+  
+  console.log('🧹 Cleaned response (first 200 chars):', cleanedResponse.substring(0, 200));
+
   try {
     // Try to parse JSON response
     console.log('📋 Attempting to parse JSON...')
-    const parsed = JSON.parse(llmResponse)
+    const parsed = JSON.parse(cleanedResponse)
     console.log('✅ JSON parsed successfully')
     console.log('🔍 Parsed keys:', Object.keys(parsed))
     
@@ -812,7 +827,6 @@ function parseAndValidateResponse(llmResponse: string, stageId: string): AgentRe
       parsed.context = {}
     }
     
-    // Check for goToStageId field
     console.log('✅ Response validation completed successfully')
     return {
       content: parsed.content || '',
@@ -825,15 +839,29 @@ function parseAndValidateResponse(llmResponse: string, stageId: string): AgentRe
   } catch (error) {
     console.error('❌ Failed to parse LLM response:', error)
     console.error('📄 Raw response that failed to parse:', llmResponse)
+    console.error('🧹 Cleaned response that failed to parse:', cleanedResponse)
+    
+    // Try to extract content from malformed JSON
+    let extractedContent = '';
+    try {
+      // Look for content field in the raw response
+      const contentMatch = llmResponse.match(/"content"\s*:\s*"([^"]*(?:\\.[^"]*)*)"/);
+      if (contentMatch) {
+        extractedContent = contentMatch[1].replace(/\\"/g, '"').replace(/\\n/g, '\n');
+        console.log('✅ Extracted content from malformed JSON:', extractedContent.substring(0, 100));
+      }
+    } catch (extractError) {
+      console.error('❌ Failed to extract content:', extractError);
+    }
     
     // Fallback response
     console.log('🔄 Using fallback response')
     return {
-      content: llmResponse || "I'm here to help you with this stage. What would you like to work on?",
+      content: extractedContent || llmResponse || "I'm here to help you with this stage. What would you like to work on?",
       suggestions: ["Tell me more about your needs", "What should we focus on?", "Help me understand your goals"],
       autoFillData: { [stageId]: {} },
       stageComplete: false,
-      context: { parseError: true, originalResponse: llmResponse }
+      context: { parseError: true, originalResponse: llmResponse, cleanedResponse }
     }
   }
 }
