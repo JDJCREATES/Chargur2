@@ -36,9 +36,9 @@ export const BoltBadge: React.FC = () => {
       >
         <img 
           ref={badgeRef}
-          src="https://storage.bolt.army/logotext_poweredby_360w.png" 
+          src="https://storage.bolt.army/logotext_poweredby_360w.png"
           alt="Powered by Bolt.new badge" 
-          className="h-8 md:h-10 w-auto shadow-lg opacity-90 hover:opacity-100 bolt-badge-intro"
+          className="h-8 md:h-10 w-auto shadow-lg opacity-90 hover:opacity-100 bolt-badge-intro bolt-badge-filter"
         />
       </a>
       

@@ -75,3 +75,13 @@
 .dark-mode .shadow-xl {
   box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.2), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
 }
+
+/* Bolt badge filter - inverts the white badge to black in light mode */
+.bolt-badge-filter {
+  filter: invert(1);
+}
+
+/* Revert the inversion in dark mode to make the badge white again */
+.dark-mode .bolt-badge-filter {
+  filter: none;
+}
