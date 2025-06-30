@@ -7,7 +7,7 @@ The Chargur AI Agent is the intelligent core of our UX design and app architectu
 ## Architecture
 
 ### Core Components
-
+      **deprecated**
 1. **AgentContextProvider** (`src/components/agent/AgentContextProvider.tsx`)
    - Manages global agent state and memory
    - Provides cross-stage intelligence and recommendations
