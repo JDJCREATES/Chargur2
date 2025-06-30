@@ -246,13 +246,6 @@ Please implement this application completely and correctly, following all specif
     }
   };
 
-  const copyToClipboard = async (text: string) => {
-    try {
-      await navigator.clipboard.writeText(text);
-    } catch (err) {
-      console.error('Failed to copy text: ', err);
-    }
-  };
 
   const exportFormats = [
     {
