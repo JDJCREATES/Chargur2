@@ -109,6 +109,22 @@ export const useAgentChat = ({
   // Reset chat state when projectId or stageId changes
   React.useEffect(() => {
     const loadExistingConversation = async () => {
+      // Reset state when projectId changes to clear chat history
+      if (projectId) {
+        setState(prev => ({
+          ...prev,
+          isLoading: true,
+          error: null,
+          content: '',
+          suggestions: [],
+          autoFillData: {},
+          isComplete: false,
+          conversationId: null,
+          historyMessages: [],
+          goToStageId: null
+        }));
+      }
+      
       // Skip if projectId or stageId are null/empty - this prevents resetting during transient states
       if (!projectId || !stageId) {
         console.log('⚠️ projectId or stageId is missing, skipping conversation load/reset');
@@ -118,18 +134,7 @@ export const useAgentChat = ({
       try {
         // Only proceed if we have all required data
         if (!projectId || !stageId || !user || !session?.access_token) {
-          console.log('⚠️ Missing required data to load conversation:', { 
-            hasProjectId: !!projectId, 
-            hasStageId: !!stageId, 
-            hasUser: !!user 
-          });
-          
-          // Reset only conversation-specific state, not the entire state
-          setState(prev => ({
-            ...prev,
-            isLoading: false,
-            error: null
-          }));
+          setState(prev => ({ ...prev, isLoading: false }));
           return;
         }
         
@@ -137,7 +142,7 @@ export const useAgentChat = ({
         
         // Set loading state while we check for existing conversations
         setState(prev => ({ ...prev, isLoading: true, error: null }));
-        
+
         const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
         const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY;
 
