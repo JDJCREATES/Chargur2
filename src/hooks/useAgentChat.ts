@@ -151,6 +151,12 @@ export const useAgentChat = ({
         // Only proceed if we have all required data
         if (!projectId || !stageId || !user || !session?.access_token) {
           setState(prev => ({ ...prev, isLoading: false }));
+          return;
+        }
+
+        const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
+        const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY;
+
         if (!supabaseUrl || !supabaseAnonKey) {
           throw new Error('Missing Supabase configuration');
         }
@@ -355,11 +361,10 @@ export const useAgentChat = ({
   }, [session]);
   
 
-  // REPLACE the entire processWithEdgeFunction with this:
-const processWithEdgeFunction = useCallback(async (
-  conversationId: string,
-  userMessage: string,
-  signal: AbortSignal
+  const processWithEdgeFunction = useCallback(async (
+    conversationId: string,
+    userMessage: string,
+    signal: AbortSignal
 ): Promise<void> => {
   // Check authentication
   if (!session?.access_token) {
