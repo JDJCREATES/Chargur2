@@ -109,43 +109,31 @@ export const useAgentChat = ({
   // Reset chat state when projectId or stageId changes
   React.useEffect(() => {
     const loadExistingConversation = async () => {
-      // Reset state when projectId changes to clear chat history
-      if (projectId) {
-        setState(prev => ({
-          ...prev,
-          isLoading: true,
-          error: null,
-          content: '',
-          suggestions: [],
-          autoFillData: {},
-          isComplete: false,
-          conversationId: null,
-          historyMessages: [],
-          goToStageId: null
-        }));
-      }
-      
       // Skip if projectId or stageId are null/empty - this prevents resetting during transient states
-      // Reset state when projectId changes to clear chat history
-      if (projectId) {
-        setState(prev => ({
-          ...prev,
-          isLoading: true,
-          error: null,
-          content: '',
-          suggestions: [],
-          autoFillData: {},
-          isComplete: false,
-          conversationId: null,
-          historyMessages: [],
-          goToStageId: null
-        }));
-      }
-      
       if (!projectId || !stageId) {
         console.log('⚠️ projectId or stageId is missing, skipping conversation load/reset');
+        // Only reset if we don't have a project or stage
+        setState(prev => ({
+          ...prev,
+          isLoading: false,
+          error: null,
+          content: '',
+          suggestions: [],
+          autoFillData: {},
+          isComplete: false,
+          conversationId: null,
+          historyMessages: [],
+          goToStageId: null
+        }));
         return;
       }
+      
+      // Set loading state but preserve history until we know if we need to reset it
+      setState(prev => ({
+        ...prev,
+        isLoading: true,
+        error: null
+      }));
       
       try {
         // Only proceed if we have all required data
@@ -182,31 +170,72 @@ export const useAgentChat = ({
         if (conversations.length > 0) {
           const existingConversation = conversations[0];
           console.log('✅ Found existing conversation:', existingConversation.id);
-          
-          // Set the conversation ID in state
+
+          // Set the conversation ID in state but don't clear history yet
           setState(prev => ({ 
             ...prev, 
             conversationId: existingConversation.id,
-            isLoading: false
+            isLoading: true // Keep loading until history is loaded
           }));
           
           // Load chat history for this conversation
           await loadChatHistory(existingConversation.id);
           
           console.log('✅ Chat history loaded successfully');
-        } else {
-          console.log('ℹ️ No existing conversation found, will create new one on first message');
+          
+          // Now that history is loaded, set loading to false
           setState(prev => ({ 
             ...prev, 
             isLoading: false 
           }));
+        } else {
+          console.log('ℹ️ No existing conversation found, will create new one on first message');
+          // No existing conversation, so we can safely reset the state
+          setState(prev => ({
+            ...prev,
+            isLoading: false,
+            content: '',
+            suggestions: [],
+            autoFillData: {},
+            isComplete: false,
+            conversationId: null,
+            historyMessages: [],
+            goToStageId: null
+          }));
         }
       } catch (error) {
         console.error('❌ Error loading existing conversation:', error);
+        
+        // On error, we should still try to recover any existing history if possible
+        try {
+          if (conversationId) {
+            const recoveryResult = await attemptRecovery(conversationId);
+            if (recoveryResult) {
+              console.log('✅ Successfully recovered conversation state');
+              setState(prev => ({ 
+                ...prev, 
+                isLoading: false,
+                error: `Error loading conversation, but recovery succeeded: ${error instanceof Error ? error.message : 'Unknown error'}`
+              }));
+              return;
+            }
+          }
+        } catch (recoveryError) {
+          console.error('❌ Recovery attempt also failed:', recoveryError);
+        }
+        
+        // If recovery failed or wasn't possible, reset state
         setState(prev => ({ 
           ...prev, 
           error: error instanceof Error ? error.message : 'Failed to load conversation',
-          isLoading: false 
+          isLoading: false,
+          content: '',
+          suggestions: [],
+          autoFillData: {},
+          isComplete: false,
+          conversationId: null,
+          historyMessages: [],
+          goToStageId: null
         }));
       }
     };
@@ -304,11 +333,16 @@ export const useAgentChat = ({
   // Load chat history from database
   const loadChatHistory = useCallback(async (conversationId: string) => {
     try {
-      console.log('📚 Loading chat history for conversation:', conversationId);
+      console.log('📚 Loading chat history for conversation:', conversationId, 'with token:', session?.access_token?.substring(0, 10) + '...');
       if (!session?.access_token) return;
 
       const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
       const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY;
+      
+      if (!supabaseUrl || !supabaseAnonKey) {
+        console.error('❌ Missing Supabase configuration');
+        return;
+      }
 
       const response = await fetch(
         `${supabaseUrl}/rest/v1/chat_responses?conversation_id=eq.${conversationId}&order=created_at.asc`,
@@ -323,7 +357,14 @@ export const useAgentChat = ({
       if (response.ok) {
         const responses = await response.json();
         console.log(`📚 Found ${responses.length} messages in history`);
-        const historyMessages: ChatMessage[] = [];
+        
+        if (responses.length === 0) {
+          console.log('📚 No messages found in history, keeping current state');
+          return;
+        }
+        
+        // Create new history messages array
+        let historyMessages: ChatMessage[] = [];
         
         responses.forEach((resp: any) => {
           // Add user message
@@ -351,12 +392,27 @@ export const useAgentChat = ({
         });
         
         console.log(`📚 Processed ${historyMessages.length} messages for history`);
-        setState(prev => ({ ...prev, historyMessages }));
+        
+        // Update state with new history messages
+        setState(prev => ({ 
+          ...prev, 
+          historyMessages,
+          // If we have a complete response, also update these fields
+          ...(historyMessages.length > 0 && historyMessages[historyMessages.length - 1].type === 'assistant' && historyMessages[historyMessages.length - 1].isComplete ? {
+            content: historyMessages[historyMessages.length - 1].content,
+            suggestions: historyMessages[historyMessages.length - 1].suggestions || [],
+            autoFillData: historyMessages[historyMessages.length - 1].autoFillData || {},
+            isComplete: true
+          } : {})
+        }));
       } else {
-        console.error('❌ Failed to load chat history:', response.status, response.statusText);
+        const errorText = await response.text();
+        console.error('❌ Failed to load chat history:', response.status, response.statusText, errorText);
+        throw new Error(`Failed to load chat history: ${response.status} ${response.statusText}`);
       }
     } catch (error) {
       console.error('❌ Failed to load chat history:', error);
+      throw error; // Propagate error for recovery attempt
     }
   }, [session]);
   
@@ -544,6 +600,16 @@ export const useAgentChat = ({
   const attemptRecovery = useCallback(async (conversationId: string): Promise<boolean> => {
     try {
       console.log('🔄 Attempting conversation recovery...');
+
+      // First try to load chat history directly
+      try {
+        await loadChatHistory(conversationId);
+        console.log('✅ Recovery successful via direct history load');
+        return true;
+      } catch (historyError) {
+        console.error('❌ Direct history load failed:', historyError);
+        // Continue with fallback recovery methods
+      }
       
       // Get the last complete response from chat_responses table
       const lastResponse = await ChatStorageManager.getLastCompleteResponse(conversationId);
@@ -566,7 +632,22 @@ export const useAgentChat = ({
           }
         }
         
-        console.log('✅ Recovery successful');
+        console.log('✅ Recovery successful via last complete response');
+        return true;
+      }
+      
+      // If no complete response, try to get any response
+      const anyResponse = await ChatStorageManager.getLastResponse(conversationId);
+      if (anyResponse) {
+        setState(prev => ({
+          ...prev,
+          content: anyResponse.full_content || '',
+          suggestions: anyResponse.suggestions || [],
+          autoFillData: anyResponse.auto_fill_data || {},
+          isComplete: anyResponse.is_complete || false
+        }));
+        
+        console.log('✅ Recovery successful via last partial response');
         return true;
       }
       
@@ -575,11 +656,12 @@ export const useAgentChat = ({
       console.error('❌ Recovery failed:', error);
       return false;
     }
-  }, [onAutoFill, onStageComplete]);
+  }, [onAutoFill, onStageComplete, loadChatHistory]);
 
   const sendMessage = useCallback(async (userMessage: string): Promise<void> => {
     // Early authentication check
     if (!user || !session?.access_token) {
+      console.error('❌ User not authenticated');
       setState(prev => ({
         ...prev,
         error: 'Please sign in to chat with the AI assistant'
@@ -590,7 +672,7 @@ export const useAgentChat = ({
     // If there's a completed response, add it to history before starting a new one
     if (state.isComplete && state.content) {
       const aiMsg: ChatMessage = {
-        id: `assistant-${Date.now() - 100}`,
+        id: `assistant-${Date.now()}`,
         content: state.content,
         timestamp: new Date(),
         type: 'assistant',
@@ -611,8 +693,9 @@ export const useAgentChat = ({
     }
 
     // Add user message to history immediately
+    const messageId = `user-${Date.now()}`;
     const userMsg: ChatMessage = {
-      id: `user-${Date.now()}`,
+      id: messageId,
       content: userMessage.trim(),
       timestamp: new Date(),
       type: 'user',
@@ -627,7 +710,7 @@ export const useAgentChat = ({
     // Then reset response state (React will batch these updates)
     setState(prev => ({
       ...prev,
-      isLoading: true,
+      isLoading: true, 
       error: null,
       content: '',
       suggestions: [],
@@ -641,22 +724,26 @@ export const useAgentChat = ({
     const attemptRequest = async (): Promise<void> => {
       const controller = new AbortController();
       abortControllerRef.current = controller;
+      
+      let currentConversationId = state.conversationId;
 
       try {
         // Get or create conversation
-        let conversationId = state.conversationId;
-        if (!conversationId) {
-          conversationId = await createConversation();
-          setState(prev => ({ ...prev, conversationId }));
+        if (!currentConversationId) {
+          currentConversationId = await createConversation();
+          if (!currentConversationId) {
+            throw new Error('Failed to create conversation');
+          }
+          setState(prev => ({ ...prev, conversationId: currentConversationId }));
         }
 
-        if (!conversationId) {
+        if (!currentConversationId) {
           throw new Error('Failed to create or retrieve conversation ID');
         }
 
         // Always use Edge Function processing (since prompts are handled there)
         console.log('🔄 Using Edge Function processing');
-        await processWithEdgeFunction(conversationId, userMessage, controller.signal);
+        await processWithEdgeFunction(currentConversationId, userMessage, controller.signal);
         
         // Success - just mark as not loading
         setState(prev => ({
@@ -666,7 +753,7 @@ export const useAgentChat = ({
         
         // Log debug info separately instead of storing in state
         console.log('🎉 Request completed successfully:', {
-          conversationId,
+          conversationId: currentConversationId,
           timestamp: new Date().toISOString()
         });
         
@@ -678,6 +765,24 @@ export const useAgentChat = ({
         }
 
         console.error(`❌ Agent request failed (attempt ${retryCountRef.current + 1}/${maxRetries}):`, error);
+        
+        // Try to recover the conversation if possible
+        if (currentConversationId) {
+          try {
+            const recovered = await attemptRecovery(currentConversationId);
+            if (recovered) {
+              console.log('✅ Recovered conversation after error');
+              setState(prev => ({
+                ...prev,
+                isLoading: false,
+                error: `Request failed but conversation recovered: ${error.message || 'Unknown error'}`
+              }));
+              return;
+            }
+          } catch (recoveryError) {
+            console.error('❌ Recovery attempt failed:', recoveryError);
+          }
+        }
 
         // Check if we should retry
         const isRetryable = !error.message?.includes('401') && 
@@ -691,7 +796,7 @@ export const useAgentChat = ({
           console.log(`⏳ Retrying in ${delay}ms...`);
           setTimeout(attemptRequest, delay);
         } else {
-          console.error('❌ Max retries reached or non-retryable error');
+          console.error('❌ Max retries reached or non-retryable error, giving up');
           setState(prev => ({
             ...prev,
             isLoading: false,
@@ -704,7 +809,7 @@ export const useAgentChat = ({
     };
 
     await attemptRequest();
-  }, [state.conversationId, createConversation, processWithEdgeFunction, user, session]);
+  }, [state.conversationId, createConversation, processWithEdgeFunction, user, session, attemptRecovery]);
 
   const retry = useCallback(() => {
     if (state.error) {
@@ -715,7 +820,7 @@ export const useAgentChat = ({
   return {
     ...state,
     // Add debug info
-    debug: {
+    debug: { 
       hasConversationId: !!state.conversationId,
       historyMessageCount: state.historyMessages.length,
       isAuthenticated: !!user,
@@ -732,4 +837,3 @@ export const useAgentChat = ({
     goToStageId: state.goToStageId
   };
 };
-
