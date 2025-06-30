@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useRef } from 'react';
 import { motion } from 'framer-motion';
 import { Download, FileText, Code, Figma, Copy, ExternalLink, Zap, Terminal, Sparkles, Loader } from 'lucide-react';
 import { Stage, StageData } from '../../types';
