@@ -47,7 +47,7 @@ export const AboutUsModal: React.FC<AboutUsModalProps> = ({ isOpen, onClose }) =
                   <h2 className="text-3xl font-bold mb-2">About Chargur</h2>
                   <p className="text-purple-100 text-lg">
                     We're not a dev shop. We're not a brand.<br />
-                    We're just two people who got tired of broken workflows—<br />
+                    We're just two people who got tired of AI surfing—<br />
                     <span className="font-semibold">and built something better.</span>
                   </p>
                 </motion.div>
@@ -55,7 +55,7 @@ export const AboutUsModal: React.FC<AboutUsModalProps> = ({ isOpen, onClose }) =
 
               {/* Content */}
               <div className="overflow-y-auto max-h-[calc(90vh-120px)]">
-                <div className="p-6 pb-12 space-y-8">
+                <div className="p-6 pb-24 space-y-8">
                   {/* Origin Story */}
                   <motion.section
                     initial={{ opacity: 0, y: 20 }}
@@ -229,7 +229,7 @@ export const AboutUsModal: React.FC<AboutUsModalProps> = ({ isOpen, onClose }) =
                     
                     <div className="bg-gray-50 rounded-xl p-6 border border-gray-200">
                       <p className="text-gray-700 mb-4">
-                        Chargur was built entirely in Bolt.new in just 10 days during the Bolt.new Hackathon.
+                        Chargur was built entirely in Bolt.new in just 10 days during the Bolt.new World's Largest Hackathon.
                       </p>
                       
                       <div className="space-y-2">
@@ -243,7 +243,7 @@ export const AboutUsModal: React.FC<AboutUsModalProps> = ({ isOpen, onClose }) =
                         </div>
                         <div className="flex items-start gap-2">
                           <Rocket className="w-4 h-4 text-gray-600 mt-1 flex-shrink-0" />
-                          <span className="text-gray-700">Powered by <a href="https://bolt.new" target="_blank" rel="noopener noreferrer" className="text-blue-600 hover:underline">Bolt.new</a> - from concept to code in 10 days</span>
+                          <span className="text-gray-700">Powered by <a href="https://bolt.new" target="_blank" rel="noopener noreferrer" className="text-grey-300 hover:underline">Bolt.new</a> - from concept to code in 10 days</span>
                         </div>
                       </div>
                     </div>

@@ -24,8 +24,8 @@ const getAllowedOrigin = (request: Request): string => {
     'http://localhost:5173', // Vite dev server
     'http://localhost:5174', // Alternative Vite port
     'http://localhost:4173', // Vite preview
-    'https://your-app-domain.com',
-    'https://your-app-domain.vercel.app',
+    'https://chargur.netlify.app',
+    'https://chargur.app',
     // Add your actual production domains
   ]
   
@@ -82,10 +82,10 @@ class EdgeLLMClient {
   }
 
   private getDefaultModel(): string {
-    return this.provider === 'openai' ? 'gpt-4o-mini' : 'claude-3-sonnet-20240229'
+    return this.provider === 'openai' ? 'gpt-4o' : 'claude-3-sonnet-20240229'
   }
 
-  async generateResponse(systemPrompt: string, userPrompt: string, temperature = 0.7, maxTokens = 1500): Promise<string> {
+  async generateResponse(systemPrompt: string, userPrompt: string, temperature = 0.3, maxTokens = 2000): Promise<string> {
     // Check for API key first
     if (!this.apiKey) {
       throw new Error(`${this.provider.toUpperCase()}_API_KEY environment variable is required`)
@@ -608,6 +608,7 @@ async function processAgentRequest(controller: ReadableStreamDefaultController, 
     
     // STEP 5: Parse and validate response
     console.log('🔧 Parsing and validating response...')
+    console.log('🔧 Parsing and validating response...')
     const response = parseAndValidateResponse(llmResponse, stageId)
     console.log('✅ Response parsed successfully')
     
@@ -667,7 +668,7 @@ async function processAgentRequest(controller: ReadableStreamDefaultController, 
         break
       }
       if (i < words.length - 1) {
-        await new Promise(resolve => setTimeout(resolve, 50))
+        await new Promise(resolve => setTimeout(resolve, 25))
       }
     }
     
