@@ -1,6 +1,6 @@
 import React from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { X, Heart, Zap, Users, Rocket, Brain, Code, Target } from 'lucide-react';
+import { X, Heart, Zap, Users, Rocket, Brain, Code, Target, FileText } from 'lucide-react';
 
 interface AboutUsModalProps {
   isOpen: boolean;
