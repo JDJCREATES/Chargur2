@@ -9,6 +9,7 @@
 import { v4 as uuidv4 } from 'uuid';
 import { Node, Edge } from 'reactflow';
 import { getSmartNodePosition } from './nodePlacementUtils';
+import { MarkerType } from 'reactflow';
 
 // Define constants for node types
 export const STAGE1_NODE_TYPES = {
@@ -175,6 +176,8 @@ export function createAppNameNode(appName: string, existingNodes: Node[] = []): 
       value: appName,
       editable: true,
       nameHistory: [],
+      width: defaults.size.width,
+      height: defaults.size.height,
       resizable: true
     }
   };
@@ -206,6 +209,8 @@ export function createTaglineNode(tagline: string, existingNodes: Node[] = []): 
       metadata: { stage: 'ideation-discovery', nodeType: 'tagline' },
       value: tagline,
       editable: true,
+      width: defaults.size.width,
+      height: defaults.size.height,
       resizable: true
     }
   };
@@ -238,6 +243,8 @@ export function createCoreProblemNode(problemStatement: string, existingNodes: N
       value: problemStatement,
       editable: true,
       keywords: [],
+      width: defaults.size.width,
+      height: defaults.size.height,
       resizable: true
     }
   };
@@ -274,6 +281,8 @@ export function createMissionNode(
       value: appIdea,
       missionStatement: missionStatement || '',
       editable: true,
+      width: defaults.size.width,
+      height: defaults.size.height,
       resizable: true
     }
   };
@@ -306,6 +315,8 @@ export function createValuePropNode(valueProposition: string, existingNodes: Nod
       value: valueProposition,
       editable: true,
       bulletPoints: [],
+      width: defaults.size.width,
+      height: defaults.size.height,
       resizable: true
     }
   };
@@ -348,6 +359,8 @@ export function createUserPersonaNode(
       painPoint: persona.painPoint || 'Pain point',
       emoji: persona.emoji || '👤',
       editable: true,
+      width: defaults.size.width,
+      height: defaults.size.height,
       resizable: true
     }
   };
@@ -385,6 +398,8 @@ export function createLegacyUserPersonaNode(
       painPoint: targetUsers,
       emoji: '👤',
       editable: true,
+      width: defaults.size.width,
+      height: defaults.size.height,
       resizable: true
     }
   };
@@ -431,6 +446,8 @@ export function createCompetitorNode(
       strengths: competitor.strengths || [],
       weaknesses: competitor.weaknesses || [],
       editable: true,
+      width: defaults.size.width,
+      height: defaults.size.height,
       resizable: true
     }
   };
@@ -485,6 +502,8 @@ export function createFeaturePackNode(
       },
       subFeatures: [],
       showBreakdown: false,
+      width: STAGE2_NODE_DEFAULTS.feature.size.width,
+      height: STAGE2_NODE_DEFAULTS.feature.size.height,
       resizable: true
     }
   };
@@ -529,6 +548,8 @@ export function createCustomFeatureNode(
       },
       subFeatures: feature.subFeatures || [],
       showBreakdown: false,
+      width: STAGE2_NODE_DEFAULTS.feature.size.width,
+      height: STAGE2_NODE_DEFAULTS.feature.size.height,
       resizable: true
     }
   };
@@ -561,6 +582,8 @@ export function createNaturalLanguageFeatureNode(
       color: 'blue',
       connections: [],
       metadata: { stage: 'feature-planning', type: 'description' },
+      width: STAGE2_NODE_DEFAULTS.feature.size.width,
+      height: STAGE2_NODE_DEFAULTS.feature.size.height,
       resizable: true
     }
   };
@@ -597,6 +620,8 @@ export function createArchitectureNode(
         stage: 'feature-planning',
         architectureData
       },
+      width: defaults.size.width,
+      height: defaults.size.height,
       resizable: true
     }
   };
@@ -636,6 +661,8 @@ export function createRouteApiMappingNode(
         routeId: route.id,
         nodeType: 'routeApiMapping'
       },
+      width: defaults.size.width,
+      height: defaults.size.height,
       resizable: true
     }
   };
@@ -675,6 +702,8 @@ export function createInformationArchitectureNode(
       },
       screens,
       dataModels,
+      width: defaults.size.width,
+      height: defaults.size.height,
       resizable: true
     }
   };
@@ -712,6 +741,8 @@ export function createUserJourneyNode(
         nodeType: 'userJourney'
       },
       userFlows,
+      width: defaults.size.width,
+      height: defaults.size.height,
       resizable: true
     }
   };
@@ -751,6 +782,8 @@ export function createStateDataFlowNode(
       },
       stateManagement,
       dataFlow,
+      width: defaults.size.width,
+      height: defaults.size.height,
       resizable: true
     }
   };
@@ -791,6 +824,8 @@ export function createMarkdownCodeNode(
         stage: 'structure-flow',
         nodeType: 'markdownCode'
       },
+      width: defaults.size.width,
+      height: defaults.size.height,
       resizable: true
     }
   };
@@ -823,6 +858,8 @@ export function createScreenNode(
       color: 'green',
       connections: [],
       metadata: { stage: 'structure-flow', screenType: screen.type, sourceId: screen.id },
+      width: 150,
+      height: 100,
       resizable: true
     }
   };
@@ -855,6 +892,8 @@ export function createUserFlowNode(
       color: 'green',
       connections: [],
       metadata: { stage: 'structure-flow', flowType: 'user-journey', sourceId: flow.id },
+      width: 200,
+      height: 120,
       resizable: true
     }
   };
@@ -887,6 +926,8 @@ export function createDatabaseTableNode(
       color: 'red',
       connections: [],
       metadata: { stage: 'architecture-design', tableType: 'database', sourceId: table.id },
+      width: 180,
+      height: 100,
       resizable: true
     }
   };
@@ -919,6 +960,8 @@ export function createAPIEndpointsNode(
       color: 'red',
       connections: [],
       metadata: { stage: 'architecture-design', systemType: 'api' },
+      width: 160,
+      height: 80,
       resizable: true
     }
   };
@@ -951,6 +994,8 @@ export function createRouteNode(
       color: 'red',
       connections: [],
       metadata: { stage: 'architecture-design', routeType: 'page', sourceId: route.id },
+      width: 140,
+      height: 90,
       resizable: true
     }
   };
@@ -983,6 +1028,8 @@ export function createDesignSystemNode(
       color: 'purple',
       connections: [],
       metadata: { stage: 'interface-interaction', uiType: 'design-system' },
+      width: 160,
+      height: 80,
       resizable: true
     }
   };
@@ -1031,6 +1078,8 @@ export function createBrandingNode(
       bodyFont: brandingData.bodyFont || 'Roboto',
       borderRadius: brandingData.borderRadius || 'medium',
       designSystem: brandingData.designSystem || 'shadcn',
+      width: defaults.size.width,
+      height: defaults.size.height,
       editable: true,
       resizable: true
     }
@@ -1064,6 +1113,8 @@ export function createLayoutNode(
       color: 'purple',
       connections: [],
       metadata: { stage: 'interface-interaction', uiType: 'layout' },
+      width: 160,
+      height: 80,
       resizable: true
     }
   };
@@ -1096,6 +1147,8 @@ export function createAuthMethodsNode(
       color: 'red',
       connections: [],
       metadata: { stage: 'user-auth-flow', authType: 'methods' },
+      width: 180,
+      height: 100,
       resizable: true
     }
   };
@@ -1136,6 +1189,8 @@ export function createUserRolesNode(
       color: 'red',
       connections: [],
       metadata: { stage: 'user-auth-flow', authType: 'roles' },
+      width: 180,
+      height: 120,
       resizable: true
     }
   };
@@ -1168,6 +1223,8 @@ export function createSecurityFeaturesNode(
       color: 'red',
       connections: [],
       metadata: { stage: 'user-auth-flow', authType: 'security' },
+      width: 200,
+      height: 100,
       resizable: true
     }
   };
@@ -1267,6 +1324,8 @@ export function createAIAnalysisNode(
         totalNodes: nodeCount,
         timestamp: new Date().toISOString()
       },
+      width: 220,
+      height: 180,
       resizable: true
     }
   };
@@ -1300,6 +1359,8 @@ export function createPlatformNode(
       connections: [],
       metadata: { stage: 'ideation-discovery', nodeType: 'platform' },
       platform: platform,
+      width: 160,
+      height: 80,
       editable: true,
       resizable: true
     }
@@ -1334,6 +1395,8 @@ export function createTechStackNode(
       connections: [],
       metadata: { stage: 'ideation-discovery', nodeType: 'techStack' },
       techStack: techStack,
+      width: 180,
+      height: 120,
       editable: true,
       resizable: true
     }
@@ -1368,6 +1431,8 @@ export function createUIStyleNode(
       connections: [],
       metadata: { stage: 'ideation-discovery', nodeType: 'uiStyle' },
       uiStyle: uiStyle,
+      width: 180,
+      height: 120,
       editable: true,
       resizable: true
     }
@@ -1421,6 +1486,8 @@ export function createLofiLayoutNode(
         nodeType: 'lofiLayout',
         layoutType: templateName
       },
+      width: defaults.size.width,
+      height: defaults.size.height,
       resizable: true
     }
   };
