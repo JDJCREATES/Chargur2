@@ -5,7 +5,6 @@ import { UXReviewFormData } from './uxReview';
 export interface CustomNodeData {
   title: string;
   content: string;
-  size: { width: number; height: number };
   color: string;
   connections: any[];
   metadata: {
@@ -34,7 +33,7 @@ export interface LayoutBlock {
 export interface LofiLayoutNodeData extends CustomNodeData {
   layoutId: string;
   templateName: string;
-  layoutBlocks: LayoutBlock[];
+  layoutBlocks: LayoutBlock[]; 
   description?: string;
   viewMode: 'desktop' | 'tablet' | 'mobile';
   editable: boolean;
