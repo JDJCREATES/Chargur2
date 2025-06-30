@@ -714,8 +714,8 @@ export const SpatialCanvas: React.FC<SpatialCanvasProps> = ({
             handleUpdateNodes(updatedNodes);
           }}
           deleteKeyCode="Delete"
-          minZoom={0.1}
-          maxZoom={4}
+          minZoom={0.5}   // This limits how far you can zoom OUT (higher = less zoom out)
+          maxZoom={4}     // This limits how far you can zoom IN
           defaultViewport={{ x: 0, y: 0, zoom: 0.5 }}
           proOptions={{ hideAttribution: true }}
           connectionLineStyle={{ stroke: '#9CA3AF', strokeWidth: 2 }}
