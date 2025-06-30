@@ -54,13 +54,34 @@ export class EdgeStagePromptEngine {
         500  // Small token limit for quick response
       );
       
-      // Parse the intent classification response
-      const intentData = JSON.parse(intentResponse);
-      console.log('🧠 Intent classification results:', intentData);
+      // Clean the response before parsing
+      let cleanedResponse = intentResponse.trim();
+      
+      // Remove markdown code blocks
+      cleanedResponse = cleanedResponse
+        .replace(/^\s*/i, '')
+        .replace(/^\s*/i, '')
+        .replace(/\s*$/g, '')
+        .replace(/json/gi, '')
+        .replace(/```/g, '')
+        .trim();
+      
+      // Extract JSON object boundaries
+      const firstBrace = cleanedResponse.indexOf('{');
+      const lastBrace = cleanedResponse.lastIndexOf('}');
+      
+      if (firstBrace !== -1 && lastBrace !== -1 && lastBrace > firstBrace) {
+        cleanedResponse = cleanedResponse.substring(firstBrace, lastBrace + 1);
+      }
+      
+      console.log('📋 Intent classification response cleaned:', cleanedResponse.substring(0, 200));
+      
+      const parsed = JSON.parse(cleanedResponse);
+      console.log('🧠 Intent classification results:', parsed);
       
       // Extract the relevant stage IDs
-      const relevantStageIds = intentData.relevantStageIds || [];
-      const suggestedPrimaryStage = intentData.suggestedPrimaryStage || null;
+      const relevantStageIds = parsed.relevantStageIds || [];
+      const suggestedPrimaryStage = parsed.suggestedPrimaryStage || null;
       
       // If no stages were identified, default to current stage
       if (relevantStageIds.length === 0) {

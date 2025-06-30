@@ -19,6 +19,11 @@ export function generateIntentClassificationPrompt(context: any) {
 
   const systemPrompt = `You are an expert intent classifier for a UX design and app planning assistant. Your job is to analyze user messages and determine which stage(s) of the app planning process they relate to.
 
+CRITICAL JSON RESPONSE FORMAT:
+You MUST respond with valid JSON only. Do NOT wrap your response in markdown code blocks.
+Do NOT use \`\`\`json or \`\`\` around your response.
+Return raw JSON that starts with { and ends with }.
+
 AVAILABLE STAGES:
 ${stagesSummary}
 
@@ -93,13 +98,15 @@ SPECIAL INTENTS:
    - Example: "Find competitors for my app", "What are similar apps to mine?", "Show me competitors"
    - Action: Set competitorSearchIntent to true in response
 
-IMPORTANT: You must respond with valid JSON only. Do not include any explanatory text outside the JSON structure.`;
+RESPONSE FORMAT REMINDER:
+Return ONLY the JSON object. No markdown, no code blocks, no additional text.`;
 
   const userPrompt = `Analyze this user message: "${userMessage.replace(/"/g, '\\"')}"
 
 Determine which stage(s) of the app planning process this message relates to. The user is currently in the "${stageName}" stage.
 
-Respond in this exact JSON format:
+CRITICAL: Return ONLY the JSON object below. Do not wrap it in markdown code blocks or add any other text:
+
 {
   "relevantStageIds": ["stage-id-1", "stage-id-2"], 
   "confidence": 0.85,
@@ -123,7 +130,7 @@ Available stage IDs:
   return {
     systemPrompt,
     userPrompt,
-    temperature: 0.2,
+    temperature: 0.2, // Lower temperature for more consistent JSON
     maxTokens: 500
   };
 }
