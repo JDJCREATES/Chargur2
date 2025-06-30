@@ -11,6 +11,14 @@
     font-display: swap;
 }
 
+
+/* In your global CSS file (e.g., globals.css) */
+.react-flow__minimap {
+  border-radius: 0.5rem !important;
+  overflow: hidden;
+}
+
+
 /* Create a utility class for the Chargur brand */
 .font-nova-round {
     font-family: 'Nova Round', cursive;
