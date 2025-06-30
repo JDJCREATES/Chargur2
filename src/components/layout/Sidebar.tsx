@@ -161,6 +161,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
           <ExportPanel
             stages={stages}
             stageData={stageData}
+            onSendMessage={agentChat.sendMessage}
           />
         );
       default:
