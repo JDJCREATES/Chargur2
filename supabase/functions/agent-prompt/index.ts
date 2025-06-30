@@ -755,20 +755,32 @@ function parseAndValidateResponse(llmResponse: string, stageId: string): AgentRe
   console.log('🔧 parseAndValidateResponse called')
   console.log('📄 Response to parse (first 500 chars):', llmResponse.substring(0, 500))
 
-  // Clean the response before parsing
+  // More aggressive cleaning of the response
   let cleanedResponse = llmResponse.trim();
+
+  // Remove markdown code blocks - handle all variations
+cleanedResponse = cleanedResponse
+  .replace(/^```json\s*/i, '')     // Remove opening ```json
+  .replace(/^```\s*/i, '')         // Remove opening ```
+  .replace(/\s*```$/g, '')         // Remove closing ```
+  .replace(/```json/gi, '')        // Remove any remaining ```json
+  .replace(/```/g, '')             // Remove any remaining ```
+  .trim();
   
-  // Remove markdown code blocks
-  cleanedResponse = cleanedResponse
-    .replace(/^\s*/i, '')
-    .replace(/^\s*/, '')
-    .replace(/\s*```$/g, '')
-    .trim();
+  // Remove any leading/trailing whitespace, newlines, or control characters
+  cleanedResponse = cleanedResponse.replace(/^[\s\n\r\t]+|[\s\n\r\t]+$/g, '');
   
-  // Remove any leading/trailing whitespace or newlines
-  cleanedResponse = cleanedResponse.replace(/^\s+|\s+$/g, '');
+  // Additional safety: ensure it starts with { and ends with }
+  const firstBrace = cleanedResponse.indexOf('{');
+  const lastBrace = cleanedResponse.lastIndexOf('}');
   
-  console.log('🧹 Cleaned response (first 200 chars):', cleanedResponse.substring(0, 200));
+  if (firstBrace !== -1 && lastBrace !== -1 && lastBrace > firstBrace) {
+    cleanedResponse = cleanedResponse.substring(firstBrace, lastBrace + 1);
+  }
+  
+  
+  console.log('🔍 Cleaned response starts with:', cleanedResponse.charAt(0));
+  console.log('🔍 Cleaned response ends with:', cleanedResponse.charAt(cleanedResponse.length - 1));
 
   try {
     // Try to parse JSON response
@@ -840,28 +852,69 @@ function parseAndValidateResponse(llmResponse: string, stageId: string): AgentRe
     console.error('❌ Failed to parse LLM response:', error)
     console.error('📄 Raw response that failed to parse:', llmResponse)
     console.error('🧹 Cleaned response that failed to parse:', cleanedResponse)
+    console.error('🔍 Cleaned response length:', cleanedResponse.length)
+    console.error('🔍 First 50 chars of cleaned response:', JSON.stringify(cleanedResponse.substring(0, 50)))
     
-    // Try to extract content from malformed JSON
+    // Try to extract content from malformed JSON using regex
     let extractedContent = '';
+    let extractedSuggestions: string[] = [];
+    let extractedAutoFillData: any = {};
+    
     try {
-      // Look for content field in the raw response
-      const contentMatch = llmResponse.match(/"content"\s*:\s*"([^"]*(?:\\.[^"]*)*)"/);
+      // Extract content field
+      const contentMatch = llmResponse.match(/"content"\s*:\s*"([^"]*(?:\\.[^"]*)*)"/s);
       if (contentMatch) {
-        extractedContent = contentMatch[1].replace(/\\"/g, '"').replace(/\\n/g, '\n');
-        console.log('✅ Extracted content from malformed JSON:', extractedContent.substring(0, 100));
+        extractedContent = contentMatch[1]
+          .replace(/\\"/g, '"')
+          .replace(/\\n/g, '\n')
+          .replace(/\\t/g, '\t')
+          .replace(/\\r/g, '\r');
+        console.log('✅ Extracted content from malformed response');
       }
+      
+      // Extract suggestions array
+      const suggestionsMatch = llmResponse.match(/"suggestions"\s*:\s*\[(.*?)\]/s);
+      if (suggestionsMatch) {
+        const suggestionsStr = suggestionsMatch[1];
+        const suggestions = suggestionsStr.match(/"([^"]*(?:\\.[^"]*)*)"/g);
+        if (suggestions) {
+          extractedSuggestions = suggestions.map(s => s.slice(1, -1).replace(/\\"/g, '"'));
+          console.log('✅ Extracted suggestions from malformed response');
+        }
+      }
+      
+      // Try to extract autoFillData as a whole object
+      const autoFillMatch = llmResponse.match(/"autoFillData"\s*:\s*({.*?})\s*,?\s*"stageComplete"/s);
+      if (autoFillMatch) {
+        try {
+          extractedAutoFillData = JSON.parse(autoFillMatch[1]);
+          console.log('✅ Extracted autoFillData from malformed response');
+        } catch (e) {
+          console.log('⚠️ Failed to parse extracted autoFillData');
+        }
+      }
+      
     } catch (extractError) {
-      console.error('❌ Failed to extract content:', extractError);
+      console.error('❌ Failed to extract fields:', extractError);
     }
     
-    // Fallback response
-    console.log('🔄 Using fallback response')
+    // Fallback response with extracted data
+    console.log('🔄 Using fallback response with extracted data')
     return {
-      content: extractedContent || llmResponse || "I'm here to help you with this stage. What would you like to work on?",
-      suggestions: ["Tell me more about your needs", "What should we focus on?", "Help me understand your goals"],
-      autoFillData: { [stageId]: {} },
+      content: extractedContent || "I'm here to help you with this stage. What would you like to work on?",
+      suggestions: extractedSuggestions.length > 0 ? extractedSuggestions : ["Tell me more about your needs", "What should we focus on?", "Help me understand your goals"],
+      autoFillData: Object.keys(extractedAutoFillData).length > 0 ? { [stageId]: extractedAutoFillData } : { [stageId]: {} },
       stageComplete: false,
-      context: { parseError: true, originalResponse: llmResponse, cleanedResponse }
+      context: { 
+        parseError: true, 
+        originalResponse: llmResponse.substring(0, 1000), // Truncate for logging
+        cleanedResponse: cleanedResponse.substring(0, 500),
+        extractedFields: {
+          content: !!extractedContent,
+          suggestions: extractedSuggestions.length > 0,
+          autoFillData: Object.keys(extractedAutoFillData).length > 0
+        }
+      }
     }
   }
 }
