@@ -112,6 +112,18 @@ export const useAgentChat = ({
       // Skip if projectId or stageId are null/empty - this prevents resetting during transient states
       if (!projectId || !stageId) {
         console.log('⚠️ projectId or stageId is missing, skipping conversation load/reset');
+        setState(prev => ({
+          ...prev,
+          isLoading: false,
+          error: null,
+          content: '',
+          suggestions: [],
+          autoFillData: {},
+          isComplete: false,
+          conversationId: null,
+          historyMessages: [],
+          goToStageId: null
+        }));
         // Only reset if we don't have a project or stage
         setState(prev => ({
           ...prev,
@@ -126,6 +138,10 @@ export const useAgentChat = ({
           goToStageId: null
         }));
         return;
+      }
+      
+      if (!stageId) {
+        console.log('⚠️ stageId is missing, but will still try to load project-level conversation');
       }
       
       // Set loading state but preserve history until we know if we need to reset it
@@ -151,7 +167,7 @@ export const useAgentChat = ({
 
         // Query for existing conversation for this project and stage
         const response = await fetch(
-          `${supabaseUrl}/rest/v1/chat_conversations?project_id=eq.${projectId}&stage_id=eq.${stageId}&user_id=eq.${user.id}&order=created_at.desc&limit=1`,
+          `${supabaseUrl}/rest/v1/chat_conversations?project_id=eq.${projectId}&user_id=eq.${user.id}&order=created_at.desc&limit=1`,
           {
             headers: {
               'Authorization': `Bearer ${session.access_token}`,
@@ -271,7 +287,7 @@ export const useAgentChat = ({
     
       
       const requestBody = {
-        stage_id: stageId,
+        // Remove stage_id to make conversations project-level instead of stage-level
         project_id: projectId,
         metadata: {
           currentStageData,
