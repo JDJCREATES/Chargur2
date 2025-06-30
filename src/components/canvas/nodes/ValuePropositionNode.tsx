@@ -111,7 +111,7 @@ const ValuePropositionNode: React.FC<NodeProps> = ({
         ${isPlaceholder ? 'opacity-70' : 'opacity-100'}
       `}>
           {/* Header */}
-          <div className="flex items-center gap-2 p-3 border-b border-emerald-200">
+          <div className="p-4 w-full h-[calc(100%-100px)] whitespace-normal break-words overflow-auto">
             <CheckCircle className="w-4 h-4 text-emerald-600" />
             <span className="text-sm font-medium text-emerald-800">Value Proposition</span>
           </div>

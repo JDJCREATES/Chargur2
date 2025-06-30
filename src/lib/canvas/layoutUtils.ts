@@ -65,8 +65,9 @@ const STAGE_LAYOUT_OPTIONS: Record<string, any> = {
 function toElkNodes(nodes: Node[]): ElkNode[] {
   return nodes.map(node => ({
     id: node.id,
-    width: node.data?.size?.width || 150,
-    height: node.data?.size?.height || 100,
+    // Use width/height directly from the node, with fallbacks
+    width: node.width || node.data?.size?.width || 150,
+    height: node.height || node.data?.size?.height || 100,
     x: node.position.x,
     y: node.position.y,
     // Add metadata for later reference
@@ -166,7 +167,9 @@ export async function getLayoutedElements(
       console.log('📍 Sample node positions:', sampleNodes.map(node => ({
         id: node.id,
         x: node.x,
-        y: node.y
+        y: node.y,
+        width: node.width,
+        height: node.height
       })));
     }
 
@@ -182,13 +185,16 @@ export async function getLayoutedElements(
             stageGroup.children.forEach(elkNode => {
               const nodeIndex = layoutedNodes.findIndex(n => n.id === elkNode.id);
               if (nodeIndex !== -1 && elkNode.x !== undefined && elkNode.y !== undefined) {
-                // Update node position
+                // Update node position and dimensions
                 layoutedNodes[nodeIndex] = {
                   ...layoutedNodes[nodeIndex],
                   position: {
                     x: elkNode.x,
                     y: elkNode.y
-                  }
+                  },
+                  // Also update width and height if they were calculated by ELK
+                  ...(elkNode.width ? { width: elkNode.width } : {}),
+                  ...(elkNode.height ? { height: elkNode.height } : {})
                 };
               }
             });
@@ -199,13 +205,16 @@ export async function getLayoutedElements(
         layoutedGraph.children.forEach(elkNode => {
           const nodeIndex = layoutedNodes.findIndex(n => n.id === elkNode.id);
           if (nodeIndex !== -1 && elkNode.x !== undefined && elkNode.y !== undefined) {
-            // Update node position
+            // Update node position and dimensions
             layoutedNodes[nodeIndex] = {
               ...layoutedNodes[nodeIndex],
               position: {
                 x: elkNode.x,
                 y: elkNode.y
-              }
+              },
+              // Also update width and height if they were calculated by ELK
+              ...(elkNode.width ? { width: elkNode.width } : {}),
+              ...(elkNode.height ? { height: elkNode.height } : {})
             };
           }
         });
