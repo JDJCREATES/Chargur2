@@ -152,7 +152,7 @@ export function processAuthData(
       }
     } else {
       // Create a new node
-      const newNode = nodeFactory.createSecurityFeaturesNode(enabledSecurity, newNodes);
+      const newNode = nodeFactory.createUserRolesNode(authData.userRoles, newNodes);
       newNodes.push(newNode);
       nodesChanged = true;
     }
