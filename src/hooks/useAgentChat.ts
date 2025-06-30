@@ -126,6 +126,22 @@ export const useAgentChat = ({
       }
       
       // Skip if projectId or stageId are null/empty - this prevents resetting during transient states
+      // Reset state when projectId changes to clear chat history
+      if (projectId) {
+        setState(prev => ({
+          ...prev,
+          isLoading: true,
+          error: null,
+          content: '',
+          suggestions: [],
+          autoFillData: {},
+          isComplete: false,
+          conversationId: null,
+          historyMessages: [],
+          goToStageId: null
+        }));
+      }
+      
       if (!projectId || !stageId) {
         console.log('⚠️ projectId or stageId is missing, skipping conversation load/reset');
         return;
@@ -135,17 +151,6 @@ export const useAgentChat = ({
         // Only proceed if we have all required data
         if (!projectId || !stageId || !user || !session?.access_token) {
           setState(prev => ({ ...prev, isLoading: false }));
-          return;
-        }
-        
-        console.log('🔍 Looking for existing conversation for project:', projectId, 'and stage:', stageId);
-        
-        // Set loading state while we check for existing conversations
-        setState(prev => ({ ...prev, isLoading: true, error: null }));
-
-        const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
-        const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY;
-
         if (!supabaseUrl || !supabaseAnonKey) {
           throw new Error('Missing Supabase configuration');
         }
