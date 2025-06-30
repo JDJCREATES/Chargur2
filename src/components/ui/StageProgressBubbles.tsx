@@ -120,7 +120,7 @@ export const StageProgressBubbles: React.FC<StageProgressBubblesProps> = ({
       {/* Additional Buttons for Auto-Prompt and Export */}
       {remainingStages.length > 0 && (
         <div className="flex gap-2">
-          <motion.button
+          {/*<motion.button
             onClick={() => onStageClick(remainingStages[0].id)}
             initial={{ opacity: 0, scale: 0.8 }}
             animate={{ opacity: 1, scale: 1 }}
@@ -132,7 +132,7 @@ export const StageProgressBubbles: React.FC<StageProgressBubblesProps> = ({
           >
             <Zap className="w-4 h-4" />
             <span className="text-sm">Auto-Prompt</span>
-          </motion.button>
+          </motion.button>*/}
 
           {remainingStages.length > 1 && (
             <motion.button
