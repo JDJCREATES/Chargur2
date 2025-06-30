@@ -85,7 +85,7 @@ IMPORTANT: Return ONLY the JSON object below. Do not wrap it in markdown code bl
     "userPersonas": "target user description",
     "valueProposition": "unique value proposition"
   },
-  "stageComplete": false,
+  "stageComplete": boolean,
   "context": {
     "extractedInfo": "what information was extracted",
     "nextSteps": "what should happen next"
