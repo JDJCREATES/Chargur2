@@ -653,17 +653,6 @@ export const SpatialCanvas: React.FC<SpatialCanvasProps> = ({
   }, [effectiveNodes, effectiveEdges, handleUpdateNodes, reactFlowInstance, selectedLayoutType, setSelectedLayoutType]);
 
   // Apply saved layout on initial load
-  useEffect(() => {
-    // Only apply layout if we have nodes to layout
-    if (effectiveNodes.length > 2) {
-      // Use a small delay to ensure the canvas is fully rendered
-      const timer = setTimeout(() => {
-        handleAutoLayout(selectedLayoutType);
-      }, 800);
-      return () => clearTimeout(timer);
-    }
-  }, [projectId]); // Only run when project changes
-
   // Save canvas state
   const handleSave = useCallback(() => {
     // Canvas is already auto-saved via onUpdateCanvasNodes/onUpdateCanvasConnections
