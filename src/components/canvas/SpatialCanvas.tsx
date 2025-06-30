@@ -734,6 +734,8 @@ export const SpatialCanvas: React.FC<SpatialCanvasProps> = ({
         >
           <Background color="#e5e7eb" gap={20} size={1} variant={showGrid ? BackgroundVariant.Dots : undefined} />
           <MiniMap 
+            position="top-left"
+            className="rounded-lg"
             nodeColor={(node) => {
               switch (node.type) {
                 case 'appName': return '#3b82f6';
